@@ -1,0 +1,25 @@
+# 환경변수 (시크릿 포함)
+.env
+.env.staging
+.env.production
+.env.local
+.env.*.local
+.env.prod
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+.ruff_cache/
+.pytest_cache/
+
+# 로컬 SQLite DB
+*.db
+
+# 기타
+.DS_Store
+
+# 로컬 개발 첨부 저장소 (S3 미설정 시)
+.local-uploads/

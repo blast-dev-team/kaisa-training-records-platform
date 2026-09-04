@@ -1,0 +1,36 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Local DB / dev artifacts
+dev.db
+*.sqlite
+*.sqlite3
+
+# Env files (시크릿은 Secrets Manager에서 주입)
+.env
+.env.*
+!.env.example
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+
+# Git
+.git/
+.gitignore
+
+# Build artifacts
+*.egg-info/
+build/
+dist/
+
+# Docs / scripts not needed at runtime
+README.md

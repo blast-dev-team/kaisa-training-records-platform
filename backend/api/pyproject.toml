@@ -1,0 +1,33 @@
+[project]
+name = "kaisa-api"
+version = "0.1.0"
+description = "Kaisa Training Records Platform Backend API"
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi[standard]>=0.115",
+    "sqlalchemy>=2.0",
+    "alembic>=1.15",
+    "pydantic-settings>=2.0",
+    "greenlet>=3.0",
+    "asyncpg>=0.30",
+    "scalar-fastapi>=1.8.2",
+    "httpx>=0.28.1",
+]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.9",
+    "pytest>=8.0",
+    "pytest-asyncio>=0.25",
+    "httpx>=0.28",
+]
+
+[tool.ruff.lint]
+# 기본(E,F)에 DTZ(flake8-datetimez) 추가 — naive datetime 을 금지한다.
+#
+# naive 는 프로세스의 OS 타임존으로 해석되므로, 같은 코드가 로컬과 컨테이너(UTC)에서
+# 다른 절대시각을 만든다. '지금'과 '오늘'이 필요하면 timezone-aware 로 다룬다.
+extend-select = ["DTZ"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"

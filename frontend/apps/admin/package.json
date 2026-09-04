@@ -1,0 +1,45 @@
+{
+  "name": "admin",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "lint": "eslint --max-warnings 0",
+    "check-types": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@radix-ui/react-slot": "^1.2.4",
+    "@repo/ui": "workspace:*",
+    "@tanstack/react-query": "^5.75.5",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.469.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.6",
+    "react-router": "^7.9.0",
+    "tailwind-merge": "^3.5.0",
+    "tailwindcss": "4",
+    "zustand": "^5.0.5"
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "@tailwindcss/vite": "4.2.2",
+    "@testing-library/react": "^16.3.2",
+    "@types/node": "^22.15.3",
+    "@types/react": "19.2.2",
+    "@types/react-dom": "19.2.2",
+    "@vitejs/plugin-react": "^4.3.0",
+    "eslint": "^9.39.1",
+    "happy-dom": "^20.11.2",
+    "typescript": "5.9.2",
+    "vite": "^6.0.0",
+    "vite-tsconfig-paths": "^5.1.4",
+    "vitest": "^4.1.10"
+  }
+}

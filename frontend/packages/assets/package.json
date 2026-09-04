@@ -1,0 +1,17 @@
+{
+  "name": "@repo/assets",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Shared static assets (images, gifs, videos, fonts, svg icons) for the monorepo.",
+  "exports": {
+    "./images/*": "./src/images/*",
+    "./gifs/*": "./src/gifs/*",
+    "./videos/*": "./src/videos/*",
+    "./fonts/*": "./src/fonts/*",
+    "./icons/*": "./src/icons/*"
+  },
+  "scripts": {
+    "lint": "echo 'no lint'",
+    "check-types": "echo 'no types to check'"
+  }
+}
