@@ -1,10 +1,9 @@
 # Dependencies
 node_modules
 
-# Next.js
-.next/
-out/
-next-env.d.ts
+# Build
+dist
+dist-ssr
 
 # Local env
 .env
@@ -13,6 +12,10 @@ next-env.d.ts
 # Misc
 .DS_Store
 *.pem
+*.local
 
 # Turbo
 .turbo
+
+# TS build info
+*.tsbuildinfo

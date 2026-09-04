@@ -7,7 +7,7 @@ backend/
   api/          # FastAPI + SQLAlchemy(async) + Alembic (uv)  → backend/api/README.md
 frontend/
   apps/
-    web/        # Next.js 15 (App Router + FSD)      — port 3000
+    web/        # Vite + React SPA (FSD)             — port 3000
     admin/      # Vite + React SPA (FSD)             — port 5173
   packages/
     ui/                 # 공유 React 컴포넌트 (@repo/ui)

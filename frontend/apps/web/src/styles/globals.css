@@ -15,10 +15,6 @@
   --color-line: #e9eaeb;
 }
 
-:root {
-  color-scheme: light;
-}
-
 body {
   background: #ffffff;
   color: var(--color-ink);

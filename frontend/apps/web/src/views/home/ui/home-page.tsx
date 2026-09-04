@@ -6,7 +6,8 @@ export function HomePage() {
       </span>
       <h1 className="text-3xl font-bold text-ink">Kaisa</h1>
       <p className="text-ink-2">
-        FSD 스캐폴드가 준비됐어요. <code>src/views</code> 부터 채워 나가면 됩니다.
+        Vite + React SPA(FSD) 스캐폴드가 준비됐어요. <code>src/views</code> 부터 채워
+        나가면 됩니다.
       </p>
     </main>
   );

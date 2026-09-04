@@ -5,5 +5,3 @@
 ```ts
 import logo from "@repo/assets/images/logo.png";
 ```
-
-`transpilePackages: ["@repo/assets"]` 를 앱의 `next.config.ts` 에 넣어야 Next.js 가 처리한다.
