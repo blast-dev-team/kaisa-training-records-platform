@@ -1,33 +1,73 @@
 import { Link, useSearchParams } from "react-router";
+
+import { CaretLeftIcon } from "@/src/shared/icon/caret-left";
 import { cn } from "@/src/shared/utils/cn";
-import lnpLogo from "@/src/assets/lnp-logo.png";
 
 const TAB_ITEMS = [
   { key: "use", label: "이용약관" },
   { key: "privacy", label: "개인정보 수집·이용" },
   { key: "refund", label: "환불정책" },
-  { key: "unique-info", label: "고유식별 정보 처리" },
+  { key: "unique-info", label: "고유식별정보 처리" },
 ] as const;
 
 type TermsTab = (typeof TAB_ITEMS)[number]["key"];
 const DEFAULT_TAB: TermsTab = "use";
 
-const TAB_CONTENT: Record<TermsTab, { title: string; paragraphs: string[] }> = {
+interface TermsArticle {
+  heading?: string;
+  paragraphs: string[];
+}
+
+interface TermsDocument {
+  title: string;
+  /** 예: "시행일자 2026.01.01 · 개정 이력 보기" — 확정된 문서에만 표기 */
+  meta?: string;
+  articles: TermsArticle[];
+}
+
+const TAB_CONTENT: Record<TermsTab, TermsDocument> = {
   use: {
     title: "이용약관",
-    paragraphs: ["이용약관 본문이 들어갑니다."],
+    meta: "시행일자 2026.01.01 · 개정 이력 보기",
+    articles: [
+      {
+        heading: "제1조 (목적)",
+        paragraphs: [
+          '본 약관은 대한검사교육협회(이하 "협회")가 운영하는 계속교육이력확인서 발급 서비스(이하 "서비스")의 이용 조건 및 절차, 협회와 이용자의 권리·의무에 관한 사항을 규정함을 목적으로 합니다.',
+        ],
+      },
+      {
+        heading: "제2조 (정의)",
+        paragraphs: [
+          '① "서비스"란 협회가 제공하는 계속교육이력확인서 온라인 발급 및 진위확인 서비스를 말합니다.',
+          '② "이용자"란 본 약관에 따라 서비스를 이용하는 자를 말합니다.',
+          '③ "확인서"란 협회가 발급하는 계속교육이력확인서를 말합니다.',
+        ],
+      },
+      {
+        heading: "제3조 (약관의 효력 및 변경)",
+        paragraphs: [
+          "① 본 약관은 서비스 화면에 게시하거나 기타의 방법으로 이용자에게 공지함으로써 효력이 발생합니다.",
+          "② 협회는 관련 법령에 위배되지 않는 범위에서 약관을 개정할 수 있으며, 개정 시 적용일자 7일 전 공지합니다.",
+        ],
+      },
+    ],
   },
   privacy: {
     title: "개인정보 수집·이용",
-    paragraphs: ["개인정보 수집 및 이용에 대한 안내 본문이 들어갑니다."],
+    articles: [
+      { paragraphs: ["개인정보 수집 및 이용에 대한 안내 본문이 들어갑니다."] },
+    ],
   },
   refund: {
     title: "환불정책",
-    paragraphs: ["환불정책 본문이 들어갑니다."],
+    articles: [{ paragraphs: ["환불정책 본문이 들어갑니다."] }],
   },
   "unique-info": {
-    title: "고유식별 정보 처리",
-    paragraphs: ["고유식별 정보 처리에 대한 안내 본문이 들어갑니다."],
+    title: "고유식별정보 처리",
+    articles: [
+      { paragraphs: ["고유식별정보 처리에 대한 안내 본문이 들어갑니다."] },
+    ],
   },
 };
 
@@ -36,7 +76,7 @@ function parseTab(value: string | null): TermsTab {
   return found?.key ?? DEFAULT_TAB;
 }
 
-/** 이용약관 — 좌측 탭 선택에 따라 우측 고정 텍스트가 바뀌는 단일 페이지 */
+/** 이용약관 — Figma 디자인(node 44:28) 반영. 좌측 탭(?tab=)으로 문서 전환 */
 export function TermsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const tab = parseTab(searchParams.get("tab"));
@@ -51,27 +91,30 @@ export function TermsPage() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <header className="border-b border-line">
-        <div className="mx-auto flex h-16 w-full max-w-4xl items-center px-6">
-          <Link to="/">
-            <img src={lnpLogo} alt="KAISA" className="h-8" />
-          </Link>
-        </div>
-      </header>
+    <section className="mx-auto flex w-full max-w-[1200px] flex-1 flex-col gap-6 px-[60px] pb-12 pt-8">
+      <Link
+        to="/"
+        className="flex items-center gap-2 self-start text-gray-700"
+        aria-label="이전 페이지로 돌아가기"
+      >
+        <CaretLeftIcon className="size-8" />
+        <span className="text-[28px] font-bold leading-tight text-gray-900">
+          약관
+        </span>
+      </Link>
 
-      <div className="mx-auto flex w-full max-w-4xl flex-1 gap-10 px-6 py-10">
-        <nav className="flex w-52 shrink-0 flex-col gap-1">
+      <div className="flex gap-8">
+        <nav className="flex w-40 shrink-0 flex-col">
           {TAB_ITEMS.map((item) => (
             <button
               key={item.key}
               type="button"
               onClick={() => selectTab(item.key)}
               className={cn(
-                "rounded-lg px-3 py-2 text-left text-sm font-semibold",
+                "cursor-pointer px-4 py-3 text-left text-sm transition-colors",
                 tab === item.key
-                  ? "bg-primary-50 text-primary-600"
-                  : "text-gray-600 hover:bg-gray-50 hover:text-ink",
+                  ? "bg-gray-900 font-semibold text-white"
+                  : "font-normal text-gray-600 hover:bg-gray-100 hover:text-gray-900",
               )}
             >
               {item.label}
@@ -79,15 +122,32 @@ export function TermsPage() {
           ))}
         </nav>
 
-        <section className="flex-1">
-          <h1 className="text-xl font-bold text-ink">{content.title}</h1>
-          <div className="mt-4 flex flex-col gap-3 text-sm leading-relaxed text-ink-2">
-            {content.paragraphs.map((paragraph) => (
-              <p key={paragraph}>{paragraph}</p>
-            ))}
-          </div>
-        </section>
+        <div className="flex flex-1 flex-col gap-5">
+          <h1 className="text-[22px] font-bold leading-tight text-gray-900">
+            {content.title}
+          </h1>
+          {content.meta && (
+            <p className="text-[13px] text-gray-500">{content.meta}</p>
+          )}
+          {content.articles.map((article, index) => (
+            <article key={article.heading ?? index}>
+              {article.heading && (
+                <h2 className="mb-5 text-base font-bold text-gray-900">
+                  {article.heading}
+                </h2>
+              )}
+              {article.paragraphs.map((paragraph) => (
+                <p
+                  key={paragraph}
+                  className="text-sm leading-6 text-gray-700"
+                >
+                  {paragraph}
+                </p>
+              ))}
+            </article>
+          ))}
+        </div>
       </div>
-    </div>
+    </section>
   );
 }

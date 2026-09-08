@@ -14,13 +14,12 @@ import {
 } from '@/src/widget/verification-modal';
 
 /**
- * 계속교육이력확인서 진위확인 — Figma node 19:25634 (Main Content) 기반.
+ * 확인서 진위확인 (본인인증 불필요) — Figma node 19:25742 기반.
  *
- * MainLayout(헤더·사이드바·푸터) 하위 `/verify` 라우트. 폼 구조는 비인증 페이지
- * (node 19:25742)와 동일하며, 조회 결과는 성공/실패 모달로 표시한다.
- * QR 접속 시 ?id= 로 진위확인 ID가 자동 입력된다.
+ * 진위확인 ID · 성명 입력 + Cap 보안문자. QR 접속 시 ?id= 로 진위확인 ID가
+ * 자동 입력된다. 제출 시 조회 API를 호출하고 결과를 모달(node 32:20)로 띄운다.
  */
-export function VerificationPage() {
+export function VerificationNoAuthPage() {
   const [searchParams] = useSearchParams();
   const [verificationId, setVerificationId] = useState(searchParams.get('id') ?? '');
   const [applicantName, setApplicantName] = useState('');
@@ -46,16 +45,16 @@ export function VerificationPage() {
     verificationId.trim() !== '' && applicantName.trim() !== '' && captchaToken !== '';
 
   return (
-    <section className="-mx-8 -my-10 flex flex-1 flex-col bg-[#f9f9f7] px-10 py-10 font-sans">
-      {/* 헤더 — 제목(28px Bold) + 안내문(14px gray-600), gap 12px */}
-      <div className="flex flex-1 flex-col items-center justify-center gap-6">
+    <section className="flex flex-1 flex-col bg-[#f9f9f7] font-sans">
+      <div className="mx-auto flex w-full max-w-[1200px] flex-1 flex-col items-center justify-center gap-6 p-10">
+        {/* 헤더 — 제목(28px Bold) + 안내문(14px gray-600), gap 12px */}
         <div className="flex w-full flex-col gap-3 text-center">
           <h1 className="text-[28px] leading-normal font-bold text-gray-900">
             계속교육이력확인서 진위확인
           </h1>
           <p className="text-sm leading-[1.6] text-gray-600">
-            확인서 하단의 진위확인 ID와 발급 대상자의 성명을 입력하시면 해당 확인서의
-            유효 여부를 확인할 수 있습니다.
+            확인서 하단의 진위확인 ID와 발급 대상자의 성명을 입력하시면 해당 확인서의 유효 여부를
+            확인할 수 있습니다.
           </p>
         </div>
 
@@ -97,7 +96,7 @@ export function VerificationPage() {
               <p className="text-sm text-red-500">
                 {lookupMutation.error instanceof Error
                   ? lookupMutation.error.message
-                  : '문제가 생겨요. 잠시 후 다시 시도해 주세요'}
+                  : '문제가 생겼어요. 잠시 후 다시 시도해 주세요'}
               </p>
             )}
           </form>
