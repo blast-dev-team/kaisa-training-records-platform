@@ -72,29 +72,28 @@ export function Checkbox({
       <input
         type="checkbox"
         disabled={disabled}
-        className="group sr-only"
+        className="peer sr-only"
         {...props}
       />
       <span
         className={cn(
           "flex shrink-0 items-center justify-center rounded-[4px] border border-solid border-gray-300 bg-white",
           BOX_SIZE[size],
-          "group-checked:border-primary-700 group-checked:bg-primary-700",
-          "group-disabled:bg-gray-200",
-          "group-checked:group-disabled:border-gray-600 group-checked:group-disabled:bg-gray-600",
-          "group-focus-visible:outline-2 group-focus-visible:outline-offset-2 group-focus-visible:outline-primary-400",
+          "peer-checked:border-primary-700 peer-checked:bg-primary-700",
+          "peer-checked:[&>svg]:block",
+          "peer-disabled:bg-gray-200",
+          "peer-checked:peer-disabled:border-gray-600 peer-checked:peer-disabled:bg-gray-600",
+          "peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-primary-400",
         )}
       >
-        <span className="hidden size-4 text-white group-checked:block">
-          <CheckSmIcon />
-        </span>
+        <CheckSmIcon className="hidden size-4 text-white" />
       </span>
       {children !== undefined && (
         <span
           className={cn(
             "leading-[1.5] tracking-[-0.03em] text-gray-800",
             TEXT_SIZE[size],
-            "group-disabled:text-gray-300 group-checked:group-disabled:text-gray-400",
+            "peer-disabled:text-gray-300 peer-checked:peer-disabled:text-gray-400",
           )}
         >
           {children}

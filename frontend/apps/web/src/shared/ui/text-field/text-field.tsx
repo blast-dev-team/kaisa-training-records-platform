@@ -18,15 +18,20 @@ export interface TextFieldProps extends InputHTMLAttributes<HTMLInputElement> {
   essential?: boolean;
   /** 에러 상태 — 라벨·입력창·헬퍼 전부 red 톤 */
   error?: boolean;
+  /** 입력창 배경 — filled(gray-100) | outlined(white) */
+  variant?: "filled" | "outlined";
   /** 입력창 우측 아이콘 (svg 권장 — 래퍼가 크기를 강제한다) */
   rightIcon?: ReactNode;
 }
 
 const BOX_BASE =
-  "flex items-center gap-1 rounded-xl border px-4 py-3 transition-[background-color,border-color,color]";
+  "flex w-full items-center gap-1 rounded-xl border px-4 py-3 transition-[background-color,border-color,color]";
 
-const BOX_DEFAULT =
+const BOX_FILLED =
   "border-gray-300 bg-gray-100 focus-within:border-primary-400 focus-within:bg-primary-50";
+
+const BOX_OUTLINED =
+  "border-gray-300 bg-white focus-within:border-primary-400 focus-within:bg-white";
 
 const BOX_ERROR =
   "border-red-500 bg-red-50 focus-within:border-red-500 focus-within:bg-red-50";
@@ -48,6 +53,7 @@ export function TextField({
   helperText,
   essential = false,
   error = false,
+  variant = "filled",
   rightIcon,
   className,
   id,
@@ -74,7 +80,11 @@ export function TextField({
       )}
 
       <div
-        className={cn(BOX_BASE, error ? BOX_ERROR : BOX_DEFAULT, BOX_DISABLED)}
+        className={cn(
+          BOX_BASE,
+          error ? BOX_ERROR : variant === "filled" ? BOX_FILLED : BOX_OUTLINED,
+          BOX_DISABLED,
+        )}
       >
         <input
           id={inputId}

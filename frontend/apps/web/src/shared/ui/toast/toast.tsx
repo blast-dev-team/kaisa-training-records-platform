@@ -40,7 +40,7 @@ export function Toast({
     <div
       role="status"
       className={cn(
-        "flex w-[280px] items-center rounded-xl bg-gray-100 px-3 py-2 shadow-[0_2px_16px_-1px_rgba(16,24,40,0.1)]",
+        "flex w-[280px] animate-toast-in items-center rounded-xl bg-gray-100 px-3 py-2 shadow-[0_8px_24px_-6px_rgba(16,24,40,0.25)]",
         onClose ? "justify-between" : "gap-2",
         className,
       )}
