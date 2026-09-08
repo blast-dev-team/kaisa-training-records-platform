@@ -21,24 +21,26 @@ export function Footer({ className }: FooterProps) {
   return (
     <footer
       className={cn(
-        "flex flex-col items-center justify-center gap-4 border-t border-solid border-gray-200 bg-gray-100 px-20 py-8 font-sans leading-normal",
+        "border-t border-solid border-gray-200 bg-gray-100 font-sans leading-normal",
         className,
       )}
     >
-      <nav className="flex w-full items-center justify-center gap-8 text-sm whitespace-nowrap text-gray-600">
-        {FOOTER_LINKS.map((link) => (
-          <Link
-            key={link.label}
-            to={link.to}
-            className="shrink-0 hover:text-ink"
-          >
-            {link.label}
-          </Link>
-        ))}
-      </nav>
-      <p className="shrink-0 text-[13px] text-gray-400">
-        © 대한감리교육협회
-      </p>
+      <div className="mx-auto flex w-full max-w-[1200px] flex-col items-center justify-center gap-4 px-20 py-8">
+        <nav className="flex w-full items-center justify-center gap-8 text-sm whitespace-nowrap text-gray-600">
+          {FOOTER_LINKS.map((link) => (
+            <Link
+              key={link.label}
+              to={link.to}
+              className="shrink-0 hover:text-ink"
+            >
+              {link.label}
+            </Link>
+          ))}
+        </nav>
+        <p className="shrink-0 text-[13px] text-gray-400">
+          © 대한감리교육협회
+        </p>
+      </div>
     </footer>
   );
 }
