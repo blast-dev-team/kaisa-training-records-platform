@@ -106,9 +106,12 @@ importers:
 
   apps/web:
     dependencies:
-      '@fontsource/pretendard':
-        specifier: ^5.3.0
-        version: 5.3.0
+      '@cap.js/widget':
+        specifier: ^0.1.57
+        version: 0.1.57
+      '@portone/browser-sdk':
+        specifier: ^0.1.9
+        version: 0.1.9
       '@repo/assets':
         specifier: workspace:*
         version: link:../../packages/assets
@@ -358,6 +361,9 @@ packages:
   '@borewit/text-codec@0.2.2':
     resolution: {integrity: sha512-DDaRehssg1aNrH4+2hnj1B7vnUGEjU6OIlyRdkMd0aUdIUvKXrJfXsy8LVtXAy7DRvYVluWbMspsRhz2lcW0mQ==}
 
+  '@cap.js/widget@0.1.57':
+    resolution: {integrity: sha512-IgWepPHHsn1FcB5msL/TQtZZixGm9KAp7rpNbDmdo/i10EhDA74TlMU9zbZ6H8wwcCtlond/m+pAcLr1RiQ1og==}
+
   '@esbuild/aix-ppc64@0.25.12':
     resolution: {integrity: sha512-Hhmwd6CInZ3dwpuGTF8fJG6yoWmsToE+vYgD4nytZVxcu1ulHpUQRAB1UJ8+N1Am3Mz4+xOByoQoSZf4D+CpkA==}
     engines: {node: '>=18'}
@@ -552,9 +558,6 @@ packages:
     resolution: {integrity: sha512-43/qtrDUokr7LJqoF2c3+RInu/t4zfrpYdoSDfYyhg52rwLV6TnOvdG4fXm7IkSB3wErkcmJS9iEhjVtOSEjjA==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
-  '@fontsource/pretendard@5.3.0':
-    resolution: {integrity: sha512-IDvI+QlHSFW9AkBX8cKXFi9nRJXdj7IQSGSqgemwFqII6EptpWQmWKcs3OfTZBT2yftzqt6VF6abQpUeAmHxMA==}
-
   '@humanfs/core@0.19.2':
     resolution: {integrity: sha512-UhXNm+CFMWcbChXywFwkmhqjs3PRCmcSa/hfBgLIb7oQ5HNb1wS0icWsGtSAUNgefHeI+eBrA8I1fxmbHsGdvA==}
     engines: {node: '>=18.18.0'}
@@ -660,6 +663,9 @@ packages:
     resolution: {integrity: sha512-T/cDW4XeO2MJJCgR+Teuc2z3jIuxlIlboFxFPMDvo9m/6hpIagtGGI+Z+ucMuaPVAVIM13FdVr+Zizwq4xUHJA==}
     engines: {node: '>=22.0.0'}
     hasBin: true
+
+  '@portone/browser-sdk@0.1.9':
+    resolution: {integrity: sha512-GiLziqmKKSrorjWDvWjPhtD1nBd4zlY1crIPX5Kisx797MQYveqhtSMYwuyjRgwgInfEWonXjXWkHd5bTFUiWQ==}
 
   '@radix-ui/react-compose-refs@1.1.5':
     resolution: {integrity: sha512-+48PbAAbq3didjJxa+OaWY2ZwgAKsNiRGyeHKszblZMQ+kcpd9pAaT11cMkGEie0vsOi3QdeTE6d5Fe3Gn61kA==}
@@ -2923,6 +2929,8 @@ snapshots:
 
   '@borewit/text-codec@0.2.2': {}
 
+  '@cap.js/widget@0.1.57': {}
+
   '@esbuild/aix-ppc64@0.25.12':
     optional: true
 
@@ -3046,8 +3054,6 @@ snapshots:
     dependencies:
       '@eslint/core': 0.17.0
       levn: 0.4.1
-
-  '@fontsource/pretendard@5.3.0': {}
 
   '@humanfs/core@0.19.2':
     dependencies:
@@ -3184,6 +3190,8 @@ snapshots:
       - encoding
       - kerberos
       - supports-color
+
+  '@portone/browser-sdk@0.1.9': {}
 
   '@radix-ui/react-compose-refs@1.1.5(@types/react@19.2.2)(react@19.2.6)':
     dependencies:
