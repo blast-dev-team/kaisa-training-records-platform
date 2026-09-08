@@ -10,6 +10,55 @@
   --color-brand-600: #2743d6;
   --color-brand-700: #1d33a8;
 
+  /* KAISA 디자인 시스템 (Figma 변수 — button 노드에서 확인된 스톱) */
+  --color-primary-50: #edf3fe;
+  --color-primary-100: #d0e1fd;
+  --color-primary-200: #a4c4fa;
+  --color-primary-300: #6f9df6;
+  --color-primary-400: #3b76ee;
+  --color-primary-500: #1f58d9;
+  --color-primary-600: #1849b3;
+  --color-primary-700: #144194;
+  --color-gray-50: #fafafa;
+  --color-gray-100: #f5f5f5;
+  --color-gray-200: #e9eaeb;
+  --color-gray-300: #d5d7da;
+  --color-gray-400: #a4a7ae;
+  --color-gray-500: #717680;
+  --color-gray-600: #535862;
+  --color-gray-700: #414651;
+  --color-gray-800: #252b37;
+  --color-gray-900: #101828;
+  --color-red-50: #fef3f2;
+  --color-red-100: #fee4e2;
+  --color-red-200: #fecdca;
+  --color-red-300: #fda29b;
+  --color-red-500: #f04438;
+  --color-black: #000000;
+
+  /* chip 노드(19:16961)에서 확인된 상태 색 스톱 */
+  --color-yellow-100: #fef0c7;
+  --color-yellow-300: #fec84b;
+  --color-yellow-400: #fdb022;
+  --color-yellow-600: #dc6803;
+  --color-orange-100: #ffead5;
+  --color-orange-300: #feb273;
+  --color-orange-500: #fb6514;
+  --color-green-100: #d1fadf;
+  --color-green-300: #6ce9a6;
+  --color-green-400: #32d583;
+  --color-green-500: #12b76a;
+  --color-indigo-100: #e0eaff;
+  --color-indigo-300: #a4bcfd;
+  --color-indigo-500: #6172f3;
+  --color-violet-200: #e9d7fe;
+  --color-violet-400: #b692f6;
+  --color-violet-600: #7f56d9;
+
+  --font-sans: "Pretendard Variable", "Pretendard", -apple-system,
+    BlinkMacSystemFont, "Segoe UI", Roboto, "Apple SD Gothic Neo",
+    "Noto Sans KR", sans-serif;
+
   --color-ink: #101323;
   --color-ink-2: #4e5563;
   --color-line: #e9eaeb;
