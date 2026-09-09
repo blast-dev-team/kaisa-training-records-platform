@@ -28,6 +28,10 @@ reset:
 	psql -h localhost -U kaisa -d postgres -c "CREATE DATABASE kaisa OWNER kaisa;"
 	uv run alembic upgrade head
 
+# 개발용 시드 (등급/마스터 관리자/교육생 3 — .env 의 ADMIN_EMAIL·ADMIN_PASSWORD 사용)
+seed:
+	uv run python -m app.seed
+
 lint:
 	uv run ruff check .
 	uv run ruff format --check .

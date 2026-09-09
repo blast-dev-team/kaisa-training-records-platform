@@ -12,6 +12,8 @@ dependencies = [
     "asyncpg>=0.30",
     "scalar-fastapi>=1.8.2",
     "httpx>=0.28.1",
+    "cryptography>=50.0.1",
+    "boto3>=1.43.90",
 ]
 
 [dependency-groups]
@@ -28,6 +30,8 @@ dev = [
 # naive 는 프로세스의 OS 타임존으로 해석되므로, 같은 코드가 로컬과 컨테이너(UTC)에서
 # 다른 절대시각을 만든다. '지금'과 '오늘'이 필요하면 timezone-aware 로 다룬다.
 extend-select = ["DTZ"]
+# B008 — FastAPI 의존성 주입 표준 관례 (`param = Depends(...)`) 라 제외
+extend-ignore = ["B008"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
