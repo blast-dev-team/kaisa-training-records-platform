@@ -1,9 +1,9 @@
-import { PlusIcon } from "@/src/shared/icon";
+import { PlusIcon } from '@/src/shared/icon';
 
 const FAQ_ITEMS = [
-  "조회되지 않는 교육 이력이 있습니다.",
-  "발급한 확인서를 다시 받을 수 있습니까?",
-  "환불 규정은 어떻게 됩니까?",
+  '조회되지 않는 교육 이력이 있습니다.',
+  '발급한 확인서를 다시 받을 수 있습니까?',
+  '환불 규정은 어떻게 됩니까?',
 ] as const;
 
 /**
@@ -14,7 +14,7 @@ const FAQ_ITEMS = [
 export function FaqSection() {
   return (
     <section className="font-sans">
-      <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-6 px-20 pt-5 pb-10">
+      <div className="mx-auto flex w-full max-w-[1400px] flex-col gap-6 px-20 pt-5 pb-10">
         <p className="text-xl font-semibold leading-[1.5] tracking-[-0.03em] whitespace-nowrap text-gray-900">
           자주 묻는 질문
         </p>

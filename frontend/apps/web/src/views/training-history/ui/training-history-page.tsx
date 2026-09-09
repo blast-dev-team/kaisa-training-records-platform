@@ -1,27 +1,27 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
-import { useNavigate, useSearchParams } from "react-router";
+import { useSearchParams } from "react-router";
 
-import { WarningCircleIcon } from "@/src/shared/icon";
-import { Button, Pagination } from "@/src/shared/ui";
+import { CalendarBlankIcon, WarningCircleIcon } from "@/src/shared/icon";
+import { Button, Pagination, TextField } from "@/src/shared/ui";
 import { cn } from "@/src/shared/utils/cn";
 
 import {
   getTrainingHistoryList,
   type PeriodFilter,
 } from "../api/get-training-history-list";
+import { IssuePaymentModal } from "./issue-payment-modal";
 import { TrainingHistoryTable } from "./training-history-table";
 
 /** 페이지당 목록 수 — Figma 목업(12건 2페이지) 기준 */
 const PAGE_LIMIT = 10;
 
-/** 기간·발급가능 필터 칩 — Figma node 25:2519~25:2527 */
-type FilterChipKey = "recent3y" | "all" | "issuable";
+/** 기간 필터 칩 — Figma node 25:2519~25:2527 */
+type FilterChipKey = "recent3y" | "all";
 
 const FILTER_CHIPS: { key: FilterChipKey; label: string }[] = [
   { key: "recent3y", label: "최근 3년" },
   { key: "all", label: "전체 기간" },
-  { key: "issuable", label: "발급 가능만" },
 ];
 
 const CHIP_BASE =
@@ -34,19 +34,21 @@ const CHIP_INACTIVE =
  * 교육이력 조회 — Figma node 25:2446(메인 콘텐츠) 기반.
  *
  * 필터·검색·페이지 상태는 URL 쿼리스트링이 단일 진실이다 (공유·북마크 가능).
+ * - `from`/`to`: 조회 기간 직접 지정 (YYYY-MM-DD, 비면 칩 기간 적용)
  * - `period`: all (기본 recent3y는 키 생략)
- * - `issuable=1`: 발급 가능만
  * - `q`: 교육명 검색 (조회 버튼 제출 시 반영)
  * - `page`: 1부터
  */
 export function TrainingHistoryPage() {
-  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchInput, setSearchInput] = useState(searchParams.get("q") ?? "");
+  /** 발급 신청·재발급 대상 — 설정 시 결제 모달이 열린다 */
+  const [issueTargetId, setIssueTargetId] = useState<string | null>(null);
 
+  const from = searchParams.get("from") ?? "";
+  const to = searchParams.get("to") ?? "";
   const period: PeriodFilter =
     searchParams.get("period") === "all" ? "all" : "recent3y";
-  const issuableOnly = searchParams.get("issuable") === "1";
   const q = searchParams.get("q") ?? "";
   const page = Math.max(1, Number(searchParams.get("page") ?? 1) || 1);
 
@@ -54,14 +56,15 @@ export function TrainingHistoryPage() {
     queryKey: [
       "training-history",
       "list",
-      { period, issuableOnly, q, page, limit: PAGE_LIMIT },
+      { from, to, period, q, page, limit: PAGE_LIMIT },
     ],
     queryFn: () =>
       getTrainingHistoryList({
         page,
         limit: PAGE_LIMIT,
+        from: from || undefined,
+        to: to || undefined,
         period,
-        issuableOnly,
         search: q,
       }),
     placeholderData: keepPreviousData,
@@ -81,15 +84,12 @@ export function TrainingHistoryPage() {
     setSearchParams(next, { replace: false });
   };
 
-  const activeChip: FilterChipKey = issuableOnly ? "issuable" : period;
+  // 날짜 직접 지정 시 칩은 비활성 — 기간 필터가 from~to로 대체된다
+  const activeChip: FilterChipKey | null = from || to ? null : period;
 
   const handleFilterChipClick = (key: FilterChipKey) => {
-    if (key === "issuable") {
-      updateParams({ issuable: "1" });
-      return;
-    }
-    // 기간 칩으로 돌아올 때는 발급가능 필터 해제 — 칩 그룹이 단일 선택이라
-    updateParams({ issuable: null, period: key === "all" ? "all" : null });
+    // 칩 선택 시 직접 지정한 기간은 해제 — 기간 필터의 단일 진실을 유지한다
+    updateParams({ from: null, to: null, period: key === "all" ? "all" : null });
   };
 
   const handleSearchSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -106,10 +106,64 @@ export function TrainingHistoryPage() {
         교육이력 조회
       </h1>
 
-      {/* 필터 행 — 좌: 기간·발급가능 칩 / 우: 교육명 검색 + 조회 */}
-      <div className="flex items-center justify-between">
-        <div className="flex gap-2">
-          {FILTER_CHIPS.map((chip) => (
+      {/* 필터 행 — 좌: 조회 기간 picker + 기간 칩 / 우: 교육명 검색 + 조회 */}
+      <div className="flex items-end justify-between">
+        <div className="flex items-end gap-3">
+          <div className="flex flex-col gap-2">
+            <p className="font-sans text-[13px] leading-normal font-medium text-gray-700">
+              조회 기간
+            </p>
+            <div className="flex items-center gap-2">
+              <TextField
+                type="date"
+                aria-label="조회 시작일"
+                value={from}
+                onChange={(event) =>
+                  updateParams({ from: event.target.value || null })
+                }
+                onClick={(event) => {
+                  // 인디케이터를 숨겨서, 입력창 클릭으로 직접 캘린더를 띄운다
+                  try {
+                    event.currentTarget.showPicker();
+                  } catch {
+                    // 이미 열려 있거나 미지원 브라우저 — 포커스만으로 충분하다
+                  }
+                }}
+                rightIcon={
+                  <span className="text-gray-800">
+                    <CalendarBlankIcon className="size-5" />
+                  </span>
+                }
+                className="w-[150px] [&_input::-webkit-calendar-picker-indicator]:hidden"
+              />
+              <p className="font-sans text-sm leading-normal text-gray-700">~</p>
+              <TextField
+                type="date"
+                aria-label="조회 종료일"
+                value={to}
+                onChange={(event) =>
+                  updateParams({ to: event.target.value || null })
+                }
+                onClick={(event) => {
+                  // 인디케이터를 숨겨서, 입력창 클릭으로 직접 캘린더를 띄운다
+                  try {
+                    event.currentTarget.showPicker();
+                  } catch {
+                    // 이미 열려 있거나 미지원 브라우저 — 포커스만으로 충분하다
+                  }
+                }}
+                rightIcon={
+                  <span className="text-gray-800">
+                    <CalendarBlankIcon className="size-5" />
+                  </span>
+                }
+                className="w-[150px] [&_input::-webkit-calendar-picker-indicator]:hidden"
+              />
+            </div>
+          </div>
+
+          <div className="flex gap-2">
+            {FILTER_CHIPS.map((chip) => (
             <button
               key={chip.key}
               type="button"
@@ -123,6 +177,7 @@ export function TrainingHistoryPage() {
               {chip.label}
             </button>
           ))}
+          </div>
         </div>
 
         <form onSubmit={handleSearchSubmit} className="flex gap-2">
@@ -201,7 +256,15 @@ export function TrainingHistoryPage() {
       ) : (
         <TrainingHistoryTable
           items={items}
-          onIssueClick={(id) => navigate(`/training-history/${id}`)}
+          onIssueClick={(id) => setIssueTargetId(id)}
+        />
+      )}
+
+      {/* 결제 모달 — 발급 신청·재발급 클릭 시 노출 (Figma node 78:3911) */}
+      {issueTargetId !== null && (
+        <IssuePaymentModal
+          recordId={issueTargetId}
+          onClose={() => setIssueTargetId(null)}
         />
       )}
 

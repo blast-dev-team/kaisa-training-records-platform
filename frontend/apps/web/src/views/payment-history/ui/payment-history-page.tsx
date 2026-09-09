@@ -2,8 +2,7 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { useSearchParams } from "react-router";
 
-import { CalendarBlankIcon, DownloadSimpleIcon } from "@/src/shared/icon";
-import { Button, Pagination, TextField } from "@/src/shared/ui";
+import { Button, DateField, Dropdown, Pagination } from "@/src/shared/ui";
 import { cn } from "@/src/shared/utils/cn";
 
 import {
@@ -11,25 +10,19 @@ import {
   type PaymentHistoryItem,
   type PaymentStatusFilter,
 } from "../api/get-payment-history-list";
-import { downloadPaymentHistoryExcel } from "../api/download-payment-history-excel";
 import { downloadPaymentStatement } from "../api/download-payment-statement";
 import { PaymentHistoryTable } from "./payment-history-table";
+import { ReceiptModal } from "./receipt-modal";
 
 /** 페이지당 목록 수 */
 const PAGE_LIMIT = 10;
 
-/** 상태 필터 칩 — Figma node 19:25279~19:25285 */
-const STATUS_CHIPS: { key: PaymentStatusFilter; label: string }[] = [
-  { key: "all", label: "전체" },
-  { key: "paid", label: "결제 완료" },
-  { key: "refunded", label: "환불" },
+/** 상태 필터 옵션 — Figma node 19:25279~19:25285 */
+const STATUS_OPTIONS: { value: PaymentStatusFilter; label: string }[] = [
+  { value: "all", label: "전체" },
+  { value: "paid", label: "결제 완료" },
+  { value: "refunded", label: "환불" },
 ];
-
-const CHIP_BASE =
-  "cursor-pointer rounded-md px-3 py-1.5 font-sans text-[13px] font-medium leading-normal whitespace-nowrap transition-[background-color,border-color,color]";
-const CHIP_ACTIVE = "bg-gray-700 text-white";
-const CHIP_INACTIVE =
-  "border border-solid border-gray-300 bg-white text-gray-700 hover:bg-gray-50";
 
 /**
  * 발급·결제 내역 — Figma node 19:25200(메인 콘텐츠) 기반.
@@ -42,6 +35,10 @@ const CHIP_INACTIVE =
 export function PaymentHistoryPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [actionError, setActionError] = useState<string | null>(null);
+  /** 영수증 모달 대상 행 — null이면 닫힘 */
+  const [receiptItem, setReceiptItem] = useState<PaymentHistoryItem | null>(
+    null,
+  );
 
   const from = searchParams.get("from") ?? "";
   const to = searchParams.get("to") ?? "";
@@ -104,72 +101,39 @@ export function PaymentHistoryPage() {
         발급·결제 내역
       </h1>
 
-      {/* 조회 기간 — node 19:25316 */}
-      <div className="flex flex-col items-start gap-2">
-        <p className="font-sans text-[13px] leading-normal font-medium text-gray-700">
-          조회 기간
-        </p>
-        <div className="flex items-center gap-2">
-          <TextField
-            type="date"
-            aria-label="조회 시작일"
-            value={from}
-            onChange={(event) => updateParams({ from: event.target.value || null })}
-            rightIcon={
-              <span className="text-gray-800">
-                <CalendarBlankIcon className="size-5" />
-              </span>
-            }
-            className="w-[150px] [&_input::-webkit-calendar-picker-indicator]:hidden"
-          />
-          <p className="font-sans text-sm leading-normal text-gray-700">~</p>
-          <TextField
-            type="date"
-            aria-label="조회 종료일"
-            value={to}
-            onChange={(event) => updateParams({ to: event.target.value || null })}
-            rightIcon={
-              <span className="text-gray-800">
-                <CalendarBlankIcon className="size-5" />
-              </span>
-            }
-            className="w-[150px] [&_input::-webkit-calendar-picker-indicator]:hidden"
-          />
-        </div>
-      </div>
+      {/* 필터 행 — 좌: 상태 드롭다운 / 우: 조회 기간 (node 19:25316) */}
+      <div className="flex items-end justify-between">
+        <Dropdown
+          options={STATUS_OPTIONS}
+          value={status}
+          onChange={(value) => {
+            if (typeof value !== "string") return;
+            updateParams({ status: value === "all" ? null : value });
+          }}
+          className="w-[160px]"
+        />
 
-      {/* 필터 행 — 좌: 상태 칩 / 우: 엑셀 저장 */}
-      <div className="flex items-center justify-between">
-        <div className="flex gap-2">
-          {STATUS_CHIPS.map((chip) => (
-            <button
-              key={chip.key}
-              type="button"
-              aria-pressed={status === chip.key}
-              onClick={() =>
-                updateParams({
-                  status: chip.key === "all" ? null : chip.key,
-                })
-              }
-              className={cn(
-                CHIP_BASE,
-                status === chip.key ? CHIP_ACTIVE : CHIP_INACTIVE,
-              )}
-            >
-              {chip.label}
-            </button>
-          ))}
+        <div className="flex flex-col items-end gap-2">
+          <p className="font-sans text-[13px] leading-normal font-medium text-gray-700">
+            조회 기간
+          </p>
+          <div className="flex items-center gap-2">
+            <DateField
+              ariaLabel="조회 시작일"
+              value={from}
+              onChange={(dateYMD) => updateParams({ from: dateYMD || null })}
+              className="w-[150px]"
+            />
+            <p className="font-sans text-sm leading-normal text-gray-700">~</p>
+            <DateField
+              ariaLabel="조회 종료일"
+              value={to}
+              onChange={(dateYMD) => updateParams({ to: dateYMD || null })}
+              popoverAlign="right"
+              className="w-[150px]"
+            />
+          </div>
         </div>
-
-        <Button
-          color="black"
-          size="s"
-          rightIcon={<DownloadSimpleIcon />}
-          className="gap-2 rounded-md bg-gray-700 px-3 py-1.5 text-[13px] font-medium hover:bg-gray-600"
-          onClick={() => downloadPaymentHistoryExcel(items)}
-        >
-          결제 내역 엑셀 저장
-        </Button>
       </div>
 
       {/* 목록 표 — 로딩·에러·빈 상태는 표 컨테이너 안에서 처리 */}
@@ -206,6 +170,7 @@ export function PaymentHistoryPage() {
       ) : (
         <PaymentHistoryTable
           items={items}
+          onReceiptClick={setReceiptItem}
           onStatementClick={handleStatementClick}
         />
       )}
@@ -227,6 +192,14 @@ export function PaymentHistoryPage() {
           onChange={(next) => updateParams({ page: String(next) }, false)}
         />
       </div>
+
+      {/* 영수증 모달 — 결제수단 클릭 시. 연동 전엔 플레이스홀더 문구 노출 */}
+      {receiptItem && (
+        <ReceiptModal
+          imageUrl={receiptItem.receiptUrl}
+          onClose={() => setReceiptItem(null)}
+        />
+      )}
     </section>
   );
 }

@@ -22,6 +22,8 @@ export type {
 } from "./chip/chip";
 export { DatePicker } from "./date-picker/date-picker";
 export type { DatePickerProps } from "./date-picker/date-picker";
+export { DateField } from "./date-picker/date-field";
+export type { DateFieldProps } from "./date-picker/date-field";
 export { Dropdown } from "./dropdown/dropdown";
 export type {
   DropdownOption,

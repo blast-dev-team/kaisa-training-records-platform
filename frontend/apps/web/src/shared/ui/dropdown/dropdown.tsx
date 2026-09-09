@@ -4,10 +4,10 @@ import {
   useRef,
   useState,
   type KeyboardEvent as ReactKeyboardEvent,
-} from "react";
+} from 'react';
 
-import { CaretDownIcon, CaretUpIcon, CheckIcon, XIcon } from "@/src/shared/icon";
-import { cn } from "@/src/shared/utils/cn";
+import { CaretDownIcon, CaretUpIcon, CheckIcon, XIcon } from '@/src/shared/icon';
+import { cn } from '@/src/shared/utils/cn';
 
 /**
  * KAISA 드롭다운 — Figma 디자인 시스템 (node 19:14348 트리거 · 19:16946 메뉴 아이템) 기반.
@@ -37,7 +37,7 @@ export interface DropdownProps {
   essential?: boolean;
   disabled?: boolean;
   placeholder?: string;
-  size?: "m" | "s";
+  size?: 'm' | 's';
   className?: string;
 }
 
@@ -45,24 +45,24 @@ export interface DropdownProps {
 const MAX_CHIPS = 2;
 
 const TRIGGER_BASE =
-  "flex w-full items-center rounded-xl border px-4 py-3 transition-[background-color,border-color]";
-const TRIGGER_SIZE_S = "rounded-lg px-3 py-2 text-xs";
-const TRIGGER_OPEN = "border-primary-400 bg-gray-100";
-const TRIGGER_CLOSED = "border-gray-300 bg-gray-100";
-const TRIGGER_DISABLED = "border-gray-300 bg-gray-200 cursor-not-allowed";
+  'flex w-full cursor-pointer items-center rounded-xl border px-4 py-3 transition-[background-color,border-color]';
+const TRIGGER_SIZE_S = 'rounded-lg px-3 py-2 text-xs';
+const TRIGGER_OPEN = 'border-primary-400 bg-gray-100';
+const TRIGGER_CLOSED = 'border-gray-300 bg-gray-100';
+const TRIGGER_DISABLED = 'border-gray-300 bg-gray-200 cursor-not-allowed';
 
 const MENU_BASE =
-  "absolute top-full z-10 mt-1 flex max-h-72 w-full flex-col gap-1 overflow-y-auto rounded-xl border border-gray-300 bg-white p-1 shadow-[0_4px_12px_0_rgba(16,24,40,0.1)]";
+  'absolute cursor-pointer top-full z-10 mt-1 flex max-h-72 w-full flex-col gap-1 overflow-y-auto rounded-xl border border-gray-300 bg-white p-1 shadow-[0_4px_12px_0_rgba(16,24,40,0.1)]';
 
 const ITEM_BASE =
-  "flex w-full items-center gap-2 rounded-lg px-3 py-2 font-sans text-base leading-normal tracking-[-0.03em] text-gray-800";
-const ITEM_SELECTED = "bg-primary-50";
-const ITEM_HOVER = "hover:bg-gray-100";
-const ITEM_ACTIVE = "bg-gray-100";
-const ITEM_DISABLED = "bg-gray-200 text-gray-400 cursor-not-allowed";
+  'flex w-full cursor-pointer items-center gap-2 rounded-lg px-3 py-2 font-sans text-base leading-normal tracking-[-0.03em] text-gray-800';
+const ITEM_SELECTED = 'bg-primary-50';
+const ITEM_HOVER = 'hover:bg-gray-100';
+const ITEM_ACTIVE = 'bg-gray-100';
+const ITEM_DISABLED = 'bg-gray-200 text-gray-400 cursor-not-allowed';
 
 const CHIP_BASE =
-  "flex shrink-0 items-center gap-1 rounded-full border-[0.5px] border-primary-300 bg-primary-100 px-2 py-0.5 font-sans text-xs font-semibold leading-normal tracking-[-0.03em] whitespace-nowrap text-primary-600";
+  'flex shrink-0 items-center gap-1 rounded-full border-[0.5px] border-primary-300 bg-primary-100 px-2 py-0.5 font-sans text-xs font-semibold leading-normal tracking-[-0.03em] whitespace-nowrap text-primary-600';
 
 export function Dropdown({
   options,
@@ -73,15 +73,15 @@ export function Dropdown({
   label,
   essential = false,
   disabled = false,
-  placeholder = "Placeholder",
-  size = "m",
+  placeholder = 'Placeholder',
+  size = 'm',
   className,
 }: DropdownProps) {
   const fallbackId = useId();
   const triggerId = `dropdown-${fallbackId}`;
   const listId = `${triggerId}-list`;
 
-  const [innerValue, setInnerValue] = useState<string | string[]>(defaultValue ?? "");
+  const [innerValue, setInnerValue] = useState<string | string[]>(defaultValue ?? '');
   const selection = value ?? innerValue;
   const selectedValues = multiple
     ? Array.isArray(selection)
@@ -90,7 +90,7 @@ export function Dropdown({
         ? [selection]
         : []
     : Array.isArray(selection)
-      ? (selection[0] ?? "")
+      ? (selection[0] ?? '')
       : selection;
   const selectedList = Array.isArray(selectedValues)
     ? selectedValues
@@ -132,7 +132,7 @@ export function Dropdown({
   const removeValue = (removed: string) => {
     if (disabled) return;
     const next = selectedList.filter((v) => v !== removed);
-    commit(multiple ? next : (next[0] ?? ""));
+    commit(multiple ? next : (next[0] ?? ''));
   };
 
   // 열림 상태에서 바깥 클릭 시 닫기
@@ -141,8 +141,8 @@ export function Dropdown({
     const handlePointerDown = (event: MouseEvent) => {
       if (!rootRef.current?.contains(event.target as Node)) setOpen(false);
     };
-    document.addEventListener("mousedown", handlePointerDown);
-    return () => document.removeEventListener("mousedown", handlePointerDown);
+    document.addEventListener('mousedown', handlePointerDown);
+    return () => document.removeEventListener('mousedown', handlePointerDown);
   }, [open]);
 
   const moveActive = (delta: number) => {
@@ -155,15 +155,15 @@ export function Dropdown({
   };
 
   const handleKeyDown = (event: ReactKeyboardEvent<HTMLButtonElement>) => {
-    if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
       event.preventDefault();
       if (!open) setOpen(true);
-      moveActive(event.key === "ArrowDown" ? 1 : -1);
-    } else if (event.key === "Enter" && open && activeIndex >= 0) {
+      moveActive(event.key === 'ArrowDown' ? 1 : -1);
+    } else if (event.key === 'Enter' && open && activeIndex >= 0) {
       event.preventDefault();
       const activeOption = options[activeIndex];
       if (activeOption) selectOption(activeOption);
-    } else if (event.key === "Escape") {
+    } else if (event.key === 'Escape') {
       setOpen(false);
     }
   };
@@ -171,16 +171,13 @@ export function Dropdown({
   const hasSelection = selectedList.length > 0;
 
   return (
-    <div
-      ref={rootRef}
-      className={cn("relative flex w-full flex-col items-start gap-1", className)}
-    >
+    <div ref={rootRef} className={cn('relative flex w-full flex-col items-start gap-1', className)}>
       {label && (
         <label
           htmlFor={triggerId}
           className={cn(
-            "font-sans leading-normal tracking-[-0.03em] whitespace-nowrap text-gray-400",
-            size === "s" ? "text-xs" : "text-sm",
+            'font-sans leading-normal tracking-[-0.03em] whitespace-nowrap text-gray-400',
+            size === 's' ? 'text-xs' : 'text-sm',
           )}
         >
           {label}
@@ -198,18 +195,18 @@ export function Dropdown({
         onKeyDown={handleKeyDown}
         className={cn(
           TRIGGER_BASE,
-          size === "s" && TRIGGER_SIZE_S,
+          size === 's' && TRIGGER_SIZE_S,
           open ? TRIGGER_OPEN : TRIGGER_CLOSED,
           disabled && TRIGGER_DISABLED,
-          hasSelection && multiple ? "gap-2" : "gap-1",
+          hasSelection && multiple ? 'gap-2' : 'gap-1',
         )}
       >
         {!hasSelection ? (
           <span
             className={cn(
-              "min-w-0 flex-1 truncate text-left font-sans leading-normal tracking-[-0.03em]",
-              size === "s" ? "text-xs" : "text-base",
-              open ? "text-gray-800" : "text-gray-400",
+              'min-w-0 flex-1 truncate text-left font-sans leading-normal tracking-[-0.03em]',
+              size === 's' ? 'text-xs' : 'text-base',
+              open ? 'text-gray-800' : 'text-gray-400',
             )}
           >
             {placeholder}
@@ -217,13 +214,8 @@ export function Dropdown({
         ) : multiple ? (
           <span className="flex min-w-0 flex-1 items-center gap-2">
             {selectedList.slice(0, MAX_CHIPS).map((selected, index) => (
-              <span
-                key={selected}
-                className={cn(CHIP_BASE, index === 1 && "min-w-0 flex-1")}
-              >
-                <span className={index === 1 ? "truncate" : undefined}>
-                  {labelOf(selected)}
-                </span>
+              <span key={selected} className={cn(CHIP_BASE, index === 1 && 'min-w-0 flex-1')}>
+                <span className={index === 1 ? 'truncate' : undefined}>{labelOf(selected)}</span>
                 <span
                   role="button"
                   tabIndex={-1}
@@ -245,11 +237,11 @@ export function Dropdown({
         ) : (
           <span
             className={cn(
-              "min-w-0 flex-1 truncate text-left font-sans leading-normal tracking-[-0.03em] text-black",
-              size === "s" ? "text-xs" : "text-base",
+              'min-w-0 flex-1 truncate text-left font-sans leading-normal tracking-[-0.03em] text-black',
+              size === 's' ? 'text-xs' : 'text-base',
             )}
           >
-            {labelOf(selectedList[0] ?? "")}
+            {labelOf(selectedList[0] ?? '')}
           </span>
         )}
         <span className="size-3 shrink-0 text-gray-900">
@@ -262,9 +254,7 @@ export function Dropdown({
           id={listId}
           role="listbox"
           aria-multiselectable={multiple || undefined}
-          aria-activedescendant={
-            activeIndex >= 0 ? `${listId}-option-${activeIndex}` : undefined
-          }
+          aria-activedescendant={activeIndex >= 0 ? `${listId}-option-${activeIndex}` : undefined}
           className={MENU_BASE}
         >
           {options.map((option, index) => {
@@ -293,8 +283,8 @@ export function Dropdown({
                 {isSelected && (
                   <span
                     className={cn(
-                      "size-5 shrink-0",
-                      option.disabled ? "text-gray-400" : "text-primary-400",
+                      'size-5 shrink-0',
+                      option.disabled ? 'text-gray-400' : 'text-primary-400',
                     )}
                   >
                     <CheckIcon />

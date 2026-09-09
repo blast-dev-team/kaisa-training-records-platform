@@ -67,7 +67,7 @@ export const router = createBrowserRouter([
       },
     ],
   },
-  // 사이드바 없음 — 교육이력 상세 · 발급완료
+  // 사이드바 없음 — 발급완료 (결제·발급은 목록의 모달로 대체됨)
   {
     path: '/training-history/:id',
     lazy: async () => {
@@ -75,13 +75,6 @@ export const router = createBrowserRouter([
       return { Component: BareLayout };
     },
     children: [
-      {
-        index: true,
-        lazy: async () => {
-          const { TrainingHistoryDetailPage } = await import('@/src/views/training-history-detail');
-          return { Component: TrainingHistoryDetailPage };
-        },
-      },
       {
         path: 'complete',
         lazy: async () => {

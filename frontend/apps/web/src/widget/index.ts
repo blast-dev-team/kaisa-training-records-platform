@@ -8,3 +8,4 @@ export { IssuanceStepper } from "./issuance-stepper";
 export type { IssuanceStepperProps } from "./issuance-stepper";
 export { VerificationResultModal, VerificationFailModal } from "./verification-modal";
 export { SessionExpireModal, PaymentFailModal } from "./payment-modal";
+export { AuthReleaseModal } from "./auth-modal";

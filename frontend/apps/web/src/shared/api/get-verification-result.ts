@@ -26,6 +26,7 @@ export interface VerificationLookupParams {
   verificationId: string;
   applicantName: string;
   captchaToken: string;
+  issuanceDate: string;
 }
 
 /** 목업 데이터 — Figma 노드 32:20 값 */
@@ -61,9 +62,7 @@ export async function getVerificationResult(
   // 데모 ID가 아니면 확인 불가(노드 32:2283) 응답
   if (!API_BASE) {
     await new Promise((resolve) => setTimeout(resolve, 400));
-    return params.verificationId === DEMO_VERIFICATION_ID
-      ? DEMO_RESULT
-      : DEMO_INVALID_RESULT;
+    return params.verificationId === DEMO_VERIFICATION_ID ? DEMO_RESULT : DEMO_INVALID_RESULT;
   }
 
   const response = await fetch(`${API_BASE}/api/v1/verifications/lookup`, {

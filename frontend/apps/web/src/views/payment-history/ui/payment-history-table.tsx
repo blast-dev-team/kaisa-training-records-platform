@@ -5,6 +5,8 @@ import type { PaymentHistoryItem } from "../api/get-payment-history-list";
 
 export interface PaymentHistoryTableProps {
   items: PaymentHistoryItem[];
+  /** 결제수단 클릭 — 영수증 모달 열기는 페이지가 담당한다 */
+  onReceiptClick?: (item: PaymentHistoryItem) => void;
   /** 거래 명세서 PDF 클릭 — 다운로드(에러 피드백 포함)는 페이지가 담당한다 */
   onStatementClick?: (item: PaymentHistoryItem) => void;
 }
@@ -50,6 +52,7 @@ function formatPaidDate(paidAt: string): string {
  */
 export function PaymentHistoryTable({
   items,
+  onReceiptClick,
   onStatementClick,
 }: PaymentHistoryTableProps) {
   return (
@@ -96,18 +99,11 @@ export function PaymentHistoryTable({
               </p>
             </div>
 
-            {/* 결제수단 — 밑줄 클릭 시 영수증(현금영수증·카드전표) 새 탭 */}
+            {/* 결제수단 — 밑줄 클릭 시 영수증(현금영수증·카드전표) 모달 */}
             <button
               type="button"
-              onClick={() =>
-                item.receiptUrl &&
-                window.open(item.receiptUrl, "_blank", "noopener,noreferrer")
-              }
-              title={
-                item.receiptUrl
-                  ? "영수증 보기"
-                  : "영수증은 결제 연동 후 확인할 수 있어요"
-              }
+              onClick={() => onReceiptClick?.(item)}
+              title="영수증 보기"
               className={cn(
                 CELL_BASE,
                 COLUMNS[2],

@@ -45,14 +45,16 @@ export function SessionExpireModal({ onRetry }: SessionExpireModalProps) {
           </p>
         </div>
 
-        <Button
-          variant="outlined"
-          color="gray"
-          onClick={onRetry}
-          className="w-fit rounded-lg px-6 py-3 text-sm font-medium text-gray-700"
-        >
-          본인인증 다시 하기
-        </Button>
+        <div className="flex justify-end gap-2">
+          <Button
+            variant="outlined"
+            color="gray"
+            onClick={onRetry}
+            className="w-fit rounded-lg px-6 py-3 text-sm font-medium text-gray-700"
+          >
+            본인인증 다시 하기
+          </Button>
+        </div>
       </section>
     </div>
   );

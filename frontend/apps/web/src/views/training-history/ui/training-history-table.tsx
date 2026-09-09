@@ -5,21 +5,28 @@ import type { TrainingHistoryItem } from '../api/get-training-history-list';
 
 export interface TrainingHistoryTableProps {
   items: TrainingHistoryItem[];
-  /** 발급 신청·재발급 클릭 — 페이지가 라우팅을 담당한다 */
+  /** 발급 신청·재발급 클릭 — 페이지가 결제 모달 오픈을 담당한다 */
   onIssueClick?: (id: string) => void;
 }
 
-/** 표 헤더·본문 공용 열 폭 — Figma node 25:2459 */
+/** 표 헤더·본문 공용 열 폭 */
 const COLUMNS = [
-  'w-[120px] shrink-0', // 교육일자
+  'w-[120px] shrink-0', // 수강 시작일
+  'w-[120px] shrink-0', // 수강 종료일
   'min-w-px flex-1', // 교육명
-  'w-[150px] shrink-0', // 주최기관
-  'w-[100px] shrink-0', // 이수시간
-  'w-[100px] shrink-0', // 이수구분
+  'w-[150px] shrink-0', // 교육기관
+  'w-[110px] shrink-0', // 교육 이수시간
   'w-[120px] shrink-0', // 확인서
 ] as const;
 
-const HEADER_LABELS = ['교육일자', '교육명', '주최기관', '이수시간', '이수구분', '확인서'] as const;
+const HEADER_LABELS = [
+  '수강 시작일',
+  '수강 종료일',
+  '교육명',
+  '교육기관',
+  '교육 이수시간',
+  '확인서',
+] as const;
 
 const CELL_BASE = 'text-sm leading-normal';
 const CELL_TEXT = 'text-gray-700';
@@ -65,20 +72,24 @@ export function TrainingHistoryTable({ items, onIssueClick }: TrainingHistoryTab
             key={item.id}
             className="flex w-full items-center border-b border-solid border-gray-200 bg-white px-4 py-4 last:border-b-0"
           >
-            <p className={cn(CELL_BASE, COLUMNS[0], textColor)}>{formatYMD(item.trainedOn)}</p>
+            <p className={cn(CELL_BASE, COLUMNS[0], textColor)}>
+              {formatYMD(item.startedOn)}
+            </p>
+            <p className={cn(CELL_BASE, COLUMNS[1], textColor)}>
+              {formatYMD(item.endedOn)}
+            </p>
             <p
               className={cn(
                 CELL_BASE,
-                COLUMNS[1],
+                COLUMNS[2],
                 'font-semibold',
                 isDimmed ? CELL_DIMMED : 'text-gray-900',
               )}
             >
               {item.courseName}
             </p>
-            <p className={cn(CELL_BASE, COLUMNS[2], textColor)}>{item.organizer}</p>
-            <p className={cn(CELL_BASE, COLUMNS[3], textColor)}>{item.hours}시간</p>
-            <p className={cn(CELL_BASE, COLUMNS[4], textColor)}>{item.completionType}</p>
+            <p className={cn(CELL_BASE, COLUMNS[3], textColor)}>{item.organizer}</p>
+            <p className={cn(CELL_BASE, COLUMNS[4], textColor)}>{item.hours}시간</p>
 
             {/* 확인서 — 발급 신청(primary) / 재발급(outline+기한) / 발급 불가(disabled) */}
             <div className={cn('flex items-center justify-center', COLUMNS[5])}>

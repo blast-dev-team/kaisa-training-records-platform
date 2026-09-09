@@ -99,7 +99,14 @@ export function TextField({
           {...props}
         />
         {rightIcon && (
-          <span className="size-5 shrink-0 [&>svg]:size-full">{rightIcon}</span>
+          // label로 감싸 아이콘 클릭이 입력창 활성화로 이어지게 한다
+          // (date 입력창이라면 캘린더가 뜬다)
+          <label
+            htmlFor={inputId}
+            className="size-5 shrink-0 cursor-pointer [&>svg]:size-full"
+          >
+            {rightIcon}
+          </label>
         )}
       </div>
 

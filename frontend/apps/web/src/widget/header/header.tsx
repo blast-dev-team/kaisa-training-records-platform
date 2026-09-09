@@ -19,12 +19,7 @@ const AUTH_CTA_ITEM: HeaderNavItem = {
   emphasized: true,
 };
 
-const HEADER_NAV_ITEMS: HeaderNavItem[] = [
-  { label: '서비스 안내', to: '/' },
-  // 발급 수수료 안내 페이지는 아직 라우트가 없어 서비스 안내(/)로 연결
-  { label: '발급 수수료', to: '/' },
-  { label: '진위확인', to: '/verify', authGate: true },
-];
+const HEADER_NAV_ITEMS: HeaderNavItem[] = [];
 
 // 비인증 진위확인 페이지 — 서비스 안내 + 본인인증하고 조회만 노출 (node 29:2434)
 const VERIFICATION_NAV_ITEMS: HeaderNavItem[] = [{ label: '서비스 안내', to: '/' }, AUTH_CTA_ITEM];
@@ -39,11 +34,11 @@ interface HeaderVariantConfig {
 
 const HEADER_VARIANTS: Record<'default' | 'terms' | 'verification', HeaderVariantConfig> = {
   default: {
-    title: 'KAISA 교육이력 서비스',
+    title: '교육이력 서비스',
     navItems: HEADER_NAV_ITEMS,
   },
   terms: {
-    title: 'KAISA 교육이력 서비스',
+    title: '교육이력 서비스',
     navItems: TERMS_NAV_ITEMS,
   },
   verification: {
@@ -74,8 +69,12 @@ export function Header({ variant = 'default', className }: HeaderProps) {
 
   return (
     <header className={cn('border-b border-solid border-gray-200 bg-white font-sans', className)}>
-      <div className="mx-auto flex h-16 w-full max-w-[1200px] items-center justify-between px-20">
-        <Link to="/" className="shrink-0 text-lg font-bold leading-normal text-primary-700">
+      <div className="mx-auto flex h-16 w-full max-w-[1400px] items-center justify-between px-20">
+        <Link
+          to="/"
+          className="flex shrink-0 items-center gap-2 text-lg font-bold leading-normal text-primary-700"
+        >
+          <img src="/logo-mark.svg" alt="KAISA" className="h-8 w-auto" />
           {config.title}
         </Link>
         <nav className="flex shrink-0 items-center gap-8 text-[15px] font-medium leading-normal whitespace-nowrap text-gray-700">

@@ -8,10 +8,7 @@ import {
 } from '@/src/shared/api/get-verification-result';
 import { CapCaptcha } from '@/src/shared/lib/cap';
 import { Button, TextField } from '@/src/shared/ui';
-import {
-  VerificationFailModal,
-  VerificationResultModal,
-} from '@/src/widget/verification-modal';
+import { VerificationFailModal, VerificationResultModal } from '@/src/widget/verification-modal';
 
 /**
  * 계속교육이력확인서 진위확인 — Figma node 19:25634 (Main Content) 기반.
@@ -24,6 +21,7 @@ export function VerificationPage() {
   const [searchParams] = useSearchParams();
   const [verificationId, setVerificationId] = useState(searchParams.get('id') ?? '');
   const [applicantName, setApplicantName] = useState('');
+  const [issuanceDate, setIssuanceDate] = useState('');
   const [captchaToken, setCaptchaToken] = useState('');
   const [result, setResult] = useState<VerificationResult | null>(null);
 
@@ -37,13 +35,17 @@ export function VerificationPage() {
     lookupMutation.mutate({
       verificationId: verificationId.trim(),
       applicantName: applicantName.trim(),
+      issuanceDate: issuanceDate.trim(),
       captchaToken,
     });
   };
 
   // 세 입력(진위확인 ID · 성명 · 보안문자)을 모두 채워야 활성화
   const isSubmittable =
-    verificationId.trim() !== '' && applicantName.trim() !== '' && captchaToken !== '';
+    verificationId.trim() !== '' &&
+    applicantName.trim() !== '' &&
+    issuanceDate.trim() !== '' &&
+    captchaToken !== '';
 
   return (
     <section className="-mx-8 -my-10 flex flex-1 flex-col bg-[#f9f9f7] px-10 py-10 font-sans">
@@ -54,8 +56,8 @@ export function VerificationPage() {
             계속교육이력확인서 진위확인
           </h1>
           <p className="text-sm leading-[1.6] text-gray-600">
-            확인서 하단의 진위확인 ID와 발급 대상자의 성명을 입력하시면 해당 확인서의
-            유효 여부를 확인할 수 있습니다.
+            확인서 하단의 진위확인 ID와 발급 대상자의 성명을 입력하시면 해당 확인서의 유효 여부를
+            확인할 수 있습니다.
           </p>
         </div>
 
@@ -71,6 +73,14 @@ export function VerificationPage() {
               autoComplete="off"
               value={verificationId}
               onChange={(event) => setVerificationId(event.target.value)}
+              className="overflow-clip rounded-lg"
+            />
+            <TextField
+              variant="outlined"
+              placeholder="발급날짜,숫자만 입력(예: 20251015)"
+              autoComplete="off"
+              value={issuanceDate}
+              onChange={(event) => setIssuanceDate(event.target.value)}
               className="overflow-clip rounded-lg"
             />
             <TextField
@@ -111,9 +121,7 @@ export function VerificationPage() {
       {result && result.isValid && (
         <VerificationResultModal result={result} onClose={() => setResult(null)} />
       )}
-      {result && !result.isValid && (
-        <VerificationFailModal onRetry={() => setResult(null)} />
-      )}
+      {result && !result.isValid && <VerificationFailModal onRetry={() => setResult(null)} />}
     </section>
   );
 }

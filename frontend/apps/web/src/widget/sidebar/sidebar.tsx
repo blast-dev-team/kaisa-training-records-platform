@@ -1,11 +1,11 @@
-import { NavLink } from "react-router";
+import { NavLink } from 'react-router';
 
-import { cn } from "@/src/shared/utils/cn";
+import { cn } from '@/src/shared/utils/cn';
 
 const SIDEBAR_NAV_ITEMS = [
-  { label: "교육이력 조회", to: "/training-history" },
-  { label: "발급·결제 내역", to: "/payment-history" },
-  { label: "진위확인", to: "/verify" },
+  { label: '교육이력 조회', to: '/training-history' },
+  { label: '발급·결제 내역', to: '/payment-history' },
+  { label: '진위확인', to: '/verify' },
 ] as const;
 
 export interface SidebarProps {
@@ -26,15 +26,15 @@ export interface SidebarProps {
  * - 하단: 사용자명·인증 잔여 시간 + 인증 해제 링크
  */
 export function Sidebar({
-  userName = "홍○○ 님",
-  authTimeLabel = "인증 유효 09:24",
+  userName = '홍○○ 님',
+  authTimeLabel = '인증 유효 09:24',
   onReleaseAuth,
   className,
 }: SidebarProps) {
   return (
     <div
       className={cn(
-        "flex h-full w-full flex-col justify-between border-r border-solid border-gray-200 bg-white py-8 font-sans",
+        'flex h-full w-full flex-col justify-between border-r border-solid border-gray-200 bg-white py-8 font-sans',
         className,
       )}
     >
@@ -45,10 +45,8 @@ export function Sidebar({
             to={item.to}
             className={({ isActive }) =>
               cn(
-                "flex items-start px-5 py-3 text-[15px] leading-normal whitespace-nowrap",
-                isActive
-                  ? "bg-primary-700 font-semibold text-white"
-                  : "font-medium text-gray-700",
+                'flex items-start px-5 py-3 text-[15px] leading-normal whitespace-nowrap',
+                isActive ? 'bg-primary-700 font-semibold text-white' : 'font-medium text-gray-700',
               )
             }
           >
@@ -67,7 +65,7 @@ export function Sidebar({
           onClick={onReleaseAuth}
           className="w-fit cursor-pointer text-sm font-semibold leading-normal text-gray-500 underline"
         >
-          인증 해제
+          인증해제
         </button>
       </div>
     </div>

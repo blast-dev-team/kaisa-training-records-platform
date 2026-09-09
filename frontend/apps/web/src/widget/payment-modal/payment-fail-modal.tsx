@@ -23,11 +23,7 @@ interface PaymentFailModalProps {
 const DEFAULT_REASON =
   '사유: 카드사 승인 거절 (PG 응답코드 3004). 금액이 출금된 경우 자동 취소됩니다.';
 
-export function PaymentFailModal({
-  reason,
-  onRetry,
-  onSelectOther,
-}: PaymentFailModalProps) {
+export function PaymentFailModal({ reason, onRetry, onSelectOther }: PaymentFailModalProps) {
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') onRetry();
@@ -52,16 +48,12 @@ export function PaymentFailModal({
           <span className="w-fit rounded-[4px] border border-[#d93333] bg-[#fae5e5] px-3 py-1.5 text-sm font-semibold text-[#bf2626]">
             결제 실패
           </span>
-          <p className="text-[15px] font-medium text-gray-800">
-            결제가 정상 처리되지 않았습니다.
-          </p>
+          <p className="text-[15px] font-medium text-gray-800">결제가 정상 처리되지 않았습니다.</p>
         </div>
 
-        <p className="text-[13px] leading-normal text-gray-600">
-          {reason ?? DEFAULT_REASON}
-        </p>
+        <p className="text-[13px] leading-normal text-gray-600">{reason ?? DEFAULT_REASON}</p>
 
-        <div className="flex items-start gap-3">
+        <div className="flex items-end gap-3">
           <Button
             onClick={onRetry}
             className="rounded-lg bg-[#bf2626] px-6 py-3 text-sm hover:bg-[#a81f1f]"
