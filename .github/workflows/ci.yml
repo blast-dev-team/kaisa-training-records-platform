@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  pull_request:
+    paths:
+      - 'backend/api/alembic/versions/**'
+  push:
+    branches:
+      - master
+    paths:
+      - 'backend/api/alembic/versions/**'
+
+jobs:
+  # 마이그레이션 head 가 갈라지면(브랜치 병합 없이 두 PR 이 같은 부모에서 분기) 배포 시
+  # `alembic upgrade head` 가 "Multiple head revisions" 로 실패한다. 배포 전에 미리 잡는다.
+  alembic-single-head:
+    name: Alembic single head 검사
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Install deps
+        working-directory: backend/api
+        run: uv sync --frozen
+
+      - name: alembic heads == 1
+        working-directory: backend/api
+        run: |
+          HEADS=$(uv run alembic heads)
+          COUNT=$(echo "$HEADS" | grep -c .)
+          echo "$HEADS"
+          if [ "$COUNT" -ne 1 ]; then
+            echo "::error::마이그레이션 head 가 $COUNT 개입니다. 두 head 를 합치는 merge migration 이 필요합니다:  cd backend/api && uv run alembic merge -m \"merge heads\" <head1> <head2>"
+            exit 1
+          fi
+          echo "✅ 단일 head 확인"

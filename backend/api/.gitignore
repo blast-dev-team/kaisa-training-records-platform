@@ -23,3 +23,7 @@ __pycache__/
 
 # 로컬 개발 첨부 저장소 (S3 미설정 시)
 .local-uploads/
+
+# 로컬 docker 검증용 (자체서명 인증서 · 포트 오버라이드)
+.local-certs/
+docker-compose.override.yml

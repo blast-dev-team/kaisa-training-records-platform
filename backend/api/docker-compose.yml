@@ -8,8 +8,6 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
     networks:
       - internal
     healthcheck:
@@ -21,13 +19,40 @@ services:
   api:
     build: .
     restart: always
+    # 로컬 .env 있으면 로드 (CRYPTO_KEY 등). 서버에는 .env 없음 — Secrets Manager 사용.
+    # compose environment 가 env_file 보다 우선 → DATABASE_URL 은 항상 db 호스트로 조립.
+    env_file:
+      - path: .env
+        required: false
     environment:
       DATABASE_URL: postgresql+asyncpg://kaisa:${DB_PASSWORD}@db:5432/kaisa
+      # 앱 시크릿(SESSION_SECRET_KEY, CRYPTO_KEY, PORTONE_* ...)은 컨테이너 부팅 시
+      # Secrets Manager 에서 로드 (app/core/config.py — 인스턴스 롤 사용, .env 없음).
+      # 기본값 없음 — 미설정 시 loader 가 no-op 로 로컬 .env 기반 부팅.
+      AWS_SECRETS_NAME: ${AWS_SECRETS_NAME:-}
+      AWS_REGION: ${AWS_REGION:-ap-northeast-2}
     depends_on:
       db:
         condition: service_healthy
+    expose:
+      - "8000" # nginx 통해서만 외부 노출
+    networks:
+      - internal
+
+  nginx:
+    image: nginx:1.27-alpine
+    restart: always
     ports:
-      - "8000:8000"
+      - "80:80"
+      - "443:443"
+    environment:
+      # nginx 공식 이미지가 templates/*.template 을 envsubst 해 conf.d 에 생성
+      SERVER_NAME: ${SERVER_NAME:-localhost}
+    volumes:
+      - ./nginx/templates:/etc/nginx/templates:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+    depends_on:
+      - api
     networks:
       - internal
 

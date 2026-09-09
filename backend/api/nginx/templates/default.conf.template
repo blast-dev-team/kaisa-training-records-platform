@@ -1,0 +1,41 @@
+server {
+    listen 80;
+    server_name ${SERVER_NAME};
+
+    # HTTP → HTTPS 리다이렉트
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    server_name ${SERVER_NAME};
+
+    ssl_certificate     /etc/letsencrypt/live/${SERVER_NAME}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/${SERVER_NAME}/privkey.pem;
+
+    # 공개 진위확인 등 요청 바디는 작지만 여유 있게 (gongcar 표준 20M)
+    client_max_body_size 20M;
+
+    # FastAPI 프록시
+    location / {
+        proxy_pass         http://api:8000;
+        proxy_set_header   Host              $host;
+        proxy_set_header   X-Real-IP         $remote_addr;
+        proxy_set_header   X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header   X-Forwarded-Proto $scheme;
+
+        # WebSocket 지원 (필요 시)
+        proxy_http_version 1.1;
+        proxy_set_header   Upgrade    $http_upgrade;
+        proxy_set_header   Connection "upgrade";
+
+        proxy_read_timeout  120s;
+        proxy_send_timeout  120s;
+    }
+
+    # 헬스체크 — LB·모니터링용 (본문 응답 X, 로그도 끔)
+    location /health {
+        proxy_pass http://api:8000/api/health;
+        access_log off;
+    }
+}

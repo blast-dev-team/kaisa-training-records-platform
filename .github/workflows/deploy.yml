@@ -1,0 +1,75 @@
+name: Deploy
+
+on:
+  push:
+    tags:
+      - 'be-staging-v*' # 백엔드 스테이징
+      - 'be-prod-v*' # 백엔드 프로덕션
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  # ── Backend Staging (EC2 + docker compose) ──────────────────────────────────
+  be-staging:
+    name: 🟡 Backend → Staging
+    if: startsWith(github.ref_name, 'be-staging-')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to Staging EC2
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.STAGING_EC2_HOST }}
+          username: ec2-user
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            set -e
+            cd /home/ec2-user/kaisa-api
+            git fetch --all --tags
+            git checkout ${{ github.ref_name }}
+            cd backend/api
+            # .env 미사용 — 앱 시크릿은 Secrets Manager `kaisa-staging`(인스턴스 롤)을
+            # 컨테이너가 부팅 시 로드. compose interpolation 용 DB_PASSWORD 만 셸로 주입.
+            export AWS_REGION=ap-northeast-2
+            export AWS_SECRETS_NAME=kaisa-staging
+            export DB_PASSWORD=$(aws secretsmanager get-secret-value \
+              --secret-id kaisa-staging --region ap-northeast-2 \
+              --query SecretString --output text \
+              | python3 -c "import sys,json;print(json.load(sys.stdin)['DB_PASSWORD'])")
+            docker compose up -d --build
+            docker compose exec -T api alembic upgrade head
+            docker image prune -af   || true
+            docker builder prune -af || true
+            echo "✅ Backend Staging 배포 완료 (${{ github.ref_name }}) ($(date))"
+
+  # ── Backend Production (EC2 + docker compose — 스테이징과 동일 구조) ─────────
+  # 스테이징과 같은 레시피, 값만 교체 (EC2 호스트·시크릿 kaisa-prod).
+  # Phase E 전까지 태그를 밀지 않으면 무해.
+  be-prod:
+    name: 🔴 Backend → Production
+    if: startsWith(github.ref_name, 'be-prod-')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to Production EC2
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.PROD_EC2_HOST }}
+          username: ec2-user
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            set -e
+            cd /home/ec2-user/kaisa-api
+            git fetch --all --tags
+            git checkout ${{ github.ref_name }}
+            cd backend/api
+            export AWS_REGION=ap-northeast-2
+            export AWS_SECRETS_NAME=kaisa-prod
+            export DB_PASSWORD=$(aws secretsmanager get-secret-value \
+              --secret-id kaisa-prod --region ap-northeast-2 \
+              --query SecretString --output text \
+              | python3 -c "import sys,json;print(json.load(sys.stdin)['DB_PASSWORD'])")
+            docker compose up -d --build
+            docker compose exec -T api alembic upgrade head
+            docker image prune -af   || true
+            docker builder prune -af || true
+            echo "✅ Backend Production 배포 완료 (${{ github.ref_name }}) ($(date))"
