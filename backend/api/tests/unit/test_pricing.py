@@ -22,7 +22,7 @@ def _rule(
     return CertificatePricingRule(
         membership_grade_id=grade_id,
         issue_type=issue_type,
-        amount_krw=amount,
+        price_krw=amount,
         currency="KRW",
         valid_from=valid_from or now_kst().replace(year=2020),
         valid_to=valid_to,
@@ -33,7 +33,10 @@ def _rule(
 class TestSelectPricingRule:
     def test_matches_grade_and_issue_type(self):
         rules = [_rule(grade_id=GRADE_A), _rule(grade_id=GRADE_B, amount=999)]
-        assert select_pricing_rule(rules, GRADE_A, "original", now_kst()).amount_krw == 10000
+        assert (
+            select_pricing_rule(rules, GRADE_A, "original", now_kst()).price_krw
+            == 10000
+        )
 
     def test_issue_type_must_match(self):
         rules = [_rule(issue_type="reissue", amount=999)]
@@ -71,7 +74,9 @@ class TestSelectPricingRule:
             _rule(valid_from=base.replace(year=2022), amount=2000),
             _rule(valid_from=base.replace(year=2021), amount=1500),
         ]
-        assert select_pricing_rule(rules, GRADE_A, "original", now_kst()).amount_krw == 2000
+        assert (
+            select_pricing_rule(rules, GRADE_A, "original", now_kst()).price_krw == 2000
+        )
 
     def test_empty_rules(self):
         assert select_pricing_rule([], GRADE_A, "original", now_kst()) is None

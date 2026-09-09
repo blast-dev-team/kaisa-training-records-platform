@@ -21,7 +21,9 @@ _BODY = b'{"webhookId":"wh-1","type":"Transaction.Paid"}'
 class TestVerifyWebhookSignature:
     def test_valid_signature(self):
         ts = time.time()
-        assert verify_webhook_signature(_sign(_BODY, ts, settings.PORTONE_WEBHOOK_SECRET), _BODY)
+        assert verify_webhook_signature(
+            _sign(_BODY, ts, settings.PORTONE_WEBHOOK_SECRET), _BODY
+        )
 
     def test_wrong_secret_rejected(self):
         ts = time.time()

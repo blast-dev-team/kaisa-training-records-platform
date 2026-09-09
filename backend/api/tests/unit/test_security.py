@@ -56,9 +56,10 @@ class TestStateToken:
         assert read_state(f"{payload}.{'0' * len(sig)}") is None
 
     def test_expired_state_rejected(self, monkeypatch):
+        real_now = time.time()
         state = issue_state("verification-123")
         # 발급 시각보다 601초 뒤 — TTL 600초 초과
-        monkeypatch.setattr(time, "time", lambda: time.time() + 601)
+        monkeypatch.setattr(time, "time", lambda: real_now + 601)
         assert read_state(state) is None
 
     def test_garbage_rejected(self):
