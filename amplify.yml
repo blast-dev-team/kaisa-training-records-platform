@@ -1,0 +1,18 @@
+version: 1
+applications:
+  - appRoot: frontend/apps/web
+    frontend:
+      phases:
+        preBuild:
+          commands:
+            - cd ../.. && npx pnpm install --no-frozen-lockfile
+        build:
+          commands:
+            - npx pnpm --filter web run build
+      artifacts:
+        baseDirectory: dist
+        files:
+          - "**/*"
+      cache:
+        paths:
+          - ../../node_modules/**/*
