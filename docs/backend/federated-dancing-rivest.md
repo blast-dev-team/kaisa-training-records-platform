@@ -31,9 +31,9 @@ kaisa-training-records-platform(감리원 교육이력 조회·확인서 발급 
 
 ## 기준 문서·규칙
 
-- 스키마: `docs/dbdiagram.io`(**DBML v1.1, 20테이블·UUID PK**) — authoritative. 변경 상세: `docs/dbdiagram-v1.1-changes.md`
+- 스키마: `docs/backend/dbdiagram.io`(**DBML v1.1, 20테이블·UUID PK**) — authoritative. 변경 상세: `docs/backend/dbdiagram-v1.1-changes.md`
   - v1.1 확정: 관리자 분리(`admin_users` + `admin_allowed_emails`), users PASS 전용화(`ci_hash` 단일 식별자), 승인 게이트 제거(본인인증 즉시 로그인), `external_completions` 제거(`training_records`로 통합), 감사·승인 FK 전부 `admin_users`로
-- 신규 테이블 `user_sessions`(세션 — 결정 #2) — DBML 미포함. 구현 시 `docs/dbdiagram.io`·`docs/db-schema.md`에 반영(db-planning 게이트)
+- 신규 테이블 `user_sessions`(세션 — 결정 #2) — DBML 미포함. 구현 시 `docs/backend/dbdiagram.io`·`docs/backend/db-schema.md`에 반영(db-planning 게이트)
 - `back/fastapi.md`(도메인 구조·계층·네이밍), `back/api-design.md`(응답·에러코드·페이지네이션), `project/db-planning.md`(문서 선행·db-schema.md/db-diagram.dbml 동기화), `project/timezone.md`(KST 고정)
 
 ---
@@ -52,7 +52,7 @@ verify: `make dev` 부팅 → `/api/health` 200, 422 응답 새 형태 curl 확�
 
 ## Phase 1 — 스키마 문서 + 전체 모델 + 초기 마이그레이션 + 시드 (~38파일)
 
-1. **문서 선행**(db-planning.md 순서): `docs/db-schema.md` 신규(21테이블 전체 컬럼 정의서 — v1.1 20테이블 + user_sessions). 기준 DBML은 `docs/dbdiagram.io`(v1.1). user_sessions 추가분의 dbdiagram.io 반영은 팀 확인 후 수동 진행
+1. **문서 선행**(db-planning.md 순서): `docs/backend/db-schema.md` 신규(21테이블 전체 컬럼 정의서 — v1.1 20테이블 + user_sessions). 기준 DBML은 `docs/backend/dbdiagram.io`(v1.1). user_sessions 추가분의 dbdiagram.io 반영은 팀 확인 후 수동 진행
 2. **모델** — 도메인별 `model/{entity}.py` + `enums.py`(`str, enum.Enum`, 컬럼은 String):
    - auth/{admin_users, admin_allowed_emails, user_sessions}, user/users(PASS 전용 — email/password 컬럼 없음, ci_hash unique), trainee/{trainees, membership_grades, trainee_grade_histories}, identity/{identity_verifications, identity_reviews}, institution/{training_institutions, training_courses}, training_record/{training_records}, certificate/{certificates, certificate_requests, certificate_pricing_rules, certificate_verification_logs}, payment/{payment_orders, payment_attempts, payment_refunds, payment_webhook_events}, audit/audit_logs(actor_admin_id → admin_users)
    - 공통: `Mapped[T]`+`mapped_column`, timestamptz=`DateTime(timezone=True)`+`server_default=func.now()`, `numeric(8,2)`=`Numeric`(Decimal, Float 금지), date=`Date`, DBML 인덱스·unique 제약 그대로
@@ -150,6 +150,17 @@ verify: 목킹 e2e — 신청→confirm→발급, 금액 불일치 409, 웹훅 �
 - 통합: 인증 라이프사이클/세션 만료/429, **소유권(타인 리소스 404)**, status 게이트, identity 매칭(auto/manual/reject), 결제 멱등·금액 위조·웹훅 중복, 진위확인 마스킹·로그·limit, audit row
 - `backend/api/README.md` 갱신, `make test` green
 
+> **검증 완료 (2026-09-09)** — **104 passed** (단위 57 + 통합 47), ruff check·format clean.
+> - 통합 스위트: auth 9 (화이트리스트·429·세션), me 소유권·게이트 8, identity 매칭 9
+>   (CI 원문 미저장 전수 스캔 포함), 결제·확인서 12 (0원 즉시발급 / confirm 멱등 /
+>   금액 위조·store 불일치 409 / 웹훅 서명·리플레이 duplicate / 재발급 supersede /
+>   타인 order 404), 공개 진위확인 6 (마스킹·IP 해시 로그·429), audit 3 (등급변경·revoke·환불).
+> - 테스트 인프라: conftest 가 app import **전** `DATABASE_URL=kaisa_test` 강제 주입
+>   (개발/운영 DB 보호), 테스트마다 `alembic upgrade head`(subprocess) + TRUNCATE.
+>   pytest-asyncio 루프 불일치는 db fixture per-test `engine.dispose()` 로 해결.
+> - 테스트 작성 중 발견·수정한 프로덕션 버그 2건: portone 웹훅 malformed ts 500
+>   (`float()` try 밖), 비밀번호 정책 한글 통과 (`isascii()` 누락).
+
 ## Phase 요약
 
 | Phase | 내용 | 파일 | 검증 |
@@ -177,4 +188,4 @@ verify: 목킹 e2e — 신청→confirm→발급, 금액 불일치 409, 웹훅 �
 3. order_no 재사용 시 PortOne 거부 — 재시도는 신규 주문 생성(자연 멱등)
 4. rate limit in-memory는 workers=1 전제 — 다중 워커 시 공유 저장소 교체 필요
 5. 웹훅 서명 형식은 구현 시 PortOne 문서 확인
-6. `docs/dbdiagram.io` 변경은 팀 확인 후(db-planning 게이트). user_sessions 추가분 포함
+6. `docs/backend/dbdiagram.io` 변경은 팀 확인 후(db-planning 게이트). user_sessions 추가분 포함

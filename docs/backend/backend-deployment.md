@@ -62,9 +62,11 @@
 
 ## 3. 실행 계획
 
+> **Phase A 완료 (2026-09-09)** — A1~A5 전부. 상세는 각 단락의 ✅ 노트 참고.
+
 ### Phase A — 레포 작업 (로컬, 의존 순서대로)
 
-#### A1. boto3 추가 + uv.lock 생성 ← 빌드 블로커, 제일 먼저
+#### A1. boto3 추가 + uv.lock 생성 ← 빌드 블로커, 제일 먼저 ✅
 
 ```bash
 cd backend/api
@@ -73,7 +75,7 @@ uv add boto3        # pyproject + uv.lock 동시 생성
 
 verify: `uv.lock` 생성 + `uv run python -c "import boto3"` 성공
 
-#### A2. 로컬 docker 검증
+#### A2. 로컬 docker 검증 ✅
 
 ```bash
 cd backend/api
@@ -82,31 +84,38 @@ curl localhost:8000/api/health   # 200
 docker compose down
 ```
 
-#### A3. nginx 추가 + compose 수정
+#### A3. nginx 추가 + compose 수정 ✅
 
-- `backend/api/nginx/nginx.conf` 신규 — gongcar 것 복사 후 `server_name`만 kaisa 도메인으로
+- `backend/api/nginx/templates/default.conf.template` — gongcar nginx.conf 를
+  envsubst 템플릿으로 이식 (`${SERVER_NAME}` 로 도메인 주입 — 도메인 확정 전 컴파일 없이 교체 가능)
 - compose 수정:
-  - `nginx` 서비스 추가 (80/443, conf·letsencrypt 읽기 마운트)
-  - `api`의 `ports: "8000:8000"` **제거** (nginx 통해서만 노출)
-  - `api` environment에 `AWS_SECRETS_NAME: ${AWS_SECRETS_NAME:-kaisa-staging}`, `AWS_REGION` 추가
+  - `nginx` 서비스 추가 (80/443, templates·letsencrypt 읽기 마운트)
+  - `api`의 `ports: "8000:8000"` 제거 → `expose` (nginx 통해서만 노출)
+  - `api` environment에 `AWS_SECRETS_NAME: ${AWS_SECRETS_NAME:-}` (**빈 기본값** — 미설정 시
+    loader 가 no-op 여야 로컬 부팅됨), `AWS_REGION` 추가
+  - `api`에 `env_file: .env (required: false)` — 로컬 .env 의 CRYPTO_KEY 로드,
+    서버엔 .env 없음. compose environment 가 env_file 보다 우선 → DATABASE_URL 은 항상 db 호스트
 
-verify: `docker compose config` 유효 + 재기동해 `/api/health` 200
+verify ✅: `docker compose config` 유효 + `curl -k https://localhost:8443/health` → `{"status":"ok"}` +
+HTTP→HTTPS 301 리다이렉트 확인.
 
-#### A4. `.github/workflows/deploy.yml` 작성
+**로컬 주의 — 443 을 Tailscale 이 점유한다.** 로컬 검증은 `docker-compose.override.yml`
+(gitignore) 로 8443 + 자체서명 인증서(`.local-certs/`, gitignore) 를 쓴다. ports 는
+union 병합이므로 override 에서 `ports: !override` 태그로 교체해야 한다.
 
-gongcar 것 복사 후 수정 3곳:
-- EC2 경로 `/home/ec2-user/gongcar-api` → `/home/ec2-user/kaisa-api`
-- 시크릿 이름 `crm-staging` → `kaisa-staging`
-- Slack 단계는 처음엔 제외 (Secrets 없으면 워크플로우 실패) → 도입 후 추가
-- `be-prod-v*` job은 유지 (Phase E — 시크릿 등록 전까지 태그 미발행하면 무해)
+#### A4. `.github/workflows/deploy.yml` 작성 ✅
 
-`alembic upgrade head` 자동 포함 — versions 비어 있으면 no-op라 안전.
+- 스테이징: gongcar 구조 그대로 — 경로 `/home/ec2-user/kaisa-api`, 시크릿 `kaisa-staging`,
+  Slack 단계 제외(도입 후 추가), `alembic upgrade head` 자동 포함
+- **프로덕션은 ECS 가 아니라 스테이징과 동일한 EC2 compose job** (`be-prod-v*`,
+  `PROD_EC2_HOST` + `kaisa-prod`) — gongcar 의 EC2/ECS 비대칭을 물려받지 않는다 (§1 참고).
+  Phase E 전까지 태그를 밀지 않으면 무해.
 
-#### A5. `.github/workflows/ci.yml` 작성
+#### A5. `.github/workflows/ci.yml` 작성 ✅
 
-gongcar 것 그대로 이식 — alembic single-head 검사.
+gongcar 것 이식 — alembic single-head 검사. push 브랜치는 kaisa 기본 브랜치 `master`.
 
-#### A6. (선택) Makefile에 `deploy-staging`, `secret-staging` 타깃
+#### A6. (선택) Makefile에 `deploy-staging`, `secret-staging` 타깃 — 미실시
 
 ### Phase B — AWS 인프라 (콘솔/CLI)
 

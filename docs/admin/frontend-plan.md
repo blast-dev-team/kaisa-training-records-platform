@@ -2,7 +2,7 @@
 
 > 작성일: 2026-09-09 · 상태: 검토 대기
 > 대상: `frontend/apps/admin` (본체) + `frontend/apps/web` (모노레포 정합성 관점)
-> 기준: 백엔드 1차 구축 계획 `docs/federated-dancing-rivest.md` (Phase 0~7) · DBML v1.1 `docs/dbdiagram.io`
+> 기준: 백엔드 1차 구축 계획 `docs/backend/federated-dancing-rivest.md` (Phase 0~7) · DBML v1.1 `docs/backend/dbdiagram.io`
 > 디자인 레퍼런스: `gongcar-apps/frontend/apps/crm-fe` (FSD + Tailwind v4 토큰)
 
 ---
@@ -30,7 +30,7 @@
 
 ## 3. 스키마 결정 사항 (2026-09-09 확정)
 
-미팅 요구 ↔ DBML 대조에서 발견된 3건의 처리 결정. `docs/dbdiagram.io`·`docs/dbdiagram-v1.1-changes.md` 반영 완료.
+미팅 요구 ↔ DBML 대조에서 발견된 3건의 처리 결정. `docs/backend/dbdiagram.io`·`docs/backend/dbdiagram-v1.1-changes.md` 반영 완료.
 
 | # | 항목 | 결정 |
 |---|---|---|
@@ -160,7 +160,7 @@ BE 단계 완료를 기다리지 않고 화면은 먼저 만들되, 실연동은
 
 web은 개인회원용(별도 계획 문서로 확장 예정). 어드민 계획이 web에 미치는 제약만 정리:
 
-1. **세션 쿠키 공유 주의** — admin·web이 같은 API 호스트를 쓰면 `kaisa_session` 하나를 두 앱이 공유 → 로그인이 서로 덮어씀. 해결: **쿠키 이름 분리**(`kaisa_admin_session` / `kaisa_session`) — BE Phase 2 설계 반영 필요
+1. **세션 쿠키 공유 주의** — admin·web이 같은 API 호스트를 쓰면 `kaisa_session` 하나를 두 앱이 공유. **BE 구현(2026-09-09 확정)은 쿠키 이름 분리를 하지 않는다**: 싱글 `kaisa_session` + 토큰 접두사 `adm_`로 저장소만 분기(개인회원=DB, 관리자=in-memory, `core/session.py`). 대신 같은 브라우저에서 admin·web **동시 로그인은 불가** — 나중에 로그인한 쪽이 쿠키를 덮어씀. 관리자가 일반 회원 계정을 같은 브라우저에서 써야 하는 일이 생기면 그때 쿠키 분리 재검토(BE 변경 필요)
 2. **배포 도메인** — 현재 구조상 web(Amplify)과 BE(EC2, `api-dev.<도메인>`)이 다른 origin. `SameSite=Lax`는 cross-**site** 요청에만 쿠키를 차단하므로 **서브도메인 통일**(`www`·`admin`·`api`를 같은 registrable domain 아래)이면 same-site로 간주돼 Lax 유지 + CORS만 설정하면 됨(BE `CORS_ORIGINS` 이미 존재). Amplify 기본 도메인(`*.amplifyapp.com`)을 그대로 쓰면 BE와 다른 site가 되어 `SameSite=None` + CSRF 대책 추가가 강제됨 → **커스텀 도메인 서브도메인 통일 권장**, admin은 Amplify 앱 추가로 `admin.<도메인>` 배포 (amplify.yml appRoot 분리)
 3. **공유 후보** — `@repo/api`(DTO·에러코드 매핑), `@repo/ui`(토큰·기저 컴포넌트). 단 auth 흐름은 완전히 다름(admin: 이메일/비밀번호, web: PASS 리다이렉트) → **auth는 앱별로 두고**, 도메인 DTO(교육이력·확인서)만 공유 검토
 4. web 화면 범위(BE 기준): PASS 로그인 → 내 교육이력 → 확인서 신청(가격 확인) → 결제 스테퍼 → 발급 내역/재발급. 공개 진위확인 페이지(비인증, IP rate limit)
@@ -169,7 +169,7 @@ web은 개인회원용(별도 계획 문서로 확장 예정). 어드민 계획�
 ## 9. 미결 사항 (확정 필요)
 
 1. **1800원 적용 등급** — 미정 (2026-09-09). 가격 규칙 관리 화면이 커버하므로 FE 블로커 아님.
-2. **admin/web 쿠키·도메인 전략** — §8-1·2. 제안: 서브도메인 통일 + 쿠키 이름 분리.
+2. **admin/web 도메인 전략** — §8-2. 서브도메인 통일 권장. 쿠키 이름 분리는 BE가 불필요하다고 확정(§8-1, 토큰 접두사 분기) — 동시 로그인 불가만 알려진 제약.
 3. **감리 교육 "일정" 필드 해석** — 제안: 기간(started_at~ended_at)과 동일한 의미로 봐 추가 필드 불필요. 별개 세부 시간표가 필요해지면 추후 스키마 논의.
 
 > 2026-09-09 해소: 생년월일 컬럼(추가 안 함), 주제(과정+이력 양쪽), 시간명(범위 제외) — §3 · 대시보드 포함 확정 — §4B

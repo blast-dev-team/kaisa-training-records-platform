@@ -1,6 +1,6 @@
 # DBML v1.0 → v1.1 변경 사항
 
-> 확정 논의(2026-09-09) 기준. 대상 파일: `docs/dbdiagram.io`
+> 확정 논의(2026-09-09) 기준. 대상 파일: `docs/backend/dbdiagram.io`
 > 추가 확정(2026-09-09): 관리자 구글 로그인 제거 — 이메일/비밀번호 전용. `google_sub` 컬럼 삭제, `password_hash` NOT NULL
 > 추가 확정(2026-09-09 2차): 감리 교육 '주제' 필드 추가 — `training_courses.topic`(과정 기본) + `training_records.topic`(이력 스냅샷, NULL=과정 상속). 생년월일 컬럼은 CI 매칭으로 불필요해 추가 안 함(수동 심사는 성명+전화 대조). 외부 수료 '시간명'은 범위 제외
 
