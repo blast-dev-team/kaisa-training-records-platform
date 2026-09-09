@@ -1,18 +1,158 @@
 @import "tailwindcss";
 
 @theme {
-  /* 브랜드 색 — 필요에 맞게 교체 */
-  --color-brand-50: #eef4ff;
-  --color-brand-500: #3756fc;
-  --color-brand-700: #1d33a8;
+  /* Design system colors (oklch) — gongcar crm-fe 토큰 이식.
+     WorldNIC 샘플 톤에 맞춘 팔레트 (docs/admin/frontend-plan.md §6). */
+  --color-bg: oklch(0.99 0.003 265);
+  --color-panel: oklch(1 0 0);
+  --color-panel-2: oklch(0.97 0.004 265);
+  --color-ink: oklch(0.22 0.01 265);
+  --color-ink-2: oklch(0.42 0.008 265);
+  --color-ink-3: oklch(0.62 0.006 265);
+  --color-line: oklch(0.91 0.004 265);
+  --color-line-2: oklch(0.94 0.003 265);
+  --color-accent: oklch(0.59 0.22 254);
+  --color-accent-soft: oklch(0.96 0.04 254);
+  --color-accent-ink: oklch(0.45 0.20 254);
+  --color-accent-dark: oklch(0.30 0.13 254);
+  --color-warn: oklch(0.72 0.14 70);
+  --color-warn-soft: oklch(0.96 0.04 70);
+  --color-warn-ink: oklch(0.4 0.12 70);
+  --color-danger: oklch(0.58 0.18 27);
+  --color-danger-soft: oklch(0.95 0.04 27);
+  --color-info: oklch(0.58 0.12 240);
+  --color-info-soft: oklch(0.95 0.03 240);
+  --color-ok: oklch(0.58 0.14 155);
+  --color-ok-soft: oklch(0.94 0.06 155);
+  --color-ok-ink: oklch(0.36 0.12 155);
 
-  --color-bg: #f9f9fb;
-  --color-ink: #101323;
-  --color-ink-2: #4e5563;
-  --color-line: #e9eaeb;
+  /* Spacing & sizing */
+  --spacing-row: 40px;
+  --spacing-pad: 16px;
+
+  /* Border radius */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-full: 999px;
+
+  /* Shadow */
+  --shadow-card: 0 1px 2px rgba(82, 63, 105, 0.04), 0 0 2.5rem rgba(82, 63, 105, 0.06);
+
+  /* Font families */
+  --font-sans: "Inter Tight", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  /* ── shadcn 토큰 브리지 ────────────────────────────────────────────────
+     기존 OKLCH 팔레트에 매핑. Button 등 shadcn 계열 컴포넌트가 참조한다. */
+  --color-background: var(--color-bg);
+  --color-foreground: var(--color-ink);
+  --color-card: var(--color-panel);
+  --color-card-foreground: var(--color-ink);
+  --color-popover: var(--color-panel);
+  --color-popover-foreground: var(--color-ink);
+  --color-primary: var(--color-accent);
+  --color-primary-foreground: oklch(1 0 0);
+  --color-secondary: var(--color-panel-2);
+  --color-secondary-foreground: var(--color-ink);
+  --color-muted: var(--color-panel-2);
+  --color-muted-foreground: var(--color-ink-2);
+  --color-destructive: var(--color-danger);
+  --color-destructive-foreground: oklch(1 0 0);
+  --color-border: var(--color-line);
+  --color-input: var(--color-line);
+  --color-ring: var(--color-accent);
 }
 
-body {
-  background: var(--color-bg);
-  color: var(--color-ink);
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.45;
+    color: var(--color-ink);
+    background: var(--color-bg);
+  }
+
+  button {
+    font-family: inherit;
+    cursor: pointer;
+    border: none;
+    background: none;
+    color: inherit;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  input,
+  select,
+  textarea {
+    font-family: inherit;
+    font-size: inherit;
+    color: inherit;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-line);
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-ink-3);
+  }
+}
+
+/* 얇은 스크롤바 — 모달 본문처럼 스크롤바가 보이되 덜 두드러져야 할 때 사용. */
+@utility scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-line) transparent;
+  &::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: var(--color-line);
+    border-radius: 2px;
+  }
+  &::-webkit-scrollbar-thumb:hover {
+    background: var(--color-ink-3);
+  }
+}
+
+/* 로그인 페이지 반응형 — 브랜드 패널/모바일 로고 전환 */
+.login-brand-panel {
+  display: none;
+}
+.login-mobile-logo {
+  display: flex;
+}
+@media (min-width: 900px) {
+  .login-brand-panel {
+    display: flex;
+  }
+  .login-mobile-logo {
+    display: none;
+  }
 }
