@@ -33,10 +33,10 @@ def verify_password(password: str, password_hash: str) -> bool:
 
 
 def validate_password(password: str) -> bool:
-    """관리자 비밀번호 정책 — 10자 이상, 영문+숫자 조합."""
+    """관리자 비밀번호 정책 — 10자 이상, 영문+숫자 조합 (한글은 영문 아님)."""
     return (
         len(password) >= 10
-        and any(c.isalpha() for c in password)
+        and any(c.isascii() and c.isalpha() for c in password)
         and any(c.isdigit() for c in password)
     )
 

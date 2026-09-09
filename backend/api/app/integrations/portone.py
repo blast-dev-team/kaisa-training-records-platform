@@ -57,9 +57,10 @@ def verify_webhook_signature(signature: str, body: bytes) -> bool:
     try:
         parts = dict(p.split("=", 1) for p in signature.split(","))
         timestamp, received = parts["t"], parts["v1"]
+        ts = float(timestamp)
     except (ValueError, KeyError):
         return False
-    if abs(time.time() - float(timestamp)) > 300:
+    if abs(time.time() - ts) > 300:
         return False
     payload = f"{timestamp}.".encode() + body
     expected = hmac.new(

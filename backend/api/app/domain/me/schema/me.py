@@ -35,9 +35,7 @@ class MyCertificateResponse(BaseModel):
     status: str
 
     @classmethod
-    def from_orm_with_issue_type(
-        cls, c, issue_type: str
-    ) -> "MyCertificateResponse":
+    def from_orm_with_issue_type(cls, c, issue_type: str) -> "MyCertificateResponse":
         """issue_type 은 certificates 가 아닌 certificate_requests 에 있어 같이 받는다."""
         return cls(
             id=c.id,
