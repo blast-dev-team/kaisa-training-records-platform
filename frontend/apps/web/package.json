@@ -13,6 +13,8 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@cap.js/widget": "^0.1.57",
+    "@portone/browser-sdk": "^0.1.9",
     "@repo/assets": "workspace:*",
     "@repo/ui": "workspace:*",
     "@tanstack/react-query": "^5.75.5",
@@ -29,6 +31,7 @@
     "@repo/typescript-config": "workspace:*",
     "@tailwindcss/vite": "4.2.2",
     "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.7",
     "@types/node": "^22.15.3",
     "@types/react": "19.2.2",
     "@types/react-dom": "19.2.2",
