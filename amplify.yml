@@ -5,10 +5,10 @@ applications:
       phases:
         preBuild:
           commands:
-            - cd ../.. && npx pnpm install --no-frozen-lockfile
+            - cd ../.. && corepack enable && pnpm install --frozen-lockfile
         build:
           commands:
-            - npx pnpm --filter web run build
+            - cd ../.. && pnpm --filter web... run build
       artifacts:
         baseDirectory: dist
         files:
@@ -16,3 +16,23 @@ applications:
       cache:
         paths:
           - ../../node_modules/**/*
+          - ../../apps/**/node_modules/**/*
+          - ../../packages/**/node_modules/**/*
+  - appRoot: frontend/apps/admin
+    frontend:
+      phases:
+        preBuild:
+          commands:
+            - cd ../.. && corepack enable && pnpm install --frozen-lockfile
+        build:
+          commands:
+            - cd ../.. && pnpm --filter admin... run build
+      artifacts:
+        baseDirectory: dist
+        files:
+          - "**/*"
+      cache:
+        paths:
+          - ../../node_modules/**/*
+          - ../../apps/**/node_modules/**/*
+          - ../../packages/**/node_modules/**/*
