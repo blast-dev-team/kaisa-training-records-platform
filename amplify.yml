@@ -5,7 +5,7 @@ applications:
       phases:
         preBuild:
           commands:
-            - cd ../.. && corepack enable && pnpm install --frozen-lockfile
+            - cd ../.. && npm install -g pnpm@9.0.0 && pnpm install --frozen-lockfile
         build:
           commands:
             - cd ../.. && pnpm --filter web... run build
@@ -23,7 +23,7 @@ applications:
       phases:
         preBuild:
           commands:
-            - cd ../.. && corepack enable && pnpm install --frozen-lockfile
+            - cd ../.. && npm install -g pnpm@9.0.0 && pnpm install --frozen-lockfile
         build:
           commands:
             - cd ../.. && pnpm --filter admin... run build
