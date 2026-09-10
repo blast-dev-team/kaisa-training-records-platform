@@ -1,6 +1,6 @@
 # Kaisa Training Records Platform
 
-모노레포. `gongcar-apps` 구조를 참고한 스캐폴드.
+모노레포
 
 ```
 backend/
