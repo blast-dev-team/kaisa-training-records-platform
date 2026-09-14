@@ -4,6 +4,10 @@
 > 기준: gongcar-apps 스테이징 패턴(EC2 + docker compose + nginx + Secrets Manager + 태그 배포) 복제
 > 이 문서에는 **시크릿을 적지 않는다.** 값의 위치만 가리킨다.
 
+> **✅ Phase A~D 완료 (2026-09-14)** — 스테이징·프로덕션 모두 태그 배포까지 검증됨.
+> 구축된 실제 인프라 인벤토리·운영 룬북은 [infra-inventory.md](infra-inventory.md) 참고.
+> (계획과 달라진 부분: EC2가 Ubuntu 26.04라 유저가 `ubuntu`, 도메인은 `api-dev`·`api-edu.kaisa.or.kr`)
+
 ---
 
 ## 1. gongcar-apps 배포 방식 요약
