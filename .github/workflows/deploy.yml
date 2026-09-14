@@ -20,11 +20,11 @@ jobs:
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.STAGING_EC2_HOST }}
-          username: ec2-user
+          username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             set -e
-            cd /home/ec2-user/kaisa-api
+            cd /home/ubuntu/kaisa-api
             git fetch --all --tags
             git checkout ${{ github.ref_name }}
             cd backend/api
@@ -32,6 +32,8 @@ jobs:
             # 컨테이너가 부팅 시 로드. compose interpolation 용 DB_PASSWORD 만 셸로 주입.
             export AWS_REGION=ap-northeast-2
             export AWS_SECRETS_NAME=kaisa-staging
+            # nginx envsubst 도메인 (인증서 경로 /etc/letsencrypt/live/$SERVER_NAME 와 짝)
+            export SERVER_NAME=api-staging.kaisa.or.kr
             export DB_PASSWORD=$(aws secretsmanager get-secret-value \
               --secret-id kaisa-staging --region ap-northeast-2 \
               --query SecretString --output text \
