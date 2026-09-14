@@ -78,6 +78,10 @@ class Settings(BaseSettings):
     PORTONE_IDENTITY_CHANNEL_KEY: str = ""
     PORTONE_WEBHOOK_SECRET: str = ""
 
+    # AWS S3 (앱 파일 저장) — 버킷명만 있으면 활성화. 자격증명은 명시 키(로컬 .env) 또는
+    # IAM 인스턴스 롤(서버)에서 boto3 가 자동 사용하므로 ACCESS_KEY 유무로 판단하지 않는다
+    S3_BUCKET_NAME: str = ""
+
     # Rate limit
     RATE_LIMIT_LOGIN_MAX: int = 5
     RATE_LIMIT_LOGIN_WINDOW: int = 300  # 초
