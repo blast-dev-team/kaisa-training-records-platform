@@ -39,6 +39,7 @@
 | `ENVIRONMENT` | `staging` | `production` |
 | `S3_BUCKET_NAME` | `kaisa-staging-files` | `kaisa-prod-files` |
 | `FRONTEND_URL` | `https://dev-edu.kaisa.or.kr` | `https://edu.kaisa.or.kr` |
+| `CORS_ORIGINS` | `secret manager` | `secret manager` |
 
 - `DATABASE_URL`은 시크릿에 없음 — compose가 `DB_PASSWORD`로 조립.
 - 값 변경: `aws secretsmanager put-secret-value`로 기존 JSON **병합** 후 재배포 (부팅 시 로드).
@@ -140,3 +141,4 @@ aws secretsmanager put-secret-value --secret-id kaisa-prod --secret-string file:
 | 2026-09-14 | 인증서 갱신 cron, S3 백업(버킷·스크립트·cron) 구축 + 무결성 검증 |
 | 2026-09-14 | S3 파일 버킷 + 시크릿 `S3_BUCKET_NAME`·`FRONTEND_URL` 주입 + 재배포 (`be-staging-v0.1.2`·`be-prod-v0.1.1`) |
 | 2026-09-14 | 로컬 개발용 IAM 사용자 `kaisa-local-dev` 발급 |
+| 2026-09-14 | 시크릿 `CORS_ORIGINS` 추가 (FE 도메인 분리 — dev-admin/admin) + api 컨테이너 force-recreate로 반영. Amplify(`kaisa-edu` da0pjubdzn206·`kaisa-admin` d2kv9rc28llymz, ap-northeast-2) 브랜치 환경변수 `VITE_API_URL` 주입. **주의: `docker compose up -d` 는 이미지 동일 시 재생성 안 함 — 시크릿 변경 시 `--force-recreate api` 필요** |

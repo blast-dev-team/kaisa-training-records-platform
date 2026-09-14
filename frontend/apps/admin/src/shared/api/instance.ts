@@ -18,8 +18,10 @@ export class ApiError extends Error {
   }
 }
 
+// BE origin (예: https://api-dev.kaisa.or.kr) — 미설정 시 상대경로(/api)로
+// vite 프록시 로컬 개발. Amplify 브랜치별 환경변수로 주입.
 export const apiClient = axios.create({
-  baseURL: '/api',
+  baseURL: `${import.meta.env.VITE_API_URL ?? ''}/api`,
   withCredentials: true,
   headers: { 'Content-Type': 'application/json' },
 })
