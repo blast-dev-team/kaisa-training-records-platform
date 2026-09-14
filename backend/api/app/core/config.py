@@ -58,10 +58,48 @@ class Settings(BaseSettings):
 
     # CORS 허용 프론트엔드 주소
     FRONTEND_URL: str = "http://localhost:3000"
+    # 추가 CORS 오리진 — 쉼표 구분. 비면 FRONTEND_URL 단일 허용
+    CORS_ORIGINS: str = ""
+
+    # 세션 (DB 세션 테이블 + httponly 쿠키 — opaque 랜덤 토큰, 서명키 없음)
+    SESSION_COOKIE_NAME: str = "kaisa_session"
+    SESSION_TTL_HOURS: int = 24
+
+    # 개인정보 암호화 (Fernet) — 없으면 부팅 시 ValueError (core/crypto.py)
+    CRYPTO_KEY: str = ""
+    # 진위확인 요청 IP 해시용 솔트 — 비면 CRYPTO_KEY 사용
+    IP_HASH_SALT: str = ""
+
+    # PortOne (본인인증·결제)
+    PORTONE_API_BASE: str = "https://api.portone.io"
+    PORTONE_STORE_ID: str = ""
+    PORTONE_API_SECRET: str = ""
+    PORTONE_PAYMENT_CHANNEL_KEY: str = ""
+    PORTONE_IDENTITY_CHANNEL_KEY: str = ""
+    PORTONE_WEBHOOK_SECRET: str = ""
+
+    # Rate limit
+    RATE_LIMIT_LOGIN_MAX: int = 5
+    RATE_LIMIT_LOGIN_WINDOW: int = 300  # 초
+    RATE_LIMIT_PUBLIC_VERIFY_MAX: int = 10
+    RATE_LIMIT_PUBLIC_VERIFY_WINDOW: int = 60  # 초
+
+    # 확인서 유효기간 (일). 0 = 무기한
+    CERTIFICATE_VALID_DAYS: int = 0
+
+    # 시드용 마스터 admin 계정 (make seed)
+    ADMIN_EMAIL: str = "admin@example.com"
+    ADMIN_PASSWORD: str = ""
 
     # Sentry — 비우면 비활성화 (로컬 기본값)
     SENTRY_DSN: str = ""
     RELEASE: str = ""
+
+    @property
+    def cors_origins(self) -> list[str]:
+        if self.CORS_ORIGINS:
+            return [o.strip() for o in self.CORS_ORIGINS.split(",") if o.strip()]
+        return [self.FRONTEND_URL]
 
 
 settings = Settings()

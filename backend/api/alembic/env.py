@@ -1,13 +1,12 @@
 import asyncio
 
-from alembic import context
 from sqlalchemy.ext.asyncio import create_async_engine
-
-from app.core.config import settings
-from app.core.database import Base
 
 # Import all domain models so metadata is populated
 import app.domain  # noqa: F401
+from alembic import context
+from app.core.config import settings
+from app.core.database import Base
 
 target_metadata = Base.metadata
 
