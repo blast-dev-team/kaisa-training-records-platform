@@ -1,0 +1,13 @@
+# 로컬 전용 오버라이드 (gitignore — 서버에는 이 파일이 없다)
+# - 443 이 Tailscale 에 점유돼 로컬은 8443 로 노출
+# - Let's Encrypt 대신 자체서명 인증서 (.local-certs/)
+services:
+  nginx:
+    ports: !override
+      - "80:80"
+      - "8443:443"
+    environment:
+      SERVER_NAME: localhost
+    volumes:
+      - ./nginx/templates:/etc/nginx/templates:ro
+      - ./.local-certs:/etc/letsencrypt:ro
