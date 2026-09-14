@@ -115,6 +115,12 @@ importers:
 
   apps/web:
     dependencies:
+      '@cap.js/widget':
+        specifier: ^0.1.57
+        version: 0.1.57
+      '@portone/browser-sdk':
+        specifier: ^0.1.9
+        version: 0.1.10
       '@repo/assets':
         specifier: workspace:*
         version: link:../../packages/assets
@@ -158,6 +164,9 @@ importers:
       '@testing-library/react':
         specifier: ^16.3.2
         version: 16.3.3(@testing-library/dom@10.4.1)(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
+      '@testing-library/user-event':
+        specifier: ^14.6.7
+        version: 14.6.7(@testing-library/dom@10.4.1)
       '@types/node':
         specifier: ^22.15.3
         version: 22.20.1
@@ -360,6 +369,9 @@ packages:
 
   '@borewit/text-codec@0.2.2':
     resolution: {integrity: sha512-DDaRehssg1aNrH4+2hnj1B7vnUGEjU6OIlyRdkMd0aUdIUvKXrJfXsy8LVtXAy7DRvYVluWbMspsRhz2lcW0mQ==}
+
+  '@cap.js/widget@0.1.57':
+    resolution: {integrity: sha512-IgWepPHHsn1FcB5msL/TQtZZixGm9KAp7rpNbDmdo/i10EhDA74TlMU9zbZ6H8wwcCtlond/m+pAcLr1RiQ1og==}
 
   '@esbuild/aix-ppc64@0.25.12':
     resolution: {integrity: sha512-Hhmwd6CInZ3dwpuGTF8fJG6yoWmsToE+vYgD4nytZVxcu1ulHpUQRAB1UJ8+N1Am3Mz4+xOByoQoSZf4D+CpkA==}
@@ -661,6 +673,9 @@ packages:
     engines: {node: '>=22.0.0'}
     hasBin: true
 
+  '@portone/browser-sdk@0.1.10':
+    resolution: {integrity: sha512-UhvAhgWrGtjAMy8nqXUpHLSzm87TBAvo0PHbAfP3TXYqR6cYetqdrqGVGRxpY43Z7Rv+AxvHXWZ+e5xVvCPyEg==}
+
   '@radix-ui/react-compose-refs@1.1.5':
     resolution: {integrity: sha512-+48PbAAbq3didjJxa+OaWY2ZwgAKsNiRGyeHKszblZMQ+kcpd9pAaT11cMkGEie0vsOi3QdeTE6d5Fe3Gn61kA==}
     peerDependencies:
@@ -937,6 +952,12 @@ packages:
         optional: true
       '@types/react-dom':
         optional: true
+
+  '@testing-library/user-event@14.6.7':
+    resolution: {integrity: sha512-MPCpX8bxe8zS+JmmTwLp8jd0dy1rAm60Te/SL8JrQM3qvQJcBOs1d7IefJMyZzqM3EWBrDn/LWDt1BCGu4ASfg==}
+    engines: {node: '>=12', npm: '>=6'}
+    peerDependencies:
+      '@testing-library/dom': '>=7.21.4'
 
   '@tokenizer/inflate@0.4.1':
     resolution: {integrity: sha512-2mAv+8pkG6GIZiF1kNg1jAjh27IDxEPKwdGul3snfztFerfPGI1LjDezZp3i7BElXompqEtPmoPx6c2wgtWsOA==}
@@ -2934,6 +2955,8 @@ snapshots:
 
   '@borewit/text-codec@0.2.2': {}
 
+  '@cap.js/widget@0.1.57': {}
+
   '@esbuild/aix-ppc64@0.25.12':
     optional: true
 
@@ -3194,6 +3217,8 @@ snapshots:
       - kerberos
       - supports-color
 
+  '@portone/browser-sdk@0.1.10': {}
+
   '@radix-ui/react-compose-refs@1.1.5(@types/react@19.2.2)(react@19.2.6)':
     dependencies:
       react: 19.2.6
@@ -3389,6 +3414,10 @@ snapshots:
     optionalDependencies:
       '@types/react': 19.2.2
       '@types/react-dom': 19.2.2(@types/react@19.2.2)
+
+  '@testing-library/user-event@14.6.7(@testing-library/dom@10.4.1)':
+    dependencies:
+      '@testing-library/dom': 10.4.1
 
   '@tokenizer/inflate@0.4.1':
     dependencies:
