@@ -50,23 +50,28 @@ test-v:
 # Docker (로컬)
 # ══════════════════════════════════════════════════════════════════════════════
 
+# docker-compose.local.yml (gitignore — 8443 + 자체서명 인증서) 이 있을 때만 명시 로드.
+# override.yml 이름은 compose가 자동 로드하므로 금지 — 서버에 유출되면 nginx가 죽는다
+# (2026-09-16 실제 사고). local.yml 은 자동 로드되지 않아 유출돼도 무해.
+COMPOSE_FILES := -f docker-compose.yml $(if $(wildcard docker-compose.local.yml),-f docker-compose.local.yml,)
+
 build:
-	docker compose build
+	docker compose $(COMPOSE_FILES) build
 
 up:
-	docker compose up -d
+	docker compose $(COMPOSE_FILES) up -d
 
 down:
-	docker compose down
+	docker compose $(COMPOSE_FILES) down
 
 restart:
-	docker compose up -d --build api
+	docker compose $(COMPOSE_FILES) up -d --build api
 
 logs:
-	docker compose logs -f api
+	docker compose $(COMPOSE_FILES) logs -f api
 
 shell:
-	docker compose exec api bash
+	docker compose $(COMPOSE_FILES) exec api bash
 
 db-shell:
-	docker compose exec db psql -U kaisa -d kaisa
+	docker compose $(COMPOSE_FILES) exec db psql -U kaisa -d kaisa

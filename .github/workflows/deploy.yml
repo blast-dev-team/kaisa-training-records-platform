@@ -28,6 +28,13 @@ jobs:
             git fetch --all --tags
             git checkout ${{ github.ref_name }}
             cd backend/api
+            # 가드 — gitignore 로컬 파일이 수동 복사로 유출되면 nginx 가 SERVER_NAME=localhost
+            # 로 떠서 도메인 전면 다운 (2026-09-16 실제 사고: ERR_CONNECTION_REFUSED).
+            # override.yml 은 compose 가 자동 로드하므로 치명적 → 배포 실패 처리.
+            if [ -f docker-compose.override.yml ]; then
+              echo "❌ docker-compose.override.yml 이 서버에 존재 — 로컬 전용 파일입니다. 삭제 후 재배포"
+              exit 1
+            fi
             # .env 미사용 — 앱 시크릿은 Secrets Manager `kaisa-staging`(인스턴스 롤)을
             # 컨테이너가 부팅 시 로드. compose interpolation 용 DB_PASSWORD 만 셸로 주입.
             export AWS_REGION=ap-northeast-2
@@ -64,6 +71,11 @@ jobs:
             git fetch --all --tags
             git checkout ${{ github.ref_name }}
             cd backend/api
+            # 가드 — 로컬 전용 파일 유출 감지 (staging job 참고)
+            if [ -f docker-compose.override.yml ]; then
+              echo "❌ docker-compose.override.yml 이 서버에 존재 — 로컬 전용 파일입니다. 삭제 후 재배포"
+              exit 1
+            fi
             export AWS_REGION=ap-northeast-2
             export AWS_SECRETS_NAME=kaisa-prod
             # nginx envsubst 도메인 (인증서 경로 /etc/letsencrypt/live/$SERVER_NAME 와 짝)

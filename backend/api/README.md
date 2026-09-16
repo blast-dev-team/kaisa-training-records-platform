@@ -273,7 +273,8 @@ make down
 ```
 
 - `api`는 8000을 `expose` 로만 열고 **nginx(80/443) 통해서만 외부 노출**
-- 로컬 443은 Tailscale 이 점유할 수 있다 — 그럴 땐 `docker-compose.override.yml`(gitignore) 로 8443 + 자체서명 인증서(`.local-certs/`) 사용. ports 는 union 병합되므로 `ports: !override` 태그 필요
+- 로컬 443은 Tailscale 이 점유할 수 있다 — 그럴 땐 `docker-compose.local.yml`(gitignore) 로 8443 + 자체서명 인증서(`.local-certs/`) 사용. `make up` 이 파일이 있을 때 `-f` 로 자동 로드. ports 는 union 병합되므로 `ports: !override` 태그 필요
+  - ⚠️ `docker-compose.override.yml` 이름은 compose가 **자동 로드**하므로 쓰지 않는다 — 서버에 수동 복사로 유출되면 nginx가 죽는다 (2026-09-16 staging 사고)
 - nginx conf 는 `nginx/templates/default.conf.template` (envsubst — `${SERVER_NAME}` 로 도메인 주입)
 
 ---

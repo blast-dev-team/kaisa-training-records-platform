@@ -25,5 +25,8 @@ __pycache__/
 .local-uploads/
 
 # 로컬 docker 검증용 (자체서명 인증서 · 포트 오버라이드)
+# ⚠️ override.yml 이름은 compose가 자동 로드하므로 쓰지 않는다 — 2026-09-16 실제 사고:
+#    이 파일이 수동 복사로 서버에 유출돼 nginx가 SERVER_NAME=localhost 로 떠 staging 다운.
+#    local.yml 은 compose가 자동 로드하지 않아 서버에 유출돼도 무해. Makefile 이 -f 로 명시 로드.
 .local-certs/
-docker-compose.override.yml
+docker-compose.local.yml

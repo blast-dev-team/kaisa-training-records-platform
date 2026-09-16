@@ -103,9 +103,16 @@ docker compose down
 verify ✅: `docker compose config` 유효 + `curl -k https://localhost:8443/health` → `{"status":"ok"}` +
 HTTP→HTTPS 301 리다이렉트 확인.
 
-**로컬 주의 — 443 을 Tailscale 이 점유한다.** 로컬 검증은 `docker-compose.override.yml`
+**로컬 주의 — 443 을 Tailscale 이 점유한다.** 로컬 검증은 `docker-compose.local.yml`
 (gitignore) 로 8443 + 자체서명 인증서(`.local-certs/`, gitignore) 를 쓴다. ports 는
-union 병합이므로 override 에서 `ports: !override` 태그로 교체해야 한다.
+union 병합이므로 `ports: !override` 태그로 교체해야 한다.
+
+> **파일명이 `override.yml` 이 아니라 `local.yml` 인 이유** — compose 는
+> `docker-compose.override.yml` 을 이름만 보고 **자동 로드**한다. 그래서 이 파일이
+> 폴더째 수동 복사로 서버에 유출되면 `SERVER_NAME: localhost` 강제로 nginx 가
+> 크래시 루프 → 도메인 전면 `ERR_CONNECTION_REFUSED` (2026-09-16 staging 실제 사고).
+> `local.yml` 은 자동 로드되지 않아 유출돼도 무해하다. 로컬에서는 `make up` 등
+> Makefile 이 `-f` 로 명시 로드한다. deploy.yml 에 유출 감지 가드도 있다.
 
 #### A4. `.github/workflows/deploy.yml` 작성 ✅
 
