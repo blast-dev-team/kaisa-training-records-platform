@@ -37,9 +37,18 @@ def _load_aws_secrets_into_env() -> None:
 _load_aws_secrets_into_env()
 
 
+# env_file 을 환경에 따라 선택 — 로컬은 커밋된 .env.example 을 기본으로 쓰고 (cp 불필요),
+# 개인 override 가 필요하면 .env 에 같은 키를 넣으면 이긴다 (나중 파일이 우선).
+# 배포(staging/production)는 compose `environment` 로 ENVIRONMENT 가 os.environ 에
+# 들어오므로 .env 만 본다 (컨테이너에 파일이 없으면 무시되고 Secrets Manager/os.environ 이 값을 채운다).
+_ENV_FILE = (
+    (".env.example", ".env") if os.getenv("ENVIRONMENT", "local") == "local" else ".env"
+)
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=_ENV_FILE,
         env_file_encoding="utf-8",
         extra="ignore",
     )
@@ -64,6 +73,8 @@ class Settings(BaseSettings):
     # 세션 (DB 세션 테이블 + httponly 쿠키 — opaque 랜덤 토큰, 서명키 없음)
     SESSION_COOKIE_NAME: str = "kaisa_session"
     SESSION_TTL_HOURS: int = 24
+    # 개인회원(PASS 본인인증) 세션 유효시간 — 관리자(24h)와 분리. 지나면 재인증 필요
+    USER_SESSION_TTL_MINUTES: int = 10
 
     # 개인정보 암호화 (Fernet) — 없으면 부팅 시 ValueError (core/crypto.py)
     CRYPTO_KEY: str = ""
@@ -90,6 +101,12 @@ class Settings(BaseSettings):
 
     # 확인서 유효기간 (일). 0 = 무기한
     CERTIFICATE_VALID_DAYS: int = 0
+
+    # 확인서 발급 가능 기간 (일) — 수강 시작일 기준. 초과 이력은 발급 신청 불가
+    CERTIFICATE_ISSUE_WINDOW_DAYS: int = 3 * 365
+
+    # 무료 재발급 기간 (일) — 직전 발급일 기준. 이내면 재발급 0원, 초과면 유료
+    CERTIFICATE_REISSUE_FREE_DAYS: int = 7
 
     # 시드용 마스터 admin 계정 (make seed)
     ADMIN_EMAIL: str = "admin@example.com"

@@ -35,6 +35,10 @@ _ERRORS: dict[str, tuple[int, str]] = {
     "TRAINEE_ALREADY_LINKED": (409, "이미 다른 계정에 연결된 교육생이에요"),
     "GRADE_NOT_DETERMINED": (409, "회원등급을 확정할 수 없어요"),
     "PORTONE_NOT_CONFIGURED": (503, "결제가 설정되지 않았어요"),
+    "PORTONE_API_ERROR": (
+        502,
+        "결제대행사 API 호출이 실패했어요. 잠시 후 다시 시도해 주세요",
+    ),
     "PORTONE_INVALID_RESPONSE": (502, "결제대행사 응답이 올바르지 않아요"),
     "PAYMENT_NOT_PAID": (400, "결제가 완료되지 않았어요"),
     "PAYMENT_STORE_MISMATCH": (409, "다른 스토어의 결제예요"),

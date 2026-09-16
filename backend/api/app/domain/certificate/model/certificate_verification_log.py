@@ -1,7 +1,7 @@
 import uuid
-from datetime import date, datetime
+from datetime import datetime
 
-from sqlalchemy import Date, DateTime, ForeignKey, Index, String, Uuid, func
+from sqlalchemy import DateTime, ForeignKey, Index, String, Uuid, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database import Base
@@ -20,7 +20,6 @@ class CertificateVerificationLog(Base):
         Uuid, ForeignKey("certificates.id", ondelete="SET NULL"), nullable=True
     )
     input_certificate_no: Mapped[str] = mapped_column(String(100), nullable=False)
-    input_issue_date: Mapped[date] = mapped_column(Date, nullable=False)
     result: Mapped[str] = mapped_column(String(30), nullable=False)
     requester_ip_hash: Mapped[str | None] = mapped_column(String(255))
     verified_at: Mapped[datetime] = mapped_column(

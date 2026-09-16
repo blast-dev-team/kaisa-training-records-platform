@@ -6,16 +6,29 @@ from pydantic import BaseModel
 from app.core.crypto import decrypt_field, mask_phone
 
 
-class PassStartResponse(BaseModel):
-    """PASS 인증 시작 — FE는 redirect_url 로 이동 후 복귀 시 state 로 complete 호출."""
+class PassStartRequest(BaseModel):
+    """PASS 인증 시작 — FE가 만든 본인인증 건 ID로 브라우저 SDK 인증창을 연다."""
 
     identity_verification_id: str
-    redirect_url: str
+
+
+class PassStartResponse(BaseModel):
+    """PASS 인증 시작 — FE는 이 ID로 SDK 인증창을 열고, 복귀 시 state 로 complete 호출."""
+
+    identity_verification_id: str
+    # 리디렉션 방식(서버 생성 세션) 전용 — 브라우저 SDK 흐름에서는 미사용
+    redirect_url: str | None = None
     state: str
 
 
 class PassCompleteRequest(BaseModel):
     state: str
+
+
+class PassTestLoginRequest(BaseModel):
+    """테스트 본인인증 우회 로그인 — local·staging 전용 (identity_service.test_login)."""
+
+    name: str = "테스트"
 
 
 class PassCompleteResponse(BaseModel):

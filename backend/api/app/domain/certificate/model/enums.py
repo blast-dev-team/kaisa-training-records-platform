@@ -27,4 +27,3 @@ class VerificationResult(str, enum.Enum):
     expired = "expired"
     revoked = "revoked"
     not_found = "not_found"
-    mismatch = "mismatch"

@@ -16,11 +16,11 @@ from app.domain.trainee.model import Trainee
 from app.integrations import portone
 
 
-async def _find_certificate(db: AsyncSession, order_id) -> Certificate | None:
+async def _find_certificates(db: AsyncSession, order_id) -> list[Certificate]:
     result = await db.execute(
         select(Certificate).where(Certificate.payment_order_id == order_id)
     )
-    return result.scalars().first()
+    return list(result.scalars().all())
 
 
 def _validate_payment(result: dict, order: PaymentOrder) -> None:
@@ -46,17 +46,44 @@ def _validate_payment(result: dict, order: PaymentOrder) -> None:
         )
 
 
+async def _find_requests(db: AsyncSession, order: PaymentOrder) -> list[CertificateRequest]:
+    """주문에 묶인 신청들 — 다건은 payment_order_id, 레거시 단건은 legacy FK 로 조회."""
+    result = await db.execute(
+        select(CertificateRequest).where(
+            CertificateRequest.payment_order_id == order.id
+        )
+    )
+    requests = list(result.scalars().all())
+    if not requests and order.certificate_request_id is not None:
+        legacy = (
+            await db.execute(
+                select(CertificateRequest).where(
+                    CertificateRequest.id == order.certificate_request_id
+                )
+            )
+        ).scalar_one()
+        legacy.payment_order_id = order.id
+        requests = [legacy]
+    return requests
+
+
 async def confirm_order(
     db: AsyncSession, order: PaymentOrder
 ) -> PaymentConfirmResponse:
-    """주문 결제 확정 — 웹훅·수동 confirm 공통 경로. single-fetch 후 발급."""
-    certificate = await _find_certificate(db, order.id)
-    if certificate is not None:  # 이미 발급까지 완료 — 멱등 반환
+    """주문 결제 확정 — 웹훅·수동 confirm 공통 경로. single-fetch 후 발급.
+
+    다건 발급 주문이면 묶인 N건을 같은 트랜잭션에서 전부 발급한다.
+    """
+    certificates = await _find_certificates(db, order.id)
+    if certificates:  # 이미 발급까지 완료 — 멱등 반환
         return PaymentConfirmResponse(
             order_no=order.order_no,
             status=order.status,
             paid_at=order.paid_at,
-            certificate=MyCertificateBrief.model_validate(certificate),
+            certificate=MyCertificateBrief.model_validate(certificates[0]),
+            certificates=[
+                MyCertificateBrief.model_validate(c) for c in certificates
+            ],
         )
 
     if not settings.PORTONE_API_SECRET:
@@ -82,23 +109,24 @@ async def confirm_order(
     order.status = "paid"
     order.paid_at = now
 
-    request = (
-        await db.execute(
-            select(CertificateRequest).where(
-                CertificateRequest.id == order.certificate_request_id
-            )
+    requests = await _find_requests(db, order)
+    certificates = []
+    for request in requests:
+        request.status = "paid"
+        request.paid_at = now
+        certificates.append(
+            await issuance_service.issue_certificate(db, request, order.id)
         )
-    ).scalar_one()
-    request.status = "paid"
-    request.paid_at = now
-    certificate = await issuance_service.issue_certificate(db, request, order.id)
     await db.commit()
 
     return PaymentConfirmResponse(
         order_no=order.order_no,
         status=order.status,
         paid_at=order.paid_at,
-        certificate=MyCertificateBrief.model_validate(certificate),
+        certificate=MyCertificateBrief.model_validate(certificates[0]),
+        certificates=[
+            MyCertificateBrief.model_validate(c) for c in certificates
+        ],
     )
 
 

@@ -81,6 +81,22 @@ class MyPaymentOrderResponse(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class MyPaymentHistoryItem(BaseModel):
+    """회원 결제 내역 — 결제완료·환불 주문만. 확인서·결제수단은 연관 데이터에서 조립."""
+
+    id: uuid.UUID
+    order_no: str
+    paid_at: datetime | None
+    certificate_no: str | None
+    # 다건 발급 주문 — 대표 확인서 1건의 번호·교육명만 내려주고 건수로 표기
+    certificate_count: int = 1
+    course_name: str | None
+    method: str | None
+    receipt_url: str | None
+    amount_krw: int
+    status: str
+
+
 class CertificatePriceResponse(BaseModel):
     training_record_id: uuid.UUID
     course_name: str
@@ -88,3 +104,10 @@ class CertificatePriceResponse(BaseModel):
     grade_name: str | None
     price_krw: int
     currency: str
+
+
+class DownloadUrlResponse(BaseModel):
+    """교육이력 파일 다운로드 — presigned URL (FE가 blob으로 내려받는다)."""
+
+    url: str
+    file_name: str

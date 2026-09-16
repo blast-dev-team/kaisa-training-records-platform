@@ -41,6 +41,11 @@ def _expiry() -> datetime:
     return now_kst() + timedelta(hours=settings.SESSION_TTL_HOURS)
 
 
+def _user_expiry() -> datetime:
+    """개인회원 세션 만료 — 관리자(24h)와 별도 짧은 TTL."""
+    return now_kst() + timedelta(minutes=settings.USER_SESSION_TTL_MINUTES)
+
+
 # ── 개인회원 (DB 세션) ─────────────────────────────────────────────────────────
 
 
@@ -53,7 +58,7 @@ async def create_user_session(
             user_id=user_id,
             token_hash=hash_token(token),
             user_agent=user_agent,
-            expires_at=_expiry(),
+            expires_at=_user_expiry(),
         )
     )
     await db.commit()

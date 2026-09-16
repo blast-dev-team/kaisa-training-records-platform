@@ -169,7 +169,8 @@ uv run alembic history                # 히스토리
 
 ### `.env` 파일
 
-`backend/api/.env` 에 위치 (`cp .env.example .env`). 주요 변수:
+`ENVIRONMENT=local`(기본)이면 커밋된 `.env.example` 을 그대로 읽는다 — 복사 불필요.
+배포(staging/production, compose 가 `ENVIRONMENT` 주입)는 `.env` 와 Secrets Manager 사용. 주요 변수:
 
 | 변수 | 기본값 | 설명 |
 |------|--------|------|
@@ -223,8 +224,7 @@ createuser kaisa --createdb --pwprompt   # 비밀번호: kaisa
 createdb kaisa -O kaisa
 
 cd backend/api
-cp .env.example .env      # CRYPTO_KEY 필수 생성
-make install              # uv sync
+make install              # uv sync — .env.example 이 로컬 기본값이라 복사 불필요
 make migrate              # alembic upgrade head
 make seed                 # 등급 3종 + 마스터 admin + 교육생 시드 (선택)
 make dev                  # http://localhost:8000 (TZ=UTC 고정 — 프로덕션과 동일)
@@ -266,8 +266,7 @@ psql -h localhost -U kaisa -d postgres -c "CREATE DATABASE kaisa_test OWNER kais
 ## 6. Docker (로컬 풀스택)
 
 ```bash
-cp .env.example .env      # DB_PASSWORD·CRYPTO_KEY 설정
-make up                   # db + api + nginx 기동
+make up                   # db + api + nginx 기동 (DB_PASSWORD·CRYPTO_KEY 는 .env.example 기본값)
 make logs                 # api 로그 추적
 make db-shell             # psql 진입
 make down

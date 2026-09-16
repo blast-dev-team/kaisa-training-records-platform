@@ -21,7 +21,9 @@ from app.domain.auth.service import auth_service
 from app.domain.identity.schema import (
     PassCompleteRequest,
     PassCompleteResponse,
+    PassStartRequest,
     PassStartResponse,
+    PassTestLoginRequest,
 )
 from app.domain.identity.service import identity_service
 
@@ -79,8 +81,8 @@ async def me(request: Request, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/pass", response_model=PassStartResponse)
-async def start_pass():
-    return await identity_service.start_pass()
+async def start_pass(body: PassStartRequest):
+    return await identity_service.start_pass(body)
 
 
 @router.post("/pass/complete", response_model=PassCompleteResponse)
@@ -88,6 +90,16 @@ async def complete_pass(
     body: PassCompleteRequest, response: Response, db: AsyncSession = Depends(get_db)
 ):
     result, token = await identity_service.complete_pass(db, body.state)
+    response.set_cookie(**session_cookie_params(token))
+    return result
+
+
+@router.post("/pass/test-login", response_model=PassCompleteResponse)
+async def test_login_pass(
+    body: PassTestLoginRequest, response: Response, db: AsyncSession = Depends(get_db)
+):
+    # 데모용 우회 로그인 — production 에서는 service 가 404 로 숨긴다
+    result, token = await identity_service.test_login(db, body)
     response.set_cookie(**session_cookie_params(token))
     return result
 

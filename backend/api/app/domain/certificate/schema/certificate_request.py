@@ -11,6 +11,12 @@ class CertificateRequestCreate(BaseModel):
     issue_type: str = "original"
 
 
+class CertificateBatchRequestCreate(BaseModel):
+    """다건 발급 신청 — 유효한 건끼리 하나의 결제 주문으로 묶인다."""
+
+    items: list[CertificateRequestCreate]
+
+
 class CertificateRequestResponse(BaseModel):
     """신청 응답 — 유료면 결제에 넘길 order_no, 0원이면 발급된 확인서까지."""
 
@@ -27,7 +33,7 @@ class CertificateRequestResponse(BaseModel):
 
     @classmethod
     def from_orm(cls, request) -> "CertificateRequestResponse":
-        order = request.payment_orders[0] if request.payment_orders else None
+        order = request.payment_order
         certificate = request.certificates[0] if request.certificates else None
         return cls(
             id=request.id,

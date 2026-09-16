@@ -4,17 +4,21 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
-from app.core.dependencies import get_current_trainee
+from app.core.dependencies import get_current_trainee, get_current_user
+from app.core.response import PagedResponse
 from app.domain.me.schema import (
     CertificatePriceResponse,
+    DownloadUrlResponse,
     MeProfileResponse,
     MyCertificateRequestResponse,
     MyCertificateResponse,
+    MyPaymentHistoryItem,
     MyPaymentOrderResponse,
 )
 from app.domain.me.service import me_service
 from app.domain.trainee.model import Trainee
 from app.domain.training_record.schema import TrainingRecordResponse
+from app.domain.user.model import User
 
 router = APIRouter(prefix="/me", tags=["me"])
 
@@ -27,33 +31,55 @@ async def get_my_profile(
     return await me_service.get_profile(db, trainee)
 
 
-@router.get("/training-records", response_model=list[TrainingRecordResponse])
+@router.get("/training-records", response_model=PagedResponse[TrainingRecordResponse])
 async def get_my_training_records(
     from_: str | None = Query(None, alias="from"),
     to: str | None = None,
-    completion_status: str | None = None,
+    search: str | None = None,
+    page: int = Query(1, ge=1),
+    limit: int = Query(20, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
-    trainee: Trainee = Depends(get_current_trainee),
+    user: User = Depends(get_current_user),
 ):
-    records = await me_service.list_my_records(
+    """본인 이력 + 공용 데모 이력. 교육생 미연결 신규 회원도 데모 이력을 본다."""
+    records, total = await me_service.list_member_records(
         db,
-        trainee,
-        completion_status=completion_status,
+        user,
+        search=search,
         ended_from_raw=from_,
         ended_to_raw=to,
+        page=page,
+        limit=limit,
     )
-    return [TrainingRecordResponse.model_validate(r) for r in records]
+    return PagedResponse(
+        items=records,
+        total=total,
+        page=page,
+        limit=limit,
+    )
+
+
+@router.get(
+    "/training-records/{record_id}/download", response_model=DownloadUrlResponse
+)
+async def download_my_training_record(
+    record_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """교육이력 파일 다운로드 — 데모 이력은 S3 데모 PDF 로 통일."""
+    url = await me_service.get_demo_download_url(db, user, record_id)
+    return DownloadUrlResponse(url=url, file_name="교육이력확인서-데모.pdf")
 
 
 @router.get("/training-records/{record_id}", response_model=TrainingRecordResponse)
 async def get_my_training_record(
     record_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    trainee: Trainee = Depends(get_current_trainee),
+    user: User = Depends(get_current_user),
 ):
-    return TrainingRecordResponse.model_validate(
-        await me_service.get_my_record(db, trainee, record_id)
-    )
+    """본인 이력 또는 공용 데모 이력 상세 (발급 상태 포함). 교육생 미연결 신규 회원도 데모는 본다."""
+    return await me_service.get_member_record_response(db, user, record_id)
 
 
 @router.get("/certificates", response_model=list[MyCertificateResponse])
@@ -87,6 +113,32 @@ async def get_my_payment_orders(
         MyPaymentOrderResponse.model_validate(o)
         for o in await me_service.list_my_orders(db, trainee)
     ]
+
+
+@router.get(
+    "/payment-history",
+    response_model=PagedResponse[MyPaymentHistoryItem],
+)
+async def get_my_payment_history(
+    from_: str | None = Query(None, alias="from"),
+    to: str | None = None,
+    status: str | None = None,
+    page: int = Query(1, ge=1),
+    limit: int = Query(20, ge=1, le=100),
+    db: AsyncSession = Depends(get_db),
+    trainee: Trainee = Depends(get_current_trainee),
+):
+    """발급·결제 내역 — 결제완료·환불 주문만 주문 단위로 반환."""
+    items, total = await me_service.list_payment_history(
+        db,
+        trainee,
+        paid_from_raw=from_,
+        paid_to_raw=to,
+        status=status,
+        page=page,
+        limit=limit,
+    )
+    return PagedResponse(items=items, total=total, page=page, limit=limit)
 
 
 @router.get("/certificate-price", response_model=CertificatePriceResponse)

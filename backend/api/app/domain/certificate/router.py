@@ -8,6 +8,7 @@ from app.core.dependencies import get_current_trainee, require_admin
 from app.core.response import PagedResponse
 from app.domain.auth.model import AdminUser
 from app.domain.certificate.schema import (
+    CertificateBatchRequestCreate,
     CertificateRequestCreate,
     CertificateRequestResponse,
     CertificateResponse,
@@ -47,6 +48,19 @@ async def create_certificate_request(
 ):
     request = await request_service.create_request(db, trainee, body)
     return CertificateRequestResponse.from_orm(request)
+
+
+@router.post(
+    "/batch", response_model=list[CertificateRequestResponse], status_code=201
+)
+async def create_certificate_requests_batch(
+    body: CertificateBatchRequestCreate,
+    trainee: Trainee = Depends(get_current_trainee),
+    db: AsyncSession = Depends(get_db),
+):
+    """다건 발급 — 유효 신청들을 하나의 결제 주문으로 묶어 반환한다."""
+    requests = await request_service.create_requests_batch(db, trainee, body)
+    return [CertificateRequestResponse.from_orm(r) for r in requests]
 
 
 @pricing_router.get("", response_model=PagedResponse[PricingRuleResponse])

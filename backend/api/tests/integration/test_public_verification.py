@@ -2,7 +2,6 @@
 
 from sqlalchemy import select
 
-from app.core.kst import to_kst_date
 from app.domain.certificate.model import Certificate, CertificateVerificationLog
 from tests.integration.helpers import (
     make_admin,
@@ -38,38 +37,43 @@ async def _issued_cert(client, db):
     return cert, token
 
 
-async def _verify(client, cert_no: str, issue_date):
+async def _verify(client, cert_no: str):
     return await client.post(
         "/api/public/certificate-verifications",
-        json={"certificate_no": cert_no, "issue_date": str(issue_date)},
+        json={"certificate_no": cert_no},
     )
 
 
 class TestVerify:
     async def test_valid_masked(self, client, db):
         cert, _ = await _issued_cert(client, db)
-        resp = await _verify(client, cert.certificate_no, to_kst_date(cert.issued_at))
+        resp = await _verify(client, cert.certificate_no)
         assert resp.status_code == 200
         body = resp.json()
         assert body["result"] == "valid"
         assert body["certificate_no"] == cert.certificate_no
         assert body["issued_name_masked"] == "홍**"
         assert body["course_name"] == "안전보건교육"
+        assert body["total_hours"] == "16.00"
+        assert body["training_ended_at"] == (
+            cert.training_ended_at.isoformat() if cert.training_ended_at else None
+        )
         # 원문 이름 노출 금지
         assert "홍길동" not in resp.text
 
-    async def test_wrong_date_mismatch(self, client, db):
+    async def test_name_not_checked(self, client, db):
+        """데모 단계 — 성명 일치와 무관하게 확인 가능 (요청에 성명 필드가 없다)."""
         cert, _ = await _issued_cert(client, db)
-        resp = await _verify(client, cert.certificate_no, "2000-01-01")
-        assert resp.status_code == 200
-        body = resp.json()
-        assert body["result"] == "mismatch"
-        # 존재 누출 방지 — 확인서 정보 미노출
-        assert body["certificate_no"] is None
-        assert body["issued_name_masked"] is None
+        for name in ("홍길동", "아무개", "x"):
+            resp = await client.post(
+                "/api/public/certificate-verifications",
+                json={"certificate_no": cert.certificate_no, "applicant_name": name},
+            )
+            assert resp.status_code == 200
+            assert resp.json()["result"] == "valid"
 
     async def test_unknown_no_not_found(self, client, db):
-        resp = await _verify(client, "CERT-DOES-NOT-EXIST", "2026-01-01")
+        resp = await _verify(client, "CERT-DOES-NOT-EXIST")
         assert resp.status_code == 200
         assert resp.json()["result"] == "not_found"
 
@@ -84,7 +88,7 @@ class TestVerify:
         )
         assert resp.status_code == 200
 
-        verify = await _verify(client, cert.certificate_no, to_kst_date(cert.issued_at))
+        verify = await _verify(client, cert.certificate_no)
         assert verify.status_code == 200
         assert verify.json()["result"] == "revoked"
 
@@ -92,14 +96,13 @@ class TestVerify:
 class TestLogging:
     async def test_every_attempt_logged_with_ip_hash(self, client, db):
         cert, _ = await _issued_cert(client, db)
-        await _verify(client, cert.certificate_no, "2000-01-01")  # mismatch
-        await _verify(client, "CERT-X", "2026-01-01")  # not_found
-        await _verify(client, cert.certificate_no, to_kst_date(cert.issued_at))  # valid
+        await _verify(client, "CERT-X")  # not_found
+        await _verify(client, cert.certificate_no)  # valid
 
         logs = (await db.execute(select(CertificateVerificationLog))).scalars().all()
-        assert len(logs) == 3
+        assert len(logs) == 2
         results = {log.result for log in logs}
-        assert results == {"mismatch", "not_found", "valid"}
+        assert results == {"not_found", "valid"}
         # IP 는 해시로만 보관 — 원문 미저장
         for log in logs:
             assert log.requester_ip_hash
@@ -111,8 +114,8 @@ class TestLogging:
 class TestRateLimit:
     async def test_11th_attempt_429(self, client, db):
         for _ in range(10):
-            resp = await _verify(client, "CERT-X", "2026-01-01")
+            resp = await _verify(client, "CERT-X")
             assert resp.status_code == 200
-        blocked = await _verify(client, "CERT-X", "2026-01-01")
+        blocked = await _verify(client, "CERT-X")
         assert blocked.status_code == 429
         assert blocked.json()["code"] == "TOO_MANY_ATTEMPTS"

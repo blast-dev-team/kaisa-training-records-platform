@@ -55,5 +55,10 @@ class TrainingRecordResponse(BaseModel):
     memo: str | None
     created_at: datetime
     updated_at: datetime
+    # 회원 포털 전용 — 어드민 응답에서는 None. 유저별 발급 상태는 certificates 에서 산출
+    # (데모 이력은 여러 회원이 공유하므로 training_records 에 발급 상태를 둘 수 없다)
+    certificate_status: str | None = None  # issuable | reissuable | unavailable
+    last_issued_at: datetime | None = None
+    reissue_free_until: datetime | None = None  # 7일 무료 재발급 기한
 
     model_config = {"from_attributes": True}

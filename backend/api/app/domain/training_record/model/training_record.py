@@ -3,6 +3,7 @@ from datetime import date, datetime
 from decimal import Decimal
 
 from sqlalchemy import (
+    Boolean,
     Date,
     DateTime,
     ForeignKey,
@@ -55,6 +56,10 @@ class TrainingRecord(Base):
     ended_at: Mapped[date | None] = mapped_column(Date)
     source: Mapped[str] = mapped_column(String(30), nullable=False, default="internal")
     evidence_file_key: Mapped[str | None] = mapped_column(Text)
+    # 데모 이력 — 모든 로그인 회원이 조회·다운로드할 수 있는 공용 시드 데이터
+    is_demo: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default=func.false()
+    )
     completion_status: Mapped[str] = mapped_column(
         String(30), nullable=False, default="completed"
     )

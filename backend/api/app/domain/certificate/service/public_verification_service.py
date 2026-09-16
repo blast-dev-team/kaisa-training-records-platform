@@ -50,7 +50,6 @@ async def verify_certificate(
             CertificateVerificationLog(
                 certificate_id=cert_id,
                 input_certificate_no=data.certificate_no.strip(),
-                input_issue_date=data.issue_date,
                 result=result,
                 requester_ip_hash=ip_hash,
                 verified_at=now,
@@ -64,13 +63,6 @@ async def verify_certificate(
             result="not_found", message="등록되지 않은 확인서 번호예요"
         )
 
-    # 발급일 불일치 → mismatch (존재 누출 방지를 위해 not_found 와 동일한 취급)
-    if to_kst_date(certificate.issued_at) != data.issue_date:
-        await _log("mismatch", certificate.id)
-        await db.commit()
-        return PublicVerificationResponse(
-            result="mismatch", message="확인서 정보가 일치하지 않아요"
-        )
 
     if certificate.status == "revoked":
         await _log("revoked", certificate.id)
@@ -92,6 +84,8 @@ async def verify_certificate(
         certificate_no=certificate.certificate_no,
         issued_name_masked=mask_name(certificate.issued_name),
         course_name=certificate.course_name,
+        total_hours=certificate.total_hours,
+        training_ended_at=certificate.training_ended_at,
         issued_at=to_kst_date(certificate.issued_at),
         expires_at=(
             to_kst_date(certificate.expires_at) if certificate.expires_at else None

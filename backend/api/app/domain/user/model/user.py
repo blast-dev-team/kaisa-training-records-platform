@@ -15,6 +15,8 @@ class User(Base):
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
     ci_hash: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)
     name: Mapped[str | None] = mapped_column(String(100))
+    # PASS 본인인증으로 확정된 생년월일 (YYYYMMDD) — 인증 시점 스냅샷
+    birth: Mapped[str | None] = mapped_column(String(8))
     last_login_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False

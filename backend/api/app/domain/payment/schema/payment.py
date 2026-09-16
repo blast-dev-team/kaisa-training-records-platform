@@ -7,12 +7,17 @@ from app.domain.certificate.schema import MyCertificateBrief
 
 
 class PaymentConfirmResponse(BaseModel):
-    """결제 확인 — 발급까지 동일 트랜잭션으로 완료된 뒤 응답."""
+    """결제 확인 — 발급까지 동일 트랜잭션으로 완료된 뒤 응답.
+
+    다건 발급 주문은 certificates 에 전부 담긴다. certificate 는
+    단건 호환용(첫 번째) 필드.
+    """
 
     order_no: str
     status: str
     paid_at: datetime | None
-    certificate: MyCertificateBrief
+    certificate: MyCertificateBrief | None = None
+    certificates: list[MyCertificateBrief] = []
 
 
 class PaymentOrderResponse(BaseModel):
@@ -20,7 +25,7 @@ class PaymentOrderResponse(BaseModel):
 
     id: uuid.UUID
     order_no: str
-    certificate_request_id: uuid.UUID
+    certificate_request_id: uuid.UUID | None = None
     trainee_id: uuid.UUID
     amount_krw: int
     currency: str

@@ -13,8 +13,18 @@ from typing import Any
 import httpx
 
 from app.core.config import settings
+from app.core.error_codes import api_error
 
-_AUTH_HEADERS = {"Authorization": f"ApiKey {settings.PORTONE_API_SECRET}"}
+# PortOne V2 REST API 인증 — `Authorization: PortOne {API_SECRET}` (V1 ApiKey 아님)
+_AUTH_HEADERS = {"Authorization": f"PortOne {settings.PORTONE_API_SECRET}"}
+
+
+def _check(resp: httpx.Response) -> None:
+    """PortOne API 오류 → 502 HTTPException (raw 500 + 스택트레이스 노출 방지)."""
+    try:
+        resp.raise_for_status()
+    except httpx.HTTPStatusError as e:
+        raise api_error("PORTONE_API_ERROR") from e
 
 
 async def create_identity_verification() -> dict[str, Any]:
@@ -30,7 +40,7 @@ async def create_identity_verification() -> dict[str, Any]:
                 "channel_key": settings.PORTONE_IDENTITY_CHANNEL_KEY,
             },
         )
-        resp.raise_for_status()
+        _check(resp)
         return resp.json()
 
 
@@ -43,7 +53,7 @@ async def get_identity_verification(verification_id: str) -> dict[str, Any]:
             f"/identity-verifications/{verification_id}",
             headers=_AUTH_HEADERS,
         )
-        resp.raise_for_status()
+        _check(resp)
         return resp.json()
 
 
@@ -75,7 +85,7 @@ async def get_payment(payment_id: str) -> dict[str, Any]:
         base_url=settings.PORTONE_API_BASE, timeout=10
     ) as client:
         resp = await client.get(f"/payments/{payment_id}", headers=_AUTH_HEADERS)
-        resp.raise_for_status()
+        _check(resp)
         return resp.json()
 
 
@@ -89,5 +99,5 @@ async def cancel_payment(payment_id: str, reason: str) -> dict[str, Any]:
             headers=_AUTH_HEADERS,
             json={"reason": reason},
         )
-        resp.raise_for_status()
+        _check(resp)
         return resp.json()

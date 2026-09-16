@@ -1,5 +1,6 @@
 """통합 — PASS 본인인증 매칭: 자동(CI) / 수동 심사 / 거부 / 리플레이."""
 
+import pytest
 from sqlalchemy import select
 
 from app.domain.identity.model import IdentityReview
@@ -13,19 +14,17 @@ from tests.integration.helpers import (
 
 
 def _fake_portone(monkeypatch, verification_id: str, payload: dict):
-    async def fake_create():
-        return {"id": verification_id, "redirect_url": "https://pg.test/redirect"}
-
     async def fake_get(vid: str):
         return {"id": vid, **payload}
 
-    monkeypatch.setattr(portone, "create_identity_verification", fake_create)
     monkeypatch.setattr(portone, "get_identity_verification", fake_get)
 
 
 async def _pass_flow(client, monkeypatch, verification_id: str, payload: dict):
     _fake_portone(monkeypatch, verification_id, payload)
-    start = await client.post("/api/auth/pass")
+    start = await client.post(
+        "/api/auth/pass", json={"identity_verification_id": verification_id}
+    )
     assert start.status_code == 200
     state = start.json()["state"]
     complete = await client.post("/api/auth/pass/complete", json={"state": state})
@@ -34,11 +33,11 @@ async def _pass_flow(client, monkeypatch, verification_id: str, payload: dict):
 
 _VERIFIED_KIM = {
     "status": "VERIFIED",
-    "verified_customer": {
+    "verifiedCustomer": {
         "ci": "ci-kim",
         "di": "di-kim",
         "name": "김정회",
-        "phone": "01011112222",
+        "phoneNumber": "01011112222",
     },
 }
 
@@ -61,13 +60,38 @@ class TestAutoMatch:
         assert me.status_code == 200
         assert me.json()["name"] == "김정회"
 
-    async def test_unknown_ci_goes_manual_review(self, client, db, monkeypatch):
+    async def test_birth_saved_from_verification(self, client, db, monkeypatch):
+        """본인인증 결과의 생년월일을 고객(users.birth)에 저장한다."""
+        from app.core.crypto import sha256_hex
+        from app.domain.user.model import User
+
         payload = {
             "status": "VERIFIED",
-            "verified_customer": {
+            "verifiedCustomer": {
+                "ci": "ci-birth",
+                "name": "생년자",
+                "phoneNumber": "01000001111",
+                "birthDate": "1990-01-01",
+            },
+        }
+        resp = await _pass_flow(client, monkeypatch, "vid-birth", payload)
+        assert resp.status_code == 200
+        user = (
+            await db.execute(select(User).where(User.ci_hash == sha256_hex("ci-birth")))
+        ).scalar_one()
+        assert user.birth == "19900101"
+
+    async def test_unknown_ci_goes_manual_review(self, client, db, monkeypatch):
+        """production — 교육생 미연결이면 수동 심사로 간다."""
+        from app.core.config import settings
+
+        monkeypatch.setattr(settings, "ENVIRONMENT", "production")
+        payload = {
+            "status": "VERIFIED",
+            "verifiedCustomer": {
                 "ci": "ci-newperson",
                 "name": "새사람",
-                "phone": "01099998888",
+                "phoneNumber": "01099998888",
             },
         }
         resp = await _pass_flow(client, monkeypatch, "vid-new-1", payload)
@@ -83,8 +107,98 @@ class TestAutoMatch:
         ).scalar_one()
         assert review.matched_by is None
 
+    async def test_unknown_ci_creates_demo_trainee(self, client, db, monkeypatch):
+        """local·staging — 교육생 미연결이면 데모 교육생을 자동 생성한다.
+
+        등급까지 확정돼 발급·결제 게이트(GRADE_NOT_DETERMINED)를 통과한다.
+        """
+        from app.domain.trainee.model import Trainee
+
+        payload = {
+            "status": "VERIFIED",
+            "verifiedCustomer": {
+                "ci": "ci-demo-person",
+                "name": "데모사람",
+                "phoneNumber": "01077776666",
+            },
+        }
+        resp = await _pass_flow(client, monkeypatch, "vid-demo-1", payload)
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["review_status"] == "approved"
+
+        trainee = (
+            await db.execute(
+                select(Trainee).where(Trainee.user_id == body["id"])
+            )
+        ).scalar_one()
+        assert trainee.name == "데모사람"
+        assert trainee.trainee_no is not None
+        assert trainee.membership_grade_id is not None
+        assert trainee.review_status == "approved"
+
+        # 등급 판별 완료 — 발급 게이트(GRADE_NOT_DETERMINED) 통과 상태
+        profile = await client.get("/api/me/profile")
+        assert profile.status_code == 200
+        assert profile.json()["review_status"] == "approved"
+        assert profile.json()["grade_name"] is not None
+
+    async def test_demo_login_creates_pricing_rules(self, client, db, monkeypatch):
+        """데모 로그인만으로 가격 규칙이 보장된다 — 규칙 미시드여도 발급 신청 통과.
+
+        PRICING_RULE_NOT_FOUND 회귀 방지. 가격은 FE 표기(3,000원)와 동일.
+        """
+        from tests.integration.helpers import make_record
+
+        payload = {
+            "status": "VERIFIED",
+            "verifiedCustomer": {
+                "ci": "ci-demo-pricing",
+                "name": "가격사람",
+                "phoneNumber": "01066665555",
+            },
+        }
+        resp = await _pass_flow(client, monkeypatch, "vid-demo-price-1", payload)
+        assert resp.status_code == 200
+        user_id = resp.json()["id"]
+
+        from app.domain.trainee.model import Trainee
+
+        trainee = (
+            await db.execute(select(Trainee).where(Trainee.user_id == user_id))
+        ).scalar_one()
+        record = await make_record(
+            db, trainee.id, record_no="TRN-DEMO-PRICE-1"
+        )
+        await db.commit()
+
+        batch = await client.post(
+            "/api/certificate-requests/batch",
+            json={
+                "items": [
+                    {
+                        "training_record_id": str(record.id),
+                        "issue_type": "original",
+                    }
+                ]
+            },
+        )
+        assert batch.status_code == 201, batch.json()
+        body = batch.json()[0]
+        assert body["amount_krw"] == 3000
+        assert body["order_no"] is not None
+        assert body["status"] == "payment_pending"
+
 
 class TestManualReview:
+    """어드민 수동 심사 — production 기준 (데모 자동생성이 없다는 전제)."""
+
+    @pytest.fixture(autouse=True)
+    def _production_env(self, monkeypatch):
+        from app.core.config import settings
+
+        monkeypatch.setattr(settings, "ENVIRONMENT", "production")
+
     async def test_admin_approve_links_trainee(self, client, db, monkeypatch):
         grade = await make_grade(db, code="g-approve", name="심사등급")
         # CI 없는 이관 교육생 — 수동 매칭 대상
@@ -101,10 +215,10 @@ class TestManualReview:
 
         payload = {
             "status": "VERIFIED",
-            "verified_customer": {
+            "verifiedCustomer": {
                 "ci": "ci-mipan",
                 "name": "이미판",
-                "phone": "01055556666",
+                "phoneNumber": "01055556666",
             },
         }
         resp = await _pass_flow(client, monkeypatch, "vid-mipan-1", payload)
@@ -139,10 +253,10 @@ class TestManualReview:
         await db.commit()  # API 가 자체 세션으로 admin 조회 — 커밋 필요
         payload = {
             "status": "VERIFIED",
-            "verified_customer": {
+            "verifiedCustomer": {
                 "ci": "ci-reject",
                 "name": "거부자",
-                "phone": "01077778888",
+                "phoneNumber": "01077778888",
             },
         }
         await _pass_flow(client, monkeypatch, "vid-reject-1", payload)
@@ -170,7 +284,9 @@ class TestManualReview:
 class TestPassFailures:
     async def test_replayed_state_rejected(self, client, db, monkeypatch):
         _fake_portone(monkeypatch, "vid-replay", _VERIFIED_KIM)
-        start = await client.post("/api/auth/pass")
+        start = await client.post(
+            "/api/auth/pass", json={"identity_verification_id": "vid-replay"}
+        )
         state = start.json()["state"]
         first = await client.post("/api/auth/pass/complete", json={"state": state})
         assert first.status_code == 200
@@ -188,8 +304,46 @@ class TestPassFailures:
             client,
             monkeypatch,
             "vid-noci",
-            {"status": "VERIFIED", "verified_customer": {"name": "무씨"}},
+            {"status": "VERIFIED", "verifiedCustomer": {"name": "무씨"}},
         )
+        assert resp.status_code == 502
+        assert resp.json()["code"] == "IDENTITY_NO_CI"
+
+
+class TestTestModePhoneFallback:
+    async def test_no_ci_login_by_phone_in_test_env(self, client, db, monkeypatch):
+        """테스트 채널 수기 인증(CI 미제공) — 전화번호로 식별 (ENVIRONMENT != production)."""
+        from app.core.crypto import sha256_hex
+        from app.domain.user.model import User
+
+        payload = {
+            "status": "VERIFIED",
+            "verifiedCustomer": {
+                "name": "폰사람",
+                "phoneNumber": "01012341234",
+            },
+        }
+        resp = await _pass_flow(client, monkeypatch, "vid-phone-fb", payload)
+        assert resp.status_code == 200
+        user = (
+            await db.execute(
+                select(User).where(User.ci_hash == sha256_hex("test:01012341234"))
+            )
+        ).scalar_one()
+        assert user.name == "폰사람"
+
+    async def test_production_still_requires_ci(self, client, db, monkeypatch):
+        from app.core.config import settings
+
+        monkeypatch.setattr(settings, "ENVIRONMENT", "production")
+        payload = {
+            "status": "VERIFIED",
+            "verifiedCustomer": {
+                "name": "폰사람",
+                "phoneNumber": "01012341234",
+            },
+        }
+        resp = await _pass_flow(client, monkeypatch, "vid-prod-noci", payload)
         assert resp.status_code == 502
         assert resp.json()["code"] == "IDENTITY_NO_CI"
 

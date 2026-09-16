@@ -22,11 +22,11 @@ class CertificateRequest(Base):
         Index("ix_creq_status", "status"),
     )
 
-    # 응답 조립용 — 1신청 1주문·1확인서 (unique 제약으로 보장)
-    payment_orders: Mapped[list["PaymentOrder"]] = relationship(
+    # 응답 조립용 — 신청이 속한 주문. 다건 발급은 여러 신청이 하나의 주문을 공유한다 (N:1)
+    payment_order: Mapped["PaymentOrder | None"] = relationship(
         "PaymentOrder",
         lazy="selectin",
-        foreign_keys="PaymentOrder.certificate_request_id",
+        foreign_keys="CertificateRequest.payment_order_id",
     )
     certificates: Mapped[list["Certificate"]] = relationship(
         "Certificate",
@@ -52,6 +52,13 @@ class CertificateRequest(Base):
             use_alter=True,
             name="fk_creq_previous_certificate",
         ),
+        nullable=True,
+    )
+    # 소속 결제 주문 — 다건 발급에서 여러 신청이 하나의 주문을 공유한다 (N:1).
+    # 레거시 단건 row 는 payment_orders.certificate_request_id 로도 역참조 가능하다
+    payment_order_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid,
+        ForeignKey("payment_orders.id", ondelete="SET NULL"),
         nullable=True,
     )
     requested_by: Mapped[uuid.UUID] = mapped_column(
