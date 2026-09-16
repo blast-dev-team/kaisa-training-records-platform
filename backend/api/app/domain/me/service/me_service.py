@@ -8,6 +8,11 @@ from app.core.config import settings
 from app.core.crypto import decrypt_field, mask_phone
 from app.core.error_codes import api_error
 from app.core.kst import kst_range_end, kst_range_start, now_kst, today_kst
+from app.core.session import (
+    ADMIN_TOKEN_PREFIX,
+    resolve_user_session,
+    resolve_user_session_expiry,
+)
 from app.domain.certificate.model import Certificate
 from app.domain.certificate.repository import pricing_repository
 from app.domain.certificate.service.pricing import select_pricing_rule
@@ -15,6 +20,7 @@ from app.domain.me.repository import me_repository as repo
 from app.domain.me.schema import (
     CertificatePriceResponse,
     MeProfileResponse,
+    MeSessionResponse,
     MyPaymentHistoryItem,
 )
 from app.domain.trainee.model import Trainee
@@ -24,6 +30,22 @@ from app.integrations import s3
 
 # 데모 이력 다운로드에 공통으로 내려주는 파일 — staging 버킷에 수동 업로드된다
 DEMO_PDF_KEY = "demo/training-record-demo.pdf"
+
+
+async def get_session(db: AsyncSession, token: str | None) -> MeSessionResponse:
+    """본인인증 세션 조회 — FE 새로고침 시 인증 상태·잔여 시간 복구용. 무효면 401."""
+    if not token or token.startswith(ADMIN_TOKEN_PREFIX):
+        raise api_error("UNAUTHORIZED")
+    user = await resolve_user_session(db, token)
+    if user is None:
+        raise api_error("SESSION_EXPIRED")
+    expires_at = await resolve_user_session_expiry(db, token)
+    trainee = (
+        await db.execute(select(Trainee).where(Trainee.user_id == user.id))
+    ).scalar_one_or_none()
+    if trainee is None or expires_at is None:
+        raise api_error("TRAINEE_NOT_LINKED")
+    return MeSessionResponse(name=trainee.name, expires_at=expires_at)
 
 
 async def get_profile(db: AsyncSession, trainee: Trainee) -> MeProfileResponse:

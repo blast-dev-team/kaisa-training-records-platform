@@ -19,6 +19,13 @@ class MeProfileResponse(BaseModel):
     last_login_at: datetime | None
 
 
+class MeSessionResponse(BaseModel):
+    """본인인증 세션 상태 — FE 새로고침 시 인증 상태·잔여 시간 복구용."""
+
+    name: str
+    expires_at: datetime
+
+
 class MyCertificateResponse(BaseModel):
     id: uuid.UUID
     certificate_no: str

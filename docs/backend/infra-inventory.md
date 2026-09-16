@@ -65,7 +65,7 @@
 | `kaisa-{staging,prod}-backups` | DB 덤프 (`postgres/` prefix) | versioning · SSE-S3 · 퍼블릭 전면 차단 · TLS 강제 · **30일 lifecycle** |
 | `kaisa-{staging,prod}-files` | 앱 파일 저장 (업로드 기능용, 아직 미사용) | versioning · SSE-S3 · 퍼블릭 차단 · TLS 강제 |
 
-- files 버킷의 CORS/presigned URL은 프론트 직접 업로드 기능 구현 시 추가.
+- files 버킷 CORS **적용됨** (2026-09-16): GET 허용 — Origin `https://dev-edu.kaisa.or.kr`·`https://dev-admin.kaisa.or.kr`·`https://edu.kaisa.or.kr`·`https://admin.kaisa.or.kr` (web·admin 전 환경), ExposeHeaders `content-disposition`·`content-length`. FE 가 presigned URL 을 `fetch`→blob 으로 받는 브라우저 CORS 검사 통과용. 두 버킷(staging·prod) 동일 설정.
 - 백업 보존 30일 — 더 길게 잡을 근거 생기면 lifecycle만 수정.
 
 ## 5. 배포 흐름 (GitHub Actions)

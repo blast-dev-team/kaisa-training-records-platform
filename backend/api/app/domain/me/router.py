@@ -1,8 +1,9 @@
 import uuid
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import settings
 from app.core.database import get_db
 from app.core.dependencies import get_current_trainee, get_current_user
 from app.core.response import PagedResponse
@@ -10,6 +11,7 @@ from app.domain.me.schema import (
     CertificatePriceResponse,
     DownloadUrlResponse,
     MeProfileResponse,
+    MeSessionResponse,
     MyCertificateRequestResponse,
     MyCertificateResponse,
     MyPaymentHistoryItem,
@@ -21,6 +23,16 @@ from app.domain.training_record.schema import TrainingRecordResponse
 from app.domain.user.model import User
 
 router = APIRouter(prefix="/me", tags=["me"])
+
+
+@router.get("/session", response_model=MeSessionResponse)
+async def get_my_session(
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+):
+    """본인인증 세션 조회 — 새로고침 시 FE 인증 상태 복구용. 무효 세션 401."""
+    token = request.cookies.get(settings.SESSION_COOKIE_NAME)
+    return await me_service.get_session(db, token)
 
 
 @router.get("/profile", response_model=MeProfileResponse)

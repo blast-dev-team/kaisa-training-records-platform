@@ -65,7 +65,7 @@ async def create_user_session(
     return token
 
 
-async def resolve_user_session(db: AsyncSession, token: str) -> User | None:
+async def _find_live_user_session(db: AsyncSession, token: str) -> UserSession | None:
     """해시 조회 → 만료 검증. 만료된 세션은 행을 지우고 None."""
     row = (
         await db.execute(
@@ -78,7 +78,18 @@ async def resolve_user_session(db: AsyncSession, token: str) -> User | None:
         await db.delete(row)
         await db.commit()
         return None
-    return row.user
+    return row
+
+
+async def resolve_user_session(db: AsyncSession, token: str) -> User | None:
+    row = await _find_live_user_session(db, token)
+    return row.user if row else None
+
+
+async def resolve_user_session_expiry(db: AsyncSession, token: str) -> datetime | None:
+    """세션 만료 시각 — FE 새로고침 복구(잔여 시간 카운트다운)용."""
+    row = await _find_live_user_session(db, token)
+    return row.expires_at if row else None
 
 
 async def delete_user_session(db: AsyncSession, token: str) -> None:
