@@ -1,8 +1,8 @@
 /**
- * 계속교육이력확인서 진위확인 조회 API.
- *
- * 백엔드가 아직 없어 VITE_API_URL 미설정 시 Figma 노드(32:20)의 목업 데이터를
- * 반환한다. 백엔드 스펙 확정 후 경로·응답 매핑을 조정한다.
+ * 계속교육이력확인서 진위확인 조회 API — 실제 백엔드 연동 (공개 엔드포인트, 인증 불필요).
+ * POST /api/public/certificate-verifications — 진위확인 ID 는 확인서 번호(certificate_no).
+ * 성명은 폼 입력만 있을 뿐 서버가 검증하지 않는다 (데모 단계 — 이름 일치와 무관하게 확인 가능).
+ * 결과는 유효(valid)만 상세를 노출하고 expired·revoked·not_found 는 확인 불가로 처리한다.
  */
 
 export interface VerificationResult {
@@ -23,63 +23,78 @@ export interface VerificationResult {
 }
 
 export interface VerificationLookupParams {
+  /** 진위확인 ID — 확인서 번호와 같다 */
   verificationId: string;
+  /** 성명 — 데모 단계에선 서버 검증 없음 (입력 필수는 폼 정책) */
   applicantName: string;
-  captchaToken: string;
-  issuanceDate: string;
 }
 
-/** 목업 데이터 — Figma 노드 32:20 값 */
-const DEMO_VERIFICATION_ID = 'A7K9-2F4M-QX58';
+/** 백엔드 PublicVerificationResponse — snake_case 그대로 */
+interface PublicVerificationDto {
+  result: string;
+  certificate_no: string | null;
+  issued_name_masked: string | null;
+  course_name: string | null;
+  total_hours: string | number | null;
+  training_ended_at: string | null;
+  issued_at: string | null;
+  message: string | null;
+}
 
-const DEMO_RESULT: VerificationResult = {
-  isValid: true,
-  applicantName: '홍○○',
-  certificateNumber: 'KAISA-2026-0004821',
-  courseName: '비파괴검사 계속교육 (정기)',
-  completionSummary: '8시간 (2026.05.14)',
-  issuedAt: '2026.09.06',
-  queriedAt: '2026.09.06',
-};
+const API_BASE = import.meta.env.VITE_API_URL ?? "";
 
-/** 목업 실패 응답 — Figma 노드 32:2283 (확인 불가) 케이스 */
-const DEMO_INVALID_RESULT: VerificationResult = {
-  isValid: false,
-  applicantName: '',
-  certificateNumber: '',
-  courseName: '',
-  completionSummary: '',
-  issuedAt: '',
-  queriedAt: '2026.09.06',
-};
+function formatYMD(iso: string | null): string {
+  if (!iso) return "";
+  return iso.replaceAll("-", ".");
+}
 
-const API_BASE = import.meta.env.VITE_API_URL;
+function todayYMD(): string {
+  const now = new Date();
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${now.getFullYear()}.${pad(now.getMonth() + 1)}.${pad(now.getDate())}`;
+}
+
+function toResult(dto: PublicVerificationDto): VerificationResult {
+  // 유효한 확인서만 상세 노출 — expired·revoked·not_found 는 확인 불가 화면
+  if (dto.result !== "valid") {
+    return {
+      isValid: false,
+      applicantName: "",
+      certificateNumber: "",
+      courseName: "",
+      completionSummary: "",
+      issuedAt: "",
+      queriedAt: todayYMD(),
+    };
+  }
+  const hours = dto.total_hours != null ? Number(dto.total_hours) : null;
+  return {
+    isValid: true,
+    applicantName: dto.issued_name_masked ?? "",
+    certificateNumber: dto.certificate_no ?? "",
+    courseName: dto.course_name ?? "",
+    completionSummary:
+      hours != null ? `${hours}시간 (${formatYMD(dto.training_ended_at)})` : "",
+    issuedAt: formatYMD(dto.issued_at),
+    queriedAt: todayYMD(),
+  };
+}
 
 export async function getVerificationResult(
   params: VerificationLookupParams,
 ): Promise<VerificationResult> {
-  // 백엔드 미연동 — 목업: 짧은 지연 후 노드 데이터 반환.
-  // 데모 ID가 아니면 확인 불가(노드 32:2283) 응답
-  if (!API_BASE) {
-    await new Promise((resolve) => setTimeout(resolve, 400));
-    return params.verificationId === DEMO_VERIFICATION_ID ? DEMO_RESULT : DEMO_INVALID_RESULT;
-  }
-
-  const response = await fetch(`${API_BASE}/api/v1/verifications/lookup`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      verification_id: params.verificationId,
-      applicant_name: params.applicantName,
-      captcha_token: params.captchaToken,
-    }),
+  const response = await fetch(`${API_BASE}/api/public/certificate-verifications`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ certificate_no: params.verificationId }),
   });
-
+  const data = (await response.json().catch(() => ({}))) as Partial<
+    PublicVerificationDto & { message: string }
+  >;
   if (!response.ok) {
-    throw new Error('문제가 생겼어요. 잠시 후 다시 시도해 주세요');
+    throw new Error(
+      data.message ?? "문제가 생겼어요. 잠시 후 다시 시도해 주세요",
+    );
   }
-
-  // TODO(백엔드 스펙 확정 후): 응답 필드 매핑 조정
-  const data = (await response.json()) as VerificationResult;
-  return data;
+  return toResult(data as PublicVerificationDto);
 }

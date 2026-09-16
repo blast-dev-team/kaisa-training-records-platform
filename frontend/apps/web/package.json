@@ -13,7 +13,6 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@cap.js/widget": "^0.1.57",
     "@portone/browser-sdk": "^0.1.9",
     "@repo/assets": "workspace:*",
     "@repo/ui": "workspace:*",

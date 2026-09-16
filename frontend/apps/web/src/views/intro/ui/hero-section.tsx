@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router';
 
+import { IdentityVerificationModal } from '@/src/widget/auth-modal';
 import { useAuthStore } from '@/src/shared/store/auth-store';
 import { Button, Checkbox } from '@/src/shared/ui';
 import { cn } from '@/src/shared/utils/cn';
@@ -76,9 +77,18 @@ export function HeroSection() {
   const navigate = useNavigate();
   const signIn = useAuthStore((state) => state.signIn);
   const [isAgreed, setIsAgreed] = useState(false);
+  const [isVerificationOpen, setIsVerificationOpen] = useState(false);
+
+  /** 본인인증 성공 — 인증 상태 저장 후 발급 플로우 진입 */
+  const handleVerified = (userName: string) => {
+    setIsVerificationOpen(false);
+    signIn(userName);
+    navigate('/training-history');
+  };
 
   return (
-    <section className="flex flex-1 flex-col justify-center bg-[#f6f5f0] py-15 font-sans">
+    <>
+      <section className="flex flex-1 flex-col justify-center bg-[#f6f5f0] py-15 font-sans">
       <div className="mx-auto flex w-full max-w-[1400px] flex-col justify-center gap-10 px-20">
         <div className="flex w-full flex-col gap-4">
           <h1 className="text-4xl font-bold leading-[1.3] text-gray-900">
@@ -121,11 +131,7 @@ export function HeroSection() {
                 size="m"
                 className="rounded-lg px-6 py-4"
                 disabled={!isAgreed}
-                onClick={() => {
-                  // 본인인증 완료로 간주 — PASS 연동 전 임시
-                  signIn();
-                  navigate('/training-history');
-                }}
+                onClick={() => setIsVerificationOpen(true)}
               >
                 교육이력확인서 발급
               </Button>
@@ -163,5 +169,12 @@ export function HeroSection() {
         </div>
       </div>
     </section>
+    {isVerificationOpen && (
+      <IdentityVerificationModal
+        onSuccess={handleVerified}
+        onClose={() => setIsVerificationOpen(false)}
+      />
+    )}
+    </>
   );
 }

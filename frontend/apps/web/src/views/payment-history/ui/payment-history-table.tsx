@@ -99,20 +99,24 @@ export function PaymentHistoryTable({
               </p>
             </div>
 
-            {/* 결제수단 — 밑줄 클릭 시 영수증(현금영수증·카드전표) 모달 */}
-            <button
-              type="button"
-              onClick={() => onReceiptClick?.(item)}
-              title="영수증 보기"
-              className={cn(
-                CELL_BASE,
-                COLUMNS[2],
-                textColor,
-                "cursor-pointer text-left underline decoration-from-font",
-              )}
-            >
-              {item.method}
-            </button>
+            {/* 결제수단 — 영수증(PortOne 카드전표) 있으면 클릭, 없으면 일반 텍스트 */}
+            {item.receiptUrl ? (
+              <button
+                type="button"
+                onClick={() => onReceiptClick?.(item)}
+                title="영수증 보기"
+                className={cn(
+                  CELL_BASE,
+                  COLUMNS[2],
+                  textColor,
+                  "cursor-pointer text-left underline decoration-from-font",
+                )}
+              >
+                {item.method}
+              </button>
+            ) : (
+              <p className={cn(CELL_BASE, COLUMNS[2], textColor)}>{item.method}</p>
+            )}
 
             <p className={cn(CELL_BASE, COLUMNS[3], textColor)}>
               {item.amount.toLocaleString("ko-KR")}원

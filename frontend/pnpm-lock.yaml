@@ -115,9 +115,6 @@ importers:
 
   apps/web:
     dependencies:
-      '@cap.js/widget':
-        specifier: ^0.1.57
-        version: 0.1.57
       '@portone/browser-sdk':
         specifier: ^0.1.9
         version: 0.1.10
@@ -369,9 +366,6 @@ packages:
 
   '@borewit/text-codec@0.2.2':
     resolution: {integrity: sha512-DDaRehssg1aNrH4+2hnj1B7vnUGEjU6OIlyRdkMd0aUdIUvKXrJfXsy8LVtXAy7DRvYVluWbMspsRhz2lcW0mQ==}
-
-  '@cap.js/widget@0.1.57':
-    resolution: {integrity: sha512-IgWepPHHsn1FcB5msL/TQtZZixGm9KAp7rpNbDmdo/i10EhDA74TlMU9zbZ6H8wwcCtlond/m+pAcLr1RiQ1og==}
 
   '@esbuild/aix-ppc64@0.25.12':
     resolution: {integrity: sha512-Hhmwd6CInZ3dwpuGTF8fJG6yoWmsToE+vYgD4nytZVxcu1ulHpUQRAB1UJ8+N1Am3Mz4+xOByoQoSZf4D+CpkA==}
@@ -2954,8 +2948,6 @@ snapshots:
       '@babel/helper-validator-identifier': 7.29.7
 
   '@borewit/text-codec@0.2.2': {}
-
-  '@cap.js/widget@0.1.57': {}
 
   '@esbuild/aix-ppc64@0.25.12':
     optional: true

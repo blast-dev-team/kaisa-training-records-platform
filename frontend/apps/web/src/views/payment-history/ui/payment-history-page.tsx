@@ -95,6 +95,15 @@ export function PaymentHistoryPage() {
     }
   };
 
+  /** 영수증 — PortOne 카드전표(웹페이지)라 새 탭으로 연다. 없으면 준비 중 모달 */
+  const handleReceiptClick = (item: PaymentHistoryItem) => {
+    if (item.receiptUrl) {
+      window.open(item.receiptUrl, "_blank", "noopener,noreferrer");
+      return;
+    }
+    setReceiptItem(item);
+  };
+
   return (
     <section className="flex flex-col gap-6">
       <h1 className="font-sans text-[28px] leading-normal font-bold text-gray-900">
@@ -170,7 +179,7 @@ export function PaymentHistoryPage() {
       ) : (
         <PaymentHistoryTable
           items={items}
-          onReceiptClick={setReceiptItem}
+          onReceiptClick={handleReceiptClick}
           onStatementClick={handleStatementClick}
         />
       )}

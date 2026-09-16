@@ -6,7 +6,6 @@ import {
   getVerificationResult,
   type VerificationResult,
 } from '@/src/shared/api/get-verification-result';
-import { CapCaptcha } from '@/src/shared/lib/cap';
 import { Button, TextField } from '@/src/shared/ui';
 import { VerificationFailModal, VerificationResultModal } from '@/src/widget/verification-modal';
 
@@ -21,8 +20,6 @@ export function VerificationPage() {
   const [searchParams] = useSearchParams();
   const [verificationId, setVerificationId] = useState(searchParams.get('id') ?? '');
   const [applicantName, setApplicantName] = useState('');
-  const [issuanceDate, setIssuanceDate] = useState('');
-  const [captchaToken, setCaptchaToken] = useState('');
   const [result, setResult] = useState<VerificationResult | null>(null);
 
   const lookupMutation = useMutation({
@@ -35,17 +32,12 @@ export function VerificationPage() {
     lookupMutation.mutate({
       verificationId: verificationId.trim(),
       applicantName: applicantName.trim(),
-      issuanceDate: issuanceDate.trim(),
-      captchaToken,
     });
   };
 
-  // 세 입력(진위확인 ID · 성명 · 보안문자)을 모두 채워야 활성화
+  // 두 입력(진위확인 ID · 성명)을 모두 채워야 활성화
   const isSubmittable =
-    verificationId.trim() !== '' &&
-    applicantName.trim() !== '' &&
-    issuanceDate.trim() !== '' &&
-    captchaToken !== '';
+    verificationId.trim() !== '' && applicantName.trim() !== '';
 
   return (
     <section className="-mx-8 -my-10 flex flex-1 flex-col bg-[#f9f9f7] px-10 py-10 font-sans">
@@ -69,18 +61,10 @@ export function VerificationPage() {
           >
             <TextField
               variant="outlined"
-              placeholder="진위확인 ID (예: A7K9-2F4M-QX58)"
+              placeholder="진위확인 ID (예: CERT-20260916-1)"
               autoComplete="off"
               value={verificationId}
               onChange={(event) => setVerificationId(event.target.value)}
-              className="overflow-clip rounded-lg"
-            />
-            <TextField
-              variant="outlined"
-              placeholder="발급날짜,숫자만 입력(예: 20251015)"
-              autoComplete="off"
-              value={issuanceDate}
-              onChange={(event) => setIssuanceDate(event.target.value)}
               className="overflow-clip rounded-lg"
             />
             <TextField
@@ -91,8 +75,6 @@ export function VerificationPage() {
               onChange={(event) => setApplicantName(event.target.value)}
               className="overflow-clip rounded-lg"
             />
-
-            <CapCaptcha onSolve={setCaptchaToken} />
 
             <Button
               type="submit"

@@ -1,34 +1,45 @@
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { useState, type FormEvent } from "react";
-import { useSearchParams } from "react-router";
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import { useState, type FormEvent } from 'react';
+import { useSearchParams } from 'react-router';
 
-import { CalendarBlankIcon, WarningCircleIcon } from "@/src/shared/icon";
-import { Button, Pagination, TextField } from "@/src/shared/ui";
-import { cn } from "@/src/shared/utils/cn";
+import { CalendarBlankIcon, WarningCircleIcon } from '@/src/shared/icon';
+import { Button, Pagination, TextField } from '@/src/shared/ui';
+import { cn } from '@/src/shared/utils/cn';
 
-import {
-  getTrainingHistoryList,
-  type PeriodFilter,
-} from "../api/get-training-history-list";
-import { IssuePaymentModal } from "./issue-payment-modal";
-import { TrainingHistoryTable } from "./training-history-table";
+import { getTrainingHistoryList, type PeriodFilter, type TrainingHistoryItem } from '../api/get-training-history-list';
+import { IssuePaymentModal } from './issue-payment-modal';
+import { TrainingHistoryTable } from './training-history-table';
 
 /** 페이지당 목록 수 — Figma 목업(12건 2페이지) 기준 */
 const PAGE_LIMIT = 10;
 
 /** 기간 필터 칩 — Figma node 25:2519~25:2527 */
-type FilterChipKey = "recent3y" | "all";
+type FilterChipKey = 'recent3y' | 'recent1y' | 'all';
 
 const FILTER_CHIPS: { key: FilterChipKey; label: string }[] = [
-  { key: "recent3y", label: "최근 3년" },
-  { key: "all", label: "전체 기간" },
+  { key: 'recent3y', label: '최근 3년' },
+  { key: 'recent1y', label: '최근 1년' },
+  { key: 'all', label: '전체 기간' },
 ];
 
 const CHIP_BASE =
-  "cursor-pointer rounded-md px-3 py-1.5 font-sans text-[13px] font-medium leading-normal whitespace-nowrap transition-[background-color,border-color,color]";
-const CHIP_ACTIVE = "bg-gray-700 text-white";
-const CHIP_INACTIVE =
-  "border border-solid border-gray-300 bg-white text-gray-700 hover:bg-gray-50";
+  'cursor-pointer rounded-md px-3 py-1.5 font-sans text-[13px] font-medium leading-normal whitespace-nowrap transition-[background-color,border-color,color]';
+const CHIP_ACTIVE = 'bg-gray-700 text-white';
+const CHIP_INACTIVE = 'border border-solid border-gray-300 bg-white text-gray-700 hover:bg-gray-50';
+
+/** 로컬(브라우저 = KST) 기준 YYYY-MM-DD — toISOString()은 UTC라 새벽에 하루 어긋난다 */
+function localYMD(date: Date): string {
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${date.getFullYear()}-${month}-${day}`;
+}
+
+/** 오늘 기준 N년 전 — 기간 칩의 조회 시작일 (매 렌더 재계산, 자정 넘김 대비) */
+function yearsAgoYMD(years: number): string {
+  const date = new Date();
+  date.setFullYear(date.getFullYear() - years);
+  return localYMD(date);
+}
 
 /**
  * 교육이력 조회 — Figma node 25:2446(메인 콘텐츠) 기반.
@@ -41,29 +52,44 @@ const CHIP_INACTIVE =
  */
 export function TrainingHistoryPage() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [searchInput, setSearchInput] = useState(searchParams.get("q") ?? "");
-  /** 발급 신청·재발급 대상 — 설정 시 결제 모달이 열린다 */
-  const [issueTargetId, setIssueTargetId] = useState<string | null>(null);
+  const [searchInput, setSearchInput] = useState(searchParams.get('q') ?? '');
+  /** 표에서 체크한 행 — 발급 대상 */
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  /** 발급·재발급 대상 — 설정 시 결제 모달이 열린다 */
+  const [issueTarget, setIssueTarget] = useState<{
+    ids: string[];
+    type: 'original' | 'reissue';
+  } | null>(null);
 
-  const from = searchParams.get("from") ?? "";
-  const to = searchParams.get("to") ?? "";
+  const from = searchParams.get('from') ?? '';
+  const to = searchParams.get('to') ?? '';
   const period: PeriodFilter =
-    searchParams.get("period") === "all" ? "all" : "recent3y";
-  const q = searchParams.get("q") ?? "";
-  const page = Math.max(1, Number(searchParams.get("page") ?? 1) || 1);
+    searchParams.get('period') === 'all'
+      ? 'all'
+      : searchParams.get('period') === 'recent1y'
+        ? 'recent1y'
+        : 'recent3y';
+  const q = searchParams.get('q') ?? '';
+  const page = Math.max(1, Number(searchParams.get('page') ?? 1) || 1);
+
+  /**
+   * 칩 기간의 실효 조회 범위 — picker에 그대로 노출된다.
+   * URL에 from/to가 있으면 그 값이 우선(직접 지정), 없으면 칩 기간으로 오늘 기준 역산.
+   * '전체 기간'은 범위 없음. 렌더마다 재계산 — '오늘'을 굳히지 않는다.
+   */
+  const defaultFrom =
+    period === 'recent1y' ? yearsAgoYMD(1) : period === 'recent3y' ? yearsAgoYMD(3) : '';
+  const effFrom = from || defaultFrom;
+  const effTo = to || (period === 'all' ? '' : localYMD(new Date()));
 
   const { data, isLoading, isError, error, refetch } = useQuery({
-    queryKey: [
-      "training-history",
-      "list",
-      { from, to, period, q, page, limit: PAGE_LIMIT },
-    ],
+    queryKey: ['training-history', 'list', { effFrom, effTo, q, page, limit: PAGE_LIMIT }],
     queryFn: () =>
       getTrainingHistoryList({
         page,
         limit: PAGE_LIMIT,
-        from: from || undefined,
-        to: to || undefined,
+        from: effFrom || undefined,
+        to: effTo || undefined,
         period,
         search: q,
       }),
@@ -71,16 +97,13 @@ export function TrainingHistoryPage() {
   });
 
   /** URL 업데이트 헬퍼 — 빈값은 키 삭제, 필터 변경 시 page 리셋 */
-  const updateParams = (
-    patch: Record<string, string | null>,
-    resetPage = true,
-  ) => {
+  const updateParams = (patch: Record<string, string | null>, resetPage = true) => {
     const next = new URLSearchParams(searchParams);
     for (const [key, value] of Object.entries(patch)) {
-      if (value === null || value === "") next.delete(key);
+      if (value === null || value === '') next.delete(key);
       else next.set(key, value);
     }
-    if (resetPage) next.delete("page");
+    if (resetPage) next.delete('page');
     setSearchParams(next, { replace: false });
   };
 
@@ -88,8 +111,9 @@ export function TrainingHistoryPage() {
   const activeChip: FilterChipKey | null = from || to ? null : period;
 
   const handleFilterChipClick = (key: FilterChipKey) => {
-    // 칩 선택 시 직접 지정한 기간은 해제 — 기간 필터의 단일 진실을 유지한다
-    updateParams({ from: null, to: null, period: key === "all" ? "all" : null });
+    // 칩 선택 시 직접 지정한 기간은 해제 — period 키가 칩 기간의 단일 진실이고,
+    // picker 값은 이 값에서 파생된다 (recent3y가 기본이라 URL 키는 생략)
+    updateParams({ from: null, to: null, period: key === 'recent3y' ? null : key });
   };
 
   const handleSearchSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -99,6 +123,59 @@ export function TrainingHistoryPage() {
 
   const items = data?.items ?? [];
   const totalPages = data?.totalPages ?? 1;
+
+  /**
+   * 선택 카테고리 잠금 — 첫 체크된 행의 상태로 범위가 고정된다.
+   * 발급(issuable)을 먼저 체크하면 재발급 행은, 재발급(reissuable)을 먼저
+   * 체크하면 발급 행은 체크박스가 비활성화된다. 발급 불가는 항상 잠김.
+   */
+  const selectedCategory = (() => {
+    for (const id of selectedIds) {
+      const item = items.find((candidate) => candidate.id === id);
+      if (item) return item.certificateStatus;
+    }
+    return null;
+  })();
+
+  /** 행 체크 가능 여부 — 발급 불가 제외 + 선택 카테고리 일치 */
+  const isRowCheckable = (item: TrainingHistoryItem): boolean =>
+    item.certificateStatus !== 'unavailable' &&
+    (selectedCategory === null || item.certificateStatus === selectedCategory);
+
+  /** 현재 체크 가능한 행 — 전체선택·토글 대상 */
+  const checkableIds = items.filter(isRowCheckable).map((item) => item.id);
+  /** 현재 페이지 기준으로 정리된 선택 — 페이지 이동·필터 변경에 어긋나지 않게 */
+  const effectiveSelectedIds = selectedIds.filter((id) =>
+    checkableIds.includes(id),
+  );
+  const allSelected =
+    checkableIds.length > 0 && checkableIds.every((id) => effectiveSelectedIds.includes(id));
+
+  const toggleRow = (id: string) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((selected) => selected !== id) : [...prev, id],
+    );
+  };
+
+  const toggleAll = () => {
+    setSelectedIds((prev) =>
+      allSelected
+        ? prev.filter((id) => !checkableIds.includes(id))
+        : [...new Set([...prev, ...checkableIds])],
+    );
+  };
+
+  /** 발급 — 선택 전체가 issuable일 때만 활성 (node 104:5378) */
+  const canIssue = selectedCategory === 'issuable' && effectiveSelectedIds.length > 0;
+  const handleIssueClick = () => {
+    if (canIssue) setIssueTarget({ ids: effectiveSelectedIds, type: 'original' });
+  };
+
+  /** 재발급 — 선택 전체가 reissuable이면 활성 (node 99:5092) */
+  const canReissue = selectedCategory === 'reissuable' && effectiveSelectedIds.length > 0;
+  const handleReissueClick = () => {
+    if (canReissue) setIssueTarget({ ids: effectiveSelectedIds, type: 'reissue' });
+  };
 
   return (
     <section className="flex flex-col gap-6">
@@ -117,9 +194,9 @@ export function TrainingHistoryPage() {
               <TextField
                 type="date"
                 aria-label="조회 시작일"
-                value={from}
+                value={effFrom}
                 onChange={(event) =>
-                  updateParams({ from: event.target.value || null })
+                  updateParams({ from: event.target.value || null, period: null })
                 }
                 onClick={(event) => {
                   // 인디케이터를 숨겨서, 입력창 클릭으로 직접 캘린더를 띄운다
@@ -140,9 +217,9 @@ export function TrainingHistoryPage() {
               <TextField
                 type="date"
                 aria-label="조회 종료일"
-                value={to}
+                value={effTo}
                 onChange={(event) =>
-                  updateParams({ to: event.target.value || null })
+                  updateParams({ to: event.target.value || null, period: null })
                 }
                 onClick={(event) => {
                   // 인디케이터를 숨겨서, 입력창 클릭으로 직접 캘린더를 띄운다
@@ -164,19 +241,16 @@ export function TrainingHistoryPage() {
 
           <div className="flex gap-2">
             {FILTER_CHIPS.map((chip) => (
-            <button
-              key={chip.key}
-              type="button"
-              aria-pressed={activeChip === chip.key}
-              onClick={() => handleFilterChipClick(chip.key)}
-              className={cn(
-                CHIP_BASE,
-                activeChip === chip.key ? CHIP_ACTIVE : CHIP_INACTIVE,
-              )}
-            >
-              {chip.label}
-            </button>
-          ))}
+              <button
+                key={chip.key}
+                type="button"
+                aria-pressed={activeChip === chip.key}
+                onClick={() => handleFilterChipClick(chip.key)}
+                className={cn(CHIP_BASE, activeChip === chip.key ? CHIP_ACTIVE : CHIP_INACTIVE)}
+              >
+                {chip.label}
+              </button>
+            ))}
           </div>
         </div>
 
@@ -185,10 +259,14 @@ export function TrainingHistoryPage() {
           <input
             type="search"
             value={searchInput}
-            onChange={(event) => setSearchInput(event.target.value)}
+            onChange={(event) => {
+              setSearchInput(event.target.value);
+              // 네이티브 X(검색 취소) 클릭 시 조회도 리셋 — 입력이 비면 q 해제
+              if (event.target.value === '') updateParams({ q: null });
+            }}
             placeholder="교육명 검색"
             aria-label="교육명 검색"
-            className="h-9 w-[180px] rounded-md border border-solid border-gray-300 bg-white px-3 font-sans text-sm leading-normal text-gray-800 outline-none placeholder:text-gray-400 focus:border-primary-400"
+            className="[&::-webkit-search-cancel-button]:cursor-pointer h-9 w-[180px] rounded-md border border-solid border-gray-300 bg-white px-3 font-sans text-sm leading-normal text-gray-800 outline-none placeholder:text-gray-400 focus:border-primary-400"
           />
           <Button
             type="submit"
@@ -204,9 +282,35 @@ export function TrainingHistoryPage() {
       {/* 안내 배너 — node 25:2456 */}
       <div className="flex w-full items-start rounded-md border-l-4 border-solid border-primary-400 bg-[#f0f4ff] px-5 py-3">
         <p className="flex-1 font-sans text-sm leading-[1.6] text-primary-700">
-          기본 조회 기간 오늘부터 3년 이내 이력이 표시됩니다. &apos;전체 기간&apos;
-          선택 시 이전 이력도 조회되나, 3년 초과 이력은 확인서 발급이 제한됩니다.
+          기본 조회 기간 오늘부터 3년 이내 이력이 표시됩니다. &apos;전체 기간&apos; 선택 시 이전
+          이력도 조회되나, 3년 초과 이력은 확인서 발급이 제한됩니다.
         </p>
+      </div>
+
+      {/* 발급 툴바 — node 99:5098. 체크한 건을 일괄 발급·재발급한다 */}
+      <div className="flex items-center justify-end gap-3">
+        <p className="font-sans text-sm leading-normal text-gray-500">
+          여러 교육내역 확인서를 한번에 발급할 수 있습니다. 발급 비용은 단 건, 일괄 건
+          동일합니다.
+        </p>
+        <Button
+          color="black"
+          size="s"
+          disabled={!canReissue}
+          onClick={handleReissueClick}
+          className="rounded-md px-3 py-1.5 text-[13px] font-medium"
+        >
+          재발급
+        </Button>
+        <Button
+          color="black"
+          size="s"
+          disabled={!canIssue}
+          onClick={handleIssueClick}
+          className="rounded-md px-3 py-1.5 text-[13px] font-medium"
+        >
+          발급
+        </Button>
       </div>
 
       {/* 목록 표 — 로딩·에러·빈 상태는 표 컨테이너 안에서 처리 */}
@@ -222,7 +326,7 @@ export function TrainingHistoryPage() {
             <p>
               {error instanceof Error
                 ? error.message
-                : "문제가 생겼어요. 잠시 후 다시 시도해 주세요"}
+                : '문제가 생겼어요. 잠시 후 다시 시도해 주세요'}
             </p>
             <Button
               variant="outlined"
@@ -256,15 +360,20 @@ export function TrainingHistoryPage() {
       ) : (
         <TrainingHistoryTable
           items={items}
-          onIssueClick={(id) => setIssueTargetId(id)}
+          selectedIds={effectiveSelectedIds}
+          isRowCheckable={isRowCheckable}
+          onToggleRow={toggleRow}
+          onToggleAll={toggleAll}
         />
       )}
 
-      {/* 결제 모달 — 발급 신청·재발급 클릭 시 노출 (Figma node 78:3911) */}
-      {issueTargetId !== null && (
+      {/* 결제 모달 — 툴바 발급·재발급 클릭 시 노출 (Figma node 78:3911) */}
+      {issueTarget !== null && (
         <IssuePaymentModal
-          recordId={issueTargetId}
-          onClose={() => setIssueTargetId(null)}
+          recordIds={issueTarget.ids}
+          issueType={issueTarget.type}
+          onClose={() => setIssueTarget(null)}
+          onIssued={() => setSelectedIds([])}
         />
       )}
 

@@ -27,7 +27,7 @@ export interface SidebarProps {
  */
 export function Sidebar({
   userName = '홍○○ 님',
-  authTimeLabel = '인증 유효 09:24',
+  authTimeLabel,
   onReleaseAuth,
   className,
 }: SidebarProps) {
@@ -58,7 +58,7 @@ export function Sidebar({
       <div className="flex w-full flex-col gap-5 px-5">
         <div className="flex flex-col gap-2 text-sm leading-normal">
           <p className="font-semibold text-gray-800">{userName}</p>
-          <p className="text-gray-600">{authTimeLabel}</p>
+          {authTimeLabel && <p className="text-gray-600">{authTimeLabel}</p>}
         </div>
         <button
           type="button"
