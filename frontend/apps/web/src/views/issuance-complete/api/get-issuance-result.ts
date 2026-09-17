@@ -11,6 +11,8 @@ export interface IssuanceResult {
   verificationId: string;
   /** 발급일시 표시문 (예: 2026.09.16 14:22) */
   issuedAtLabel: string;
+  /** 발급일시 (ISO) — 확인서 문서의 발급일 표기용 */
+  issuedAt: string;
   /** 유효기간 표시문 (예: 2026.12.16까지) */
   validityLabel: string;
   /** 확인서 미리보기 이미지 URL — 없으면 기본 에셋으로 대체 */
@@ -73,6 +75,7 @@ export async function getIssuanceResult(
     certificateNumber: certificate.certificate_no,
     verificationId: certificate.certificate_no,
     issuedAtLabel: formatDateTime(certificate.issued_at),
+    issuedAt: certificate.issued_at,
     validityLabel: certificate.expires_at
       ? `${formatDate(certificate.expires_at)}까지`
       : "유효기간 제한 없음",

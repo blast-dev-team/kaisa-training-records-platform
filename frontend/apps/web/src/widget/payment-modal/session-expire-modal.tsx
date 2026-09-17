@@ -1,3 +1,5 @@
+import { XIcon } from "@/src/shared/icon";
+
 import { useEffect } from 'react';
 
 import { Button } from '@/src/shared/ui';
@@ -34,13 +36,23 @@ export function SessionExpireModal({ onRetry }: SessionExpireModalProps) {
         aria-modal="true"
         aria-label="세션 만료"
         onClick={(event) => event.stopPropagation()}
-        className="flex w-[480px] max-w-full flex-col gap-3.5 rounded-[12px] bg-white px-10 py-8 shadow-[0px_4px_24px_0px_rgba(0,0,0,0.15)] font-sans"
+        className="relative flex w-[480px] max-w-full flex-col gap-3.5 rounded-[12px] bg-white px-10 py-8 shadow-[0px_4px_24px_0px_rgba(0,0,0,0.15)] font-sans mobile:w-full mobile:p-5"
       >
-        <div className="flex items-center gap-3">
-          <span className="w-fit rounded-[4px] border border-gray-300 bg-[#f2f2f2] px-3 py-1.5 text-sm font-semibold text-gray-600">
+        {/* 모바일 — 전체화면형 모달이라 X 로 닫는다 */}
+        <button
+          type="button"
+          aria-label="닫기"
+          onClick={onRetry}
+          className="absolute right-4 top-4 hidden size-8 cursor-pointer items-center justify-center text-gray-500 mobile:flex"
+        >
+          <XIcon className="size-6" />
+        </button>
+        {/* 배지·메시지 — 데스크톱 가로 나란히, 모바일 세로 스택 (node 131:9357) */}
+        <div className="flex items-center gap-3 mobile:flex-col mobile:items-start mobile:gap-3">
+          <span className="w-fit rounded-[4px] border border-gray-300 bg-[#f2f2f2] px-3 py-1.5 text-sm font-semibold text-gray-600 mobile:text-xs">
             세션 만료
           </span>
-          <p className="text-[15px] font-medium text-gray-800">
+          <p className="text-[15px] font-medium text-gray-800 mobile:text-sm mobile:whitespace-normal">
             본인인증 유효시간(10분)이 만료되었습니다.
           </p>
         </div>
@@ -50,7 +62,7 @@ export function SessionExpireModal({ onRetry }: SessionExpireModalProps) {
             variant="outlined"
             color="gray"
             onClick={onRetry}
-            className="w-fit rounded-lg px-6 py-3 text-sm font-medium text-gray-700"
+            className="w-fit rounded-lg px-6 py-3 text-sm font-medium text-gray-700 mobile:px-4 mobile:py-2"
           >
             본인인증 다시 하기
           </Button>

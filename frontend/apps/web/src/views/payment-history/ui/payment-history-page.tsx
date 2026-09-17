@@ -95,7 +95,7 @@ export function PaymentHistoryPage() {
     }
   };
 
-  /** 영수증 — PortOne 카드전표(웹페이지)라 새 탭으로 연다. 없으면 준비 중 모달 */
+  /** 영수증 — PortOne 카드전표(웹페이지)라 새 탭으로 연다. 없으면 안내 모달 */
   const handleReceiptClick = (item: PaymentHistoryItem) => {
     if (item.receiptUrl) {
       window.open(item.receiptUrl, "_blank", "noopener,noreferrer");
@@ -105,13 +105,13 @@ export function PaymentHistoryPage() {
   };
 
   return (
-    <section className="flex flex-col gap-6">
-      <h1 className="font-sans text-[28px] leading-normal font-bold text-gray-900">
+    <section className="flex flex-col gap-6 mobile:gap-5">
+      <h1 className="font-sans text-[28px] leading-normal font-bold text-gray-900 mobile:text-2xl">
         발급·결제 내역
       </h1>
 
-      {/* 필터 행 — 좌: 상태 드롭다운 / 우: 조회 기간 (node 19:25316) */}
-      <div className="flex items-end justify-between">
+      {/* 필터 행 — 좌: 상태 드롭다운 / 우: 조회 기간 (node 19:25316). 모바일은 세로 스택 (node 131:10463) */}
+      <div className="flex items-end justify-between mobile:flex-col mobile:items-stretch mobile:gap-5">
         <Dropdown
           options={STATUS_OPTIONS}
           value={status}
@@ -119,19 +119,19 @@ export function PaymentHistoryPage() {
             if (typeof value !== "string") return;
             updateParams({ status: value === "all" ? null : value });
           }}
-          className="w-[160px]"
+          className="w-[160px] mobile:w-full"
         />
 
-        <div className="flex flex-col items-end gap-2">
-          <p className="font-sans text-[13px] leading-normal font-medium text-gray-700">
+        <div className="flex flex-col items-end gap-2 mobile:items-stretch mobile:gap-2">
+          <p className="font-sans text-[13px] leading-normal font-medium text-gray-700 mobile:text-sm mobile:font-semibold">
             조회 기간
           </p>
-          <div className="flex items-center gap-2">
+          <div className="flex min-w-0 items-center gap-2 mobile:gap-1.5">
             <DateField
               ariaLabel="조회 시작일"
               value={from}
               onChange={(dateYMD) => updateParams({ from: dateYMD || null })}
-              className="w-[150px]"
+              className="w-[150px] mobile:w-auto mobile:flex-1"
             />
             <p className="font-sans text-sm leading-normal text-gray-700">~</p>
             <DateField
@@ -139,7 +139,7 @@ export function PaymentHistoryPage() {
               value={to}
               onChange={(dateYMD) => updateParams({ to: dateYMD || null })}
               popoverAlign="right"
-              className="w-[150px]"
+              className="w-[150px] mobile:w-auto mobile:flex-1"
             />
           </div>
         </div>
@@ -184,11 +184,12 @@ export function PaymentHistoryPage() {
         />
       )}
 
-      {/* 목록 하단 — 안내 문구(+다운로드 실패 피드백) + 페이지네이션 (node 19:25266) */}
-      <div className="flex w-full items-center justify-between">
+      {/* 목록 하단 — 안내 문구(+다운로드 실패 피드백) + 페이지네이션 (node 19:25266).
+          모바일은 문구 아래 페이지네이션 중앙 정렬 (node 131:10535) */}
+      <div className="flex w-full items-center justify-between mobile:flex-col mobile:items-stretch mobile:gap-3">
         <p
           className={cn(
-            "font-sans text-sm leading-normal",
+            "font-sans text-sm leading-normal mobile:text-xs",
             actionError ? "text-red-500" : "text-gray-500",
           )}
         >
@@ -199,6 +200,7 @@ export function PaymentHistoryPage() {
           page={data?.page ?? page}
           totalPages={totalPages}
           onChange={(next) => updateParams({ page: String(next) }, false)}
+          className="mobile:justify-center"
         />
       </div>
 

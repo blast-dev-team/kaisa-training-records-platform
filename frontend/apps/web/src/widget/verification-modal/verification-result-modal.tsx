@@ -1,3 +1,5 @@
+import { XIcon } from "@/src/shared/icon";
+
 import { useEffect } from 'react';
 
 import type { VerificationResult } from '@/src/shared/api/get-verification-result';
@@ -44,17 +46,26 @@ export function VerificationResultModal({
         aria-modal="true"
         aria-label="진위확인 결과"
         onClick={(event) => event.stopPropagation()}
-        className="flex w-[480px] max-w-full flex-col gap-6 rounded-[12px] bg-white px-10 py-8 shadow-[0px_4px_24px_0px_rgba(0,0,0,0.15)] font-sans"
+        className="relative flex w-[480px] max-w-full flex-col gap-6 rounded-[12px] bg-white px-10 py-8 shadow-[0px_4px_24px_0px_rgba(0,0,0,0.15)] font-sans mobile:w-full mobile:p-5"
       >
-        <p className="whitespace-pre text-sm text-gray-500">
+        {/* 모바일 — 전체화면형 모달이라 X 로 닫는다 */}
+        <button
+          type="button"
+          aria-label="닫기"
+          onClick={onClose}
+          className="absolute right-4 top-4 hidden size-8 cursor-pointer items-center justify-center text-gray-500 mobile:flex"
+        >
+          <XIcon className="size-6" />
+        </button>
+        <p className="whitespace-pre text-sm text-gray-500 mobile:text-xs">
           {`결과  ·  유효`}
         </p>
 
         <div className="flex items-center gap-4">
-          <span className="rounded-[4px] border border-[#393] bg-[#d9f2d9] px-3 py-1.5 text-sm font-semibold text-[#268026]">
+          <span className="rounded-[4px] border border-[#393] bg-[#d9f2d9] px-3 py-1.5 text-sm font-semibold text-[#268026] mobile:text-xs">
             유효한 확인서
           </span>
-          <p className="text-sm whitespace-nowrap text-gray-500">
+          <p className="text-sm whitespace-nowrap text-gray-500 mobile:text-xs">
             {result.queriedAt} 조회
           </p>
         </div>
@@ -63,7 +74,7 @@ export function VerificationResultModal({
           {INFO_ROWS.map((row) => (
             <div
               key={row.key}
-              className="flex w-full items-center gap-6 py-3"
+              className="flex w-full items-center gap-6 py-3 mobile:gap-3 mobile:py-2"
             >
               <p className="w-20 shrink-0 font-bold">{row.label}</p>
               <p className="whitespace-nowrap">{result[row.key]}</p>

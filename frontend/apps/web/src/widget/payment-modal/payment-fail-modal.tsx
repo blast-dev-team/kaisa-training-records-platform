@@ -1,3 +1,5 @@
+import { XIcon } from "@/src/shared/icon";
+
 import { useEffect } from 'react';
 
 import { Button } from '@/src/shared/ui';
@@ -42,21 +44,33 @@ export function PaymentFailModal({ reason, onRetry, onSelectOther }: PaymentFail
         aria-modal="true"
         aria-label="결제 실패"
         onClick={(event) => event.stopPropagation()}
-        className="flex w-[480px] max-w-full flex-col gap-3.5 rounded-[12px] bg-white px-10 pt-8 pb-14 shadow-[0px_4px_24px_0px_rgba(0,0,0,0.15)] font-sans"
+        className="relative flex w-[480px] max-w-full flex-col gap-3.5 rounded-[12px] bg-white px-10 pt-8 pb-14 shadow-[0px_4px_24px_0px_rgba(0,0,0,0.15)] font-sans mobile:w-full mobile:p-5 mobile:pb-5"
       >
-        <div className="flex items-center gap-3">
-          <span className="w-fit rounded-[4px] border border-[#d93333] bg-[#fae5e5] px-3 py-1.5 text-sm font-semibold text-[#bf2626]">
+        {/* 모바일 — 전체화면형 모달이라 X 로 닫는다 */}
+        <button
+          type="button"
+          aria-label="닫기"
+          onClick={onRetry}
+          className="absolute right-4 top-4 hidden size-8 cursor-pointer items-center justify-center text-gray-500 mobile:flex"
+        >
+          <XIcon className="size-6" />
+        </button>
+        {/* 배지·메시지 — 데스크톱 가로 나란히, 모바일 세로 스택 (node 131:10118) */}
+        <div className="flex items-center gap-3 mobile:flex-col mobile:items-start mobile:gap-3">
+          <span className="w-fit rounded-[4px] border border-[#d93333] bg-[#fae5e5] px-3 py-1.5 text-sm font-semibold text-[#bf2626] mobile:text-xs">
             결제 실패
           </span>
-          <p className="text-[15px] font-medium text-gray-800">결제가 정상 처리되지 않았습니다.</p>
+          <p className="text-[15px] font-medium text-gray-800 mobile:text-sm">
+            결제가 정상 처리되지 않았습니다.
+          </p>
         </div>
 
         <p className="text-[13px] leading-normal text-gray-600">{reason ?? DEFAULT_REASON}</p>
 
-        <div className="flex items-end gap-3">
+        <div className="flex items-end gap-3 mobile:justify-end mobile:gap-2">
           <Button
             onClick={onRetry}
-            className="rounded-lg bg-[#bf2626] px-6 py-3 text-sm hover:bg-[#a81f1f]"
+            className="rounded-lg bg-[#bf2626] px-6 py-3 text-sm hover:bg-[#a81f1f] mobile:rounded-lg mobile:px-4 mobile:py-2"
           >
             다시 결제
           </Button>
@@ -64,7 +78,7 @@ export function PaymentFailModal({ reason, onRetry, onSelectOther }: PaymentFail
             variant="outlined"
             color="gray"
             onClick={onSelectOther}
-            className="rounded-lg border-gray-300 px-6 py-3 text-sm font-medium text-gray-700"
+            className="rounded-lg border-gray-300 px-6 py-3 text-sm font-medium text-gray-700 mobile:rounded-lg mobile:px-4 mobile:py-2"
           >
             다른 수단 선택
           </Button>

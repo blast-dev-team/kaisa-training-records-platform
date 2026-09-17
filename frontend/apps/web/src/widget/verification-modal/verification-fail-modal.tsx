@@ -1,3 +1,5 @@
+import { XIcon } from "@/src/shared/icon";
+
 import { useEffect } from 'react';
 
 import { Button } from '@/src/shared/ui';
@@ -43,32 +45,41 @@ export function VerificationFailModal({ onRetry }: VerificationFailModalProps) {
         aria-modal="true"
         aria-label="진위확인 실패"
         onClick={(event) => event.stopPropagation()}
-        className="flex w-[480px] max-w-full flex-col gap-5 rounded-[12px] bg-white px-10 py-8 shadow-[0px_4px_24px_0px_rgba(0,0,0,0.15)] font-sans"
+        className="relative flex w-[480px] max-w-full flex-col gap-5 rounded-[12px] bg-white px-10 py-8 shadow-[0px_4px_24px_0px_rgba(0,0,0,0.15)] font-sans mobile:w-full"
       >
-        <p className="whitespace-pre text-sm text-gray-500">{`결과  ·  무효 / 에러`}</p>
+        {/* 모바일 — 전체화면형 모달이라 X 로 닫는다 */}
+        <button
+          type="button"
+          aria-label="닫기"
+          onClick={onRetry}
+          className="absolute right-4 top-4 hidden size-8 cursor-pointer items-center justify-center text-gray-500 mobile:flex"
+        >
+          <XIcon className="size-6" />
+        </button>
+        <p className="whitespace-pre text-sm text-gray-500 mobile:text-xs">{`결과  ·  무효 / 에러`}</p>
 
-        <span className="w-fit rounded-[4px] border border-[#d93333] bg-[#fae5e5] px-3 py-1.5 text-sm font-semibold text-[#bf2626]">
+        <span className="w-fit rounded-[4px] border border-[#d93333] bg-[#fae5e5] px-3 py-1.5 text-sm font-semibold text-[#bf2626] mobile:text-xs">
           확인 불가
         </span>
 
-        <p className="text-[15px] font-medium text-gray-700">
+        <p className="text-[15px] font-medium text-gray-700 mobile:text-sm">
           입력하신 진위확인 ID와 성명이 일치하는 확인서가 없습니다.
         </p>
 
-        <div className="flex w-full flex-col gap-2 rounded-[8px] border border-solid border-[rgba(229,77,77,0.3)] bg-[#fcf2f2] px-5 py-4 text-[13px] leading-normal text-[#b23333]">
+        <div className="flex w-full flex-col gap-2 rounded-[8px] border border-solid border-[rgba(229,77,77,0.3)] bg-[#fcf2f2] px-5 py-4 text-[13px] leading-normal text-[#b23333] mobile:px-4 mobile:py-3 mobile:text-xs">
           {TIPS.map((tip) => (
             <p key={tip}>{tip}</p>
           ))}
         </div>
 
-        <div className="flex items-center gap-3">
-          <Button onClick={onRetry} className="flex-1 rounded-lg px-8 py-3.5 text-[15px]">
+        <div className="flex items-center gap-3 mobile:flex-col mobile:gap-2">
+          <Button onClick={onRetry} className="flex-1 rounded-lg px-8 py-3.5 text-[15px] mobile:px-4 mobile:py-3 mobile:text-sm">
             다시 입력
           </Button>
           <Button
             variant="outlined"
             color="black"
-            className="rounded-lg border-gray-700 px-8 py-3.5 text-[15px] text-gray-700"
+            className="rounded-lg border-gray-700 px-8 py-3.5 text-[15px] text-gray-700 mobile:px-4 mobile:py-3 mobile:text-sm"
             onClick={() => {
               window.location.href = `tel:${CONTACT_PHONE.replace(/-/g, '')}`;
             }}

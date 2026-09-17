@@ -12,6 +12,16 @@ export interface TrainingHistoryDetail {
   trainedOn: string;
   /** 이수시간 (시간 단위) */
   hours: number;
+  /** 교육기관명 — 확인서 표기용 */
+  institutionName?: string;
+  /** 확인서 서식번호 (예: 제31호) — 좌측 상단 표기 */
+  formNo?: string;
+  /** 확인서 문서번호 (예: 대축-2026-0001) — 우측 상단 표기 */
+  docNo?: string;
+  /** 감리원 등급 — 신청인 칸 표기 */
+  supervisorGrade?: string;
+  /** 감리원증 발급번호 — 신청인 칸 표기 */
+  supervisorCertNo?: string;
   /** 신청인 표기 (예: 홍○○ (본인인증 완료)) */
   applicantLabel: string;
   /** 확인서 발급 상태 — 서버가 회원별로 판정 (데모 이력 공유 대응) */
@@ -49,6 +59,11 @@ export async function getTrainingHistoryDetail(
     courseName: data.course_name,
     trainedOn: data.started_at ?? data.ended_at ?? "",
     hours: Number(data.total_hours),
+    institutionName: data.institution_name ?? undefined,
+    formNo: data.form_no ?? undefined,
+    docNo: data.doc_no ?? undefined,
+    supervisorGrade: data.supervisor_grade ?? undefined,
+    supervisorCertNo: data.supervisor_cert_no ?? undefined,
     applicantLabel: `${userName} (본인인증 완료)`,
     // 발급 게이트(3년·수료·기발급)는 서버 판정 값을 그대로 쓴다
     certificateStatus: data.certificate_status ?? "issuable",

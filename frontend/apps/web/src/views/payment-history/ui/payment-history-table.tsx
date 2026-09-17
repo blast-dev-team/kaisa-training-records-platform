@@ -1,7 +1,7 @@
-import { Button, Chip } from "@/src/shared/ui";
-import { cn } from "@/src/shared/utils/cn";
+import { Button, Chip } from '@/src/shared/ui';
+import { cn } from '@/src/shared/utils/cn';
 
-import type { PaymentHistoryItem } from "../api/get-payment-history-list";
+import type { PaymentHistoryItem } from '../api/get-payment-history-list';
 
 export interface PaymentHistoryTableProps {
   items: PaymentHistoryItem[];
@@ -13,35 +13,27 @@ export interface PaymentHistoryTableProps {
 
 /** 표 헤더·본문 공용 열 폭 — Figma node 19:25223 */
 const COLUMNS = [
-  "w-[120px] shrink-0", // 결제일시
-  "min-w-px flex-1", // 확인서 / 교육명
-  "w-[150px] shrink-0", // 결제수단
-  "w-[100px] shrink-0", // 금액
-  "w-[100px] shrink-0", // 상태
-  "w-[80px] shrink-0", // 거래 명세서
+  'w-[120px] shrink-0', // 결제일시
+  'min-w-px flex-1', // 확인서 / 교육명
+  'w-[150px] shrink-0', // 결제수단
+  'w-[100px] shrink-0', // 금액
+  'w-[100px] shrink-0', // 상태
 ] as const;
 
-const HEADER_LABELS = [
-  "결제일시",
-  "확인서 / 교육명",
-  "결제수단",
-  "금액",
-  "상태",
-  "거래 명세서",
-] as const;
+const HEADER_LABELS = ['결제일시', '확인서 / 교육명', '결제수단', '금액', '상태'] as const;
 
-const CELL_BASE = "text-sm leading-normal";
-const CELL_TEXT = "text-gray-700";
-const CELL_DIMMED = "text-gray-400";
+const CELL_BASE = 'text-sm leading-normal';
+const CELL_TEXT = 'text-gray-700';
+const CELL_DIMMED = 'text-gray-400';
 
 /** 상태 칩 — 결제완료(green) / 환불(red), node 19:25349~19:25351 */
 const STATUS_CHIP = {
-  paid: { label: "결제완료", color: "green" },
-  refunded: { label: "환불", color: "red" },
+  paid: { label: '결제완료', color: 'green' },
+  refunded: { label: '환불', color: 'red' },
 } as const;
 
 function formatPaidDate(paidAt: string): string {
-  return paidAt.slice(0, 10).replace(/-/g, ".");
+  return paidAt.slice(0, 10).replace(/-/g, '.');
 }
 
 /**
@@ -56,16 +48,18 @@ export function PaymentHistoryTable({
   onStatementClick,
 }: PaymentHistoryTableProps) {
   return (
-    <div className="flex w-full flex-col overflow-hidden rounded-xl border border-solid border-gray-200">
+    /* 좁은 화면에서는 표를 가로로 쓸어넘긴다 — 열 폭은 Figma 고정값 유지 (node 131:11334 w-920) */
+    <div className="w-full overflow-x-auto rounded-xl border border-solid border-gray-200">
+      <div className="flex min-w-[920px] flex-col">
       {/* 헤더 행 — gray-100 배경 + SemiBold 14px gray-800 */}
       <div className="flex w-full items-start border-b border-solid border-gray-200 bg-gray-100 px-4 py-3">
         {HEADER_LABELS.map((label, index) => (
           <p
             key={label}
             className={cn(
-              "font-sans text-sm font-semibold leading-normal text-gray-800",
+              'font-sans text-sm font-semibold leading-normal text-gray-800',
               COLUMNS[index],
-              index === 5 && "text-center",
+              index === 4 && 'text-center',
             )}
           >
             {label}
@@ -75,7 +69,7 @@ export function PaymentHistoryTable({
 
       {/* 본문 행 */}
       {items.map((item) => {
-        const isRefunded = item.status === "refunded";
+        const isRefunded = item.status === 'refunded';
         const textColor = isRefunded ? CELL_DIMMED : CELL_TEXT;
 
         return (
@@ -90,58 +84,41 @@ export function PaymentHistoryTable({
             </div>
 
             {/* 확인서 번호 + 교육명 2줄 */}
-            <div className={cn("flex flex-col justify-center gap-1", COLUMNS[1])}>
+            <div className={cn('flex flex-col justify-center gap-1', COLUMNS[1])}>
               <p className="text-sm leading-normal font-semibold text-gray-900">
                 {item.certificateNumber}
               </p>
-              <p className="text-sm leading-normal text-gray-400">
-                {item.courseName}
-              </p>
+              <p className="text-sm leading-normal text-gray-400">{item.courseName}</p>
             </div>
 
-            {/* 결제수단 — 영수증(PortOne 카드전표) 있으면 클릭, 없으면 일반 텍스트 */}
-            {item.receiptUrl ? (
-              <button
-                type="button"
-                onClick={() => onReceiptClick?.(item)}
-                title="영수증 보기"
-                className={cn(
-                  CELL_BASE,
-                  COLUMNS[2],
-                  textColor,
-                  "cursor-pointer text-left underline decoration-from-font",
-                )}
-              >
-                {item.method}
-              </button>
-            ) : (
-              <p className={cn(CELL_BASE, COLUMNS[2], textColor)}>{item.method}</p>
-            )}
+            {/* 결제수단 — 항상 클릭. 전표 URL 있으면 새 탭, 없으면 안내 모달 (페이지가 분기) */}
+            <button
+              type="button"
+              onClick={() => onReceiptClick?.(item)}
+              title="영수증 보기"
+              className={cn(
+                CELL_BASE,
+                COLUMNS[2],
+                textColor,
+                'cursor-pointer text-left underline decoration-from-font',
+              )}
+            >
+              {item.method}
+            </button>
 
             <p className={cn(CELL_BASE, COLUMNS[3], textColor)}>
-              {item.amount.toLocaleString("ko-KR")}원
+              {item.amount.toLocaleString('ko-KR')}원
             </p>
 
-            <div className={cn("flex items-center", COLUMNS[4])}>
+            <div className={cn('flex items-center', COLUMNS[4])}>
               <Chip shape="square" color={STATUS_CHIP[item.status].color}>
                 {STATUS_CHIP[item.status].label}
               </Chip>
             </div>
-
-            {/* 거래 명세서 — 결제완료(primary) / 환불(disabled) */}
-            <div className={cn("flex items-center justify-center", COLUMNS[5])}>
-              <Button
-                size="s"
-                disabled={isRefunded}
-                className="rounded-md px-3 py-1.5 text-[13px] disabled:border disabled:border-gray-300 disabled:bg-white disabled:text-gray-400"
-                onClick={() => onStatementClick?.(item)}
-              >
-                PDF
-              </Button>
-            </div>
           </div>
         );
       })}
+      </div>
     </div>
   );
 }

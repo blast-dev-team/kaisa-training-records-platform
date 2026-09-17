@@ -14,7 +14,7 @@ const FAQ_ITEMS = [
 export function FaqSection() {
   return (
     <section className="font-sans">
-      <div className="mx-auto flex w-full max-w-[1400px] flex-col gap-6 px-20 pt-5 pb-10">
+      <div className="mx-auto flex w-full max-w-[1400px] flex-col gap-6 px-20 pt-5 pb-10 mobile:gap-5 mobile:px-5 mobile:py-8">
         <p className="text-xl font-semibold leading-[1.5] tracking-[-0.03em] whitespace-nowrap text-gray-900">
           자주 묻는 질문
         </p>
@@ -23,9 +23,9 @@ export function FaqSection() {
             <button
               key={question}
               type="button"
-              className="flex w-full cursor-pointer items-center justify-between border-b border-solid border-gray-200 py-5 text-left"
+              className="flex w-full cursor-pointer items-center justify-between border-b border-solid border-gray-200 py-5 text-left mobile:py-4"
             >
-              <span className="text-base font-semibold leading-[1.5] tracking-[-0.03em] whitespace-nowrap text-gray-800">
+              <span className="text-base font-semibold leading-[1.5] tracking-[-0.03em] whitespace-nowrap text-gray-800 mobile:text-sm mobile:whitespace-normal">
                 {question}
               </span>
               <span className="size-4 shrink-0 text-gray-400">

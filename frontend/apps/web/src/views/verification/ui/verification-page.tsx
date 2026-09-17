@@ -40,14 +40,14 @@ export function VerificationPage() {
     verificationId.trim() !== '' && applicantName.trim() !== '';
 
   return (
-    <section className="-mx-8 -my-10 flex flex-1 flex-col bg-[#f9f9f7] px-10 py-10 font-sans">
-      {/* 헤더 — 제목(28px Bold) + 안내문(14px gray-600), gap 12px */}
-      <div className="flex flex-1 flex-col items-center justify-center gap-6">
+    <section className="-mx-8 -my-10 flex flex-1 flex-col bg-[#f9f9f7] px-10 py-10 font-sans mobile:-mx-5 mobile:-mt-5 mobile:-mb-10 mobile:px-5 mobile:pt-5 mobile:pb-10">
+      {/* 헤더 — 제목(28px Bold) + 안내문(14px gray-600), gap 12px / 모바일 node 131:11749 */}
+      <div className="flex flex-1 flex-col items-center justify-center gap-6 mobile:gap-6">
         <div className="flex w-full flex-col gap-3 text-center">
-          <h1 className="text-[28px] leading-normal font-bold text-gray-900">
+          <h1 className="text-[28px] leading-normal font-bold text-gray-900 mobile:text-2xl">
             계속교육이력확인서 진위확인
           </h1>
-          <p className="text-sm leading-[1.6] text-gray-600">
+          <p className="text-sm leading-[1.6] text-gray-600 mobile:text-xs">
             확인서 하단의 진위확인 ID와 발급 대상자의 성명을 입력하시면 해당 확인서의 유효 여부를
             확인할 수 있습니다.
           </p>
@@ -57,7 +57,7 @@ export function VerificationPage() {
         <div className="flex w-full flex-col items-center gap-2.5">
           <form
             onSubmit={handleSubmit}
-            className="flex w-[400px] flex-col gap-4 rounded-[12px] border border-solid border-gray-200 bg-white p-8"
+            className="flex w-[400px] flex-col gap-4 rounded-[12px] border border-solid border-gray-200 bg-white p-8 mobile:w-full mobile:gap-2"
           >
             <TextField
               variant="outlined"
@@ -80,7 +80,7 @@ export function VerificationPage() {
               type="submit"
               fullWidth
               disabled={!isSubmittable || lookupMutation.isPending}
-              className="rounded-lg px-6 py-4"
+              className="rounded-lg px-6 py-4 mobile:py-3"
             >
               {lookupMutation.isPending ? '확인 중...' : '진위 확인'}
             </Button>
@@ -94,7 +94,7 @@ export function VerificationPage() {
             )}
           </form>
 
-          <p className="text-[13px] text-gray-500">
+          <p className="text-[13px] text-gray-500 mobile:text-xs">
             QR 코드로 접속한 경우 진위확인 ID가 자동 입력됩니다.
           </p>
         </div>

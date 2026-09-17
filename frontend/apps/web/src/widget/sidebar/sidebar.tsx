@@ -2,7 +2,8 @@ import { NavLink } from 'react-router';
 
 import { cn } from '@/src/shared/utils/cn';
 
-const SIDEBAR_NAV_ITEMS = [
+/** 인증 후 메인 메뉴 — 사이드바(데스크톱)와 모바일 상단 탭(128:2481)이 공유한다 */
+export const SIDEBAR_NAV_ITEMS = [
   { label: '교육이력 조회', to: '/training-history' },
   { label: '발급·결제 내역', to: '/payment-history' },
   { label: '진위확인', to: '/verify' },
@@ -13,6 +14,10 @@ export interface SidebarProps {
   userName?: string;
   /** 인증 남은 시간 표시 (예: "인증 유효 09:24") */
   authTimeLabel?: string;
+  /** 인증 연장 버튼 표시 여부 — 잔여 5분 이하일 때 true */
+  showExtendAuth?: boolean;
+  /** 인증 연장 버튼 클릭 핸들러 */
+  onExtendAuth?: () => void;
   /** 인증 해제 버튼 클릭 핸들러 */
   onReleaseAuth?: () => void;
   className?: string;
@@ -28,6 +33,8 @@ export interface SidebarProps {
 export function Sidebar({
   userName = '홍○○ 님',
   authTimeLabel,
+  showExtendAuth = false,
+  onExtendAuth,
   onReleaseAuth,
   className,
 }: SidebarProps) {
@@ -59,6 +66,15 @@ export function Sidebar({
         <div className="flex flex-col gap-2 text-sm leading-normal">
           <p className="font-semibold text-gray-800">{userName}</p>
           {authTimeLabel && <p className="text-gray-600">{authTimeLabel}</p>}
+          {showExtendAuth && (
+            <button
+              type="button"
+              onClick={onExtendAuth}
+              className="w-fit cursor-pointer text-sm font-semibold text-primary-700 underline"
+            >
+              인증 연장
+            </button>
+          )}
         </div>
         <button
           type="button"

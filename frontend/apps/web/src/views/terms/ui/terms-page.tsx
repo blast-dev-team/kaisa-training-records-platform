@@ -87,18 +87,39 @@ export function TermsPage() {
   };
 
   return (
-    <section className="mx-auto flex w-full max-w-[1400px] flex-1 flex-col gap-6 px-[60px] pb-12 pt-8">
+    <section className="mx-auto flex w-full max-w-[1400px] flex-1 flex-col gap-6 px-[60px] pb-12 pt-8 mobile:gap-0 mobile:px-5 mobile:pb-12 mobile:pt-0">
       <Link
         to="/"
-        className="flex items-center gap-2 self-start text-gray-700"
+        className="flex items-center gap-2 self-start text-gray-700 mobile:py-4"
         aria-label="이전 페이지로 돌아가기"
       >
         <CaretLeftIcon className="size-8" />
-        <span className="text-[28px] font-bold leading-tight text-gray-900">약관</span>
+        <span className="text-[28px] font-bold leading-tight text-gray-900 mobile:text-[20px]">
+          약관
+        </span>
       </Link>
 
+      {/* 모바일 가로 탭 — 좁은 폭에서 좌우 스크롤 (node 133:2596 · 131:12357) */}
+      <nav className="hidden w-full items-center overflow-x-auto mobile:flex">
+        {TAB_ITEMS.map((item) => (
+          <button
+            key={item.key}
+            type="button"
+            onClick={() => selectTab(item.key)}
+            className={cn(
+              'shrink-0 cursor-pointer whitespace-nowrap px-4 py-3 text-sm transition-colors',
+              tab === item.key
+                ? 'bg-gray-900 font-semibold text-white'
+                : 'font-normal text-gray-600 hover:bg-gray-100 hover:text-gray-900',
+            )}
+          >
+            {item.label}
+          </button>
+        ))}
+      </nav>
+
       <div className="flex gap-8">
-        <nav className="flex w-40 shrink-0 flex-col">
+        <nav className="flex w-40 shrink-0 flex-col mobile:hidden">
           {TAB_ITEMS.map((item) => (
             <button
               key={item.key}
@@ -116,16 +137,20 @@ export function TermsPage() {
           ))}
         </nav>
 
-        <div className="flex flex-1 flex-col gap-5">
+        <div className="flex flex-1 flex-col gap-5 mobile:w-full mobile:gap-4 mobile:pt-6 mobile:pb-12">
           <h1 className="text-[22px] font-bold leading-tight text-gray-900">{content.title}</h1>
           {content.meta && <p className="text-[13px] text-gray-500">{content.meta}</p>}
+          {/* 모바일 — 메타 아래 구분선 (node 133:2607) */}
+          <div className="hidden h-px w-full bg-gray-200 mobile:block" />
           {content.articles.map((article, index) => (
             <article key={article.heading ?? index}>
               {article.heading && (
-                <h2 className="mb-5 text-base font-bold text-gray-900">{article.heading}</h2>
+                <h2 className="mb-5 text-base font-bold text-gray-900 mobile:mb-2 mobile:text-[15px]">
+                  {article.heading}
+                </h2>
               )}
               {article.paragraphs.map((paragraph) => (
-                <p key={paragraph} className="text-sm leading-6 text-gray-700">
+                <p key={paragraph} className="text-sm leading-6 text-gray-700 mobile:leading-[22px]">
                   {paragraph}
                 </p>
               ))}

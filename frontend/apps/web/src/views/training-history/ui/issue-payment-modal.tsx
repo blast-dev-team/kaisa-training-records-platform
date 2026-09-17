@@ -1,17 +1,17 @@
 import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { XIcon } from "@/src/shared/icon";
 import { Button, Checkbox, Toast } from "@/src/shared/ui";
 import { cn } from "@/src/shared/utils/cn";
 
 import { getIssuanceResult, type IssuanceResult } from "../../issuance-complete/api/get-issuance-result";
-import {
-  CertificatePreview,
-  CertificatePrintSheet,
-} from "../../issuance-complete/ui/certificate-preview";
-import { downloadTrainingRecordPdf } from "../api/get-training-record-download";
+import { useAuthStore } from "@/src/shared/store/auth-store";
+import { generateCertificatePdf } from "../api/generate-certificate-pdf";
+import { getCertificatePrice } from "../api/get-certificate-price";
 import { getTrainingHistoryDetail, type TrainingHistoryDetail } from "../api/get-training-history-detail";
 import { postIssuancePayment } from "../api/post-issuance-payment";
+import { CertificateDocumentSheet } from "./certificate-document-sheet";
 
 export interface IssuePaymentModalProps {
   /** 발급 대상 교육이력 ID 목록 — 1건이면 단건과 동일, N건이면 일괄 결제 */
@@ -22,9 +22,6 @@ export interface IssuePaymentModalProps {
   /** 발급 확정 시 — 페이지가 선택 상태를 비운다 */
   onIssued?: () => void;
 }
-
-/** 확인서 발급 수수료 — Figma node 38:2327 (표기용 선견적 — 최종 금액은 서버가 판정) */
-const ISSUANCE_FEE = 3000;
 
 const TOAST_DURATION_MS = 3000;
 
@@ -56,6 +53,10 @@ export function IssuePaymentModal({ recordIds, issueType, onClose, onIssued }: I
   );
   const toastTimer = useRef<number | null>(null);
 
+  /** 확인서 문서 시트 — PDF 캡처 대상 */
+  const sheetRef = useRef<HTMLDivElement | null>(null);
+  const [isPdfGenerating, setIsPdfGenerating] = useState(false);
+
   const queryClient = useQueryClient();
 
   const {
@@ -67,6 +68,17 @@ export function IssuePaymentModal({ recordIds, issueType, onClose, onIssued }: I
   } = useQuery({
     queryKey: ["training-history", "details", ...recordIds],
     queryFn: () => Promise.all(recordIds.map((id) => getTrainingHistoryDetail(id))),
+  });
+
+  /**
+   * 발급 단가 — 회원등급이 가진 가격으로 서버가 정한다
+   * (기본: 일반 3,000원 · 평생·연간 1,800원, 어드민 등급 화면에서 수정). 표기용이며
+   * 최종 청구·무료 재발급 판정은 신청 시점에 서버가 한다.
+   */
+  const prices = useQuery({
+    queryKey: ["certificate-price", issueType, ...recordIds],
+    queryFn: () => Promise.all(recordIds.map((id) => getCertificatePrice(id, issueType))),
+    enabled: details !== undefined,
   });
 
   // 발급 완료 결과 — 결제·무료 재발급으로 발급이 확정된 뒤 조회한다
@@ -92,8 +104,17 @@ export function IssuePaymentModal({ recordIds, issueType, onClose, onIssued }: I
   const freeReissueCount =
     issueType === "reissue" ? recordIds.length - paidIds.length : 0;
 
-  // 발급 비용은 단 건·일괄 건 동일 — 유료 건이 하나라도 있으면 3,000원 (node 99:5096)
-  const totalAmount = paidIds.length > 0 ? ISSUANCE_FEE : 0;
+  /** 건별 단가 — 서버 규칙값. 아직 로드 전이면 undefined */
+  const priceById = new Map(
+    (prices.data ?? []).map((price) => [price.training_record_id, price.price_krw]),
+  );
+
+  // 표기 금액 = 유료 건 단가 1회 — 단 건·일괄 동일 요금 정책. 서버 주문도 최고 단가 1회로
+  // 생성하므로(sum이 아님) 화면과 실제 청구가 같다. 최종 판정은 신청 시점에 서버가 한다
+  const totalAmount = paidIds.reduce(
+    (max, id) => Math.max(max, priceById.get(id) ?? 0),
+    0,
+  );
 
   const payment = useMutation({
     mutationFn: () =>
@@ -144,8 +165,42 @@ export function IssuePaymentModal({ recordIds, issueType, onClose, onIssued }: I
     toastTimer.current = window.setTimeout(dismissToast, TOAST_DURATION_MS);
   };
 
+  /**
+   * PDF 다운로드 — 화면 밖에 렌더해 둔 확인서 문서 시트를 캡처해 A4 PDF로 저장한다.
+   * 선택한 교육 건의 실데이터(기관·교육명·기간·시간, 서식·문서번호, 감리원 정보)로 구성된다.
+   */
+  const handleDownloadPdf = async () => {
+    if (!sheetRef.current) return;
+    setIsPdfGenerating(true);
+    try {
+      await generateCertificatePdf(sheetRef.current, "교육이력확인서.pdf");
+      showToast("다운로드했어요");
+    } catch (err) {
+      showToast(
+        err instanceof Error
+          ? err.message
+          : "문제가 생겼어요. 잠시 후 다시 시도해 주세요",
+      );
+    } finally {
+      setIsPdfGenerating(false);
+    }
+  };
+
   // 결제 진행 중에는 닫지 못하게 한다
   const canClose = !(phase === "payment" && payment.isPending);
+
+  /** 미리보기 축소율 — 모달 폭에 맞춰 A4 시트(794px)를 등비 축소한다 */
+  const previewRef = useRef<HTMLDivElement | null>(null);
+  const [previewScale, setPreviewScale] = useState(0.987);
+  useEffect(() => {
+    const el = previewRef.current;
+    if (!el) return;
+    const update = () => setPreviewScale(el.clientWidth / 794);
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [phase]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -155,15 +210,36 @@ export function IssuePaymentModal({ recordIds, issueType, onClose, onIssued }: I
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [canClose, onClose]);
 
+  // 모달 뒤 본문 스크롤 잠금 — 모달 안 제스처로 배경 페이지가 굴러가지 않게 한다
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, []);
+
   /** 칩이 가리키는 건 — 목록이 바뀌면 범위를 벗어나지 않게 */
   const activeDetail = details?.[Math.min(activeIndex, details.length - 1)];
   const activeResult = issuance.data?.[
     Math.min(activeIndex, issuance.data.length - 1)
   ];
 
-  const feeLabel = totalAmount.toLocaleString("ko-KR");
-  const unitFeeLabel = ISSUANCE_FEE.toLocaleString("ko-KR");
-  const canPay = agreed && !payment.isPending && totalAmount > 0;
+  /** 확인서 성명 — 표시명의 " 님" 접미를 뗀 값 */
+  const memberName = useAuthStore((state) => state.userName).replace(/\s*님$/, "");
+
+  /** 무료 재발급 기한 (발급일 + 7일, 서버 산출) — 기한 지난 건은 값이 없다 */
+  const freeReissueUntilLabel = activeDetail?.reissueFreeUntil
+    ? `${formatDotDate(activeDetail.reissueFreeUntil)}까지`
+    : undefined;
+
+  const pricesLoaded = prices.isSuccess;
+  const feeLabel = pricesLoaded ? totalAmount.toLocaleString("ko-KR") : "—";
+  /** 선택 건 단가 — 한 회원은 등급이 하나라 전 건 단가 동일 */
+  const unitFeeLabel = pricesLoaded
+    ? (activeDetail ? priceById.get(activeDetail.id) ?? 0 : 0).toLocaleString("ko-KR")
+    : "—";
+  const canPay = agreed && !payment.isPending && totalAmount > 0 && pricesLoaded;
 
   return (
     <div
@@ -176,10 +252,23 @@ export function IssuePaymentModal({ recordIds, issueType, onClose, onIssued }: I
         aria-label={phase === "payment" ? "확인서 발급 결제" : "확인서 발급 완료"}
         onClick={(event) => event.stopPropagation()}
         className={cn(
-          "flex max-h-[calc(100dvh-40px)] max-w-full flex-col gap-4 overflow-y-auto rounded-lg bg-white p-7 font-sans shadow-[0px_4px_24px_0px_rgba(0,0,0,0.15)]",
-          phase === "payment" ? "w-[500px]" : "h-[600px] w-[840px]",
+          "relative flex max-h-[calc(100dvh-40px)] max-w-full flex-col gap-4 overflow-y-auto overscroll-contain rounded-lg bg-white p-7 font-sans shadow-[0px_4px_24px_0px_rgba(0,0,0,0.15)] mobile:p-4",
+          phase === "payment"
+            ? "w-[500px] mobile:w-full"
+            : "h-[600px] w-[840px] mobile:h-[calc(100dvh-40px)] mobile:w-full",
         )}
       >
+        {/* 모바일 — 전체화면형 모달이라 X 로 닫는다. 결제 진행 중엔 닫을 수 없다 */}
+        {canClose && (
+          <button
+            type="button"
+            aria-label="닫기"
+            onClick={onClose}
+            className="absolute right-4 top-4 z-10 hidden size-8 cursor-pointer items-center justify-center text-gray-500 mobile:flex"
+          >
+            <XIcon className="size-6" />
+          </button>
+        )}
         {phase === "payment" ? (
           isLoading ? (
             <p className="py-20 text-center text-sm text-gray-500">
@@ -204,7 +293,7 @@ export function IssuePaymentModal({ recordIds, issueType, onClose, onIssued }: I
           ) : (
             <>
               {/* 신청 내용 — node 78:3911. 칩으로 발급 건을 선택해 내용을 확인한다 */}
-              <h2 className="text-lg leading-normal font-bold text-gray-900">
+              <h2 className="text-lg leading-normal font-bold text-gray-900 mobile:text-base">
                 신청 내용
               </h2>
 
@@ -216,7 +305,7 @@ export function IssuePaymentModal({ recordIds, issueType, onClose, onIssued }: I
                     aria-pressed={index === activeIndex}
                     onClick={() => setActiveIndex(index)}
                     className={cn(
-                      "cursor-pointer rounded-md px-3 py-1.5 font-sans text-[13px] font-medium leading-normal whitespace-nowrap",
+                      "cursor-pointer rounded-md px-3 py-1.5 font-sans text-[13px] font-medium leading-normal whitespace-nowrap mobile:text-xs",
                       index === activeIndex
                         ? "bg-primary-700 text-white"
                         : "bg-gray-100 text-gray-800",
@@ -227,9 +316,9 @@ export function IssuePaymentModal({ recordIds, issueType, onClose, onIssued }: I
                 ))}
               </div>
 
-              {/* 선택 건 상세 — node 78:3912 */}
+              {/* 선택 건 상세 — node 78:3912 / 모바일 131:8892 */}
               {activeDetail && (
-                <div className="flex w-full flex-col gap-4 rounded-lg border border-solid border-gray-200 p-5">
+                <div className="flex w-full flex-col gap-4 rounded-lg border border-solid border-gray-200 p-5 mobile:p-3">
                   <dl className="flex w-full flex-col gap-4">
                     <DetailRow label="교육명" value={activeDetail.courseName} />
                     <DetailRow
@@ -243,11 +332,11 @@ export function IssuePaymentModal({ recordIds, issueType, onClose, onIssued }: I
               )}
 
               {/* 결제 — node 78:3929~. 유료 건만 합산, 무료 재발급은 0원 표기 */}
-              <h2 className="text-lg leading-normal font-bold text-gray-900">
+              <h2 className="text-lg leading-normal font-bold text-gray-900 mobile:text-base">
                 결제
               </h2>
 
-              <div className="flex w-full items-start justify-between text-sm leading-normal">
+              <div className="flex w-full items-start justify-between text-sm leading-normal mobile:text-xs">
                 <p className="text-gray-600">
                   확인서 {paidIds.length}건 ({unitFeeLabel}원)
                 </p>
@@ -255,13 +344,13 @@ export function IssuePaymentModal({ recordIds, issueType, onClose, onIssued }: I
               </div>
 
               {freeReissueCount > 0 && (
-                <div className="flex w-full items-start justify-between text-sm leading-normal">
+                <div className="flex w-full items-start justify-between text-sm leading-normal mobile:text-xs">
                   <p className="text-gray-600">무료 재발급 {freeReissueCount}건</p>
                   <p className="text-gray-700">0원</p>
                 </div>
               )}
 
-              <div className="flex w-full items-start justify-between text-base leading-normal font-bold text-gray-900">
+              <div className="flex w-full items-start justify-between text-base leading-normal font-bold text-gray-900 mobile:text-sm">
                 <p>결제 금액</p>
                 <p>{feeLabel}원</p>
               </div>
@@ -279,13 +368,19 @@ export function IssuePaymentModal({ recordIds, issueType, onClose, onIssued }: I
                 fullWidth
                 disabled={!canPay}
                 onClick={() => payment.mutate()}
-                className="rounded-lg bg-gray-900 py-4 text-base font-bold hover:bg-gray-800"
+                className="rounded-lg bg-gray-900 py-4 text-base font-bold hover:bg-gray-800 mobile:py-3 mobile:text-sm"
               >
                 <span className="flex items-center gap-2">
                   <span>{feeLabel}원</span>
                   <span>{payment.isPending ? "결제 중..." : "결제하기"}</span>
                 </span>
               </Button>
+
+              {prices.isError && (
+                <p className="text-xs leading-normal text-red-500" role="alert">
+                  가격 정보를 불러오지 못했어요. 모달을 닫고 다시 열어 주세요
+                </p>
+              )}
 
               {payment.isError && (
                 <p className="text-xs leading-normal text-red-500" role="alert">
@@ -303,7 +398,7 @@ export function IssuePaymentModal({ recordIds, issueType, onClose, onIssued }: I
         ) : (
           // 발급 완료 — node 78:4475. 높이 600 고정, 본문(content-area)만 스크롤
           <>
-            <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto">
+            <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto overscroll-contain">
               {issuance.isLoading ? (
                 <p className="py-20 text-center text-sm text-gray-500">
                   확인서 정보를 불러오고 있어요
@@ -334,7 +429,7 @@ export function IssuePaymentModal({ recordIds, issueType, onClose, onIssued }: I
                         aria-pressed={index === activeIndex}
                         onClick={() => setActiveIndex(index)}
                         className={cn(
-                          "cursor-pointer rounded-md px-3 py-1.5 font-sans text-[13px] font-medium leading-normal whitespace-nowrap",
+                          "cursor-pointer rounded-md px-3 py-1.5 font-sans text-[13px] font-medium leading-normal whitespace-nowrap mobile:text-xs",
                           index === activeIndex
                             ? "bg-primary-700 text-white"
                             : "bg-gray-100 text-gray-800",
@@ -345,26 +440,20 @@ export function IssuePaymentModal({ recordIds, issueType, onClose, onIssued }: I
                     ))}
                   </div>
 
-                  {/* 액션 — 선택 건 PDF 다운로드 · 인쇄 · 진위확인 링크 복사 (node 78:4510) */}
+                  {/* 액션 — 선택 건 PDF 다운로드 · 인쇄 · 진위확인 링크 복사 (node 78:4510 / 모바일 131:9652) */}
                   {activeResult && (
-                    <div className="flex items-center gap-3">
+                    <div className="flex flex-wrap items-center gap-3 mobile:gap-2">
                       <Button
-                        className="rounded-lg px-6 py-3 text-sm"
-                        onClick={() =>
-                          handleDownloadPdf(
-                            recordIds[
-                              Math.min(activeIndex, recordIds.length - 1)
-                            ] ?? "",
-                            showToast,
-                          )
-                        }
+                        className="rounded-lg px-6 py-3 text-sm mobile:rounded-lg mobile:px-4 mobile:py-2"
+                        disabled={isPdfGenerating}
+                        onClick={() => void handleDownloadPdf()}
                       >
-                        PDF 다운로드
+                        {isPdfGenerating ? "생성 중..." : "PDF 다운로드"}
                       </Button>
                       <Button
                         variant="outlined"
                         color="gray"
-                        className="rounded-lg px-6 py-3 text-sm font-medium text-gray-700"
+                        className="rounded-lg px-6 py-3 text-sm font-medium text-gray-700 mobile:rounded-lg mobile:px-4 mobile:py-2"
                         onClick={() => window.print()}
                       >
                         인쇄
@@ -372,7 +461,7 @@ export function IssuePaymentModal({ recordIds, issueType, onClose, onIssued }: I
                       <Button
                         variant="outlined"
                         color="gray"
-                        className="rounded-lg px-6 py-3 text-sm font-medium text-gray-700"
+                        className="rounded-lg px-6 py-3 text-sm font-medium text-gray-700 mobile:rounded-lg mobile:px-4 mobile:py-2"
                         onClick={() => handleCopyLink(activeResult, showToast)}
                       >
                         진위확인 링크 복사
@@ -383,16 +472,37 @@ export function IssuePaymentModal({ recordIds, issueType, onClose, onIssued }: I
                   {/* 안내 배너 — node 78:4517 */}
                   <NoticeBanner />
 
-                  {/* 확인서 미리보기 — 선택 건 (node 78:4508) */}
-                  {activeResult && (
-                    <CertificatePreview
-                      imageUrl={activeResult.previewImageUrl}
-                      className="w-full flex-none"
-                    />
+                  {/* 확인서 미리보기 — 선택 건 데이터로 문서를 그려 보여준다 (node 78:4508) */}
+                  {activeDetail && activeResult && (
+                    <div
+                      ref={previewRef}
+                      className="w-full flex-none pointer-events-none overflow-hidden"
+                      style={{ aspectRatio: "794 / 1123" }}
+                    >
+                      {/* 모달 본문 폭에 맞춘 등비 축소 — 시트 원본은 A4 794px */}
+                      <div
+                        style={{
+                          width: 794,
+                          transform: `scale(${previewScale})`,
+                          transformOrigin: "top left",
+                        }}
+                      >
+                        <ActiveCertificateSheet
+                          detail={activeDetail}
+                          result={activeResult}
+                          memberName={memberName}
+                        />
+                      </div>
+                    </div>
                   )}
 
                   {/* 발급 정보 카드 — 선택 건 (node 78:4519) */}
-                  {activeResult && <InfoCard result={activeResult} />}
+                  {activeResult && (
+                    <InfoCard
+                      result={activeResult}
+                      reissueFreeUntilLabel={freeReissueUntilLabel}
+                    />
+                  )}
                 </>
               )}
             </div>
@@ -402,14 +512,38 @@ export function IssuePaymentModal({ recordIds, issueType, onClose, onIssued }: I
               color="black"
               fullWidth
               onClick={onClose}
-              className="shrink-0 rounded-lg bg-gray-900 py-4 text-base font-bold hover:bg-gray-800"
+              className="shrink-0 rounded-lg bg-gray-900 py-4 text-base font-bold hover:bg-gray-800 mobile:py-3 mobile:text-sm"
             >
               확인
             </Button>
 
-            {/* 인쇄 시에만 노출 — 선택 건 확인서 단독 출력 */}
-            {activeResult && (
-              <CertificatePrintSheet imageUrl={activeResult.previewImageUrl} />
+            {/* 인쇄 시에만 노출 — 선택 건 확인서 문서를 그대로 출력 */}
+            {activeDetail && (
+              <div className="fixed inset-0 z-[999] hidden overflow-auto bg-white print:block">
+                <div className="mx-auto w-fit bg-white">
+                  <ActiveCertificateSheet
+                    detail={activeDetail}
+                    result={activeResult}
+                    memberName={memberName}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* 화면 밖 렌더 — PDF 캡처 대상 (인쇄 흐름과 분리) */}
+            {activeDetail && (
+              <div
+                aria-hidden
+                className="fixed left-[-10000px] top-0 print:hidden"
+              >
+                <div ref={sheetRef}>
+                  <ActiveCertificateSheet
+                    detail={activeDetail}
+                    result={activeResult}
+                    memberName={memberName}
+                  />
+                </div>
+              </div>
             )}
           </>
         )}
@@ -441,26 +575,35 @@ function DetailRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-/** 발급 정보 카드 — 확인서 번호 · 진위확인 ID · 발급일시 · 유효기간 (node 78:4519) */
-function InfoCard({ result }: { result: IssuanceResult }) {
+/** 발급 정보 카드 — 확인서 번호 · 진위확인 ID · 발급일시 · 유효기간 · 무료 재발급 기한 (node 78:4519) */
+function InfoCard({
+  result,
+  reissueFreeUntilLabel,
+}: {
+  result: IssuanceResult;
+  reissueFreeUntilLabel?: string;
+}) {
   const rows: Array<[label: string, value: string]> = [
     ["확인서 번호", result.certificateNumber],
     ["진위확인 ID", result.verificationId],
     ["발급일시", result.issuedAtLabel],
     ["유효기간", result.validityLabel],
   ];
+  if (reissueFreeUntilLabel) {
+    rows.push(["무료 재발급 기한", reissueFreeUntilLabel]);
+  }
 
   return (
-    <dl className="w-full rounded-lg border border-solid border-gray-200 bg-white px-7 py-6">
+    <dl className="w-full rounded-lg border border-solid border-gray-200 bg-white px-7 py-6 mobile:px-3 mobile:py-2">
       {rows.map(([label, value]) => (
         <div
           key={label}
-          className="flex items-center justify-between border-b border-solid border-gray-100 py-3.5"
+          className="flex items-center justify-between border-b border-solid border-gray-100 py-3.5 mobile:py-2"
         >
-          <dt className="text-sm leading-normal font-medium whitespace-nowrap text-gray-500">
+          <dt className="text-sm leading-normal font-medium whitespace-nowrap text-gray-500 mobile:text-xs">
             {label}
           </dt>
-          <dd className="text-sm leading-normal font-medium whitespace-nowrap text-gray-800">
+          <dd className="text-sm leading-normal font-medium whitespace-nowrap text-gray-800 mobile:text-xs">
             {value}
           </dd>
         </div>
@@ -469,11 +612,11 @@ function InfoCard({ result }: { result: IssuanceResult }) {
   );
 }
 
-/** 안내 배너 — node 78:4517 */
+/** 안내 배너 — node 78:4517 / 모바일 131:9659 */
 function NoticeBanner() {
   return (
-    <div className="w-full rounded-lg border border-solid border-primary-100 bg-primary-50 px-5 py-3.5">
-      <ul className="ms-5 list-disc text-[13px] leading-normal text-primary-700">
+    <div className="w-full rounded-lg border border-solid border-primary-100 bg-primary-50 px-5 py-3.5 mobile:p-3">
+      <ul className="ms-5 list-disc text-[13px] leading-normal text-primary-700 mobile:text-xs">
         <li>확인서 하단 진위확인 ID로 제출처에서 유효성을 검증할 수 있습니다.</li>
         <li>재다운로드는 일주일 이내에 발급·결제 내역에서 가능합니다.</li>
       </ul>
@@ -481,23 +624,39 @@ function NoticeBanner() {
   );
 }
 
+/** 발급일시(ISO) → 확인서 발급일 표기 (예: 2026년 7월 23일) */
+function formatKoreanDate(iso: string): string {
+  const date = new Date(iso);
+  return `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일`;
+}
+
+/** ISO → "YYYY.MM.DD" — InfoCard 표기와 같은 형식 (로컬 KST 기준) */
+function formatDotDate(iso: string): string {
+  const date = new Date(iso);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${date.getFullYear()}.${pad(date.getMonth() + 1)}.${pad(date.getDate())}`;
+}
+
 /**
- * PDF 다운로드 — 실제 발급 PDF 연동 전까지 S3 데모 PDF로 통일해 내려준다
- * (USE_MOCK 예외 — 백엔드에서 presigned URL을 발급한다).
+ * 발급 건 데이터를 확인서 문서로 묶어 렌더 — 미리보기·인쇄·PDF 캡처 공용.
  */
-async function handleDownloadPdf(
-  recordId: string,
-  showToast: (message: string) => void,
-): Promise<void> {
-  try {
-    await downloadTrainingRecordPdf(recordId, "교육이력확인서.pdf");
-  } catch (err) {
-    showToast(
-      err instanceof Error
-        ? err.message
-        : "문제가 생겼어요. 잠시 후 다시 시도해 주세요",
-    );
-  }
+function ActiveCertificateSheet({
+  detail,
+  result,
+  memberName,
+}: {
+  detail: TrainingHistoryDetail;
+  result?: IssuanceResult;
+  memberName: string;
+}) {
+  return (
+    <CertificateDocumentSheet
+      detail={detail}
+      memberName={memberName}
+      issuedOnLabel={result ? formatKoreanDate(result.issuedAt) : undefined}
+      certificateNumber={result?.certificateNumber}
+    />
+  );
 }
 
 /** 진위확인 링크 복사 — ?id= 자동 입력되는 공개 진위확인 페이지로 연결 */

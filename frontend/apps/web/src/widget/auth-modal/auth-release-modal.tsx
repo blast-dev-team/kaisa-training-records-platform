@@ -1,3 +1,5 @@
+import { XIcon } from "@/src/shared/icon";
+
 import { useEffect } from 'react';
 
 /**
@@ -31,8 +33,17 @@ export function AuthReleaseModal({ onConfirm }: AuthReleaseModalProps) {
         aria-modal="true"
         aria-label="인증해제"
         onClick={(event) => event.stopPropagation()}
-        className="flex w-[335px] max-w-full flex-col gap-5 rounded-[20px] bg-white p-5 shadow-[0px_4px_24px_0px_rgba(0,0,0,0.15)] font-sans"
+        className="relative flex w-[335px] max-w-full flex-col gap-5 rounded-[20px] bg-white p-5 shadow-[0px_4px_24px_0px_rgba(0,0,0,0.15)] font-sans"
       >
+        {/* 모바일 — 전체화면형 모달이라 X 로 닫는다 */}
+        <button
+          type="button"
+          aria-label="닫기"
+          onClick={onConfirm}
+          className="absolute right-4 top-4 hidden size-8 cursor-pointer items-center justify-center text-gray-500 mobile:flex"
+        >
+          <XIcon className="size-6" />
+        </button>
         <p className="text-center text-base font-semibold text-black">인증해제</p>
         <p className="text-center text-base text-black">인증이 해제되었습니다.</p>
         <button
