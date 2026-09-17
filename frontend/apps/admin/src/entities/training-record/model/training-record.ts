@@ -23,6 +23,11 @@ export interface TrainingRecord {
   institutionId: string | null
   courseName: string
   institutionName: string | null
+  /** 확인서 표기용 */
+  formNo: string | null
+  docNo: string | null
+  supervisorGrade: string | null
+  supervisorCertNo: string | null
   totalHours: number | null
   completedHours: number | null
   startedAt: string | null
@@ -42,6 +47,10 @@ export interface TrainingRecordInput {
   /** 미연결 시 직접 입력 (course_id·course_name 중 최소 하나 필수) */
   course_name?: string
   institution_name?: string
+  form_no?: string | null
+  doc_no?: string | null
+  supervisor_grade?: string | null
+  supervisor_cert_no?: string | null
   total_hours?: number | null
   completed_hours?: number | null
   started_at?: string | null

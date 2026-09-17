@@ -11,6 +11,7 @@ import { FilterBar, FilterRow } from '@/src/shared/ui/filter-bar'
 import { PageContainer } from '@/src/shared/ui/page-container'
 import { PageHead } from '@/src/shared/ui/page-head'
 import { Pill, statusTone } from '@/src/shared/ui/pill'
+import { Input } from '@/src/shared/ui/input'
 import { Select } from '@/src/shared/ui/select'
 import {
   deleteTrainingRecord,
@@ -32,8 +33,10 @@ export function TrainingRecordListPage({ variant = 'all' }: Props) {
   const traineeId = searchParams.get('trainee_id') ?? ''
   const source = isExternal ? 'external' : searchParams.get('source') ?? ''
   const status = searchParams.get('status') ?? ''
+  const q = searchParams.get('q') ?? ''
   const page = Math.max(1, Number(searchParams.get('page') ?? 1) || 1)
 
+  const [searchInput, setSearchInput] = useState(q)
   const [formOpen, setFormOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<TrainingRecord | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<TrainingRecord | null>(null)
@@ -43,6 +46,7 @@ export function TrainingRecordListPage({ variant = 'all' }: Props) {
       traineeId: traineeId || undefined,
       source: source || undefined,
       completionStatus: status || undefined,
+      search: q || undefined,
       page,
     }),
   )
@@ -204,6 +208,25 @@ export function TrainingRecordListPage({ variant = 'all' }: Props) {
             </span>
           </FilterRow>
         )}
+        <FilterRow label="검색">
+          <form
+            className="flex items-center gap-2"
+            onSubmit={(e) => {
+              e.preventDefault()
+              updateParams({ q: searchInput.trim() || null })
+            }}
+          >
+            <Input
+              className="w-64"
+              placeholder="과정명 · 기관명 · 교육생 성명"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+            />
+            <Button type="submit" variant="secondary" size="sm">
+              검색
+            </Button>
+          </form>
+        </FilterRow>
         <FilterRow label="필터">
           {!isExternal && (
             <Select

@@ -15,6 +15,7 @@ export const patchTrainee = async (
     const trainee = findTrainee(traineeId)
     if (!trainee) throw new Error('교육생을 찾을 수 없어요')
     if (input.name !== undefined) trainee.name = input.name
+    if (input.birth_date !== undefined) trainee.birthDate = input.birth_date
     if (input.email !== undefined) trainee.email = input.email
     if (input.memo !== undefined) trainee.memo = input.memo
     if (input.membership_grade_id !== undefined) {

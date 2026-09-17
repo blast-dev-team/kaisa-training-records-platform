@@ -5,6 +5,7 @@ import type { ColumnDef } from '@tanstack/react-table'
 import { AppTable } from '@/src/shared/ui/app-table'
 import { Button } from '@/src/shared/ui/button'
 import { FilterBar, FilterRow } from '@/src/shared/ui/filter-bar'
+import { Input } from '@/src/shared/ui/input'
 import { PageContainer } from '@/src/shared/ui/page-container'
 import { PageHead } from '@/src/shared/ui/page-head'
 import { Pill, statusTone } from '@/src/shared/ui/pill'
@@ -23,7 +24,10 @@ const DEFAULT_STATUS = 'manual_review'
 export function IdentityReviewListPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const status = searchParams.get('status') ?? DEFAULT_STATUS
+  const q = searchParams.get('q') ?? ''
   const page = Math.max(1, Number(searchParams.get('page') ?? 1) || 1)
+
+  const [searchInput, setSearchInput] = useState(q)
   const [reviewTarget, setReviewTarget] = useState<IdentityReview | null>(null)
 
   // 기본 필터 1회 주입 — 공유 링크 재현성 (url-state.md 패턴)
@@ -38,7 +42,7 @@ export function IdentityReviewListPage() {
     }
   }, [searchParams, setSearchParams])
 
-  const { data } = useQuery(identityReviewQueries.list({ status, page }))
+  const { data } = useQuery(identityReviewQueries.list({ status, search: q || undefined, page }))
 
   const updateParams = (patch: Record<string, string | null>, resetPage = true) => {
     const next = new URLSearchParams(searchParams)
@@ -131,6 +135,25 @@ export function IdentityReviewListPage() {
       />
 
       <FilterBar>
+        <FilterRow label="검색">
+          <form
+            className="flex items-center gap-2"
+            onSubmit={(e) => {
+              e.preventDefault()
+              updateParams({ q: searchInput.trim() || null })
+            }}
+          >
+            <Input
+              className="w-64"
+              placeholder="계정명 · 인증 성명"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+            />
+            <Button type="submit" variant="secondary" size="sm">
+              검색
+            </Button>
+          </form>
+        </FilterRow>
         <FilterRow label="필터">
           <Select
             className="w-36"

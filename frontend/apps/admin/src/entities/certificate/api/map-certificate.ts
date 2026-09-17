@@ -1,5 +1,5 @@
-import type { CertificateDto, PricingRuleDto } from './dto/certificate-dto'
-import type { Certificate, PricingRule } from '../model/certificate'
+import type { CertificateDto } from './dto/certificate-dto'
+import type { Certificate } from '../model/certificate'
 
 export function mapCertificate(dto: CertificateDto): Certificate {
   return {
@@ -12,8 +12,8 @@ export function mapCertificate(dto: CertificateDto): Certificate {
     issuedName: dto.issued_name,
     courseName: dto.course_name,
     institutionName: dto.institution_name,
-    totalHours: dto.total_hours,
-    completedHours: dto.completed_hours,
+    totalHours: dto.total_hours != null ? Number(dto.total_hours) : null,
+    completedHours: dto.completed_hours != null ? Number(dto.completed_hours) : null,
     trainingStartedAt: dto.training_started_at,
     trainingEndedAt: dto.training_ended_at,
     issuedAt: dto.issued_at,
@@ -24,16 +24,3 @@ export function mapCertificate(dto: CertificateDto): Certificate {
   }
 }
 
-export function mapPricingRule(dto: PricingRuleDto): PricingRule {
-  return {
-    id: dto.id,
-    membershipGradeId: dto.membership_grade_id,
-    issueType: dto.issue_type,
-    priceKrw: dto.price_krw,
-    currency: dto.currency,
-    validFrom: dto.valid_from,
-    validTo: dto.valid_to,
-    isActive: dto.is_active,
-    createdAt: dto.created_at,
-  }
-}

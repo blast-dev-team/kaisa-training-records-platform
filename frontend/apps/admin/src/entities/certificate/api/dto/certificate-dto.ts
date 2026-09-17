@@ -8,8 +8,8 @@ export interface CertificateDto {
   issued_name: string
   course_name: string
   institution_name: string | null
-  total_hours: number | null
-  completed_hours: number | null
+  total_hours: string | number | null
+  completed_hours: string | number | null
   training_started_at: string | null
   training_ended_at: string | null
   issued_at: string | null
@@ -19,14 +19,3 @@ export interface CertificateDto {
   revoked_reason: string | null
 }
 
-export interface PricingRuleDto {
-  id: string
-  membership_grade_id: string
-  issue_type: 'original' | 'reissue'
-  price_krw: number
-  currency: string
-  valid_from: string
-  valid_to: string | null
-  is_active: boolean
-  created_at: string
-}

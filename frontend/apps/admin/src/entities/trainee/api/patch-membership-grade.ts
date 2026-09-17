@@ -16,6 +16,7 @@ export const patchMembershipGrade = async (
     if (input.name !== undefined) grade.name = input.name
     if (input.description !== undefined) grade.description = input.description
     if (input.sort_order !== undefined) grade.sortOrder = input.sort_order
+    if (input.price_krw !== undefined) grade.priceKrw = input.price_krw
     if (input.is_active !== undefined) grade.isActive = input.is_active
     return { ...grade }
   }

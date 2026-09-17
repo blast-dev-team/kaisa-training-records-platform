@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'react-toastify'
 import type { ColumnDef } from '@tanstack/react-table'
 import { AppTable } from '@/src/shared/ui/app-table'
+import { FilterBar, FilterRow } from '@/src/shared/ui/filter-bar'
 import { Button } from '@/src/shared/ui/button'
 import { Dialog } from '@/src/shared/ui/dialog'
 import { Input } from '@/src/shared/ui/input'
@@ -24,8 +26,11 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 export function AllowedEmailListPage() {
   const queryClient = useQueryClient()
-  const { data } = useQuery(allowedEmailQueries.list())
+  const [searchParams, setSearchParams] = useSearchParams()
+  const q = searchParams.get('q') ?? ''
+  const { data } = useQuery(allowedEmailQueries.list(q || undefined))
 
+  const [searchInput, setSearchInput] = useState(q)
   const [addOpen, setAddOpen] = useState(false)
   const [email, setEmail] = useState('')
   const [note, setNote] = useState('')
@@ -124,6 +129,31 @@ export function AllowedEmailListPage() {
         subtitle="등록된 이메일만 관리자 회원가입이 가능해요"
         actions={<Button onClick={() => setAddOpen(true)}>이메일 등록</Button>}
       />
+
+      <FilterBar>
+        <FilterRow label="검색">
+          <form
+            className="flex items-center gap-2"
+            onSubmit={(e) => {
+              e.preventDefault()
+              const next = new URLSearchParams(searchParams)
+              if (searchInput.trim()) next.set('q', searchInput.trim())
+              else next.delete('q')
+              setSearchParams(next, { replace: false })
+            }}
+          >
+            <Input
+              className="w-64"
+              placeholder="이메일 주소"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+            />
+            <Button type="submit" variant="secondary" size="sm">
+              검색
+            </Button>
+          </form>
+        </FilterRow>
+      </FilterBar>
 
       <AppTable
         columns={columns}

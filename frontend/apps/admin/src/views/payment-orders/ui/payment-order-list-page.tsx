@@ -1,73 +1,75 @@
-import { useMemo, useState } from 'react'
-import { useSearchParams } from 'react-router'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { toast } from 'react-toastify'
-import type { ColumnDef } from '@tanstack/react-table'
-import { AppTable } from '@/src/shared/ui/app-table'
-import { Button } from '@/src/shared/ui/button'
-import { Dialog } from '@/src/shared/ui/dialog'
-import { FilterBar, FilterRow } from '@/src/shared/ui/filter-bar'
-import { Label } from '@/src/shared/ui/label'
-import { PageContainer } from '@/src/shared/ui/page-container'
-import { PageHead } from '@/src/shared/ui/page-head'
-import { Pill, statusTone } from '@/src/shared/ui/pill'
-import { Select } from '@/src/shared/ui/select'
-import { Textarea } from '@/src/shared/ui/textarea'
-import { formatDateTime, formatWon } from '@/src/shared/utils/format'
+import { useMemo, useState } from "react";
+import { useSearchParams } from "react-router";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "react-toastify";
+import type { ColumnDef } from "@tanstack/react-table";
+import { AppTable } from "@/src/shared/ui/app-table";
+import { Button } from "@/src/shared/ui/button";
+import { Dialog } from "@/src/shared/ui/dialog";
+import { FilterBar, FilterRow } from "@/src/shared/ui/filter-bar";
+import { Input } from "@/src/shared/ui/input";
+import { Label } from "@/src/shared/ui/label";
+import { PageContainer } from "@/src/shared/ui/page-container";
+import { PageHead } from "@/src/shared/ui/page-head";
+import { Pill, statusTone } from "@/src/shared/ui/pill";
+import { Select } from "@/src/shared/ui/select";
+import { Textarea } from "@/src/shared/ui/textarea";
+import { formatDateTime, formatWon } from "@/src/shared/utils/format";
 import {
   paymentOrderQueries,
   PAYMENT_STATUS_LABELS,
   postRefundPaymentOrder,
   type PaymentOrder,
-} from '@/src/entities/payment'
+} from "@/src/entities/payment";
 
 export function PaymentOrderListPage() {
-  const [searchParams, setSearchParams] = useSearchParams()
-  const status = searchParams.get('status') ?? ''
-  const page = Math.max(1, Number(searchParams.get('page') ?? 1) || 1)
+  const [searchParams, setSearchParams] = useSearchParams();
+  const status = searchParams.get("status") ?? "";
+  const q = searchParams.get("q") ?? "";
+  const page = Math.max(1, Number(searchParams.get("page") ?? 1) || 1);
 
-  const [refundTarget, setRefundTarget] = useState<PaymentOrder | null>(null)
-  const [reason, setReason] = useState('')
+  const [searchInput, setSearchInput] = useState(q);
 
-  const queryClient = useQueryClient()
-  const { data } = useQuery(paymentOrderQueries.list({ status, page }))
+  const [refundTarget, setRefundTarget] = useState<PaymentOrder | null>(null);
+  const [reason, setReason] = useState("");
+
+  const queryClient = useQueryClient();
+  const { data } = useQuery(paymentOrderQueries.list({ status, search: q || undefined, page }));
 
   const refundMutation = useMutation({
     mutationFn: () => postRefundPaymentOrder(refundTarget!.id, reason.trim()),
     onSuccess: () => {
-      toast.success('환불을 처리했어요')
-      setRefundTarget(null)
-      queryClient.invalidateQueries({ queryKey: paymentOrderQueries.all() })
+      toast.success("환불을 처리했어요");
+      setRefundTarget(null);
+      queryClient.invalidateQueries({ queryKey: paymentOrderQueries.all() });
     },
     onError: (e: Error) => toast.error(e.message),
-  })
+  });
 
   const updateParams = (patch: Record<string, string | null>, resetPage = true) => {
-    const next = new URLSearchParams(searchParams)
+    const next = new URLSearchParams(searchParams);
     for (const [k, v] of Object.entries(patch)) {
-      if (v === null || v === '') next.delete(k)
-      else next.set(k, v)
+      if (v === null || v === "") next.delete(k);
+      else next.set(k, v);
     }
-    if (resetPage) next.delete('page')
-    setSearchParams(next, { replace: false })
-  }
+    if (resetPage) next.delete("page");
+    setSearchParams(next, { replace: false });
+  };
 
   const columns = useMemo<ColumnDef<PaymentOrder, unknown>[]>(
     () => [
       {
-        accessorKey: 'orderNo',
-        header: '주문번호',
+        accessorKey: "orderNo",
+        header: "주문번호",
         meta: { width: 170 },
         cell: ({ row }) => (
-          <span className="font-mono text-[12px] font-medium text-ink">
-            {row.original.orderNo}
-          </span>
+          <span className="font-mono text-[12px] font-medium text-ink">{row.original.orderNo}</span>
         ),
       },
       {
-        accessorKey: 'amountKrw',
-        header: '금액',
-        meta: { width: 110, align: 'right' },
+        accessorKey: "amountKrw",
+        header: "금액",
+        meta: { width: 110, align: "right" },
         cell: ({ row }) => (
           <span className="font-medium tabular-nums text-ink">
             {formatWon(row.original.amountKrw)}
@@ -75,8 +77,8 @@ export function PaymentOrderListPage() {
         ),
       },
       {
-        accessorKey: 'status',
-        header: '상태',
+        accessorKey: "status",
+        header: "상태",
         meta: { width: 110 },
         cell: ({ row }) => (
           <Pill tone={statusTone(row.original.status)}>
@@ -85,49 +87,49 @@ export function PaymentOrderListPage() {
         ),
       },
       {
-        accessorKey: 'paidAt',
-        header: '결제일시',
+        accessorKey: "paidAt",
+        header: "결제일시",
         meta: { width: 150 },
-        cell: ({ row }) => (row.original.paidAt ? formatDateTime(row.original.paidAt) : '—'),
+        cell: ({ row }) => (row.original.paidAt ? formatDateTime(row.original.paidAt) : "—"),
       },
       {
-        accessorKey: 'createdAt',
-        header: '주문일시',
+        accessorKey: "createdAt",
+        header: "주문일시",
         meta: { width: 150 },
         cell: ({ row }) => formatDateTime(row.original.createdAt),
       },
-      {
-        id: 'actions',
-        header: '',
-        meta: { width: 90, align: 'right', sticky: 'right' },
-        cell: ({ row }) =>
-          row.original.status === 'paid' ? (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-danger hover:text-danger"
-              onClick={() => {
-                setRefundTarget(row.original)
-                setReason('')
-              }}
-            >
-              환불
-            </Button>
-          ) : null,
-      },
     ],
     [],
-  )
+  );
 
-  const items = data?.items ?? []
-  const total = data?.total ?? 0
-  const totalPages = data?.totalPages ?? 1
+  const items = data?.items ?? [];
+  const total = data?.total ?? 0;
+  const totalPages = data?.totalPages ?? 1;
 
   return (
     <PageContainer>
       <PageHead title="결제 내역" subtitle={`총 ${total.toLocaleString()}건`} />
 
       <FilterBar>
+        <FilterRow label="검색">
+          <form
+            className="flex items-center gap-2"
+            onSubmit={(e) => {
+              e.preventDefault();
+              updateParams({ q: searchInput.trim() || null });
+            }}
+          >
+            <Input
+              className="w-64"
+              placeholder="주문번호 · 교육생 성명"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+            />
+            <Button type="submit" variant="secondary" size="sm">
+              검색
+            </Button>
+          </form>
+        </FilterRow>
         <FilterRow label="필터">
           <Select
             className="w-36"
@@ -167,10 +169,10 @@ export function PaymentOrderListPage() {
             : undefined
         }
         actions={[
-          { label: '취소', onClick: () => setRefundTarget(null) },
+          { label: "취소", onClick: () => setRefundTarget(null) },
           {
-            label: '환불',
-            variant: 'danger',
+            label: "환불",
+            variant: "danger",
             isLoading: refundMutation.isPending,
             isDisabled: !reason.trim(),
             onClick: () => refundMutation.mutate(),
@@ -188,5 +190,5 @@ export function PaymentOrderListPage() {
         </div>
       </Dialog>
     </PageContainer>
-  )
+  );
 }

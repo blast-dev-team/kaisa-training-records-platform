@@ -6,6 +6,7 @@ export function mapTrainee(dto: TraineeDto): Trainee {
     id: dto.id,
     traineeNo: dto.trainee_no,
     name: dto.name,
+    birthDate: dto.birth_date,
     phoneMasked: dto.phone_masked,
     email: dto.email,
     reviewStatus: dto.review_status,
@@ -25,6 +26,7 @@ export function mapMembershipGrade(dto: MembershipGradeDto): MembershipGrade {
     name: dto.name,
     description: dto.description,
     sortOrder: dto.sort_order,
+    priceKrw: dto.price_krw,
     isActive: dto.is_active,
     createdAt: dto.created_at,
   }

@@ -7,8 +7,12 @@ export interface TrainingRecordDto {
   institution_id: string | null
   course_name: string
   institution_name: string | null
-  total_hours: number | null
-  completed_hours: number | null
+  form_no: string | null
+  doc_no: string | null
+  supervisor_grade: string | null
+  supervisor_cert_no: string | null
+  total_hours: string | number | null
+  completed_hours: string | number | null
   started_at: string | null
   ended_at: string | null
   source: 'internal' | 'external' | 'legacy_import'

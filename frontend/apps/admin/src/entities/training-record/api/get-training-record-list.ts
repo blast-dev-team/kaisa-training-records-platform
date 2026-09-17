@@ -15,7 +15,11 @@ export const getTrainingRecordList = async (
       r =>
         (!query.traineeId || r.traineeId === query.traineeId) &&
         (!query.source || r.source === query.source) &&
-        (!query.completionStatus || r.completionStatus === query.completionStatus),
+        (!query.completionStatus || r.completionStatus === query.completionStatus) &&
+        (!query.search ||
+          [r.courseName, r.institutionName, r.traineeName].some(v =>
+            v?.toLowerCase().includes(query.search!.toLowerCase()),
+          )),
     )
     return mockPage(filtered, query.page, query.limit)
   }
@@ -24,6 +28,7 @@ export const getTrainingRecordList = async (
       trainee_id: query.traineeId || undefined,
       source: query.source || undefined,
       completion_status: query.completionStatus || undefined,
+      search: query.search || undefined,
       page: query.page ?? 1,
       limit: query.limit ?? 20,
     },

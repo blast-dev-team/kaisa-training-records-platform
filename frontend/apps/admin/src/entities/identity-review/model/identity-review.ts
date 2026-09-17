@@ -23,10 +23,20 @@ export interface IdentityReview {
   createdAt: string
 }
 
+/** 검색·대조로 매칭할 교육생이 없을 때 — 모달에서 새로 생성해 연결 */
+export interface NewTraineeInput {
+  name: string
+  /** 평문 수신 — 서버가 암호화 저장 */
+  phone?: string
+  email?: string
+}
+
 export interface ReviewApproveInput {
-  /** 화면에서 검색·대조한 교육생. 생략 불가 */
-  trainee_id: string
-  /** 생략 시 서버가 기본 등급 조회 → 없으면 GRADE_NOT_DETERMINED 409 */
+  /** 기존 교육생 연결 — new_trainee 와 정확히 하나만 */
+  trainee_id?: string
+  /** 신규 교육생 생성·연결 — 이때는 determined_grade_id 필수 */
+  new_trainee?: NewTraineeInput
+  /** 생략 시 기존 교육생은 현재 등급 유지. 신규 생성 시 필수 */
   determined_grade_id?: string
 }
 

@@ -7,7 +7,7 @@ import type { Paged } from './types'
  * USE_MOCK이 true인 동안 네트워크 호출 없이 목업을 반환한다.
  * 실API 전환: 이 값을 false로 바꾼다.
  */
-export const USE_MOCK = true
+export const USE_MOCK = false
 
 /** 목업 응답 지연 — 로딩 상태 확인용 */
 export const mockDelay = (ms = 300): Promise<void> =>

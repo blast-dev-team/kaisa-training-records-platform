@@ -12,13 +12,15 @@ export const getCourseList = async (query: CourseListQuery): Promise<Course[]> =
     return MOCK_COURSES.filter(
       c =>
         (query.isActive === undefined || c.isActive === query.isActive) &&
-        (!query.institutionId || c.institutionId === query.institutionId),
+        (!query.institutionId || c.institutionId === query.institutionId) &&
+        (!query.search || c.name.toLowerCase().includes(query.search.toLowerCase())),
     )
   }
   const { data } = await apiClient.get<CourseDto[]>('/courses', {
     params: {
       institution_id: query.institutionId || undefined,
       is_active: query.isActive,
+      search: query.search || undefined,
     },
   })
   return data.map(mapCourse)

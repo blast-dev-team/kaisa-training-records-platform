@@ -11,6 +11,7 @@ export interface Trainee {
   id: string
   traineeNo: string
   name: string
+  birthDate: string | null
   phoneMasked: string
   email: string | null
   reviewStatus: TraineeReviewStatus
@@ -24,11 +25,21 @@ export interface Trainee {
 
 export interface TraineeUpdateInput {
   name?: string
+  birth_date?: string | null
   phone?: string
   email?: string | null
   memo?: string | null
   membership_grade_id?: string
   grade_change_reason?: string
+}
+
+export interface TraineeCreateInput {
+  name: string
+  birth_date?: string | null
+  phone?: string
+  email?: string | null
+  memo?: string | null
+  membership_grade_id?: string
 }
 
 // ── 회원등급 마스터 ───────────────────────────────────────────────────────────
@@ -39,6 +50,7 @@ export interface MembershipGrade {
   name: string
   description: string | null
   sortOrder: number
+  priceKrw: number
   isActive: boolean
   createdAt: string
 }
@@ -48,11 +60,13 @@ export interface MembershipGradeCreateInput {
   name: string
   description?: string
   sort_order: number
+  price_krw: number
 }
 
 export interface MembershipGradeUpdateInput {
   name?: string
   description?: string
   sort_order?: number
+  price_krw?: number
   is_active?: boolean
 }

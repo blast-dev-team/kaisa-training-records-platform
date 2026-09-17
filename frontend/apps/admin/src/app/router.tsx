@@ -78,13 +78,6 @@ export const router = createBrowserRouter([
         },
       },
       {
-        path: 'pricing-rules',
-        lazy: async () => {
-          const { PricingRuleListPage } = await import('@/src/views/pricing-rules')
-          return { Component: PricingRuleListPage }
-        },
-      },
-      {
         path: 'admin-users',
         lazy: async () => {
           const { AdminUserListPage } = await import('@/src/views/admin-users')

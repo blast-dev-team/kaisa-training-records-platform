@@ -12,13 +12,19 @@ export const getIdentityReviewList = async (
   if (USE_MOCK) {
     await mockDelay()
     const filtered = MOCK_IDENTITY_REVIEWS.filter(
-      r => !query.status || r.status === query.status,
+      r =>
+        (!query.status || r.status === query.status) &&
+        (!query.search ||
+          [r.userName, r.verifiedName].some(v =>
+            v?.toLowerCase().includes(query.search!.toLowerCase()),
+          )),
     )
     return mockPage(filtered, query.page, query.limit)
   }
   const { data } = await apiClient.get<PagedResponse<IdentityReviewDto>>('/identity-reviews', {
     params: {
       status: query.status || undefined,
+      search: query.search || undefined,
       page: query.page ?? 1,
       limit: query.limit ?? 20,
     },

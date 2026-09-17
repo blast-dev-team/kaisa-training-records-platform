@@ -16,6 +16,7 @@ export const postMembershipGrade = async (
       name: input.name,
       description: input.description ?? null,
       sortOrder: input.sort_order,
+      priceKrw: input.price_krw,
       isActive: true,
       createdAt: new Date().toISOString().slice(0, 19),
     }

@@ -19,7 +19,7 @@ export function mapCourse(dto: CourseDto): Course {
     name: dto.name,
     courseCode: dto.course_code,
     description: dto.description,
-    totalHours: dto.total_hours,
+    totalHours: dto.total_hours != null ? Number(dto.total_hours) : null,
     category: dto.category,
     isActive: dto.is_active,
     createdAt: dto.created_at,

@@ -14,7 +14,8 @@ export const getPaymentOrderList = async (
     const filtered = MOCK_PAYMENT_ORDERS.filter(
       p =>
         (!query.traineeId || p.traineeId === query.traineeId) &&
-        (!query.status || p.status === query.status),
+        (!query.status || p.status === query.status) &&
+        (!query.search || p.orderNo.toLowerCase().includes(query.search.toLowerCase())),
     )
     return mockPage(filtered, query.page, query.limit)
   }
@@ -22,6 +23,7 @@ export const getPaymentOrderList = async (
     params: {
       trainee_id: query.traineeId || undefined,
       status: query.status || undefined,
+      search: query.search || undefined,
       page: query.page ?? 1,
       limit: query.limit ?? 20,
     },

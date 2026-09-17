@@ -13,7 +13,7 @@ export interface CourseDto {
   name: string
   course_code: string | null
   description: string | null
-  total_hours: number | null
+  total_hours: string | number | null
   category: string | null
   is_active: boolean
   created_at: string

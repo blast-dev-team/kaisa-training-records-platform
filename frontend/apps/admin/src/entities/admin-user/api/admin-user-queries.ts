@@ -15,9 +15,9 @@ export const adminUserQueries = {
 export const allowedEmailQueries = {
   all: () => ['admin-allowed-emails'] as const,
   lists: () => [...allowedEmailQueries.all(), 'list'] as const,
-  list: () =>
+  list: (search?: string) =>
     queryOptions({
-      queryKey: [...allowedEmailQueries.lists()],
-      queryFn: () => getAllowedEmailList(),
+      queryKey: [...allowedEmailQueries.lists(), { search }],
+      queryFn: () => getAllowedEmailList(search),
     }),
 }

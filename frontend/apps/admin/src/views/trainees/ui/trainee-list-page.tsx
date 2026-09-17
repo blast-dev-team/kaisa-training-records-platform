@@ -1,9 +1,11 @@
 import { useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'react-toastify'
 import type { ColumnDef } from '@tanstack/react-table'
 import { AppTable } from '@/src/shared/ui/app-table'
 import { Button } from '@/src/shared/ui/button'
+import { Dialog } from '@/src/shared/ui/dialog'
 import { FilterBar, FilterRow } from '@/src/shared/ui/filter-bar'
 import { Input } from '@/src/shared/ui/input'
 import { PageHead } from '@/src/shared/ui/page-head'
@@ -11,16 +13,20 @@ import { PageContainer } from '@/src/shared/ui/page-container'
 import { Pill, statusTone } from '@/src/shared/ui/pill'
 import { Select } from '@/src/shared/ui/select'
 import { toYMD } from '@/src/shared/utils/format'
+import { Plus } from 'lucide-react'
 import {
+  deleteTrainee,
   membershipGradeQueries,
   traineeQueries,
   TRAINEE_REVIEW_STATUS_LABELS,
   type Trainee,
 } from '@/src/entities/trainee'
 import { GradeChangeDialog } from './grade-change-dialog'
+import { TraineeFormDialog } from './trainee-form-dialog'
 
 export function TraineeListPage() {
   const [searchParams, setSearchParams] = useSearchParams()
+  const queryClient = useQueryClient()
   const q = searchParams.get('q') ?? ''
   const status = searchParams.get('status') ?? ''
   const gradeId = searchParams.get('grade') ?? ''
@@ -28,11 +34,24 @@ export function TraineeListPage() {
 
   const [searchInput, setSearchInput] = useState(q)
   const [gradeTarget, setGradeTarget] = useState<Trainee | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<Trainee | null>(null)
+  const [formOpen, setFormOpen] = useState(false)
+  const [editTarget, setEditTarget] = useState<Trainee | null>(null)
 
   const { data } = useQuery(
     traineeQueries.list({ q, reviewStatus: status, gradeId, page }),
   )
   const { data: grades } = useQuery(membershipGradeQueries.list(true))
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => deleteTrainee(id),
+    onSuccess: () => {
+      toast.success('교육생을 삭제했어요 — 이력·확인서는 보존돼요')
+      setDeleteTarget(null)
+      queryClient.invalidateQueries({ queryKey: traineeQueries.all() })
+    },
+    onError: (e: Error) => toast.error(e.message),
+  })
 
   const updateParams = (patch: Record<string, string | null>, resetPage = true) => {
     const next = new URLSearchParams(searchParams)
@@ -85,9 +104,20 @@ export function TraineeListPage() {
       {
         id: 'actions',
         header: '',
-        meta: { width: 150, align: 'right', sticky: 'right' },
+        meta: { width: 230, align: 'right', sticky: 'right' },
         cell: ({ row }) => (
           <div className="flex items-center justify-end gap-1.5">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation()
+                setEditTarget(row.original)
+                setFormOpen(true)
+              }}
+            >
+              수정
+            </Button>
             <Button
               variant="outline"
               size="sm"
@@ -100,6 +130,17 @@ export function TraineeListPage() {
             </Button>
             <Button variant="ghost" size="sm" asChild>
               <Link to={`/training-records?trainee_id=${row.original.id}`}>이력</Link>
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-danger hover:text-danger"
+              onClick={(e) => {
+                e.stopPropagation()
+                setDeleteTarget(row.original)
+              }}
+            >
+              삭제
             </Button>
           </div>
         ),
@@ -117,6 +158,16 @@ export function TraineeListPage() {
       <PageHead
         title="교육생 관리"
         subtitle={`총 ${total.toLocaleString()}명`}
+        actions={
+          <Button
+            onClick={() => {
+              setEditTarget(null)
+              setFormOpen(true)
+            }}
+          >
+            <Plus className="size-4" /> 교육생 등록
+          </Button>
+        }
       />
 
       <FilterBar>
@@ -180,6 +231,35 @@ export function TraineeListPage() {
       />
 
       <GradeChangeDialog trainee={gradeTarget} onClose={() => setGradeTarget(null)} />
+
+      <TraineeFormDialog
+        isOpen={formOpen}
+        onClose={() => setFormOpen(false)}
+        trainee={editTarget}
+      />
+
+      <Dialog
+        isOpen={deleteTarget !== null}
+        onClose={() => setDeleteTarget(null)}
+        title="교육생 삭제"
+        description={
+          deleteTarget
+            ? `'${deleteTarget.name}' 교육생을 삭제할까요? 발급 이력·확인서·결제 기록은 보존되고, 목록과 회원 서비스에서만 사라져요. 진행 중인 신청·결제가 있으면 삭제할 수 없어요.`
+            : undefined
+        }
+        actions={[
+          { label: '취소', onClick: () => setDeleteTarget(null) },
+          {
+            label: '삭제',
+            variant: 'danger',
+            isLoading: deleteMutation.isPending,
+            onClick: () => {
+              if (!deleteTarget) return
+              deleteMutation.mutate(deleteTarget.id)
+            },
+          },
+        ]}
+      />
     </PageContainer>
   )
 }

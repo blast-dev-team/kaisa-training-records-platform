@@ -24,6 +24,7 @@ export function GradeFormDialog({ isOpen, onClose, grade }: Props) {
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [sortOrder, setSortOrder] = useState('0')
+  const [priceKrw, setPriceKrw] = useState('0')
   const [isActive, setIsActive] = useState(true)
 
   useEffect(() => {
@@ -32,6 +33,7 @@ export function GradeFormDialog({ isOpen, onClose, grade }: Props) {
     setName(grade?.name ?? '')
     setDescription(grade?.description ?? '')
     setSortOrder(grade ? String(grade.sortOrder) : '0')
+    setPriceKrw(grade ? String(grade.priceKrw) : '0')
     setIsActive(grade?.isActive ?? true)
   }, [isOpen, grade])
 
@@ -42,6 +44,7 @@ export function GradeFormDialog({ isOpen, onClose, grade }: Props) {
           name: name.trim(),
           description: description.trim() || undefined,
           sort_order: Number(sortOrder || 0),
+          price_krw: Number(priceKrw || 0),
           is_active: isActive,
         })
       }
@@ -50,6 +53,7 @@ export function GradeFormDialog({ isOpen, onClose, grade }: Props) {
         name: name.trim(),
         description: description.trim() || undefined,
         sort_order: Number(sortOrder || 0),
+        price_krw: Number(priceKrw || 0),
       })
     },
     onSuccess: () => {
@@ -65,7 +69,7 @@ export function GradeFormDialog({ isOpen, onClose, grade }: Props) {
       isOpen={isOpen}
       onClose={onClose}
       title={grade ? '회원등급 수정' : '회원등급 등록'}
-      description="확인서 가격 규칙은 등급 × 발급유형으로 결정돼요"
+      description="발급 단가는 등급에 설정한 가격으로 결정돼요"
       actions={[
         { label: '취소', onClick: onClose },
         {
@@ -98,6 +102,18 @@ export function GradeFormDialog({ isOpen, onClose, grade }: Props) {
           </div>
         </div>
         <div className="space-y-1.5">
+          <Label>발급 단가 (원)</Label>
+          <Input
+            type="number"
+            min={0}
+            value={priceKrw}
+            onChange={(e) => setPriceKrw(e.target.value)}
+          />
+          <p className="text-[11px] text-ink-3">
+            확인서 발급 시 이 가격으로 결제돼요 — 0원이면 무료 발급
+          </p>
+        </div>
+        <div className="space-y-1.5">
           <Label>등급명</Label>
           <Input
             placeholder="예: 일반 / 연간 / 평생"
@@ -122,7 +138,7 @@ export function GradeFormDialog({ isOpen, onClose, grade }: Props) {
               checked={isActive}
               onChange={(e) => setIsActive(e.target.checked)}
             />
-            사용중 (해제하면 교육생 등급 변경·가격 규칙에서 제외돼요)
+            사용중 (해제하면 신규 배정에서 제외돼요)
           </label>
         )}
       </div>

@@ -2,6 +2,7 @@ export interface TraineeDto {
   id: string
   trainee_no: string
   name: string
+  birth_date: string | null
   phone_masked: string
   email: string | null
   review_status: 'unverified' | 'pending' | 'approved' | 'rejected'
@@ -19,6 +20,7 @@ export interface MembershipGradeDto {
   name: string
   description: string | null
   sort_order: number
+  price_krw: number
   is_active: boolean
   created_at: string
 }

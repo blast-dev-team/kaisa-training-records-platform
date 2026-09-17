@@ -8,7 +8,6 @@ import {
   Medal,
   FileBadge,
   CreditCard,
-  Coins,
   UserCog,
   MailPlus,
   ScrollText,
@@ -32,6 +31,7 @@ const NAV_GROUPS: { title: string; items: NavItem[] }[] = [
     title: '회원',
     items: [
       { to: '/trainees', label: '교육생', icon: Users },
+      { to: '/membership-grades', label: '회원등급', icon: Medal },
       { to: '/identity-reviews', label: '본인인증 심사', icon: ShieldCheck },
     ],
   },
@@ -41,7 +41,6 @@ const NAV_GROUPS: { title: string; items: NavItem[] }[] = [
       { to: '/training-records', label: '감리 교육', icon: GraduationCap },
       { to: '/external-completions', label: '외부 수료', icon: FileBadge },
       { to: '/institutions', label: '기관 · 과정', icon: Building2 },
-      { to: '/membership-grades', label: '회원등급', icon: Medal },
     ],
   },
   {
@@ -49,7 +48,6 @@ const NAV_GROUPS: { title: string; items: NavItem[] }[] = [
     items: [
       { to: '/certificates', label: '확인서 발급 내역', icon: FileBadge },
       { to: '/payment-orders', label: '결제 내역', icon: CreditCard },
-      { to: '/pricing-rules', label: '가격 규칙', icon: Coins },
     ],
   },
   {

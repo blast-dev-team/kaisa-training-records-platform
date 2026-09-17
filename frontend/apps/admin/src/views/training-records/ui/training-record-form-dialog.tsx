@@ -18,7 +18,11 @@ import {
   type TrainingRecord,
   type TrainingSource,
 } from '@/src/entities/training-record'
-import { traineeQueries, type Trainee as TraineeEntity } from '@/src/entities/trainee'
+import {
+  postTrainee,
+  traineeQueries,
+  type Trainee as TraineeEntity,
+} from '@/src/entities/trainee'
 
 interface Props {
   isOpen: boolean
@@ -45,9 +49,17 @@ export function TrainingRecordFormDialog({
   const [trainee, setTrainee] = useState<TraineeEntity | null>(null)
   const [traineeSearch, setTraineeSearch] = useState('')
   const [traineeQuery, setTraineeQuery] = useState<string | null>(null)
+  // 검색 결과가 없을 때 그 자리에서 교육생을 새로 만든다
+  const [creatingTrainee, setCreatingTrainee] = useState(false)
+  const [newTraineeBirth, setNewTraineeBirth] = useState('')
+  const [newTraineePhone, setNewTraineePhone] = useState('')
   const [courseId, setCourseId] = useState<string>(MANUAL)
   const [courseName, setCourseName] = useState('')
   const [institutionName, setInstitutionName] = useState('')
+  const [formNo, setFormNo] = useState('')
+  const [docNo, setDocNo] = useState('')
+  const [supervisorGrade, setSupervisorGrade] = useState('')
+  const [supervisorCertNo, setSupervisorCertNo] = useState('')
   const [totalHours, setTotalHours] = useState('')
   const [completedHours, setCompletedHours] = useState('')
   const [source, setSource] = useState<TrainingSource>(defaultSource)
@@ -62,11 +74,32 @@ export function TrainingRecordFormDialog({
     enabled: traineeQuery !== null,
   })
 
+  // 검색 결과 없음 → 그 자리에서 생성하고 바로 선택. 교육생 관리와 같은 수기 등록 경로.
+  const createTraineeMutation = useMutation({
+    mutationFn: () =>
+      postTrainee({
+        name: traineeSearch.trim(),
+        birth_date: newTraineeBirth || null,
+        phone: newTraineePhone.trim() || undefined,
+      }),
+    onSuccess: (created) => {
+      toast.success(`교육생을 등록했어요 — ${created.name}`)
+      setTrainee(created)
+      setCreatingTrainee(false)
+      setTraineeQuery(null)
+      queryClient.invalidateQueries({ queryKey: traineeQueries.all() })
+    },
+    onError: (e: Error) => toast.error(e.message),
+  })
+
   // 열릴 때마다 폼 초기화 — record 있으면 수정값, 없으면 신규 기본값
   useEffect(() => {
     if (!isOpen) return
     setTraineeQuery(null)
     setTraineeSearch('')
+    setCreatingTrainee(false)
+    setNewTraineeBirth('')
+    setNewTraineePhone('')
     if (record) {
       setTrainee(
         record.traineeId
@@ -74,6 +107,7 @@ export function TrainingRecordFormDialog({
               id: record.traineeId,
               traineeNo: record.traineeNo ?? '',
               name: record.traineeName ?? '',
+              birthDate: null,
               phoneMasked: '',
               email: null,
               reviewStatus: 'approved',
@@ -89,6 +123,10 @@ export function TrainingRecordFormDialog({
       setCourseId(record.courseId ?? MANUAL)
       setCourseName(record.courseName)
       setInstitutionName(record.institutionName ?? '')
+      setFormNo(record.formNo ?? '')
+      setDocNo(record.docNo ?? '')
+      setSupervisorGrade(record.supervisorGrade ?? '')
+      setSupervisorCertNo(record.supervisorCertNo ?? '')
       setTotalHours(record.totalHours !== null ? String(record.totalHours) : '')
       setCompletedHours(record.completedHours !== null ? String(record.completedHours) : '')
       setSource(record.source)
@@ -101,6 +139,10 @@ export function TrainingRecordFormDialog({
       setCourseId(MANUAL)
       setCourseName('')
       setInstitutionName('')
+      setFormNo('')
+      setDocNo('')
+      setSupervisorGrade('')
+      setSupervisorCertNo('')
       setTotalHours('')
       setCompletedHours('')
       setSource(defaultSource)
@@ -131,6 +173,10 @@ export function TrainingRecordFormDialog({
         course_id: courseId !== MANUAL ? courseId : null,
         course_name: courseName.trim(),
         institution_name: institutionName.trim() || undefined,
+        form_no: formNo.trim() || null,
+        doc_no: docNo.trim() || null,
+        supervisor_grade: supervisorGrade.trim() || null,
+        supervisor_cert_no: supervisorCertNo.trim() || null,
         total_hours: totalHours === '' ? null : Number(totalHours),
         completed_hours: completedHours === '' ? null : Number(completedHours),
         started_at: startedAt || null,
@@ -221,7 +267,52 @@ export function TrainingRecordFormDialog({
                   {searchingTrainee ? (
                     <p className="px-3 py-2 text-[13px] text-ink-3">검색 중...</p>
                   ) : (traineeResults?.items ?? []).length === 0 ? (
-                    <p className="px-3 py-2 text-[13px] text-ink-3">검색 결과가 없어요</p>
+                    <div className="space-y-2 px-3 py-2">
+                      <p className="text-[13px] text-ink-3">검색 결과가 없어요</p>
+                      {!creatingTrainee ? (
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => setCreatingTrainee(true)}
+                          disabled={!traineeSearch.trim()}
+                        >
+                          '{traineeSearch.trim()}' 신규 교육생으로 등록
+                        </Button>
+                      ) : (
+                        <div className="space-y-2">
+                          <div className="grid grid-cols-3 gap-2">
+                            <Input value={traineeSearch.trim()} disabled aria-label="성명" />
+                            <Input
+                              type="date"
+                              value={newTraineeBirth}
+                              onChange={(e) => setNewTraineeBirth(e.target.value)}
+                              aria-label="생년월일"
+                            />
+                            <Input
+                              placeholder="전화번호 (선택)"
+                              value={newTraineePhone}
+                              onChange={(e) => setNewTraineePhone(e.target.value)}
+                            />
+                          </div>
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              disabled={createTraineeMutation.isPending}
+                              onClick={() => createTraineeMutation.mutate()}
+                            >
+                              {createTraineeMutation.isPending ? '생성 중...' : '생성 후 선택'}
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setCreatingTrainee(false)}
+                            >
+                              취소
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   ) : (
                     (traineeResults?.items ?? []).map((t) => (
                       <button
@@ -271,6 +362,44 @@ export function TrainingRecordFormDialog({
               />
             </div>
           )}
+        </div>
+
+        <div className="grid grid-cols-2 gap-2">
+          <div className="space-y-1.5">
+            <Label>서식번호</Label>
+            <Input
+              placeholder="예: 제○○호 서식"
+              value={formNo}
+              onChange={(e) => setFormNo(e.target.value)}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label>문서번호</Label>
+            <Input
+              placeholder="예: 대축-2026-001"
+              value={docNo}
+              onChange={(e) => setDocNo(e.target.value)}
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2">
+          <div className="space-y-1.5">
+            <Label>감리원 등급</Label>
+            <Input
+              placeholder="예: 정감리원"
+              value={supervisorGrade}
+              onChange={(e) => setSupervisorGrade(e.target.value)}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label>감리원증 발급번호</Label>
+            <Input
+              placeholder="예: 감리-2026-0001"
+              value={supervisorCertNo}
+              onChange={(e) => setSupervisorCertNo(e.target.value)}
+            />
+          </div>
         </div>
 
         <div className="grid grid-cols-2 gap-2">

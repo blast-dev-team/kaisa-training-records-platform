@@ -1,7 +1,7 @@
-import type { Certificate, PricingRule } from '../model/certificate'
+import type { Certificate } from '../model/certificate'
 
 /**
- * 확인서·가격 규칙 목업. 교육생(tr-00x)·교육이력(rcd-00x)과 id를 공유한다.
+ * 확인서 목업. 교육생(tr-00x)·교육이력(rcd-00x)과 id를 공유한다.
  * USE_MOCK 동안 철회(revoke)가 배열을 직접 갱신한다.
  */
 export const MOCK_CERTIFICATES: Certificate[] = [
@@ -67,41 +67,6 @@ export const MOCK_CERTIFICATES: Certificate[] = [
   },
 ]
 
-export const MOCK_PRICING_RULES: PricingRule[] = [
-  {
-    id: 'prc-001',
-    membershipGradeId: 'mgd-001',
-    issueType: 'original',
-    priceKrw: 3000,
-    currency: 'KRW',
-    validFrom: '2026-01-01',
-    validTo: null,
-    isActive: true,
-    createdAt: '2026-01-01T09:00:00',
-  },
-  {
-    id: 'prc-002',
-    membershipGradeId: 'mgd-001',
-    issueType: 'reissue',
-    priceKrw: 1000,
-    currency: 'KRW',
-    validFrom: '2026-01-01',
-    validTo: null,
-    isActive: true,
-    createdAt: '2026-01-01T09:00:00',
-  },
-  {
-    id: 'prc-003',
-    membershipGradeId: 'mgd-002',
-    issueType: 'original',
-    priceKrw: 2000,
-    currency: 'KRW',
-    validFrom: '2026-01-01',
-    validTo: null,
-    isActive: true,
-    createdAt: '2026-01-01T09:00:00',
-  },
-]
 
 /** id로 확인서 목업을 찾는다 */
 export function findCertificate(certificateId: string): Certificate | undefined {

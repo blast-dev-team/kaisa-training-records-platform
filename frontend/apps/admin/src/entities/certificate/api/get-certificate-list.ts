@@ -14,7 +14,11 @@ export const getCertificateList = async (
     const filtered = MOCK_CERTIFICATES.filter(
       c =>
         (!query.traineeId || c.traineeId === query.traineeId) &&
-        (!query.status || c.status === query.status),
+        (!query.status || c.status === query.status) &&
+        (!query.search ||
+          [c.certificateNo, c.issuedName, c.courseName].some(v =>
+            v?.toLowerCase().includes(query.search!.toLowerCase()),
+          )),
     )
     return mockPage(filtered, query.page, query.limit)
   }
@@ -22,6 +26,7 @@ export const getCertificateList = async (
     params: {
       trainee_id: query.traineeId || undefined,
       status: query.status || undefined,
+      search: query.search || undefined,
       page: query.page ?? 1,
       limit: query.limit ?? 20,
     },

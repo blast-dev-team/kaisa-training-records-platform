@@ -6,4 +6,5 @@ export interface InstitutionListQuery {
 export interface CourseListQuery {
   institutionId?: string
   isActive?: boolean
+  search?: string
 }

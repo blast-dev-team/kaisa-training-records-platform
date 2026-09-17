@@ -29,41 +29,13 @@ export interface Certificate {
   revokedReason: string | null
 }
 
-// ── 가격 규칙 (등급 × 발급유형 단가) ────────────────────────────────────────
+// ── 발급 유형 (요금 규칙 폐지 — 가격은 회원등급 소속. 유형은 차단·무료기한 규칙용) ──
 
 export type IssueType = 'original' | 'reissue'
 
 export const ISSUE_TYPE_LABELS: Record<IssueType, string> = {
   original: '최초발급',
   reissue: '재발급',
-}
-
-export interface PricingRule {
-  id: string
-  membershipGradeId: string
-  issueType: IssueType
-  priceKrw: number
-  currency: string
-  validFrom: string
-  validTo: string | null
-  isActive: boolean
-  createdAt: string
-}
-
-export interface PricingRuleInput {
-  membership_grade_id: string
-  issue_type: IssueType
-  price_krw: number
-  currency?: string
-  valid_from: string
-  valid_to?: string | null
-  is_active?: boolean
-}
-
-export interface PricingRuleUpdateInput {
-  price_krw?: number
-  valid_to?: string | null
-  is_active?: boolean
 }
 
 /** completion_status 재사용 (이력 도메인과 값 목록 동일) */
