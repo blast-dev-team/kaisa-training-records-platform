@@ -9,7 +9,6 @@ from app.core.kst import now_kst
 from app.core.security import hash_password
 from app.core.session import create_admin_session, create_user_session
 from app.domain.auth.model import AdminUser
-from app.domain.certificate.model import CertificatePricingRule
 from app.domain.trainee.model import MembershipGrade, Trainee
 from app.domain.training_record.model import TrainingRecord
 from app.domain.user.model import User
@@ -17,6 +16,11 @@ from app.domain.user.model import User
 
 def member_cookie(token: str) -> dict[str, str]:
     return {settings.SESSION_COOKIE_NAME: token}
+
+
+def admin_cookie(token: str) -> dict[str, str]:
+    """관리자 세션 쿠키 — require_admin 이 ADMIN_SESSION_COOKIE_NAME 을 읽는다."""
+    return {settings.ADMIN_SESSION_COOKIE_NAME: token}
 
 
 async def make_admin(
@@ -30,7 +34,7 @@ async def make_admin(
     )
     db.add(admin)
     await db.flush()
-    return admin, create_admin_session(admin.id)
+    return admin, await create_admin_session(db, admin.id, "test-agent")
 
 
 async def make_grade(
@@ -94,20 +98,13 @@ async def make_pricing(
     db,
     grade_id: uuid.UUID,
     *,
-    issue_type: str = "original",
     price_krw: int = 0,
-) -> CertificatePricingRule:
-    rule = CertificatePricingRule(
-        membership_grade_id=grade_id,
-        issue_type=issue_type,
-        price_krw=price_krw,
-        currency="KRW",
-        valid_from=now_kst().replace(year=2020),
-        is_active=True,
-    )
-    db.add(rule)
+) -> MembershipGrade:
+    """등급 발급 단가 설정 — 가격은 등급이 직접 가진다 (구 가격 규칙 폐지)."""
+    grade = await db.get(MembershipGrade, grade_id)
+    grade.price_krw = price_krw
     await db.flush()
-    return rule
+    return grade
 
 
 async def member_token(db, user: User) -> str:

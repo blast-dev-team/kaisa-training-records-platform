@@ -20,13 +20,14 @@ review_router = APIRouter(prefix="/identity-reviews", tags=["identity-reviews"])
 @review_router.get("", response_model=PagedResponse[IdentityReviewResponse])
 async def list_reviews(
     status: str | None = None,
+    search: str | None = None,
     page: int = Query(1, ge=1),
     limit: int = Query(20, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
     _: AdminUser = Depends(require_admin),
 ):
     reviews, total = await identity_service.list_reviews(
-        db, status=status, page=page, limit=limit
+        db, status=status, search=search, page=page, limit=limit
     )
     return PagedResponse(
         items=[IdentityReviewResponse.from_orm(r) for r in reviews],
@@ -45,7 +46,8 @@ async def approve_review(
 ):
     return IdentityReviewResponse.from_orm(
         await identity_service.approve_review(
-            db, review_id, body.trainee_id, body.determined_grade_id, actor
+            db, review_id, body.trainee_id, body.determined_grade_id, actor,
+            body.new_trainee,
         )
     )
 

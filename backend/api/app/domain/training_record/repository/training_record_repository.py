@@ -1,8 +1,9 @@
 import uuid
 
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.domain.trainee.model import Trainee
 from app.domain.training_record.model import TrainingRecord
 
 
@@ -20,6 +21,7 @@ async def list_records(
     trainee_id: uuid.UUID | None = None,
     source: str | None = None,
     completion_status: str | None = None,
+    search: str | None = None,
     page: int = 1,
     limit: int = 20,
 ) -> tuple[list[TrainingRecord], int]:
@@ -40,6 +42,18 @@ async def list_records(
         count_stmt = count_stmt.where(
             TrainingRecord.completion_status == completion_status
         )
+    if search:
+        # 과정명·기관명 스냅샷 + 교육생 성명 (전화는 암호화라 검색 불가)
+        pattern = f"%{search}%"
+        cond = or_(
+            TrainingRecord.course_name.ilike(pattern),
+            TrainingRecord.institution_name.ilike(pattern),
+            TrainingRecord.trainee_id.in_(
+                select(Trainee.id).where(Trainee.name.ilike(pattern))
+            ),
+        )
+        stmt = stmt.where(cond)
+        count_stmt = count_stmt.where(cond)
 
     total = (await db.execute(count_stmt)).scalar_one()
     stmt = (

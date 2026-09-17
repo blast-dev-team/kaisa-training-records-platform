@@ -48,13 +48,14 @@ async def portone_webhook(
 async def list_payment_orders(
     trainee_id: uuid.UUID | None = None,
     status: str | None = None,
+    search: str | None = None,
     page: int = Query(1, ge=1),
     limit: int = Query(20, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
     _: AdminUser = Depends(require_admin),
 ):
     orders, total = await refund_service.list_orders(
-        db, trainee_id=trainee_id, status=status, page=page, limit=limit
+        db, trainee_id=trainee_id, status=status, search=search, page=page, limit=limit
     )
     return PagedResponse(
         items=[PaymentOrderResponse.model_validate(o) for o in orders],

@@ -13,15 +13,11 @@ from app.domain.certificate.schema import (
     CertificateRequestResponse,
     CertificateResponse,
     CertificateRevokeRequest,
-    PricingRuleCreate,
-    PricingRuleResponse,
-    PricingRuleUpdate,
     PublicVerificationRequest,
     PublicVerificationResponse,
 )
 from app.domain.certificate.service import (
     certificate_admin_service,
-    pricing_service,
     public_verification_service,
     request_service,
 )
@@ -29,9 +25,6 @@ from app.domain.trainee.model import Trainee
 
 # 회원 — 발급 신청
 router = APIRouter(prefix="/certificate-requests", tags=["certificates"])
-
-# 어드민 — 가격 규칙
-pricing_router = APIRouter(prefix="/certificate-pricing-rules", tags=["certificates"])
 
 # 어드민 — 확인서 관리
 admin_router = APIRouter(prefix="/certificates", tags=["certificates"])
@@ -63,64 +56,18 @@ async def create_certificate_requests_batch(
     return [CertificateRequestResponse.from_orm(r) for r in requests]
 
 
-@pricing_router.get("", response_model=PagedResponse[PricingRuleResponse])
-async def list_pricing_rules(
-    membership_grade_id: uuid.UUID | None = None,
-    issue_type: str | None = None,
-    is_active: bool | None = None,
-    page: int = Query(1, ge=1),
-    limit: int = Query(20, ge=1, le=100),
-    db: AsyncSession = Depends(get_db),
-    _: AdminUser = Depends(require_admin),
-):
-    rules, total = await pricing_service.list_rules(
-        db,
-        page=page,
-        limit=limit,
-        membership_grade_id=membership_grade_id,
-        issue_type=issue_type,
-        is_active=is_active,
-    )
-    return PagedResponse(
-        items=[PricingRuleResponse.model_validate(r) for r in rules],
-        total=total,
-        page=page,
-        limit=limit,
-    )
-
-
-@pricing_router.post("", response_model=PricingRuleResponse, status_code=201)
-async def create_pricing_rule(
-    body: PricingRuleCreate,
-    db: AsyncSession = Depends(get_db),
-    admin: AdminUser = Depends(require_admin),
-):
-    rule = await pricing_service.create_rule(db, body, admin)
-    return PricingRuleResponse.model_validate(rule)
-
-
-@pricing_router.patch("/{rule_id}", response_model=PricingRuleResponse)
-async def update_pricing_rule(
-    rule_id: uuid.UUID,
-    body: PricingRuleUpdate,
-    db: AsyncSession = Depends(get_db),
-    admin: AdminUser = Depends(require_admin),
-):
-    rule = await pricing_service.update_rule(db, rule_id, body, admin)
-    return PricingRuleResponse.model_validate(rule)
-
-
 @admin_router.get("", response_model=PagedResponse[CertificateResponse])
 async def list_certificates(
     trainee_id: uuid.UUID | None = None,
     status: str | None = None,
+    search: str | None = None,
     page: int = Query(1, ge=1),
     limit: int = Query(20, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
     _: AdminUser = Depends(require_admin),
 ):
     certificates, total = await certificate_admin_service.list_certificates(
-        db, trainee_id=trainee_id, status=status, page=page, limit=limit
+        db, trainee_id=trainee_id, status=status, search=search, page=page, limit=limit
     )
     return PagedResponse(
         items=[CertificateResponse.model_validate(c) for c in certificates],

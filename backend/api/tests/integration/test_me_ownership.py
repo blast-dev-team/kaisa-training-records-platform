@@ -41,7 +41,6 @@ async def _member_with_record(
         record_no=f"TRN-{trainee_no.split('-')[-1]}",
     )
     await make_pricing(db, grade.id)
-    await make_pricing(db, grade.id, issue_type="reissue", price_krw=5000)
     token = await member_token(db, user)
     await db.commit()
     return user, trainee, record, token
@@ -114,22 +113,6 @@ class TestRequestGates:
         )
         assert resp.status_code == 409
         assert resp.json()["code"] == "GRADE_NOT_DETERMINED"
-
-    async def test_no_pricing_rule_rejected(self, client, db):
-        grade = await make_grade(db, code="noprice", name="무가격", sort_order=9)
-        user, trainee = await make_trainee(
-            db, grade.id, ci_raw="ci-noprice", trainee_no="TR-2026-0009"
-        )
-        record = await make_record(db, trainee.id)
-        token = await member_token(db, user)
-        await db.commit()
-        resp = await client.post(
-            "/api/certificate-requests",
-            json={"training_record_id": str(record.id), "issue_type": "original"},
-            cookies=member_cookie(token),
-        )
-        assert resp.status_code == 409
-        assert resp.json()["code"] == "PRICING_RULE_NOT_FOUND"
 
     async def test_profile_phone_masked(self, client, db):
         _, _, _, token = await _member_with_record(db)

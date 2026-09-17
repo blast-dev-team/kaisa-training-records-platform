@@ -6,10 +6,10 @@ from sqlalchemy import select
 from app.domain.identity.model import IdentityReview
 from app.integrations import portone
 from tests.integration.helpers import (
+    admin_cookie,
     make_admin,
     make_grade,
     make_trainee,
-    member_cookie,
 )
 
 
@@ -143,10 +143,10 @@ class TestAutoMatch:
         assert profile.json()["review_status"] == "approved"
         assert profile.json()["grade_name"] is not None
 
-    async def test_demo_login_creates_pricing_rules(self, client, db, monkeypatch):
-        """데모 로그인만으로 가격 규칙이 보장된다 — 규칙 미시드여도 발급 신청 통과.
+    async def test_demo_login_grade_price_issuable(self, client, db, monkeypatch):
+        """데모 로그인 등급(일반 3,000원)으로 발급 신청이 바로 통과한다.
 
-        PRICING_RULE_NOT_FOUND 회귀 방지. 가격은 FE 표기(3,000원)와 동일.
+        가격은 등급이 가진다 — FE 표기(3,000원)와 동일.
         """
         from tests.integration.helpers import make_record
 
@@ -239,7 +239,7 @@ class TestManualReview:
         approve = await client.post(
             f"/api/identity-reviews/{review_id}/approve",
             json={"trainee_id": str(trainee.id), "determined_grade_id": str(grade.id)},
-            cookies=member_cookie(admin_token),
+            cookies=admin_cookie(admin_token),
         )
         assert approve.status_code == 200
         assert approve.json()["status"] == "approved"
@@ -275,7 +275,7 @@ class TestManualReview:
         reject = await client.post(
             f"/api/identity-reviews/{review_id}/reject",
             json={"review_note": "서류 불일치"},
-            cookies=member_cookie(admin_token),
+            cookies=admin_cookie(admin_token),
         )
         assert reject.status_code == 200
         assert reject.json()["status"] == "rejected"

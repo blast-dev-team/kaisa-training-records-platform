@@ -34,6 +34,7 @@ async def list_records(
     trainee_id: uuid.UUID | None = None,
     source: str | None = None,
     completion_status: str | None = None,
+    search: str | None = None,
     page: int = 1,
     limit: int = 20,
 ) -> tuple[list[TrainingRecord], int]:
@@ -42,6 +43,7 @@ async def list_records(
         trainee_id=trainee_id,
         source=source,
         completion_status=completion_status,
+        search=search,
         page=page,
         limit=limit,
     )
@@ -93,6 +95,10 @@ async def create_record(
         institution_id=data.institution_id,
         course_name=course_name,
         institution_name=institution_name,
+        form_no=data.form_no,
+        doc_no=data.doc_no,
+        supervisor_grade=data.supervisor_grade,
+        supervisor_cert_no=data.supervisor_cert_no,
         total_hours=total_hours if total_hours is not None else 0,
         completed_hours=data.completed_hours,
         started_at=data.started_at,

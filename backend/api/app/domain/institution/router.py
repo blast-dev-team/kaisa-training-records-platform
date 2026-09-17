@@ -60,6 +60,16 @@ async def update_institution(
     return await institution_service.update_institution(db, institution_id, body, actor)
 
 
+@router.delete("/{institution_id}", status_code=204)
+async def delete_institution(
+    institution_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    actor: AdminUser = Depends(require_admin),
+):
+    """소프트딜리트 — 활성 과정이 남아 있으면 409."""
+    await institution_service.delete_institution(db, institution_id, actor)
+
+
 # ── 과정 (기관 하위 마스터) ─────────────────────────────────────────────────────
 
 
@@ -67,12 +77,14 @@ async def update_institution(
 async def list_courses(
     institution_id: uuid.UUID | None = None,
     is_active: bool | None = None,
+    search: str | None = None,
     db: AsyncSession = Depends(get_db),
     _: AdminUser = Depends(require_admin),
 ):
-    return await institution_service.list_courses(
-        db, institution_id=institution_id, is_active=is_active
+    courses = await institution_service.list_courses(
+        db, institution_id=institution_id, is_active=is_active, search=search
     )
+    return [CourseResponse.from_orm(c) for c in courses]
 
 
 @course_router.get("/{course_id}", response_model=CourseResponse)
@@ -103,3 +115,13 @@ async def update_course(
 ):
     course = await institution_service.update_course(db, course_id, body, actor)
     return CourseResponse.from_orm(course)
+
+
+@course_router.delete("/{course_id}", status_code=204)
+async def delete_course(
+    course_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    actor: AdminUser = Depends(require_admin),
+):
+    """소프트딜리트 — 이력은 과정명 스냅샷으로 표시된다."""
+    await institution_service.delete_course(db, course_id, actor)

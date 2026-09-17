@@ -12,10 +12,10 @@ from app.core.kst import now_kst
 from app.core.security import issue_state, read_state
 from app.core.session import create_user_session
 from app.domain.auth.model import AdminUser
-from app.domain.certificate.model import CertificatePricingRule
 from app.domain.identity.model import IdentityReview, IdentityVerification
 from app.domain.identity.repository import identity_repository as repo
 from app.domain.identity.schema import (
+    NewTraineeCreate,
     PassCompleteResponse,
     PassStartRequest,
     PassStartResponse,
@@ -27,46 +27,19 @@ from app.integrations import portone
 
 
 async def _ensure_demo_grade(db: AsyncSession) -> MembershipGrade:
-    """데모 교육생용 등급 — 시드된 첫 등급, 없으면 정회원을 만든다."""
+    """데모 교육생용 등급 — 시드된 첫 등급, 없으면 일반을 만든다 (기본 단가 3,000원)."""
     grade = (
         await db.execute(
             select(MembershipGrade).order_by(MembershipGrade.sort_order).limit(1)
         )
     ).scalars().first()
     if grade is None:
-        grade = MembershipGrade(code="regular", name="정회원", sort_order=1)
+        grade = MembershipGrade(
+            code="general", name="일반", sort_order=1, price_krw=3000
+        )
         db.add(grade)
         await db.flush()
     return grade
-
-
-async def _ensure_demo_pricing(db: AsyncSession, grade_id: uuid.UUID) -> None:
-    """데모 가격 규칙 보장 — original·reissue 3,000원 (FE 발급 수수료 표기와 동일).
-
-    데모 환경에서 등급만 있고 규칙이 없으면 발급 신청이 PRICING_RULE_NOT_FOUND 로
-    막힌다. 규칙이 이미 있으면 건드리지 않는다 (어드민이 정한 가격 우선).
-    """
-    for issue_type in ("original", "reissue"):
-        exists = (
-            await db.execute(
-                select(CertificatePricingRule.id).where(
-                    CertificatePricingRule.membership_grade_id == grade_id,
-                    CertificatePricingRule.issue_type == issue_type,
-                    CertificatePricingRule.is_active.is_(True),
-                )
-            )
-        ).first()
-        if exists is None:
-            db.add(
-                CertificatePricingRule(
-                    membership_grade_id=grade_id,
-                    issue_type=issue_type,
-                    price_krw=3000,
-                    currency="KRW",
-                    valid_from=now_kst().replace(year=2020),
-                    is_active=True,
-                )
-            )
 
 
 async def _create_demo_trainee(
@@ -195,37 +168,37 @@ async def complete_pass(
         # local·staging(dev) — 데모: 교육생 미연결 회원은 자동 생성해 발급·결제
         # 플로우를 바로 체험할 수 있게 한다. production 은 수동 심사로 간다.
         trainee = await _create_demo_trainee(db, user, name, phone)
-    if (
-        trainee is not None
-        and settings.ENVIRONMENT != "production"
-        and trainee.membership_grade_id is not None
-    ):
-        # 데모 — 발급 신청이 가격 규칙 부재로 막히지 않게 보장 (production 은 어드민 등록)
-        await _ensure_demo_pricing(db, trainee.membership_grade_id)
     if trainee is not None:
+        # 심사 기록은 상태가 바뀔 때만 남긴다 — 승인된 회원의 재인증마다 남기면
+        # 어드민 심사 목록에 동일 인원 row 가 계속 쌓인다 (인증 이력은 verifications 에 기록)
         if trainee.review_status != "approved":
             trainee.review_status = "approved"
             trainee.reviewed_at = now_kst()
-        db.add(
-            IdentityReview(
-                identity_verification_id=verification.id,
-                user_id=user.id,
-                trainee_id=trainee.id,
-                status="approved",
-                matched_by="ci",
-                determined_grade_id=trainee.membership_grade_id,
-                reviewed_at=now_kst(),
+            db.add(
+                IdentityReview(
+                    identity_verification_id=verification.id,
+                    user_id=user.id,
+                    trainee_id=trainee.id,
+                    status="approved",
+                    matched_by="ci",
+                    determined_grade_id=trainee.membership_grade_id,
+                    reviewed_at=now_kst(),
+                )
             )
-        )
         review_status = "approved"
     else:
-        db.add(
-            IdentityReview(
-                identity_verification_id=verification.id,
-                user_id=user.id,
-                status="manual_review",
+        # 교육생 미연결 — 대기 중 심사 건이 있으면 새로 만들지 않고 최신 인증 결과로 갱신
+        pending = await repo.find_pending_manual_review(db, user.id)
+        if pending is not None:
+            pending.identity_verification_id = verification.id
+        else:
+            db.add(
+                IdentityReview(
+                    identity_verification_id=verification.id,
+                    user_id=user.id,
+                    status="manual_review",
+                )
             )
-        )
         review_status = "manual_review"
 
     token = await create_user_session(db, user.id, "pass")
@@ -279,19 +252,20 @@ async def test_login(
     if trainee is None:
         trainee = await _create_demo_trainee(db, user, name, None)
     if trainee.review_status != "approved":
+        # 데모 로그인 반복 시 심사 row 중복 방지 — 승인으로 바뀔 때만 기록
         trainee.review_status = "approved"
         trainee.reviewed_at = now_kst()
-    db.add(
-        IdentityReview(
-            identity_verification_id=verification.id,
-            user_id=user.id,
-            trainee_id=trainee.id,
-            status="approved",
-            matched_by="ci",
-            determined_grade_id=trainee.membership_grade_id,
-            reviewed_at=now_kst(),
+        db.add(
+            IdentityReview(
+                identity_verification_id=verification.id,
+                user_id=user.id,
+                trainee_id=trainee.id,
+                status="approved",
+                matched_by="ci",
+                determined_grade_id=trainee.membership_grade_id,
+                reviewed_at=now_kst(),
+            )
         )
-    )
 
     token = await create_user_session(db, user.id, "pass")
     await db.commit()
@@ -313,20 +287,22 @@ async def test_login(
 async def list_reviews(
     db: AsyncSession,
     status: str | None = None,
+    search: str | None = None,
     page: int = 1,
     limit: int = 20,
 ) -> tuple[list[IdentityReview], int]:
-    return await repo.list_reviews(db, status=status, page=page, limit=limit)
+    return await repo.list_reviews(db, status=status, search=search, page=page, limit=limit)
 
 
 async def approve_review(
     db: AsyncSession,
     review_id: uuid.UUID,
-    trainee_id: uuid.UUID,
+    trainee_id: uuid.UUID | None,
     determined_grade_id: uuid.UUID | None,
     actor: AdminUser,
+    new_trainee: NewTraineeCreate | None = None,
 ) -> IdentityReview:
-    """수동 매칭 — trainee.user_id 연결 + 등급 확정 + 심사 완료."""
+    """수동 매칭 — trainee.user_id 연결(또는 신규 생성·연결) + 등급 확정 + 심사 완료."""
     review = await repo.find_review_by_id(db, review_id)
     if review is None:
         raise api_error("NOT_FOUND", message="심사 건을 찾을 수 없어요")
@@ -334,20 +310,60 @@ async def approve_review(
         raise api_error(
             "INVALID_STATUS_TRANSITION", message="심사 대기 상태가 아니에요"
         )
-
-    trainee = (
-        await db.execute(select(Trainee).where(Trainee.id == trainee_id))
-    ).scalar_one_or_none()
-    if trainee is None:
-        raise api_error("NOT_FOUND", message="회원을 찾을 수 없어요")
-    if trainee.user_id is not None and trainee.user_id != review.user_id:
+    if (trainee_id is None) == (new_trainee is None):
         raise api_error(
-            "TRAINEE_ALREADY_LINKED",
-            status_code=409,
-            message="이미 다른 계정에 연결된 교육생이에요",
+            "VALIDATION_ERROR",
+            message="연결할 기존 교육생 또는 신규 교육생 정보 중 하나가 필요해요",
         )
 
-    trainee.user_id = review.user_id
+    created_trainee = False
+    if new_trainee is not None:
+        # 검색·대조로 매칭 실패 — 모달에서 입력한 정보로 새 교육생을 만들어 바로 연결
+        name = new_trainee.name.strip()
+        if not name:
+            raise api_error("VALIDATION_ERROR", message="교육생 성명을 입력해 주세요")
+        if determined_grade_id is None:
+            raise api_error(
+                "VALIDATION_ERROR", message="신규 교육생은 확정 등급이 필요해요"
+            )
+        grade = (
+            await db.execute(
+                select(MembershipGrade).where(MembershipGrade.id == determined_grade_id)
+            )
+        ).scalar_one_or_none()
+        if grade is None:
+            raise api_error("NOT_FOUND", message="회원등급을 찾을 수 없어요")
+        trainee = Trainee(
+            user_id=review.user_id,
+            trainee_no=f"TR-{now_kst().strftime('%Y%m%d')}-{secrets.token_hex(2).upper()}",
+            name=name,
+            phone_encrypted=encrypt_field(new_trainee.phone)
+            if new_trainee.phone
+            else None,
+            email=new_trainee.email,
+            membership_grade_id=determined_grade_id,
+        )
+        db.add(trainee)
+        await db.flush()
+        created_trainee = True
+    else:
+        trainee = (
+            await db.execute(
+                select(Trainee).where(
+                    Trainee.id == trainee_id, Trainee.deleted_at.is_(None)
+                )
+            )
+        ).scalar_one_or_none()
+        if trainee is None:
+            raise api_error("NOT_FOUND", message="회원을 찾을 수 없어요")
+        if trainee.user_id is not None and trainee.user_id != review.user_id:
+            raise api_error(
+                "TRAINEE_ALREADY_LINKED",
+                status_code=409,
+                message="이미 다른 계정에 연결된 교육생이에요",
+            )
+        trainee.user_id = review.user_id
+
     trainee.review_status = "approved"
     trainee.reviewed_at = now_kst()
     if determined_grade_id:
@@ -368,6 +384,7 @@ async def approve_review(
         after={
             "trainee_id": str(trainee.id),
             "grade_id": str(review.determined_grade_id),
+            "created_trainee": created_trainee,
         },
     )
     await db.commit()

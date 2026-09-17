@@ -31,8 +31,12 @@ async def find_allowed_email_by_id(
     return await db.get(AdminAllowedEmail, allowed_email_id)
 
 
-async def list_allowed_emails(db: AsyncSession) -> list[AdminAllowedEmail]:
-    result = await db.execute(
-        select(AdminAllowedEmail).order_by(AdminAllowedEmail.created_at.desc())
-    )
+async def list_allowed_emails(
+    db: AsyncSession, search: str | None = None
+) -> list[AdminAllowedEmail]:
+    stmt = select(AdminAllowedEmail)
+    if search:
+        stmt = stmt.where(AdminAllowedEmail.email.ilike(f"%{search}%"))
+    stmt = stmt.order_by(AdminAllowedEmail.created_at.desc())
+    result = await db.execute(stmt)
     return list(result.scalars().all())

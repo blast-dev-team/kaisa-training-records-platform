@@ -1,6 +1,7 @@
 import uuid
 from datetime import date, datetime
 from decimal import Decimal
+from typing import TYPE_CHECKING
 
 from sqlalchemy import (
     Boolean,
@@ -14,9 +15,12 @@ from sqlalchemy import (
     Uuid,
     func,
 )
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
+
+if TYPE_CHECKING:
+    from app.domain.trainee.model import Trainee
 
 
 class TrainingRecord(Base):
@@ -46,6 +50,13 @@ class TrainingRecord(Base):
     )
     course_name: Mapped[str] = mapped_column(String(255), nullable=False)
     institution_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    # 교육확인서 상단 표기용 — 서식번호(예: 제○○호 서식), 문서번호(예: 대축-2026-001)
+    form_no: Mapped[str | None] = mapped_column(String(100))
+    doc_no: Mapped[str | None] = mapped_column(String(100))
+    # 감리원 등급 (예: 정감리원, 부감리원)
+    supervisor_grade: Mapped[str | None] = mapped_column(String(50))
+    # 감리원증 발급번호
+    supervisor_cert_no: Mapped[str | None] = mapped_column(String(100))
     total_hours: Mapped[Decimal] = mapped_column(
         Numeric(8, 2), nullable=False, default=Decimal(0)
     )
@@ -81,3 +92,6 @@ class TrainingRecord(Base):
         nullable=False,
     )
     deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+    # 어드민 목록에 교육생 이름·번호를 응답에 실기 위한 참조 (응답 스키마 from_orm 용)
+    trainee: Mapped["Trainee | None"] = relationship("Trainee", lazy="joined")

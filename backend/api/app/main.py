@@ -18,9 +18,6 @@ from app.domain.auth.router import (
 )
 from app.domain.certificate.router import admin_router as certificate_admin_router
 from app.domain.certificate.router import (
-    pricing_router as certificate_pricing_router,
-)
-from app.domain.certificate.router import (
     public_router as certificate_public_router,
 )
 from app.domain.certificate.router import router as certificate_request_router
@@ -118,7 +115,6 @@ app.include_router(me_router, prefix="/api")
 app.include_router(identity_review_router, prefix="/api")
 app.include_router(audit_log_router, prefix="/api")
 app.include_router(certificate_request_router, prefix="/api")
-app.include_router(certificate_pricing_router, prefix="/api")
 app.include_router(certificate_admin_router, prefix="/api")
 app.include_router(certificate_public_router, prefix="/api")
 app.include_router(payment_router, prefix="/api")

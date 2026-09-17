@@ -22,7 +22,6 @@ from sqlalchemy import func, select
 
 from app.core.database import async_session
 from app.core.kst import now_kst
-from app.domain.certificate.model import CertificatePricingRule
 from app.domain.institution.model import TrainingCourse, TrainingInstitution
 from app.domain.trainee.model import MembershipGrade, Trainee
 from app.domain.training_record.model import TrainingRecord
@@ -192,35 +191,37 @@ async def seed_demo_training_records() -> None:
                 created += 1
             logger.info("데모 교육이력 %s건 생성 완료", created)
 
-        # 데모 가격 규칙 — 모든 등급에 original·reissue 3,000원 보장 (없을 때만).
-        # 로그인 시점(identity_service._ensure_demo_pricing)과 같은 정책
+        # 표기 항목 백필 — 서식번호·문서번호·감리원 등급·감리원증 발급번호 (NULL 데모 건만, 멱등)
+        # DEMO-TR-0001 꼬리 번호로 결정론 생성 — 재실행해도 같은 값 유지
+        filled = 0
+        unmarked = (
+            await db.execute(
+                select(TrainingRecord).where(
+                    TrainingRecord.is_demo.is_(True),
+                    TrainingRecord.form_no.is_(None),
+                )
+            )
+        ).scalars()
+        for record in unmarked:
+            index = int(record.training_record_no.rsplit("-", 1)[-1])
+            year = record.started_at.year if record.started_at else now_kst().year
+            record.form_no = f"제{index}호"
+            record.doc_no = f"대축-{year}-{index:04d}"
+            record.supervisor_grade = "정감리원" if index % 2 else "부감리원"
+            record.supervisor_cert_no = f"감리-{year}-{index:04d}"
+            filled += 1
+        if filled:
+            logger.info("표기 항목 백필 %s건 (서식·문서번호·감리원 등급·감리원증 발급번호)", filled)
+
+        # 데모 기본 단가 보장 — 가격 미설정 등급만 3,000원으로 채운다 (가격은 등급 소속)
         ensured = 0
         grades = (await db.execute(select(MembershipGrade))).scalars().all()
         for grade in grades:
-            for issue_type in ("original", "reissue"):
-                exists = (
-                    await db.execute(
-                        select(CertificatePricingRule.id).where(
-                            CertificatePricingRule.membership_grade_id == grade.id,
-                            CertificatePricingRule.issue_type == issue_type,
-                            CertificatePricingRule.is_active.is_(True),
-                        )
-                    )
-                ).first()
-                if exists is None:
-                    db.add(
-                        CertificatePricingRule(
-                            membership_grade_id=grade.id,
-                            issue_type=issue_type,
-                            price_krw=3000,
-                            currency="KRW",
-                            valid_from=now_kst().replace(year=2020),
-                            is_active=True,
-                        )
-                    )
-                    ensured += 1
+            if grade.price_krw == 0:
+                grade.price_krw = 3000
+                ensured += 1
         if ensured:
-            logger.info("데모 가격 규칙 %s건 생성", ensured)
+            logger.info("데모 기본 단가 %s건 설정", ensured)
 
         # 소급 연결 — course_id·institution_id 비어 있는 기존 데모 이력을 마스터에 묶는다
         linked = 0

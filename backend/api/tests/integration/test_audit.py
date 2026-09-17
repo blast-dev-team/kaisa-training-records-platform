@@ -7,6 +7,7 @@ from app.domain.certificate.model import Certificate
 from app.domain.payment.model import PaymentOrder
 from app.integrations import portone
 from tests.integration.helpers import (
+    admin_cookie,
     make_admin,
     make_grade,
     make_pricing,
@@ -38,7 +39,7 @@ class TestGradeChangeAudit:
                 "membership_grade_id": str(new_grade.id),
                 "grade_change_reason": "승급 심사 완료",
             },
-            cookies=member_cookie(admin_token),
+            cookies=admin_cookie(admin_token),
         )
         assert resp.status_code == 200
 
@@ -83,7 +84,7 @@ class TestRevokeAudit:
         revoke = await client.post(
             f"/api/certificates/{cert.id}/revoke",
             json={"reason": "오발급"},
-            cookies=member_cookie(admin_token),
+            cookies=admin_cookie(admin_token),
         )
         assert revoke.status_code == 200
 
@@ -134,7 +135,7 @@ class TestRefundAudit:
         refund = await client.post(
             f"/api/payment-orders/{order.id}/refunds",
             json={"reason": "고객 요청"},
-            cookies=member_cookie(admin_token),
+            cookies=admin_cookie(admin_token),
         )
         assert refund.status_code == 200
         assert refund.json()["status"] == "refunded"
@@ -147,3 +148,66 @@ class TestRefundAudit:
         assert row.entity_type == "payment_order"
         assert row.entity_id == order.id
         assert row.actor_admin_id == admin.id
+
+
+class TestListSearch:
+    async def test_q_matches_action_label_token_actor_and_content(self, client, db):
+        """검색 — FE 가 라벨을 푼 원본 토큰(쉼표 구분)으로 액션·관리자명·변경 내용을 OR 검색."""
+        old_grade = await make_grade(db, code="g-q-old", name="검색준회원", sort_order=1)
+        new_grade = await make_grade(db, code="g-q-new", name="검색정회원", sort_order=2)
+        _, trainee = await make_trainee(db, old_grade.id, ci_raw="ci-q", trainee_no="TR-2026-0033")
+        admin, admin_token = await make_admin(db, email="q-admin@example.com")
+        await db.commit()
+
+        resp = await client.patch(
+            f"/api/trainees/{trainee.id}",
+            json={
+                "membership_grade_id": str(new_grade.id),
+                "grade_change_reason": "재심사",
+            },
+            cookies=admin_cookie(admin_token),
+        )
+        assert resp.status_code == 200
+
+        # ① 액션 원본 토큰 (라벨 "수강생 등급 변경" → trainee.grade_changed)
+        resp = await client.get(
+            "/api/audit-logs", params={"q": "trainee.grade_changed"}, cookies=admin_cookie(admin_token)
+        )
+        assert resp.status_code == 200
+        items = resp.json()["items"]
+        assert len(items) == 1
+        assert items[0]["action"] == "trainee.grade_changed"
+
+        # ② 관리자명 부분 일치
+        resp = await client.get(
+            "/api/audit-logs", params={"q": "테스트 관리"}, cookies=admin_cookie(admin_token)
+        )
+        assert resp.status_code == 200
+        assert all(i["actor_name"] == "테스트 관리자" for i in resp.json()["items"])
+        assert len(resp.json()["items"]) >= 1
+
+        # ③ 변경 내용(JSON) 부분 일치 — after_data 의 grade_id
+        rows = [r for r in await _audit_rows(db) if r.action == "trainee.grade_changed"]
+        resp = await client.get(
+            "/api/audit-logs",
+            params={"q": str(rows[0].after_data["grade_id"])},
+            cookies=admin_cookie(admin_token),
+        )
+        assert resp.status_code == 200
+        assert any(i["action"] == "trainee.grade_changed" for i in resp.json()["items"])
+
+        # ④ 쉼표 다중 토큰 OR — 하나라도 걸리면 포함, 안 걸리는 토큰은 무해
+        resp = await client.get(
+            "/api/audit-logs",
+            params={"q": "no-such-token,trainee.grade_changed"},
+            cookies=admin_cookie(admin_token),
+        )
+        assert resp.status_code == 200
+        assert any(i["action"] == "trainee.grade_changed" for i in resp.json()["items"])
+
+        # ⑤ 안 걸리는 검색어 → 빈 결과
+        resp = await client.get(
+            "/api/audit-logs", params={"q": "no-such-token"}, cookies=admin_cookie(admin_token)
+        )
+        assert resp.status_code == 200
+        assert resp.json()["items"] == []

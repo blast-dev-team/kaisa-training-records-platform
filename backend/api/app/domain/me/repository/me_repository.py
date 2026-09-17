@@ -9,20 +9,6 @@ from app.domain.payment.model import PaymentAttempt, PaymentOrder
 from app.domain.training_record.model import TrainingRecord
 
 
-async def find_my_record(
-    db: AsyncSession, record_id: uuid.UUID, trainee_id: uuid.UUID
-) -> TrainingRecord | None:
-    """본인 이력만 — 타인 id 는 404 처리를 위해 None 반환."""
-    result = await db.execute(
-        select(TrainingRecord).where(
-            TrainingRecord.id == record_id,
-            TrainingRecord.trainee_id == trainee_id,
-            TrainingRecord.deleted_at.is_(None),
-        )
-    )
-    return result.scalar_one_or_none()
-
-
 async def list_member_records(
     db: AsyncSession,
     trainee_id: uuid.UUID | None,

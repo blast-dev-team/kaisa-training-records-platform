@@ -22,14 +22,13 @@ from tests.integration.helpers import (
 )
 
 
-async def _member(db, *, price_original=0, price_reissue=5000):
+async def _member(db, *, price=0):
     grade = await make_grade(db, code="g-pay", name="결제등급")
     user, trainee = await make_trainee(
         db, grade.id, ci_raw="ci-pay", trainee_no="TR-2026-0007"
     )
     record = await make_record(db, trainee.id, record_no="TRN-PAY-0001")
-    await make_pricing(db, grade.id, price_krw=price_original)
-    await make_pricing(db, grade.id, issue_type="reissue", price_krw=price_reissue)
+    await make_pricing(db, grade.id, price_krw=price)
     token = await member_token(db, user)
     await db.commit()
     return trainee, record, token
@@ -74,7 +73,7 @@ class TestFreeIssue:
 
 class TestPaidFlow:
     async def _setup_paid_request(self, client, db):
-        _, record, token = await _member(db, price_original=5000)
+        _, record, token = await _member(db, price=5000)
         resp = await _request(client, token, record.id)
         assert resp.status_code == 201
         assert resp.json()["status"] == "payment_pending"
@@ -262,7 +261,7 @@ class TestReissue:
 
     async def test_reissue_free_within_seven_days(self, client, db):
         """직전 발급 7일 이내 — 재발급 0원, 결제 없이 즉시 발급."""
-        _, record, token = await _member(db, price_original=0, price_reissue=5000)
+        _, record, token = await _member(db)
         await _request(client, token, record.id)  # 최초 0원 발급 — 지금 막 발급됨
 
         reissue = await _request(client, token, record.id, issue_type="reissue")
@@ -276,8 +275,18 @@ class TestReissue:
             return portone_payment(payment_id, total=5000)
 
         monkeypatch.setattr(portone, "get_payment", fake_get)
-        _, record, token = await _member(db, price_original=0, price_reissue=5000)
-        await _request(client, token, record.id)  # 최초 0원 발급
+        _, record, token = await _member(db, price=5000)
+
+        # 최초 유료 발급 — 결제까지 완료
+        first = await _request(client, token, record.id)
+        assert first.status_code == 201
+        assert first.json()["status"] == "payment_pending"
+        first_confirm = await client.post(
+            f"/api/payments/{first.json()['order_no']}/confirm",
+            cookies=member_cookie(token),
+        )
+        assert first_confirm.status_code == 200
+
         await self._backdate_last_issue(db, days=8)  # 무료 기간(7일) 경과
 
         reissue = await _request(client, token, record.id, issue_type="reissue")
@@ -332,7 +341,7 @@ class TestBatchFlow:
             return portone_payment(payment_id, total=5000)  # 단 건·일괄 동일 요금
 
         monkeypatch.setattr(portone, "get_payment", fake_get)
-        trainee, record, token = await _member(db, price_original=5000)
+        trainee, record, token = await _member(db, price=5000)
         other = await make_record(db, trainee.id, record_no="TRN-PAY-0002")
         await db.commit()
 
@@ -398,7 +407,7 @@ class TestBatchFlow:
             return portone_payment(payment_id, total=5000)
 
         monkeypatch.setattr(portone, "get_payment", fake_get)
-        trainee, record_a, token = await _member(db, price_original=5000, price_reissue=5000)
+        trainee, record_a, token = await _member(db, price=5000)
         record_b = await make_record(db, trainee.id, record_no="TRN-PAY-0005")
         await db.commit()
 
@@ -449,7 +458,7 @@ class TestBatchFlow:
 class TestDemoRecordIssuance:
     """공용 데모 이력 — 모든 회원이 발급 가능하고 발급 상태는 회원별로 분리된다."""
 
-    async def _setup_demo(self, db, *, price_original=0):
+    async def _setup_demo(self, db, *, price=0):
         grade = await make_grade(db, code="g-demo", name="데모등급")
         user_a, trainee_a = await make_trainee(
             db, grade.id, ci_raw="ci-demo-a", trainee_no="TR-2026-0008"
@@ -459,8 +468,7 @@ class TestDemoRecordIssuance:
         )
         record = await make_record(db, trainee_a.id, record_no="TRN-DEMO-0001")
         record.is_demo = True
-        await make_pricing(db, grade.id, price_krw=price_original)
-        await make_pricing(db, grade.id, issue_type="reissue", price_krw=3000)
+        await make_pricing(db, grade.id, price_krw=price)
         token_a = await member_token(db, user_a)
         token_b = await member_token(db, user_b)
         await db.commit()
@@ -510,18 +518,18 @@ class TestDemoRecordIssuance:
 class TestPaymentHistory:
     """회원 결제 내역 — 결제완료·환불 주문만, 주문 단위 조립."""
 
-    async def _pay_one(self, client, db, monkeypatch, *, price_original=3000):
+    async def _pay_one(self, client, db, monkeypatch, *, price=3000):
         async def fake_get(payment_id):
             return {
                 "id": payment_id,
                 "status": "PAID",
-                "amount": {"total": price_original, "currency": "KRW"},
+                "amount": {"total": price, "currency": "KRW"},
                 "method": {"type": "CARD"},
                 "receiptUrl": "https://receipt.example/1",
             }
 
         monkeypatch.setattr(portone, "get_payment", fake_get)
-        _, record, token = await _member(db, price_original=price_original)
+        _, record, token = await _member(db, price=price)
         resp = await _request(client, token, record.id)
         assert resp.status_code == 201
         order_no = resp.json()["order_no"]
@@ -562,7 +570,7 @@ class TestPaymentHistory:
             }
 
         monkeypatch.setattr(portone, "get_payment", fake_get)
-        _, record, token = await _member(db, price_original=3000)
+        _, record, token = await _member(db, price=3000)
         resp = await _request(client, token, record.id)
         order_no = resp.json()["order_no"]
         await client.post(

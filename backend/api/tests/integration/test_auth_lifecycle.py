@@ -81,7 +81,7 @@ class TestLoginSession:
             json={"email": "admin@example.com", "password": "admin-passw0rd"},
         )
         assert resp.status_code == 200
-        cookie = resp.cookies.get(settings.SESSION_COOKIE_NAME)
+        cookie = resp.cookies.get(settings.ADMIN_SESSION_COOKIE_NAME)
         assert cookie
 
         me = await client.get("/api/auth/me")  # httpx 가 set-cookie 를 jar 에 유지
@@ -149,3 +149,37 @@ class TestLoginSession:
             json={"email": "reset@example.com", "password": "wrong-pass1"},
         )
         assert fail.status_code == 401
+
+
+class TestDemoLogin:
+    async def test_email_test_logs_in_as_admin(self, client, db):
+        """이메일 '테스트' → 데모 관리자 세션 발급. 쿠키로 /me 까지 관리자 확인."""
+        resp = await client.post(
+            "/api/auth/login",
+            json={"email": "테스트", "password": ""},
+        )
+        assert resp.status_code == 200
+        assert resp.cookies.get(settings.ADMIN_SESSION_COOKIE_NAME)
+
+        me = await client.get("/api/auth/me")
+        assert me.status_code == 200
+        body = me.json()
+        assert body["account_type"] == "admin"
+        assert body["role"] == "super"
+
+    async def test_demo_login_reuses_same_admin(self, client, db):
+        """반복 로그인해도 테스트 관리자 row 는 하나 (find-or-create 멱등)."""
+        from sqlalchemy import func, select
+
+        from app.domain.auth.model import AdminUser
+
+        await client.post("/api/auth/login", json={"email": "테스트", "password": ""})
+        await client.post("/api/auth/login", json={"email": " 테스트 ", "password": ""})
+        count = (
+            await db.execute(
+                select(func.count())
+                .select_from(AdminUser)
+                .where(AdminUser.email == "test-admin@kaisa.or.kr")
+            )
+        ).scalar_one()
+        assert count == 1

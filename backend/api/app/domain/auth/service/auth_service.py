@@ -28,6 +28,35 @@ from app.domain.auth.schema import (
 
 # ── 관리자 가입·로그인 ─────────────────────────────────────────────────────────
 
+TEST_ADMIN_EMAIL = "test-admin@kaisa.or.kr"
+
+
+async def _login_test_admin(db: AsyncSession, user_agent: str | None) -> tuple[AdminUser, str]:
+    """이메일 '테스트' 입력 시 실계정 없이 관리자 로그인 — local·staging 데모 전용.
+
+    고정 테스트 관리자를 find-or-create 해 세션을 발급한다. 비밀번호는 랜덤 해시라
+    이 계정으로는 직접 로그인할 수 없다. production 은 INVALID_CREDENTIALS 로 숨긴다.
+    """
+    if settings.ENVIRONMENT == "production":
+        raise api_error("INVALID_CREDENTIALS")
+    admin = await repo.find_admin_by_email(db, TEST_ADMIN_EMAIL)
+    if admin is None:
+        admin = AdminUser(
+            email=TEST_ADMIN_EMAIL,
+            password_hash=hash_password(uuid.uuid4().hex),
+            name="테스트 관리자",
+            role="super",
+        )
+        db.add(admin)
+        await db.flush()
+    if admin.status != "active":
+        raise api_error("ACCOUNT_DISABLED")
+    admin.last_login_at = now_kst()
+    await db.commit()
+    await db.refresh(admin)
+    token = await create_admin_session(db, admin.id, user_agent)
+    return admin, token
+
 
 async def register_admin(db: AsyncSession, data: AdminRegisterRequest) -> AdminUser:
     """초대(화이트리스트 pending)된 이메일만 가입 허용. 성공 시 status=joined."""
@@ -65,6 +94,10 @@ async def login_admin(
     db: AsyncSession, email: str, password: str, ip: str, user_agent: str | None
 ) -> tuple[AdminUser, str]:
     """검증 → 세션 발급. 실패 5회/5분 초과 시 429. 세션 토큰 반환(Set-Cookie 용)."""
+    # 데모 편의 — 이메일에 '테스트' 입력 시 비밀번호 검증 없이 통과 (production 제외)
+    if email.strip() == "테스트":
+        return await _login_test_admin(db, user_agent)
+
     key = f"login:{email.lower()}:{hash_ip(ip)}"
     if is_rate_limited(
         key, settings.RATE_LIMIT_LOGIN_MAX, settings.RATE_LIMIT_LOGIN_WINDOW
@@ -82,14 +115,14 @@ async def login_admin(
     admin.last_login_at = now_kst()
     await db.commit()
     await db.refresh(admin)
-    token = create_admin_session(admin.id)
+    token = await create_admin_session(db, admin.id, user_agent)
     return admin, token
 
 
-def logout(token: str | None) -> None:
-    """관리자 세션 폐기(메모리). 개인회원 세션은 호출자가 DB 삭제."""
+async def logout_admin_session(db: AsyncSession, token: str | None) -> None:
+    """관리자 세션 폐기(DB). 개인회원 세션은 logout_user_session."""
     if token and token.startswith(ADMIN_TOKEN_PREFIX):
-        revoke_admin_session(token)
+        await revoke_admin_session(db, token)
 
 
 async def logout_user_session(db: AsyncSession, token: str | None) -> None:
@@ -97,12 +130,10 @@ async def logout_user_session(db: AsyncSession, token: str | None) -> None:
         await delete_user_session(db, token)
 
 
-async def me(db: AsyncSession, token: str | None) -> MeResponse:
-    """쿠키 토큰으로 계정 식별 — 관리자/개인회원 공통."""
-    if not token:
-        raise api_error("UNAUTHORIZED")
-    if token.startswith(ADMIN_TOKEN_PREFIX):
-        admin_id = resolve_admin_session(token)
+async def me(db: AsyncSession, admin_token: str | None, user_token: str | None) -> MeResponse:
+    """쿠키 토큰으로 계정 식별 — 관리자/개인회원 쿠키가 분리돼 둘 다 받는다."""
+    if admin_token and admin_token.startswith(ADMIN_TOKEN_PREFIX):
+        admin_id = await resolve_admin_session(db, admin_token)
         admin = await db.get(AdminUser, admin_id) if admin_id else None
         if admin is None or admin.status != "active":
             raise api_error("SESSION_EXPIRED")
@@ -113,7 +144,9 @@ async def me(db: AsyncSession, token: str | None) -> MeResponse:
             name=admin.name,
             role=admin.role,
         )
-    user = await resolve_user_session(db, token)
+    if not user_token:
+        raise api_error("UNAUTHORIZED")
+    user = await resolve_user_session(db, user_token)
     if user is None:
         raise api_error("SESSION_EXPIRED")
     return MeResponse(account_type="user", id=user.id, name=user.name)
@@ -165,8 +198,10 @@ async def update_admin_user(
 # ── 화이트리스트 (admin) ───────────────────────────────────────────────────────
 
 
-async def list_allowed_emails(db: AsyncSession) -> list[AdminAllowedEmail]:
-    return await repo.list_allowed_emails(db)
+async def list_allowed_emails(
+    db: AsyncSession, search: str | None = None
+) -> list[AdminAllowedEmail]:
+    return await repo.list_allowed_emails(db, search=search)
 
 
 async def create_allowed_email(

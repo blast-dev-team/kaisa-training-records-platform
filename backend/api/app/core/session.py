@@ -1,20 +1,21 @@
-"""세션 — 개인회원은 DB(user_sessions), 관리자는 in-memory.
+"""세션 — 개인회원(user_sessions)·관리자(admin_sessions) 모두 DB 저장.
 
 토큰 정책 (계획서 결정 #2):
 - opaque 랜덤 256-bit (`secrets.token_urlsafe(32)`) — 서명키 없음
 - 쿠키에는 원본 토큰, 저장소에는 SHA-256 해시만 보관
-- 고정 TTL 24h (슬라이딩 연장 없음), 로그아웃 = 세션 삭제
+- 관리자 TTL 24h / 개인회원 TTL 10분 (슬라이딩 연장 없음), 로그아웃 = 행 삭제
 
-관리자 세션이 in-memory 인 이유: user_sessions.user_id 가 users(개인회원)
-FK 라 admin_users 행을 담을 수 없다. 관리자는 소수 + workers=1 전제
-(배포 Dockerfile `--workers 1`, gongcar 와 동일)라 프로세스 메모리로
-충분하다. 재시작 시 관리자 전원 재로그인 — 운영 지장 미미.
+관리자 세션도 DB 에 두는 이유: 과거 in-memory 였는데 BE 재배포(compose up
+--build)마다 관리자 전원이 로그아웃됐다 (2026-09-16). workers=1 전제라
+메모리로 충분하다는 판단이었지만 배포 잦은 staging 에서 체감 컸다.
+
+쿠키는 web(개인회원, kaisa_session)과 admin(kaisa_admin_session)으로
+이름을 분리한다 — 같은 브라우저에서 양쪽 동시 로그인 지원.
 """
 
 import hashlib
 import secrets
 import uuid
-from dataclasses import dataclass
 from datetime import datetime, timedelta
 
 from sqlalchemy import delete, select
@@ -22,10 +23,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.core.kst import now_kst
-from app.domain.auth.model import UserSession
+from app.domain.auth.model import AdminSession, UserSession
 from app.domain.user.model import User
 
-# 관리자 토큰 접두사 — 조회 경로(DB vs 메모리) 분기용
+# 관리자 토큰 접두사 — 관리자/개인회원 조회 경로 분기용
 ADMIN_TOKEN_PREFIX = "adm_"
 
 
@@ -92,6 +93,20 @@ async def resolve_user_session_expiry(db: AsyncSession, token: str) -> datetime 
     return row.expires_at if row else None
 
 
+async def extend_user_session(db: AsyncSession, token: str) -> datetime | None:
+    """세션 연장 — 유효 세션이면 expires_at 을 now + TTL 로 갱신하고 새 만료 시각 반환.
+
+    무효(없음·만료)면 None. 연장은 고정 TTL 리셋(슬라이딩)이라 쿠키 갱신 불필요 —
+    쿠키 max_age 가 DB TTL 보다 길다.
+    """
+    row = await _find_live_user_session(db, token)
+    if row is None:
+        return None
+    row.expires_at = _user_expiry()
+    await db.commit()
+    return row.expires_at
+
+
 async def delete_user_session(db: AsyncSession, token: str) -> None:
     await db.execute(
         delete(UserSession).where(UserSession.token_hash == hash_token(token))
@@ -99,55 +114,60 @@ async def delete_user_session(db: AsyncSession, token: str) -> None:
     await db.commit()
 
 
-# ── 관리자 (in-memory 세션 — workers=1 전제) ──────────────────────────────────
+# ── 관리자 (DB 세션) ───────────────────────────────────────────────────────────
 
 
-@dataclass
-class _AdminSession:
-    admin_id: uuid.UUID
-    expires_at: datetime
-
-
-_admin_sessions: dict[str, _AdminSession] = {}
-
-
-def _prune_admin_sessions() -> None:
-    now = now_kst()
-    expired = [h for h, s in _admin_sessions.items() if s.expires_at <= now]
-    for h in expired:
-        _admin_sessions.pop(h, None)
-
-
-def create_admin_session(admin_id: uuid.UUID) -> str:
+async def create_admin_session(
+    db: AsyncSession, admin_id: uuid.UUID, user_agent: str | None
+) -> str:
     token = ADMIN_TOKEN_PREFIX + generate_token()
-    _prune_admin_sessions()
-    _admin_sessions[hash_token(token)] = _AdminSession(
-        admin_id=admin_id, expires_at=_expiry()
+    # 만료 행 청소 — 생성 빈도가 낮아 여기서 같이 돌린다
+    await db.execute(delete(AdminSession).where(AdminSession.expires_at <= now_kst()))
+    db.add(
+        AdminSession(
+            admin_id=admin_id,
+            token_hash=hash_token(token),
+            user_agent=user_agent,
+            expires_at=_expiry(),
+        )
     )
+    await db.commit()
     return token
 
 
-def resolve_admin_session(token: str) -> uuid.UUID | None:
-    session = _admin_sessions.get(hash_token(token))
-    if session is None:
+async def resolve_admin_session(db: AsyncSession, token: str) -> uuid.UUID | None:
+    """해시 조회 → 만료 검증. 만료된 세션은 행을 지우고 None."""
+    row = (
+        await db.execute(
+            select(AdminSession).where(AdminSession.token_hash == hash_token(token))
+        )
+    ).scalar_one_or_none()
+    if row is None:
         return None
-    if session.expires_at <= now_kst():
-        _admin_sessions.pop(hash_token(token), None)
+    if row.expires_at <= now_kst():
+        await db.delete(row)
+        await db.commit()
         return None
-    return session.admin_id
+    return row.admin_id
 
 
-def revoke_admin_session(token: str) -> None:
-    _admin_sessions.pop(hash_token(token), None)
+async def revoke_admin_session(db: AsyncSession, token: str) -> None:
+    await db.execute(
+        delete(AdminSession).where(AdminSession.token_hash == hash_token(token))
+    )
+    await db.commit()
 
 
 # ── 쿠키 헬퍼 ──────────────────────────────────────────────────────────────────
 
 
-def session_cookie_params(token: str) -> dict:
-    """Set-Cookie 공통 파라미터 — httponly, samesite=lax, local 외 secure."""
+def session_cookie_params(token: str, cookie_name: str | None = None) -> dict:
+    """Set-Cookie 공통 파라미터 — httponly, samesite=lax, local 외 secure.
+
+    cookie_name 미지정 시 개인회원(web) 쿠키. 관리자는 ADMIN_SESSION_COOKIE_NAME.
+    """
     return {
-        "key": settings.SESSION_COOKIE_NAME,
+        "key": cookie_name or settings.SESSION_COOKIE_NAME,
         "value": token,
         "httponly": True,
         "samesite": "lax",
@@ -157,9 +177,9 @@ def session_cookie_params(token: str) -> dict:
     }
 
 
-def clear_session_cookie_params() -> dict:
+def clear_session_cookie_params(cookie_name: str | None = None) -> dict:
     return {
-        "key": settings.SESSION_COOKIE_NAME,
+        "key": cookie_name or settings.SESSION_COOKIE_NAME,
         "value": "",
         "httponly": True,
         "samesite": "lax",

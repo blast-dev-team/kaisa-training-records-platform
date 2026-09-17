@@ -13,7 +13,8 @@ class AdminRegisterRequest(BaseModel):
 
 
 class AdminLoginRequest(BaseModel):
-    email: EmailStr
+    # EmailStr 미적용 — 데모용 '테스트' 로그인을 허용하기 위함 (실계정 검증은 서비스에서)
+    email: str
     password: str
 
 

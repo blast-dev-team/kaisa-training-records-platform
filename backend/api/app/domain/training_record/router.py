@@ -22,6 +22,7 @@ async def list_records(
     trainee_id: uuid.UUID | None = None,
     source: str | None = None,
     completion_status: str | None = None,
+    search: str | None = None,
     page: int = Query(1, ge=1),
     limit: int = Query(20, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
@@ -32,11 +33,12 @@ async def list_records(
         trainee_id=trainee_id,
         source=source,
         completion_status=completion_status,
+        search=search,
         page=page,
         limit=limit,
     )
     return PagedResponse(
-        items=[TrainingRecordResponse.model_validate(r) for r in records],
+        items=[TrainingRecordResponse.from_orm(r) for r in records],
         total=total,
         page=page,
         limit=limit,
@@ -49,7 +51,7 @@ async def get_record(
     db: AsyncSession = Depends(get_db),
     _: AdminUser = Depends(require_admin),
 ):
-    return TrainingRecordResponse.model_validate(
+    return TrainingRecordResponse.from_orm(
         await training_record_service.get_record(db, record_id)
     )
 
@@ -60,7 +62,7 @@ async def create_record(
     db: AsyncSession = Depends(get_db),
     actor: AdminUser = Depends(require_admin),
 ):
-    return TrainingRecordResponse.model_validate(
+    return TrainingRecordResponse.from_orm(
         await training_record_service.create_record(db, body, actor)
     )
 
@@ -72,7 +74,7 @@ async def update_record(
     db: AsyncSession = Depends(get_db),
     actor: AdminUser = Depends(require_admin),
 ):
-    return TrainingRecordResponse.model_validate(
+    return TrainingRecordResponse.from_orm(
         await training_record_service.update_record(db, record_id, body, actor)
     )
 

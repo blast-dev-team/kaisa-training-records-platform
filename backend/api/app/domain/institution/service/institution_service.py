@@ -1,5 +1,6 @@
 import uuid
 
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.audit import record_audit
@@ -79,6 +80,40 @@ async def update_institution(
     return institution
 
 
+async def delete_institution(
+    db: AsyncSession, institution_id: uuid.UUID, actor: AdminUser
+) -> None:
+    """소프트딜리트 — is_active false. 활성 과정이 남아 있으면 409 차단."""
+    institution = await get_institution(db, institution_id)
+    active_course = (
+        await db.execute(
+            select(TrainingCourse.id)
+            .where(
+                TrainingCourse.institution_id == institution.id,
+                TrainingCourse.is_active.is_(True),
+            )
+            .limit(1)
+        )
+    ).scalar_one_or_none()
+    if active_course is not None:
+        raise api_error(
+            "INSTITUTION_HAS_ACTIVE_COURSES",
+            status_code=409,
+            message="이 기관에 활성 과정이 남아 있어요. 과정을 먼저 정리해 주세요",
+        )
+    institution.is_active = False
+    record_audit(
+        db,
+        actor_admin_id=actor.id,
+        action="institution.deleted",
+        entity_type="training_institution",
+        entity_id=institution.id,
+        before={"is_active": True},
+        after={"is_active": False},
+    )
+    await db.commit()
+
+
 # ── 과정 (기관 하위 마스터) ─────────────────────────────────────────────────────
 
 
@@ -93,9 +128,10 @@ async def list_courses(
     db: AsyncSession,
     institution_id: uuid.UUID | None = None,
     is_active: bool | None = None,
+    search: str | None = None,
 ) -> list[TrainingCourse]:
     return await repo.list_courses(
-        db, institution_id=institution_id, is_active=is_active
+        db, institution_id=institution_id, is_active=is_active, search=search
     )
 
 
@@ -144,3 +180,21 @@ async def update_course(
     await db.commit()
     await db.refresh(course)
     return course
+
+
+async def delete_course(
+    db: AsyncSession, course_id: uuid.UUID, actor: AdminUser
+) -> None:
+    """소프트딜리트 — is_active false. 교육이력은 과정명 스냅샷을 보므로 표시 무영향."""
+    course = await get_course(db, course_id)
+    course.is_active = False
+    record_audit(
+        db,
+        actor_admin_id=actor.id,
+        action="course.deleted",
+        entity_type="training_course",
+        entity_id=course.id,
+        before={"is_active": True},
+        after={"is_active": False},
+    )
+    await db.commit()

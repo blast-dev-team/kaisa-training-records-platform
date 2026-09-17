@@ -1,8 +1,8 @@
 """공용 FastAPI 의존성 — 인증·권한.
 
-세션 쿠키(kaisa_session) 하나로 두 계정 유형을 다룬다:
-- 개인회원: DB 세션(user_sessions) → User
-- 관리자: in-memory 세션(토큰 adm_ 접두사) → AdminUser
+세션 쿠키 두 개로 두 계정 유형을 다룬다 (같은 브라우저 동시 로그인 지원):
+- 개인회원: kaisa_session → DB 세션(user_sessions) → User
+- 관리자: kaisa_admin_session → DB 세션(admin_sessions, 토큰 adm_ 접두사) → AdminUser
 
 회원 쿼리는 항상 get_current_trainee 로 얻은 trainee 로 scope 한다 —
 클라이언트가 보낸 trainee_id 는 절대 신뢰하지 않는다.
@@ -33,8 +33,8 @@ __all__ = [
 ]
 
 
-def _read_session_token(request: Request) -> str | None:
-    return request.cookies.get(settings.SESSION_COOKIE_NAME)
+def _read_session_token(request: Request, cookie_name: str) -> str | None:
+    return request.cookies.get(cookie_name)
 
 
 async def get_current_user(
@@ -42,7 +42,7 @@ async def get_current_user(
     db: AsyncSession = Depends(get_db),
 ) -> User:
     """개인회원 세션 — 쿠키 → 해시 조회 → 만료 검증. 실패 401."""
-    token = _read_session_token(request)
+    token = _read_session_token(request, settings.SESSION_COOKIE_NAME)
     if not token or token.startswith(ADMIN_TOKEN_PREFIX):
         raise api_error("UNAUTHORIZED")
     user = await resolve_user_session(db, token)
@@ -56,10 +56,10 @@ async def require_admin(
     db: AsyncSession = Depends(get_db),
 ) -> AdminUser:
     """관리자 세션 — disabled 계정은 매 요청 즉시 차단."""
-    token = _read_session_token(request)
+    token = _read_session_token(request, settings.ADMIN_SESSION_COOKIE_NAME)
     if not token or not token.startswith(ADMIN_TOKEN_PREFIX):
         raise api_error("UNAUTHORIZED")
-    admin_id = resolve_admin_session(token)
+    admin_id = await resolve_admin_session(db, token)
     if admin_id is None:
         raise api_error("SESSION_EXPIRED")
     admin = await db.get(AdminUser, admin_id)
@@ -83,7 +83,11 @@ async def get_current_trainee(
 ) -> Trainee:
     """user → trainee 연결 조회. 연결 없으면 403 TRAINEE_NOT_LINKED."""
     trainee = (
-        await db.execute(select(Trainee).where(Trainee.user_id == user.id))
+        await db.execute(
+            select(Trainee).where(
+                Trainee.user_id == user.id, Trainee.deleted_at.is_(None)
+            )
+        )
     ).scalar_one_or_none()
     if trainee is None:
         raise api_error("TRAINEE_NOT_LINKED")

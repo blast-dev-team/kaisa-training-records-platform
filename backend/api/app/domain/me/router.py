@@ -35,6 +35,16 @@ async def get_my_session(
     return await me_service.get_session(db, token)
 
 
+@router.post("/session/extend", response_model=MeSessionResponse)
+async def extend_my_session(
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+):
+    """본인인증 세션 연장 — 유효 세션 만료 시각을 리셋해 반환. 무효 세션 401."""
+    token = request.cookies.get(settings.SESSION_COOKIE_NAME)
+    return await me_service.extend_session(db, token)
+
+
 @router.get("/profile", response_model=MeProfileResponse)
 async def get_my_profile(
     db: AsyncSession = Depends(get_db),

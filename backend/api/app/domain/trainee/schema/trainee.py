@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime
+from datetime import date, datetime
 
 from pydantic import BaseModel, EmailStr
 
@@ -12,6 +12,7 @@ class TraineeResponse(BaseModel):
     id: uuid.UUID
     trainee_no: str | None
     name: str
+    birth_date: date | None
     phone_masked: str | None
     email: EmailStr | None
     review_status: str
@@ -31,6 +32,7 @@ class TraineeResponse(BaseModel):
             id=t.id,
             trainee_no=t.trainee_no,
             name=t.name,
+            birth_date=t.birth_date,
             phone_masked=phone,
             email=t.email,
             review_status=t.review_status,
@@ -43,10 +45,22 @@ class TraineeResponse(BaseModel):
         )
 
 
+class TraineeCreate(BaseModel):
+    """어드민 수기 등록 — 신원을 어드민이 직접 확인했음을 전제로 approved 로 들어간다."""
+
+    name: str
+    birth_date: date | None = None
+    phone: str | None = None  # 평문 수신 → 암호화 저장
+    email: EmailStr | None = None
+    memo: str | None = None
+    membership_grade_id: uuid.UUID | None = None
+
+
 class TraineeUpdate(BaseModel):
     """review_status 는 본인인증 심사(identity) 플로우에서만 변경 — 여기서 다루지 않는다."""
 
     name: str | None = None
+    birth_date: date | None = None
     phone: str | None = None  # 평문 수신 → 암호화 저장
     email: EmailStr | None = None
     memo: str | None = None

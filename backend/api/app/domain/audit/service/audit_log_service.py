@@ -11,6 +11,7 @@ async def list_logs(
     entity_type: str | None = None,
     entity_id: uuid.UUID | None = None,
     actor_admin_id: uuid.UUID | None = None,
+    q: str | None = None,
     page: int = 1,
     limit: int = 20,
 ) -> tuple[list[AuditLog], int]:
@@ -19,6 +20,7 @@ async def list_logs(
         entity_type=entity_type,
         entity_id=entity_id,
         actor_admin_id=actor_admin_id,
+        q=q,
         page=page,
         limit=limit,
     )

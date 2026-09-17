@@ -24,6 +24,7 @@ async def list_certificates(
     db: AsyncSession,
     trainee_id: uuid.UUID | None = None,
     status: str | None = None,
+    search: str | None = None,
     page: int = 1,
     limit: int = 20,
 ) -> tuple[list[Certificate], int]:
@@ -35,6 +36,15 @@ async def list_certificates(
     if status:
         stmt = stmt.where(Certificate.status == status)
         count_stmt = count_stmt.where(Certificate.status == status)
+    if search:
+        pattern = f"%{search}%"
+        cond = or_(
+            Certificate.certificate_no.ilike(pattern),
+            Certificate.issued_name.ilike(pattern),
+            Certificate.course_name.ilike(pattern),
+        )
+        stmt = stmt.where(cond)
+        count_stmt = count_stmt.where(cond)
 
     total = (await db.execute(count_stmt)).scalar_one()
     stmt = (

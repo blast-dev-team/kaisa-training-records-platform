@@ -1,6 +1,6 @@
 import uuid
 
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.domain.payment.model import (
@@ -55,6 +55,7 @@ async def list_orders(
     db: AsyncSession,
     trainee_id: uuid.UUID | None = None,
     status: str | None = None,
+    search: str | None = None,
     page: int = 1,
     limit: int = 20,
 ) -> tuple[list[PaymentOrder], int]:
@@ -66,6 +67,16 @@ async def list_orders(
     if status:
         stmt = stmt.where(PaymentOrder.status == status)
         count_stmt = count_stmt.where(PaymentOrder.status == status)
+    if search:
+        pattern = f"%{search}%"
+        cond = or_(
+            PaymentOrder.order_no.ilike(pattern),
+            PaymentOrder.trainee_id.in_(
+                select(Trainee.id).where(Trainee.name.ilike(pattern))
+            ),
+        )
+        stmt = stmt.where(cond)
+        count_stmt = count_stmt.where(cond)
 
     total = (await db.execute(count_stmt)).scalar_one()
     stmt = (

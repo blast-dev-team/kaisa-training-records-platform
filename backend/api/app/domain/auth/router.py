@@ -34,8 +34,8 @@ allowed_email_router = APIRouter(
 )
 
 
-def _session_token(request: Request) -> str | None:
-    return request.cookies.get(settings.SESSION_COOKIE_NAME)
+def _session_token(request: Request, cookie_name: str) -> str | None:
+    return request.cookies.get(cookie_name)
 
 
 @router.post("/register", response_model=AdminUserResponse, status_code=201)
@@ -57,7 +57,9 @@ async def login_admin(
     admin, token = await auth_service.login_admin(
         db, body.email, body.password, ip, request.headers.get("user-agent")
     )
-    response.set_cookie(**session_cookie_params(token))
+    response.set_cookie(
+        **session_cookie_params(token, settings.ADMIN_SESSION_COOKIE_NAME)
+    )
     return admin
 
 
@@ -65,16 +67,23 @@ async def login_admin(
 async def logout(
     request: Request, response: Response, db: AsyncSession = Depends(get_db)
 ):
-    token = _session_token(request)
-    auth_service.logout(token)
-    await auth_service.logout_user_session(db, token)
-    response.set_cookie(**clear_session_cookie_params())
+    admin_token = _session_token(request, settings.ADMIN_SESSION_COOKIE_NAME)
+    user_token = _session_token(request, settings.SESSION_COOKIE_NAME)
+    await auth_service.logout_admin_session(db, admin_token)
+    await auth_service.logout_user_session(db, user_token)
+    # 양쪽 쿠키 모두 만료 — 어떤 앱에서 로그아웃해도 세션이 남지 않게
+    response.set_cookie(**clear_session_cookie_params(settings.ADMIN_SESSION_COOKIE_NAME))
+    response.set_cookie(**clear_session_cookie_params(settings.SESSION_COOKIE_NAME))
     return {"ok": True}
 
 
 @router.get("/me", response_model=MeResponse)
 async def me(request: Request, db: AsyncSession = Depends(get_db)):
-    return await auth_service.me(db, _session_token(request))
+    return await auth_service.me(
+        db,
+        _session_token(request, settings.ADMIN_SESSION_COOKIE_NAME),
+        _session_token(request, settings.SESSION_COOKIE_NAME),
+    )
 
 
 # ── 회원 PASS 본인인증 로그인 (공개) ───────────────────────────────────────────
@@ -130,10 +139,11 @@ async def update_admin_user(
 
 @allowed_email_router.get("", response_model=list[AllowedEmailResponse])
 async def list_allowed_emails(
+    search: str | None = None,
     db: AsyncSession = Depends(get_db),
     _: AdminUser = Depends(require_admin),
 ):
-    return await auth_service.list_allowed_emails(db)
+    return await auth_service.list_allowed_emails(db, search=search)
 
 
 @allowed_email_router.post("", response_model=AllowedEmailResponse, status_code=201)

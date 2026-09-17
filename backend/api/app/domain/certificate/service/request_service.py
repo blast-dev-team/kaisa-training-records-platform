@@ -14,13 +14,11 @@ from app.core.config import settings
 from app.core.error_codes import api_error
 from app.core.kst import now_kst, today_kst
 from app.domain.certificate.model import Certificate, CertificateRequest
-from app.domain.certificate.repository import pricing_repository
 from app.domain.certificate.schema import (
     CertificateBatchRequestCreate,
     CertificateRequestCreate,
 )
 from app.domain.certificate.service import issuance_service
-from app.domain.certificate.service.pricing import select_pricing_rule
 from app.domain.payment.model import PaymentAttempt, PaymentOrder
 from app.domain.trainee.model import Trainee
 from app.domain.training_record.model import TrainingRecord
@@ -112,15 +110,15 @@ async def _validate_item(
     return record, active_cert
 
 
-def _reissue_price_krw(rule, active_cert: Certificate | None, now) -> int:
-    """재발급 가격 — 직전 발급일이 무료 기간(7일) 이내면 0원, 아니면 규칙 가격."""
-    if rule is None or active_cert is None or active_cert.issued_at is None:
-        return rule.price_krw if rule else 0
+def _reissue_price_krw(price_krw: int, active_cert: Certificate | None, now) -> int:
+    """재발급 가격 — 직전 발급일이 무료 기간(7일) 이내면 0원, 아니면 등급 단가."""
+    if active_cert is None or active_cert.issued_at is None:
+        return price_krw
     if now - active_cert.issued_at <= timedelta(
         days=settings.CERTIFICATE_REISSUE_FREE_DAYS
     ):
         return 0
-    return rule.price_krw
+    return price_krw
 
 
 def _require_determined_grade(trainee: Trainee) -> uuid.UUID:
@@ -131,12 +129,16 @@ def _require_determined_grade(trainee: Trainee) -> uuid.UUID:
     return trainee.membership_grade_id
 
 
+def _grade_price_krw(trainee: Trainee) -> int:
+    """발급 단가 — 등급이 가진 가격. 등급 price_krw 가 설정 안 된 경우도 0원으로 본다."""
+    return trainee.grade.price_krw if trainee.grade else 0
+
+
 def _build_request(
     trainee: Trainee,
     record: TrainingRecord,
     active_cert: Certificate | None,
     data: CertificateRequestCreate,
-    rule,
     amount_krw: int,
     now,
 ) -> CertificateRequest:
@@ -152,9 +154,8 @@ def _build_request(
         requested_by=trainee.user_id,
         issue_type=data.issue_type,
         membership_grade_id=trainee.membership_grade_id,
-        pricing_rule_id=rule.id,
         amount_krw=amount_krw,
-        currency=rule.currency,
+        currency="KRW",
         status="pending",
         requested_at=now,
     )
@@ -167,26 +168,23 @@ async def create_request(
 
     반환은 request — response 조립에 필요한 order/certificate 는 relationship 으로 접근.
     """
-    grade_id = _require_determined_grade(trainee)
+    _require_determined_grade(trainee)
 
     record, active_cert = await _validate_item(
         db, trainee, data.training_record_id, data.issue_type
     )
 
-    # 가격 스냅샷 — 재발급은 직전 발급일이 7일 이내면 무료
+    # 가격 스냅샷 — 등급 단가. 재발급은 직전 발급일이 7일 이내면 무료
     now = now_kst()
-    rules = await pricing_repository.find_rules(db, grade_id, data.issue_type)
-    rule = select_pricing_rule(rules, grade_id, data.issue_type, now)
-    if rule is None:
-        raise api_error("PRICING_RULE_NOT_FOUND", message="적용할 가격 규칙이 없어요")
+    price_krw = _grade_price_krw(trainee)
     amount_krw = (
-        _reissue_price_krw(rule, active_cert, now)
+        _reissue_price_krw(price_krw, active_cert, now)
         if data.issue_type == "reissue"
-        else rule.price_krw
+        else price_krw
     )
 
     request = _build_request(
-        trainee, record, active_cert, data, rule, amount_krw, now
+        trainee, record, active_cert, data, amount_krw, now
     )
     db.add(request)
     await db.flush()
@@ -206,7 +204,7 @@ async def create_request(
         certificate_request_id=request.id,
         trainee_id=trainee.id,
         amount_krw=amount_krw,
-        currency=rule.currency,
+        currency="KRW",
         status="ready",
     )
     db.add(order)
@@ -238,7 +236,7 @@ async def create_requests_batch(
     유료 건이 하나라도 있으면 단가 1회만 청구하는 주문을 만들고 confirm 시
     전건 발급한다. 유료 합계가 0원이면(전 건 0원 가격·무료 재발급) 즉시 발급.
     """
-    grade_id = _require_determined_grade(trainee)
+    _require_determined_grade(trainee)
 
     record_ids = [item.training_record_id for item in data.items]
     if len(set(record_ids)) != len(record_ids):
@@ -246,31 +244,28 @@ async def create_requests_batch(
 
     # 전 건 검증·가격 확정을 먼저 끝낸 뒤 쓴다 — 절반만 반영되지 않게
     now = now_kst()
+    price_krw = _grade_price_krw(trainee)
     validated = []
     for item in data.items:
         record, active_cert = await _validate_item(
             db, trainee, item.training_record_id, item.issue_type
         )
-        rules = await pricing_repository.find_rules(db, grade_id, item.issue_type)
-        rule = select_pricing_rule(rules, grade_id, item.issue_type, now)
-        if rule is None:
-            raise api_error("PRICING_RULE_NOT_FOUND", message="적용할 가격 규칙이 없어요")
         amount_krw = (
-            _reissue_price_krw(rule, active_cert, now)
+            _reissue_price_krw(price_krw, active_cert, now)
             if item.issue_type == "reissue"
-            else rule.price_krw
+            else price_krw
         )
-        validated.append((record, active_cert, item, rule, amount_krw))
+        validated.append((record, active_cert, item, amount_krw))
 
     requests = [
-        _build_request(trainee, record, active_cert, item, rule, amount_krw, now)
-        for record, active_cert, item, rule, amount_krw in validated
+        _build_request(trainee, record, active_cert, item, amount_krw, now)
+        for record, active_cert, item, amount_krw in validated
     ]
     db.add_all(requests)
     await db.flush()
 
     # 단 건·일괄 건 동일 요금 — 유료 건 중 최고 단가 1회만 청구 (FE는 카테고리 혼합을 막음)
-    paid_amounts = [amount for _, _, _, _, amount in validated if amount > 0]
+    paid_amounts = [amount for _, _, _, amount in validated if amount > 0]
     total_krw = max(paid_amounts) if paid_amounts else 0
     if total_krw == 0:
         for request in requests:

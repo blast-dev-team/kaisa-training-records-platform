@@ -1,6 +1,6 @@
 import uuid
 
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.domain.institution.model import TrainingCourse, TrainingInstitution
@@ -51,12 +51,21 @@ async def list_courses(
     db: AsyncSession,
     institution_id: uuid.UUID | None = None,
     is_active: bool | None = None,
+    search: str | None = None,
 ) -> list[TrainingCourse]:
     stmt = select(TrainingCourse)
     if institution_id is not None:
         stmt = stmt.where(TrainingCourse.institution_id == institution_id)
     if is_active is not None:
         stmt = stmt.where(TrainingCourse.is_active == is_active)
+    if search:
+        pattern = f"%{search}%"
+        stmt = stmt.where(
+            or_(
+                TrainingCourse.name.ilike(pattern),
+                TrainingCourse.course_code.ilike(pattern),
+            )
+        )
     stmt = stmt.order_by(TrainingCourse.name.asc())
     result = await db.execute(stmt)
     return list(result.scalars().all())

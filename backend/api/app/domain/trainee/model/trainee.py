@@ -1,8 +1,17 @@
 import uuid
-from datetime import datetime
+from datetime import date, datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import DateTime, ForeignKey, Index, String, Text, Uuid, func
+from sqlalchemy import (
+    Date,
+    DateTime,
+    ForeignKey,
+    Index,
+    String,
+    Text,
+    Uuid,
+    func,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
@@ -28,6 +37,7 @@ class Trainee(Base):
     )
     trainee_no: Mapped[str | None] = mapped_column(String(100), unique=True)
     name: Mapped[str] = mapped_column(String(100), nullable=False)
+    birth_date: Mapped[date | None] = mapped_column(Date)
     phone_encrypted: Mapped[str | None] = mapped_column(Text)
     email: Mapped[str | None] = mapped_column(String(255))
     membership_grade_id: Mapped[uuid.UUID | None] = mapped_column(
@@ -38,6 +48,10 @@ class Trainee(Base):
     )
     reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     memo: Mapped[str | None] = mapped_column(Text)
+
+    # 소프트딜리트 — 이력(확인서·결제) FK 보존을 위해 row 는 남기고 조회만 숨김
+    deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )

@@ -14,6 +14,11 @@ class TrainingRecordCreate(BaseModel):
     # 과정·기관 마스터 미연결 시 스냅샷 직접 입력 (최소 하나는 필수)
     course_name: str | None = None
     institution_name: str | None = None
+    # 확인서 표기용 — 서식번호·문서번호·감리원 등급·감리원증 발급번호
+    form_no: str | None = None
+    doc_no: str | None = None
+    supervisor_grade: str | None = None
+    supervisor_cert_no: str | None = None
     total_hours: Decimal | None = None  # 미지정 시 과정 마스터 값
     completed_hours: Decimal = Decimal(0)
     started_at: date | None = None
@@ -27,6 +32,10 @@ class TrainingRecordCreate(BaseModel):
 class TrainingRecordUpdate(BaseModel):
     course_id: uuid.UUID | None = None
     institution_id: uuid.UUID | None = None
+    form_no: str | None = None
+    doc_no: str | None = None
+    supervisor_grade: str | None = None
+    supervisor_cert_no: str | None = None
     total_hours: Decimal | None = None
     completed_hours: Decimal | None = None
     started_at: date | None = None
@@ -40,10 +49,17 @@ class TrainingRecordResponse(BaseModel):
     id: uuid.UUID
     training_record_no: str
     trainee_id: uuid.UUID
+    # 어드민 목록 표시용 — trainee 조인 값 (model_validate 로는 안 채워진다)
+    trainee_name: str | None = None
+    trainee_no: str | None = None
     course_id: uuid.UUID | None
     institution_id: uuid.UUID | None
     course_name: str
     institution_name: str
+    form_no: str | None
+    doc_no: str | None
+    supervisor_grade: str | None
+    supervisor_cert_no: str | None
     total_hours: Decimal
     completed_hours: Decimal
     started_at: date | None
@@ -62,3 +78,33 @@ class TrainingRecordResponse(BaseModel):
     reissue_free_until: datetime | None = None  # 7일 무료 재발급 기한
 
     model_config = {"from_attributes": True}
+
+    @classmethod
+    def from_orm(cls, record) -> "TrainingRecordResponse":
+        trainee = record.trainee
+        return cls(
+            id=record.id,
+            training_record_no=record.training_record_no,
+            trainee_id=record.trainee_id,
+            trainee_name=trainee.name if trainee else None,
+            trainee_no=trainee.trainee_no if trainee else None,
+            course_id=record.course_id,
+            institution_id=record.institution_id,
+            course_name=record.course_name,
+            institution_name=record.institution_name,
+            form_no=record.form_no,
+            doc_no=record.doc_no,
+            supervisor_grade=record.supervisor_grade,
+            supervisor_cert_no=record.supervisor_cert_no,
+            total_hours=record.total_hours,
+            completed_hours=record.completed_hours,
+            started_at=record.started_at,
+            ended_at=record.ended_at,
+            source=record.source,
+            evidence_file_key=record.evidence_file_key,
+            completion_status=record.completion_status,
+            completed_at=record.completed_at,
+            memo=record.memo,
+            created_at=record.created_at,
+            updated_at=record.updated_at,
+        )

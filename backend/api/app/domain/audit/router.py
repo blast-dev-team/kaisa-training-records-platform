@@ -18,6 +18,7 @@ async def list_logs(
     entity_type: str | None = None,
     entity_id: uuid.UUID | None = None,
     actor_admin_id: uuid.UUID | None = None,
+    q: str | None = None,
     page: int = Query(1, ge=1),
     limit: int = Query(20, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
@@ -28,6 +29,7 @@ async def list_logs(
         entity_type=entity_type,
         entity_id=entity_id,
         actor_admin_id=actor_admin_id,
+        q=q,
         page=page,
         limit=limit,
     )

@@ -11,6 +11,7 @@ from app.domain.trainee.schema import (
     MembershipGradeCreate,
     MembershipGradeResponse,
     MembershipGradeUpdate,
+    TraineeCreate,
     TraineeResponse,
     TraineeUpdate,
 )
@@ -46,6 +47,16 @@ async def list_trainees(
     )
 
 
+@router.post("", response_model=TraineeResponse, status_code=201)
+async def create_trainee(
+    body: TraineeCreate,
+    db: AsyncSession = Depends(get_db),
+    actor: AdminUser = Depends(require_admin),
+):
+    """어드민 수기 등록 — 본인인증 없이 신원 확인 완료 상태(approved)로 만든다."""
+    return TraineeResponse.from_orm(await trainee_service.create_trainee(db, body, actor))
+
+
 @router.get("/{trainee_id}", response_model=TraineeResponse)
 async def get_trainee(
     trainee_id: uuid.UUID,
@@ -64,6 +75,16 @@ async def update_trainee(
 ):
     trainee = await trainee_service.update_trainee(db, trainee_id, body, actor)
     return TraineeResponse.from_orm(trainee)
+
+
+@router.delete("/{trainee_id}", status_code=204)
+async def delete_trainee(
+    trainee_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    actor: AdminUser = Depends(require_admin),
+):
+    """소프트딜리트 — 이력·확인서·결제는 보존되고 목록·회원 서비스에서만 숨겨진다."""
+    await trainee_service.delete_trainee(db, trainee_id, actor)
 
 
 # ── 등급 마스터 ────────────────────────────────────────────────────────────────
@@ -95,3 +116,13 @@ async def update_grade(
     actor: AdminUser = Depends(require_admin),
 ):
     return await trainee_service.update_grade(db, grade_id, body, actor)
+
+
+@grade_router.delete("/{grade_id}", status_code=204)
+async def delete_grade(
+    grade_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    actor: AdminUser = Depends(require_admin),
+):
+    """소프트딜리트 — 배정된 활성 교육생이 있으면 409."""
+    await trainee_service.delete_grade(db, grade_id, actor)

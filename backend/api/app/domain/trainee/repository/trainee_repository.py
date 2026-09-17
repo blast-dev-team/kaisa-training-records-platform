@@ -7,11 +7,20 @@ from app.domain.trainee.model import MembershipGrade, Trainee
 
 
 async def find_by_id(db: AsyncSession, trainee_id: uuid.UUID) -> Trainee | None:
-    return await db.get(Trainee, trainee_id)
+    result = await db.execute(
+        select(Trainee).where(
+            Trainee.id == trainee_id, Trainee.deleted_at.is_(None)
+        )
+    )
+    return result.scalar_one_or_none()
 
 
 async def find_by_user_id(db: AsyncSession, user_id: uuid.UUID) -> Trainee | None:
-    result = await db.execute(select(Trainee).where(Trainee.user_id == user_id))
+    result = await db.execute(
+        select(Trainee).where(
+            Trainee.user_id == user_id, Trainee.deleted_at.is_(None)
+        )
+    )
     return result.scalar_one_or_none()
 
 
@@ -24,7 +33,7 @@ async def list_trainees(
     limit: int = 20,
 ) -> tuple[list[Trainee], int]:
     """이름/교육번 검색 — 전화번호는 암호화 저장이라 부분 검색 불가 (문서 명시)."""
-    stmt = select(Trainee)
+    stmt = select(Trainee).where(Trainee.deleted_at.is_(None))
     if search:
         pattern = f"%{search}%"
         stmt = stmt.where(

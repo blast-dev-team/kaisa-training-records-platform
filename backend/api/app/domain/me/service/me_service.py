@@ -10,12 +10,11 @@ from app.core.error_codes import api_error
 from app.core.kst import kst_range_end, kst_range_start, now_kst, today_kst
 from app.core.session import (
     ADMIN_TOKEN_PREFIX,
+    extend_user_session,
     resolve_user_session,
     resolve_user_session_expiry,
 )
 from app.domain.certificate.model import Certificate
-from app.domain.certificate.repository import pricing_repository
-from app.domain.certificate.service.pricing import select_pricing_rule
 from app.domain.me.repository import me_repository as repo
 from app.domain.me.schema import (
     CertificatePriceResponse,
@@ -41,7 +40,31 @@ async def get_session(db: AsyncSession, token: str | None) -> MeSessionResponse:
         raise api_error("SESSION_EXPIRED")
     expires_at = await resolve_user_session_expiry(db, token)
     trainee = (
-        await db.execute(select(Trainee).where(Trainee.user_id == user.id))
+        await db.execute(
+            select(Trainee).where(
+                Trainee.user_id == user.id, Trainee.deleted_at.is_(None)
+            )
+        )
+    ).scalar_one_or_none()
+    if trainee is None or expires_at is None:
+        raise api_error("TRAINEE_NOT_LINKED")
+    return MeSessionResponse(name=trainee.name, expires_at=expires_at)
+
+
+async def extend_session(db: AsyncSession, token: str | None) -> MeSessionResponse:
+    """본인인증 세션 연장 — 유효 세션이면 만료 시각을 리셋하고 새 상태 반환. 무효면 401."""
+    if not token or token.startswith(ADMIN_TOKEN_PREFIX):
+        raise api_error("UNAUTHORIZED")
+    user = await resolve_user_session(db, token)
+    if user is None:
+        raise api_error("SESSION_EXPIRED")
+    expires_at = await extend_user_session(db, token)
+    trainee = (
+        await db.execute(
+            select(Trainee).where(
+                Trainee.user_id == user.id, Trainee.deleted_at.is_(None)
+            )
+        )
     ).scalar_one_or_none()
     if trainee is None or expires_at is None:
         raise api_error("TRAINEE_NOT_LINKED")
@@ -143,7 +166,7 @@ async def decorate_member_records(
     today = today_kst()
     items = []
     for record in records:
-        response = TrainingRecordResponse.model_validate(record)
+        response = TrainingRecordResponse.from_orm(record)
         for key, value in _certificate_fields(
             record, certs.get(record.id), now, today
         ).items():
@@ -168,7 +191,11 @@ async def list_member_records(
     trainee_id: uuid.UUID | None = None
     if user is not None:
         trainee = (
-            await db.execute(select(Trainee).where(Trainee.user_id == user.id))
+            await db.execute(
+            select(Trainee).where(
+                Trainee.user_id == user.id, Trainee.deleted_at.is_(None)
+            )
+        )
         ).scalar_one_or_none()
         trainee_id = trainee.id if trainee else None
     records, total = await repo.list_member_records(
@@ -193,7 +220,11 @@ async def get_demo_download_url(db: AsyncSession, user: User, record_id: uuid.UU
             message="파일 저장소가 설정되지 않았어요. 관리자에게 문의해 주세요",
         )
     trainee = (
-        await db.execute(select(Trainee).where(Trainee.user_id == user.id))
+        await db.execute(
+            select(Trainee).where(
+                Trainee.user_id == user.id, Trainee.deleted_at.is_(None)
+            )
+        )
     ).scalar_one_or_none()
     record = await repo.find_downloadable_record(
         db, record_id, trainee.id if trainee else None
@@ -209,7 +240,8 @@ async def get_demo_download_url(db: AsyncSession, user: User, record_id: uuid.UU
 
 
 async def get_my_record(db: AsyncSession, trainee: Trainee, record_id: uuid.UUID):
-    record = await repo.find_my_record(db, record_id, trainee.id)
+    """본인 이력 또는 공용 데모 이력 — 목록·신청 게이트와 같은 범위 (가격 미리보기용)."""
+    record = await repo.find_downloadable_record(db, record_id, trainee.id)
     if record is None:
         raise api_error("NOT_FOUND", message="교육이력을 찾을 수 없어요")
     return record
@@ -220,7 +252,11 @@ async def get_member_record_response(
 ) -> TrainingRecordResponse:
     """회원 포털 상세 — 본인/공용 데모 이력 + 회원별 발급 상태. 교육생 미연결도 데모는 본다."""
     trainee = (
-        await db.execute(select(Trainee).where(Trainee.user_id == user.id))
+        await db.execute(
+            select(Trainee).where(
+                Trainee.user_id == user.id, Trainee.deleted_at.is_(None)
+            )
+        )
     ).scalar_one_or_none()
     record = await repo.find_downloadable_record(
         db, record_id, trainee.id if trainee else None
@@ -341,19 +377,12 @@ async def get_certificate_price(
             "GRADE_NOT_DETERMINED", message="회원등급 판별이 완료되지 않았어요"
         )
 
-    now = now_kst()
-    rules = await pricing_repository.find_rules(
-        db, trainee.membership_grade_id, issue_type
-    )
-    rule = select_pricing_rule(rules, trainee.membership_grade_id, issue_type, now)
-    if rule is None:
-        raise api_error("PRICING_RULE_NOT_FOUND", message="적용할 가격 규칙이 없어요")
-
     return CertificatePriceResponse(
         training_record_id=record.id,
         course_name=record.course_name,
         issue_type=issue_type,
         grade_name=trainee.grade.name if trainee.grade else None,
-        price_krw=rule.price_krw,
-        currency=rule.currency,
+        # 발급 단가 = 등급 가격. 무료 재발급(7일 내)은 web 이 reissueFreeUntil 로 별도 표기
+        price_krw=trainee.grade.price_krw if trainee.grade else 0,
+        currency="KRW",
     )

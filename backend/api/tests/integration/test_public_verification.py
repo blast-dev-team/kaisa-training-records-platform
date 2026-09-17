@@ -4,6 +4,7 @@ from sqlalchemy import select
 
 from app.domain.certificate.model import Certificate, CertificateVerificationLog
 from tests.integration.helpers import (
+    admin_cookie,
     make_admin,
     make_grade,
     make_pricing,
@@ -84,7 +85,7 @@ class TestVerify:
         resp = await client.post(
             f"/api/certificates/{cert.id}/revoke",
             json={"reason": "오발급"},
-            cookies=member_cookie(admin_token),
+            cookies=admin_cookie(admin_token),
         )
         assert resp.status_code == 200
 

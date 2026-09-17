@@ -18,11 +18,12 @@ async def list_orders(
     db: AsyncSession,
     trainee_id: uuid.UUID | None = None,
     status: str | None = None,
+    search: str | None = None,
     page: int = 1,
     limit: int = 20,
 ) -> tuple[list[PaymentOrder], int]:
     return await repo.list_orders(
-        db, trainee_id=trainee_id, status=status, page=page, limit=limit
+        db, trainee_id=trainee_id, status=status, search=search, page=page, limit=limit
     )
 
 

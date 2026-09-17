@@ -77,8 +77,18 @@ class IdentityReviewResponse(BaseModel):
         )
 
 
+class NewTraineeCreate(BaseModel):
+    """수동 심사 — 검색·대조로 매칭할 교육생이 없을 때 모달에서 새로 생성해 연결한다."""
+
+    name: str
+    phone: str | None = None  # 평문 수신 → 암호화 저장
+    email: str | None = None
+
+
 class ReviewApproveRequest(BaseModel):
-    trainee_id: uuid.UUID
+    # 기존 교육생 연결과 신규 생성 중 정확히 하나 — 검증은 service 에서
+    trainee_id: uuid.UUID | None = None
+    new_trainee: NewTraineeCreate | None = None
     determined_grade_id: uuid.UUID | None = None
 
 

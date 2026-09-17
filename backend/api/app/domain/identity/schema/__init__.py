@@ -1,5 +1,6 @@
 from app.domain.identity.schema.identity import (
     IdentityReviewResponse,
+    NewTraineeCreate,
     PassCompleteRequest,
     PassCompleteResponse,
     PassStartRequest,
@@ -11,6 +12,7 @@ from app.domain.identity.schema.identity import (
 
 __all__ = [
     "IdentityReviewResponse",
+    "NewTraineeCreate",
     "PassCompleteRequest",
     "PassCompleteResponse",
     "PassStartRequest",

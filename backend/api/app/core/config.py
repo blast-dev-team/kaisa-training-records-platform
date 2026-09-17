@@ -72,6 +72,9 @@ class Settings(BaseSettings):
 
     # 세션 (DB 세션 테이블 + httponly 쿠키 — opaque 랜덤 토큰, 서명키 없음)
     SESSION_COOKIE_NAME: str = "kaisa_session"
+    # 관리자 세션 쿠키 — web(개인회원)과 같은 브라우저에서 동시 로그인하려면
+    # 같은 api 호스트에 쿠키 두 개가 공존해야 하므로 이름을 분리한다
+    ADMIN_SESSION_COOKIE_NAME: str = "kaisa_admin_session"
     SESSION_TTL_HOURS: int = 24
     # 개인회원(PASS 본인인증) 세션 유효시간 — 관리자(24h)와 분리. 지나면 재인증 필요
     USER_SESSION_TTL_MINUTES: int = 10
