@@ -3,7 +3,7 @@
 > 기준 문서: [dbdiagram.io](dbdiagram.io) (DBML v1.1) · PostgreSQL
 > 모델 변경 시 본 파일과 DBML 을 **반드시 함께** 갱신한다.
 
-총 21 테이블 (DBML v1.1 20개 + `user_sessions`).
+총 22 테이블 (DBML v1.1 20개 + `user_sessions` + `admin_sessions`).
 
 공통 규칙:
 
@@ -69,12 +69,14 @@ PASS 성공 시 CI로 find-or-create. 재가입 절차 없음 — 같은 CI 재�
 | user_id | uuid UNIQUE FK→users SET NULL | 회원가입 전 NULL 허용 |
 | trainee_no | varchar(100) UNIQUE | 협회 관리 교육생 고유번호 |
 | name | varchar(100) NOT NULL | |
+| birth_date | date | 생년월일 (어드민 수정 항목) |
 | phone_encrypted | text | Fernet 암호화 |
 | email | varchar(255) | |
 | membership_grade_id | uuid FK→membership_grades SET NULL | |
 | review_status | varchar(30) NOT NULL DEFAULT 'unverified' | unverified / pending / approved / rejected (로그인 제어 아님) |
 | reviewed_at | timestamptz | |
 | memo | text | |
+| deleted_at | timestamptz | soft delete — 진행 중 신청·미결제 주문 있으면 409 차단. 이력·확인서·결제는 보존되고 활성 조회에서만 숨김 |
 | created_at / updated_at | timestamptz NOT NULL | |
 
 CI 는 `users.ci_hash` 단일 소스. CI 없는 이관분은 수동 매칭.
@@ -90,8 +92,11 @@ CI 는 `users.ci_hash` 단일 소스. CI 없는 이관분은 수동 매칭.
 | name | varchar(100) NOT NULL | 예: 정회원, 준회원, 비회원 |
 | description | text | |
 | sort_order | int NOT NULL DEFAULT 0 | |
+| price_krw | int NOT NULL | 발급 단가 — 등급이 직접 가진다 (구 certificate_pricing_rules 체계 폐지, 2026-09-17) |
 | is_active | boolean NOT NULL DEFAULT true | |
 | created_at / updated_at | timestamptz NOT NULL | |
+
+삭제(DELETE)는 소프트딜리트 — is_active=false 전환. 배정된 활성 교육생이 있으면 409 차단.
 
 ### trainee_grade_histories — 등급 변경 이력
 
@@ -118,6 +123,21 @@ CI 는 `users.ci_hash` 단일 소스. CI 없는 이관분은 수동 매칭.
 | expires_at | timestamptz NOT NULL | 고정 TTL 24h — 슬라이딩 연장 없음 |
 
 로그아웃 = 행 삭제. 서명키 불필요 (opaque 랜덤).
+
+### admin_sessions — 관리자 세션 (DBML 부가)
+
+| 컬럼 | 타입 | 설명 |
+|------|------|------|
+| id | uuid PK | |
+| admin_id | uuid NOT NULL FK→admin_users CASCADE | |
+| token_hash | varchar(64) NOT NULL UNIQUE | opaque 토큰(256-bit)의 SHA-256 hex |
+| user_agent | text | |
+| created_at | timestamptz NOT NULL | |
+| expires_at | timestamptz NOT NULL | 고정 TTL 24h — 슬라이딩 연장 없음 |
+
+관리자 세션도 DB 저장 (2026-09-16) — 과거 in-memory 였는데 BE 재배포마다 관리자
+전원이 로그아웃됐다. 쿠키는 개인회원(`kaisa_session`)과 분리(`kaisa_admin_session`)
+— 같은 브라우저에서 web·admin 동시 로그인 지원. 로그아웃 = 행 삭제.
 
 ---
 
@@ -210,6 +230,10 @@ CI 는 `users.ci_hash` 단일 소스. CI 없는 이관분은 수동 매칭.
 | institution_id | uuid FK→training_institutions SET NULL | |
 | course_name | varchar(255) NOT NULL | 당시 교육명 스냅샷 |
 | institution_name | varchar(255) NOT NULL | 당시 기관명 스냅샷 |
+| form_no | varchar(100) | 서식번호 (확인서 표기용) |
+| doc_no | varchar(100) | 문서번호 (확인서 표기용) |
+| supervisor_grade | varchar(50) | 감리원 등급 (예: 정감리원) |
+| supervisor_cert_no | varchar(100) | 감리원증 발급번호 |
 | total_hours | numeric(8,2) NOT NULL DEFAULT 0 | 교육 시간 |
 | completed_hours | numeric(8,2) NOT NULL DEFAULT 0 | 이수 시간 |
 | started_at / ended_at | date | |
@@ -230,22 +254,14 @@ CI 는 `users.ci_hash` 단일 소스. CI 없는 이관분은 수동 매칭.
 
 ## 5. 확인서 발급 가격
 
-### certificate_pricing_rules — 등급별 발급 단가
+**2026-09-17 폐지** — 발급 단가는 `membership_grades.price_krw` (등급 소속) 로 통합.
+최초발급/재발급 규칙 분리와 유효기간(valid_from/to) 체계를 없앴다. 남는 규칙:
 
-| 컬럼 | 타입 | 설명 |
-|------|------|------|
-| id | uuid PK | |
-| membership_grade_id | uuid NOT NULL FK→membership_grades | |
-| issue_type | varchar(30) NOT NULL DEFAULT 'original' | original / reissue |
-| price_krw | int NOT NULL | 부가세 포함 여부는 정책 정의 |
-| currency | varchar(3) NOT NULL DEFAULT 'KRW' | |
-| valid_from | timestamptz NOT NULL / valid_to timestamptz | |
-| is_active | boolean NOT NULL DEFAULT true | |
-| created_at / updated_at | timestamptz NOT NULL | |
+- 재발급이 `previous_certificate_id` 로 직전 확인서를 물고, 직전 발급 7일 이내면 무료(0원)
+- 신청 시점 금액은 `certificate_requests.amount_krw` 스냅샷으로 보존
 
-가격 변경 시 기존 규칙 보존 — 과거 결제 금액 유지.
-
-인덱스: `(membership_grade_id, issue_type, valid_from)`
+`certificate_pricing_rules` 테이블은 레거시 — 과거 신청의 `pricing_rule_id` 참조 보존용으로만 남긴다.
+신규 코드는 읽거나 쓰지 않는다.
 
 ---
 
@@ -263,7 +279,7 @@ CI 는 `users.ci_hash` 단일 소스. CI 없는 이관분은 수동 매칭.
 | requested_by | uuid NOT NULL FK→users | |
 | issue_type | varchar(30) NOT NULL DEFAULT 'original' | original / reissue |
 | membership_grade_id | uuid NOT NULL FK→membership_grades | 신청 당시 판별 등급 |
-| pricing_rule_id | uuid FK→certificate_pricing_rules SET NULL | |
+| pricing_rule_id | uuid FK→certificate_pricing_rules SET NULL | 레거시 — 신규 신청은 NULL |
 | amount_krw | int NOT NULL | 신청 당시 확정 금액 스냅샷 |
 | currency | varchar(3) NOT NULL DEFAULT 'KRW' | |
 | status | varchar(30) NOT NULL DEFAULT 'pending' | pending / payment_pending / paid / issuing / issued / canceled / failed |
