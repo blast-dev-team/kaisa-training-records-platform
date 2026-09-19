@@ -160,7 +160,7 @@ PATCH /api/certificate-pricing-rules/{rule_id} { price_krw | valid_to | is_activ
 
 | Method | Path | Query / Body | 설명 |
 |---|---|---|---|
-| GET | `/api/training-records` | `trainee_id`,`source`,`completion_status`,`page`,`limit` | 목록 (Paged) |
+| GET | `/api/training-records` | `trainee_id`,`session_id`,`source`,`completion_status`,`search`,`page`,`limit` | 목록 (Paged) — session_id = 일정별 수강생 |
 | GET | `/api/training-records/{record_id}` | | 단건 |
 | POST | `/api/training-records` | 아래 Create | 등록 (201) — internal/external 동일 경로 |
 | PATCH | `/api/training-records/{record_id}` | 아래 Update | 수정 |
@@ -197,8 +197,21 @@ PATCH /api/certificate-pricing-rules/{rule_id} { price_krw | valid_to | is_activ
 | GET/POST/PATCH | `/api/institutions[/{id}]` | `{name, institution_code?, ...}` | 조회/등록(201)/수정 |
 | GET | `/api/courses` | `institution_id`,`is_active` | 과정 목록 (배열) |
 | GET/POST/PATCH | `/api/courses[/{id}]` | `{institution_id, name, course_code?, description?, total_hours, category?}` | 조회/등록(201)/수정 |
+| GET | `/api/course-sessions` | `course_id`,`search`,`page`,`limit` | 교육 일정 목록 (Paged) — 과정명·기관명 검색 |
+| GET/POST/PATCH | `/api/course-sessions[/{id}]` | `{course_id, started_at?, ended_at?, total_hours, recognized_hours, memo?}` | 조회/등록(201)/수정 |
+| DELETE | `/api/course-sessions/{id}` | | 삭제 (204) — 연결 이력 보존, session_id 만 끊김 |
 
 삭제 엔드포인트 없음 — 비활성은 `is_active: false`.
+
+#### 교육 일정 → 교육생 일괄 연결
+
+```
+POST /api/training-records/bulk
+{ "session_id": "...", "trainee_ids": ["..."], "completed_hours"?: 8, "completion_status"?: "completed", "memo"?: "" }
+→ { "created": 2, "skipped": 1 }
+```
+
+연결 즉시 교육이력 생성. 과정명·기관명·기간·시수는 일정에서 스냅샷. 이미 연결된 교육생은 skipped.
 
 ### 본인인증 심사 (admin)
 
@@ -336,7 +349,8 @@ src/entities/<도메인>/
 | `entities/auth` | `/auth/register`, `/auth/login`, `/auth/logout`, `/auth/me` |
 | `entities/admin-user` | `/admin-users`, `/admin-allowed-emails` (계정·화이트리스트) |
 | `entities/trainee` | `/trainees`, `/membership-grades` |
-| `entities/training-record` | `/training-records` |
+| `entities/training-record` | `/training-records` (bulk 포함) |
+| `entities/course-session` | `/course-sessions` |
 | `entities/institution` | `/institutions`, `/courses` |
 | `entities/identity-review` | `/identity-reviews` (심사·승인·거절) |
 | `entities/certificate` | `/certificates` (내역·철회), `/certificate-pricing-rules` |

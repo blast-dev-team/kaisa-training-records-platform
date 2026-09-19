@@ -3,7 +3,7 @@
 > 기준 문서: [dbdiagram.io](dbdiagram.io) (DBML v1.1) · PostgreSQL
 > 모델 변경 시 본 파일과 DBML 을 **반드시 함께** 갱신한다.
 
-총 22 테이블 (DBML v1.1 20개 + `user_sessions` + `admin_sessions`).
+총 23 테이블 (DBML v1.1 20개 + `user_sessions` + `admin_sessions` + `course_sessions`).
 
 공통 규칙:
 
@@ -215,6 +215,25 @@ CI 는 `users.ci_hash` 단일 소스. CI 없는 이관분은 수동 매칭.
 
 인덱스: `(institution_id)`, `(name)`
 
+### course_sessions — 교육 일정 (과정 개설 회차)
+
+| 컬럼 | 타입 | 설명 |
+|------|------|------|
+| id | uuid PK | |
+| course_id | uuid NOT NULL FK→training_courses CASCADE | |
+| schedule_no | integer | 구 시스템 `EDC_SCHDL_SN` 보존. 원본에 단독 중복 5종이 있어 UNIQUE 제약 없음 — `(course_id, schedule_no)` 로 식별 |
+| started_at / ended_at | date | |
+| total_hours | numeric(8,2) NOT NULL DEFAULT 0 | 교육 시간 |
+| recognized_hours | numeric(8,2) NOT NULL DEFAULT 0 | 인정 시수 — 이력 생성 시 기본 이수 시수 |
+| is_active | boolean NOT NULL DEFAULT true | 운영중 / 종료 |
+| memo | text | 일정 등록 시 운영 메모 |
+| created_at / updated_at | timestamptz NOT NULL | |
+
+인덱스: `(course_id)`, `(started_at)`, `(schedule_no)`
+
+- 과정 마스터에 없던 "개설 일정" 레벨. 일정에 교육생을 연결하면 `training_records` 이력이 생성된다
+- 일정 삭제 시 연결 이력은 보존되고 `session_id` 만 끊긴다 (FK SET NULL)
+
 ---
 
 ## 4. 교육이력 (외부 수료 포함)
@@ -227,6 +246,7 @@ CI 는 `users.ci_hash` 단일 소스. CI 없는 이관분은 수동 매칭.
 | training_record_no | varchar(100) NOT NULL UNIQUE | 목록의 ID |
 | trainee_id | uuid NOT NULL FK→trainees | |
 | course_id | uuid FK→training_courses SET NULL | 레거시 이관분 NULL 가능 |
+| session_id | uuid FK→course_sessions SET NULL | 연결된 교육 일정 — 일정 연결·이관 이력만 보유 |
 | institution_id | uuid FK→training_institutions SET NULL | |
 | course_name | varchar(255) NOT NULL | 당시 교육명 스냅샷 |
 | institution_name | varchar(255) NOT NULL | 당시 기관명 스냅샷 |
