@@ -119,6 +119,29 @@ async def login_admin(
     return admin, token
 
 
+async def change_own_password(
+    db: AsyncSession, actor: AdminUser, current_password: str, new_password: str
+) -> None:
+    """본인 비밀번호 변경 — 현재 비밀번호 검증 후 교체. 감사로그에 평문·해시 미기록."""
+    if not verify_password(current_password, actor.password_hash):
+        raise api_error(
+            "INVALID_CREDENTIALS",
+            message="현재 비밀번호가 일치하지 않아요",
+        )
+    if not validate_password(new_password):
+        raise api_error("WEAK_PASSWORD")
+    actor.password_hash = hash_password(new_password)
+    record_audit(
+        db,
+        actor_admin_id=actor.id,
+        action="admin_user.password_changed",
+        entity_type="admin_user",
+        entity_id=actor.id,
+    )
+    await db.commit()
+    await db.refresh(actor)
+
+
 async def logout_admin_session(db: AsyncSession, token: str | None) -> None:
     """관리자 세션 폐기(DB). 개인회원 세션은 logout_user_session."""
     if token and token.startswith(ADMIN_TOKEN_PREFIX):
@@ -165,6 +188,33 @@ async def update_admin_user(
     admin = await db.get(AdminUser, admin_id)
     if admin is None:
         raise api_error("NOT_FOUND")
+    # 감사 로그용 원본 — 할당이 먼저 일어나므로 변경 전 값은 여기서 캡처
+    orig_name = admin.name
+    orig_role = admin.role
+    if data.name is not None:
+        name = data.name.strip()
+        if not name or len(name) > 100:
+            raise api_error(
+                "VALIDATION_ERROR",
+                status_code=400,
+                message="이름은 1~100자로 입력해 주세요",
+            )
+        admin.name = name
+    if data.role is not None:
+        if data.role not in ("super", "staff"):
+            raise api_error(
+                "VALIDATION_ERROR",
+                status_code=400,
+                message="role 은 super 또는 staff 여야 해요",
+            )
+        # 자기 역할 변경 금지 — 마지막 super 가 스스로 강등되면 화면 잠김
+        if data.role != admin.role and admin.id == actor.id:
+            raise api_error(
+                "VALIDATION_ERROR",
+                status_code=400,
+                message="자신의 역할은 변경할 수 없어요",
+            )
+        admin.role = data.role
     if data.status is not None:
         if data.status not in ("active", "disabled"):
             raise api_error(
@@ -189,6 +239,37 @@ async def update_admin_user(
             entity_id=admin.id,
             before=before,
             after={"status": admin.status},
+        )
+    if data.password is not None:
+        if not validate_password(data.password):
+            raise api_error("WEAK_PASSWORD")
+        # 값 자체는 절대 기록하지 않는다 — 발생 사실만 남긴다
+        admin.password_hash = hash_password(data.password)
+        record_audit(
+            db,
+            actor_admin_id=actor.id,
+            action="admin_user.password_reset",
+            entity_type="admin_user",
+            entity_id=admin.id,
+        )
+    # 이름·역할 변경 감사 — 바뀐 필드만 before/after 에 기록
+    before_profile: dict = {}
+    after_profile: dict = {}
+    if admin.name != orig_name:
+        before_profile["name"] = orig_name
+        after_profile["name"] = admin.name
+    if admin.role != orig_role:
+        before_profile["role"] = orig_role
+        after_profile["role"] = admin.role
+    if before_profile:
+        record_audit(
+            db,
+            actor_admin_id=actor.id,
+            action="admin_user.updated",
+            entity_type="admin_user",
+            entity_id=admin.id,
+            before=before_profile,
+            after=after_profile,
         )
     await db.commit()
     await db.refresh(admin)

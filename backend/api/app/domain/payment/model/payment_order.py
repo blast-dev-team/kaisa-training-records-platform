@@ -2,9 +2,10 @@ import uuid
 from datetime import datetime
 
 from sqlalchemy import DateTime, ForeignKey, Index, Integer, String, Uuid, func
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
+from app.domain.trainee.model import Trainee
 
 
 class PaymentOrder(Base):
@@ -42,3 +43,4 @@ class PaymentOrder(Base):
         onupdate=func.now(),
         nullable=False,
     )
+    trainee: Mapped["Trainee"] = relationship("Trainee", lazy="joined")

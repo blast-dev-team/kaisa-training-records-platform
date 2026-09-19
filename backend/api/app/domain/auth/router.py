@@ -16,6 +16,7 @@ from app.domain.auth.schema import (
     AllowedEmailCreate,
     AllowedEmailResponse,
     MeResponse,
+    PasswordChangeRequest,
 )
 from app.domain.auth.service import auth_service
 from app.domain.identity.schema import (
@@ -61,6 +62,18 @@ async def login_admin(
         **session_cookie_params(token, settings.ADMIN_SESSION_COOKIE_NAME)
     )
     return admin
+
+
+@router.patch("/password")
+async def change_password(
+    body: PasswordChangeRequest,
+    db: AsyncSession = Depends(get_db),
+    actor: AdminUser = Depends(require_admin),
+):
+    await auth_service.change_own_password(
+        db, actor, body.current_password, body.new_password
+    )
+    return {"ok": True}
 
 
 @router.post("/logout")

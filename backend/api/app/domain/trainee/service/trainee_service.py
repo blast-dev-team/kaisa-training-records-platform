@@ -50,6 +50,11 @@ async def list_trainees(
     )
 
 
+async def list_cert_no_duplicates(db: AsyncSession) -> list[Trainee]:
+    """감리원증번호 중복 교육생 — 관리자가 직접 수정·삭제하는 데이터."""
+    return await repo.list_cert_no_duplicates(db)
+
+
 async def create_trainee(
     db: AsyncSession, data: TraineeCreate, actor: AdminUser
 ) -> Trainee:
@@ -61,6 +66,8 @@ async def create_trainee(
 
     trainee = Trainee(
         trainee_no=f"TR-{now_kst().strftime('%Y%m%d')}-{secrets.token_hex(2).upper()}",
+        cert_no=data.cert_no,
+        supervisor_grade=data.supervisor_grade,
         name=data.name.strip(),
         birth_date=data.birth_date,
         phone_encrypted=encrypt_field(data.phone) if data.phone else None,

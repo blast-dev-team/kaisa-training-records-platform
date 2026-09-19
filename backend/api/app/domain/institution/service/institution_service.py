@@ -26,9 +26,15 @@ async def get_institution(
 
 
 async def list_institutions(
-    db: AsyncSession, is_active: bool | None = None, search: str | None = None
-) -> list[TrainingInstitution]:
-    return await repo.list_institutions(db, is_active=is_active, search=search)
+    db: AsyncSession,
+    is_active: bool | None = None,
+    search: str | None = None,
+    page: int = 1,
+    limit: int = 20,
+) -> tuple[list[TrainingInstitution], int]:
+    return await repo.list_institutions(
+        db, is_active=is_active, search=search, page=page, limit=limit
+    )
 
 
 async def create_institution(
@@ -129,10 +135,25 @@ async def list_courses(
     institution_id: uuid.UUID | None = None,
     is_active: bool | None = None,
     search: str | None = None,
-) -> list[TrainingCourse]:
+    category: str | None = None,
+    is_external: bool | None = None,
+    page: int = 1,
+    limit: int = 20,
+) -> tuple[list[TrainingCourse], int]:
     return await repo.list_courses(
-        db, institution_id=institution_id, is_active=is_active, search=search
+        db,
+        institution_id=institution_id,
+        is_active=is_active,
+        search=search,
+        category=category,
+        is_external=is_external,
+        page=page,
+        limit=limit,
     )
+
+
+async def list_categories(db: AsyncSession, search: str | None = None) -> list[str]:
+    return await repo.list_categories(db, search=search)
 
 
 async def create_course(

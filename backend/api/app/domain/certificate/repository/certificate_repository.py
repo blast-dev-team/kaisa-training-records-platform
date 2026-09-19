@@ -1,6 +1,7 @@
 import uuid
+from datetime import date, timedelta
 
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.domain.certificate.model import Certificate
@@ -25,6 +26,8 @@ async def list_certificates(
     trainee_id: uuid.UUID | None = None,
     status: str | None = None,
     search: str | None = None,
+    date_from: date | None = None,
+    date_to: date | None = None,
     page: int = 1,
     limit: int = 20,
 ) -> tuple[list[Certificate], int]:
@@ -36,6 +39,14 @@ async def list_certificates(
     if status:
         stmt = stmt.where(Certificate.status == status)
         count_stmt = count_stmt.where(Certificate.status == status)
+    if date_from is not None:
+        cond = Certificate.issued_at >= date_from
+        stmt = stmt.where(cond)
+        count_stmt = count_stmt.where(cond)
+    if date_to is not None:
+        cond = Certificate.issued_at < date_to + timedelta(days=1)
+        stmt = stmt.where(cond)
+        count_stmt = count_stmt.where(cond)
     if search:
         pattern = f"%{search}%"
         cond = or_(

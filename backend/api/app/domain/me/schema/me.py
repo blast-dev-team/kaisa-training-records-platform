@@ -24,6 +24,9 @@ class MeSessionResponse(BaseModel):
 
     name: str
     expires_at: datetime
+    # 교육생 미연결(수동 심사 대기) — WEB에서 심사 대기 화면 분기에 쓴다
+    trainee_linked: bool = True
+    review_pending: bool = False
 
 
 class MyCertificateResponse(BaseModel):

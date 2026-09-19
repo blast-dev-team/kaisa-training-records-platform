@@ -23,7 +23,11 @@ from app.domain.certificate.router import (
 from app.domain.certificate.router import router as certificate_request_router
 from app.domain.health.router import router as health_router
 from app.domain.identity.router import review_router as identity_review_router
-from app.domain.institution.router import course_router
+from app.domain.institution.router import (
+    course_router,
+    session_name_router,
+    session_router,
+)
 from app.domain.institution.router import router as institution_router
 from app.domain.me.router import router as me_router
 from app.domain.payment.router import admin_router as payment_admin_router
@@ -108,6 +112,8 @@ app.include_router(admin_user_router, prefix="/api")
 app.include_router(allowed_email_router, prefix="/api")
 app.include_router(institution_router, prefix="/api")
 app.include_router(course_router, prefix="/api")
+app.include_router(session_router, prefix="/api")
+app.include_router(session_name_router, prefix="/api")
 app.include_router(trainee_router, prefix="/api")
 app.include_router(grade_router, prefix="/api")
 app.include_router(training_record_router, prefix="/api")

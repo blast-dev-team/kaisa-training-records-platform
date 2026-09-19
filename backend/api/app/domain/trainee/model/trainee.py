@@ -36,6 +36,10 @@ class Trainee(Base):
         Uuid, ForeignKey("users.id", ondelete="SET NULL"), nullable=True, unique=True
     )
     trainee_no: Mapped[str | None] = mapped_column(String(100), unique=True)
+    # 감리원증번호 (구 시스템 감리원추가 E열, 예: 정보시스템감리협회 제1361호)
+    cert_no: Mapped[str | None] = mapped_column(String(100))
+    # 감리원 등급 (감리원 / 수석감리원) — 확인서 표기용. 회원등급(결제 단가)과 별개
+    supervisor_grade: Mapped[str | None] = mapped_column(String(50))
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     birth_date: Mapped[date | None] = mapped_column(Date)
     phone_encrypted: Mapped[str | None] = mapped_column(Text)

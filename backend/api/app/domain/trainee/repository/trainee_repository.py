@@ -37,7 +37,11 @@ async def list_trainees(
     if search:
         pattern = f"%{search}%"
         stmt = stmt.where(
-            or_(Trainee.name.ilike(pattern), Trainee.trainee_no.ilike(pattern))
+            or_(
+                Trainee.name.ilike(pattern),
+                Trainee.trainee_no.ilike(pattern),
+                Trainee.cert_no.ilike(pattern),  # 감리원증번호
+            )
         )
     if review_status:
         stmt = stmt.where(Trainee.review_status == review_status)
@@ -51,6 +55,26 @@ async def list_trainees(
     )
     result = await db.execute(stmt)
     return list(result.scalars().all()), int(total)
+
+
+async def list_cert_no_duplicates(
+    db: AsyncSession,
+) -> list[Trainee]:
+    """감리원증번호가 중복인 교육생 — 번호 개명 등으로 발생. 관리자 수동 정리 대상."""
+    dup_nos = select(Trainee.cert_no).where(
+        Trainee.deleted_at.is_(None),
+        Trainee.cert_no.is_not(None),
+    ).group_by(Trainee.cert_no).having(func.count() > 1)
+    stmt = (
+        select(Trainee)
+        .where(
+            Trainee.deleted_at.is_(None),
+            Trainee.cert_no.in_(dup_nos),
+        )
+        .order_by(Trainee.cert_no.asc(), Trainee.name.asc())
+    )
+    result = await db.execute(stmt)
+    return list(result.scalars().all())
 
 
 # ── 등급 마스터 ────────────────────────────────────────────────────────────────

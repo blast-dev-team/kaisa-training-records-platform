@@ -115,6 +115,17 @@ async def get_my_certificates(
     ]
 
 
+@router.post("/certificates/{certificate_id}/downloaded")
+async def mark_certificate_downloaded(
+    certificate_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    trainee: Trainee = Depends(get_current_trainee),
+):
+    """WEB에서 확인서 PDF 저장 신고 — 최초 시각·횟수 기록 (어드민 조회용)."""
+    await me_service.mark_certificate_downloaded(db, trainee, certificate_id)
+    return {"ok": True}
+
+
 @router.get("/certificate-requests", response_model=list[MyCertificateRequestResponse])
 async def get_my_certificate_requests(
     db: AsyncSession = Depends(get_db),

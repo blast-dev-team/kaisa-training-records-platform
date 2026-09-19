@@ -22,28 +22,28 @@ from app.domain.user.model import User
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# 회원등급 — 결제(확인서 발급) 단가 체계. 감리원 등급은 trainees.supervisor_grade 로 분리됨
 GRADES = [
-    ("general", "일반", 1),
-    ("lifetime", "평생", 2),
-    ("annual", "연간", 3),
+    ("general", "일반", 1, 3000),
+    ("lifetime", "평생", 2, 1800),
+    ("annual", "연간", 3, 1800),
 ]
 
-# 기본 발급 가격 — 어드민 가격 규칙 화면에서 수정 가능 (원칙: 어드민이 정한 값 우선)
-DEFAULT_PRICE_KRW = {
-    "general": 3000,
-    "lifetime": 1800,
-    "annual": 1800,
-}
-
-# 구 등급 (정회원/준회원/비회원) — 새 등급 체계로 교체하며 정리한다
-LEGACY_GRADE_CODES = ("regular", "associate", "nonmember")
+# 구 등급 — 정회원/준회원/비회원 + 감리원/수석감리원(회원등급에 잘못 두었던 체계)
+LEGACY_GRADE_CODES = (
+    "regular",
+    "associate",
+    "nonmember",
+    "supervisor",
+    "senior_supervisor",
+)
 
 
 async def seed() -> None:
     async with async_session() as db:
         # 1. 회원등급 — 발급 단가를 등급이 직접 가진다 (기존 가격 규칙 체계 폐지)
         grade_by_code: dict[str, MembershipGrade] = {}
-        for code, name, sort_order in GRADES:
+        for code, name, sort_order, price_krw in GRADES:
             grade = (
                 await db.execute(
                     select(MembershipGrade).where(MembershipGrade.code == code)
@@ -54,10 +54,10 @@ async def seed() -> None:
                     code=code,
                     name=name,
                     sort_order=sort_order,
-                    price_krw=DEFAULT_PRICE_KRW[code],
+                    price_krw=price_krw,
                 )
                 db.add(grade)
-                logger.info("등급 생성: %s(%s, %s원)", name, code, DEFAULT_PRICE_KRW[code])
+                logger.info("등급 생성: %s(%s, %s원)", name, code, price_krw)
             grade_by_code[code] = grade
         await db.flush()
 

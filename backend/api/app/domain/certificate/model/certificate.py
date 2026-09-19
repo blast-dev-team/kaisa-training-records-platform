@@ -54,6 +54,9 @@ class Certificate(Base):
     issued_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     status: Mapped[str] = mapped_column(String(30), nullable=False, default="issued")
+    # WEB에서 PDF 저장한 기록 — 다운로드는 브라우저에서 일어나 로그 호출로만 인지
+    downloaded_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    download_count: Mapped[int] = mapped_column(nullable=False, default=0)
     revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     revoked_reason: Mapped[str | None] = mapped_column(Text)
     pdf_file_key: Mapped[str | None] = mapped_column(Text)

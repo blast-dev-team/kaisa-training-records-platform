@@ -1,4 +1,5 @@
 import uuid
+from datetime import date
 
 from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -61,13 +62,22 @@ async def list_certificates(
     trainee_id: uuid.UUID | None = None,
     status: str | None = None,
     search: str | None = None,
+    date_from: date | None = None,
+    date_to: date | None = None,
     page: int = Query(1, ge=1),
     limit: int = Query(20, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
     _: AdminUser = Depends(require_admin),
 ):
     certificates, total = await certificate_admin_service.list_certificates(
-        db, trainee_id=trainee_id, status=status, search=search, page=page, limit=limit
+        db,
+        trainee_id=trainee_id,
+        status=status,
+        search=search,
+        date_from=date_from,
+        date_to=date_to,
+        page=page,
+        limit=limit,
     )
     return PagedResponse(
         items=[CertificateResponse.model_validate(c) for c in certificates],

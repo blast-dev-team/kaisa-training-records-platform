@@ -30,8 +30,18 @@ class AdminUserResponse(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class PasswordChangeRequest(BaseModel):
+    """본인 비밀번호 변경 — 현재 비밀번호 확인 필수."""
+
+    current_password: str
+    new_password: str
+
+
 class AdminUserUpdate(BaseModel):
     status: str | None = None  # active | disabled
+    name: str | None = None
+    role: str | None = None  # super | staff
+    password: str | None = None  # super 리셋 — 있으면 해시만 갱신, 감사로그에 값 미기록
 
 
 class AllowedEmailCreate(BaseModel):

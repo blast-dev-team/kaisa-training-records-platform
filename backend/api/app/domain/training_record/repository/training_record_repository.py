@@ -1,4 +1,5 @@
 import uuid
+from datetime import date
 
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -19,9 +20,13 @@ async def find_by_id(db: AsyncSession, record_id: uuid.UUID) -> TrainingRecord |
 async def list_records(
     db: AsyncSession,
     trainee_id: uuid.UUID | None = None,
+    session_id: uuid.UUID | None = None,
     source: str | None = None,
+    exclude_source: str | None = None,
     completion_status: str | None = None,
     search: str | None = None,
+    date_from: date | None = None,
+    date_to: date | None = None,
     page: int = 1,
     limit: int = 20,
 ) -> tuple[list[TrainingRecord], int]:
@@ -34,9 +39,24 @@ async def list_records(
     if trainee_id:
         stmt = stmt.where(TrainingRecord.trainee_id == trainee_id)
         count_stmt = count_stmt.where(TrainingRecord.trainee_id == trainee_id)
+    if session_id:
+        stmt = stmt.where(TrainingRecord.session_id == session_id)
+        count_stmt = count_stmt.where(TrainingRecord.session_id == session_id)
     if source:
         stmt = stmt.where(TrainingRecord.source == source)
         count_stmt = count_stmt.where(TrainingRecord.source == source)
+    if exclude_source:
+        stmt = stmt.where(TrainingRecord.source != exclude_source)
+        count_stmt = count_stmt.where(TrainingRecord.source != exclude_source)
+    if date_from is not None or date_to is not None:
+        # 교육 기간이 조회 기간과 겹치는 이력 — 종료 없으면 시작일로 판정
+        effective_end = func.coalesce(TrainingRecord.ended_at, TrainingRecord.started_at)
+        if date_from is not None:
+            stmt = stmt.where(effective_end >= date_from)
+            count_stmt = count_stmt.where(effective_end >= date_from)
+        if date_to is not None:
+            stmt = stmt.where(TrainingRecord.started_at <= date_to)
+            count_stmt = count_stmt.where(TrainingRecord.started_at <= date_to)
     if completion_status:
         stmt = stmt.where(TrainingRecord.completion_status == completion_status)
         count_stmt = count_stmt.where(

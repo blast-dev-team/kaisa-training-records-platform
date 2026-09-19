@@ -1,4 +1,5 @@
 import uuid
+from datetime import date
 
 from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -48,6 +49,8 @@ async def portone_webhook(
 async def list_payment_orders(
     trainee_id: uuid.UUID | None = None,
     status: str | None = None,
+    date_from: date | None = None,
+    date_to: date | None = None,
     search: str | None = None,
     page: int = Query(1, ge=1),
     limit: int = Query(20, ge=1, le=100),
@@ -55,10 +58,10 @@ async def list_payment_orders(
     _: AdminUser = Depends(require_admin),
 ):
     orders, total = await refund_service.list_orders(
-        db, trainee_id=trainee_id, status=status, search=search, page=page, limit=limit
+        db, trainee_id=trainee_id, status=status, date_from=date_from, date_to=date_to, search=search, page=page, limit=limit
     )
     return PagedResponse(
-        items=[PaymentOrderResponse.model_validate(o) for o in orders],
+        items=[PaymentOrderResponse.from_orm(o) for o in orders],
         total=total,
         page=page,
         limit=limit,
@@ -72,5 +75,5 @@ async def refund_payment_order(
     db: AsyncSession = Depends(get_db),
     admin: AdminUser = Depends(require_admin),
 ):
-    order = await refund_service.refund_order(db, order_id, body.reason, admin)
+    order = await refund_service.refund_order(db, order_id, body.reason, admin, body.force)
     return PaymentOrderResponse.model_validate(order)

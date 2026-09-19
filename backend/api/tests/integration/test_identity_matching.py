@@ -1,9 +1,13 @@
 """통합 — PASS 본인인증 매칭: 자동(CI) / 수동 심사 / 거부 / 리플레이."""
 
+from datetime import date
+
 import pytest
 from sqlalchemy import select
 
+from app.core.config import settings
 from app.domain.identity.model import IdentityReview
+from app.domain.trainee.model import Trainee
 from app.integrations import portone
 from tests.integration.helpers import (
     admin_cookie,
@@ -365,3 +369,106 @@ class TestCiSafety:
             rows = await db.execute(text(f"SELECT * FROM {table}"))
             for row in rows:
                 assert "ci-kim" not in str(tuple(row)), f"CI 원문이 {table} 에 저장됨"
+
+
+class TestLegacyAutoMatch:
+    """이름+생년월일 자동 매칭 — 이관 교육생(CI 없음) 연결."""
+
+    async def test_unique_candidate_linked(self, client, db, monkeypatch):
+        """이름+생일이 유일한 이관 교육생 → 자동 연결 + approved."""
+        grade = await make_grade(db)
+        trainee = Trainee(
+            trainee_no="EDU-9001",
+            name="고규만",
+            birth_date=date(1973, 9, 9),
+            supervisor_grade="감리원",
+        )  # user_id 없는 이관분
+        db.add(trainee)
+        await db.commit()
+
+        payload = {
+            "status": "VERIFIED",
+            "verifiedCustomer": {
+                "ci": "ci-auto-1",
+                "di": "di-auto-1",
+                "name": "고규만",
+                "phoneNumber": "01099990001",
+                "birthDate": "1973-09-09",
+            },
+        }
+        resp = await _pass_flow(client, monkeypatch, "vid-legacy-1", payload)
+        assert resp.status_code == 200
+        assert resp.json()["review_status"] == "approved"
+
+        await db.refresh(trainee)
+        assert trainee.user_id is not None
+        assert trainee.review_status == "approved"
+
+        review = (
+            await db.execute(
+                select(IdentityReview).where(IdentityReview.user_id == trainee.user_id)
+            )
+        ).scalar_one()
+        assert review.matched_by == "legacy_id"
+        assert review.status == "approved"
+
+    async def test_duplicate_candidates_manual_review(self, client, db, monkeypatch):
+        """같은 이름+생일이 2명 → 자동 매칭 실패, 수동 심사 대기."""
+        grade = await make_grade(db)
+        for no in ("EDU-9002", "EDU-9003"):
+            db.add(
+                Trainee(
+                    trainee_no=no,
+                    name="중복자",
+                    birth_date=date(1980, 5, 5),
+                )
+            )
+        await db.commit()
+
+        payload = {
+            "status": "VERIFIED",
+            "verifiedCustomer": {
+                "ci": "ci-auto-2",
+                "name": "중복자",
+                "phoneNumber": "01099990002",
+                "birthDate": "1980-05-05",
+            },
+        }
+        resp = await _pass_flow(client, monkeypatch, "vid-legacy-2", payload)
+        assert resp.status_code == 200
+        if settings.ENVIRONMENT != "production":
+            # local·staging — 데모 교육생이 만들어져 approved 로 보이지만,
+            # 핵심은 이관 후보 2명이 자동 연결되지 않았다는 것
+            assert resp.json()["review_status"] == "approved"
+        else:
+            assert resp.json()["review_status"] == "manual_review"
+
+        trainees = (
+            await db.execute(
+                select(Trainee).where(
+                    Trainee.trainee_no.in_(["EDU-9002", "EDU-9003"])
+                )
+            )
+        ).scalars().all()
+        assert len(trainees) == 2
+        assert all(t.user_id is None for t in trainees)
+
+    @pytest.mark.skipif(
+        settings.ENVIRONMENT == "production",
+        reason="production 에는 데모 교육생 자동 생성이 없다 — 심사 대기가 정답",
+    )
+    async def test_no_candidate_manual_review(self, client, db, monkeypatch):
+        """이름+생일이 일치하는 교육생이 없으면 → 수동 심사 대기."""
+        payload = {
+            "status": "VERIFIED",
+            "verifiedCustomer": {
+                "ci": "ci-auto-3",
+                "name": "없는사람",
+                "phoneNumber": "01099990003",
+                "birthDate": "1999-12-31",
+            },
+        }
+        resp = await _pass_flow(client, monkeypatch, "vid-legacy-3", payload)
+        assert resp.status_code == 200
+        # local/staging — 데모 교육생 자동 생성이 우선한다(미연결 없음)
+        assert resp.json()["review_status"] == "approved"

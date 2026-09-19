@@ -38,6 +38,8 @@ class CertificateResponse(BaseModel):
     status: str
     revoked_at: datetime | None
     revoked_reason: str | None
+    downloaded_at: datetime | None = None
+    download_count: int = 0
 
     model_config = {"from_attributes": True}
 

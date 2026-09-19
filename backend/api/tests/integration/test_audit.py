@@ -132,6 +132,7 @@ class TestRefundAudit:
             )
         ).scalar_one()
 
+        # 환불 — 이 결제로 발급된 확인서는 함께 폐기된다
         refund = await client.post(
             f"/api/payment-orders/{order.id}/refunds",
             json={"reason": "고객 요청"},
@@ -139,6 +140,14 @@ class TestRefundAudit:
         )
         assert refund.status_code == 200
         assert refund.json()["status"] == "refunded"
+
+        cert = (
+            await db.execute(
+                select(Certificate).where(Certificate.payment_order_id == order.id)
+            )
+        ).scalar_one()
+        assert cert.status == "revoked"
+        assert cert.revoked_at is not None
 
         rows = [
             r for r in await _audit_rows(db) if r.action == "payment_order.refunded"

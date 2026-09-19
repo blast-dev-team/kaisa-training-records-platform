@@ -53,6 +53,7 @@ class TrainingRecordResponse(BaseModel):
     trainee_name: str | None = None
     trainee_no: str | None = None
     course_id: uuid.UUID | None
+    session_id: uuid.UUID | None = None
     institution_id: uuid.UUID | None
     course_name: str
     institution_name: str
@@ -89,6 +90,7 @@ class TrainingRecordResponse(BaseModel):
             trainee_name=trainee.name if trainee else None,
             trainee_no=trainee.trainee_no if trainee else None,
             course_id=record.course_id,
+            session_id=record.session_id,
             institution_id=record.institution_id,
             course_name=record.course_name,
             institution_name=record.institution_name,
@@ -108,3 +110,18 @@ class TrainingRecordResponse(BaseModel):
             created_at=record.created_at,
             updated_at=record.updated_at,
         )
+
+
+class TrainingRecordBulkCreate(BaseModel):
+    """일정 → 교육생 일괄 연결 — 연결된 교육생 수만큼 이력 생성. 중복 연결은 건너뜀."""
+
+    session_id: uuid.UUID
+    trainee_ids: list[uuid.UUID]
+    completed_hours: Decimal | None = None  # 미지정 시 일정 인정시간
+    completion_status: str = "completed"
+    memo: str | None = None
+
+
+class TrainingRecordBulkResult(BaseModel):
+    created: int
+    skipped: int

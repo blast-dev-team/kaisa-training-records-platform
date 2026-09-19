@@ -57,6 +57,16 @@ async def create_trainee(
     return TraineeResponse.from_orm(await trainee_service.create_trainee(db, body, actor))
 
 
+@router.get("/duplicates", response_model=list[TraineeResponse])
+async def list_cert_no_duplicates(
+    db: AsyncSession = Depends(get_db),
+    _: AdminUser = Depends(require_admin),
+):
+    """감리원증번호가 중복인 교육생 목록 — 클라이언트가 직접 수정·삭제하는 데이터."""
+    trainees = await trainee_service.list_cert_no_duplicates(db)
+    return [TraineeResponse.from_orm(t) for t in trainees]
+
+
 @router.get("/{trainee_id}", response_model=TraineeResponse)
 async def get_trainee(
     trainee_id: uuid.UUID,

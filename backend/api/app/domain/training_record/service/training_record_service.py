@@ -32,21 +32,50 @@ async def get_record(db: AsyncSession, record_id: uuid.UUID) -> TrainingRecord:
 async def list_records(
     db: AsyncSession,
     trainee_id: uuid.UUID | None = None,
+    session_id: uuid.UUID | None = None,
     source: str | None = None,
+    exclude_source: str | None = None,
     completion_status: str | None = None,
     search: str | None = None,
+    date_from=None,
+    date_to=None,
     page: int = 1,
     limit: int = 20,
 ) -> tuple[list[TrainingRecord], int]:
     return await repo.list_records(
         db,
         trainee_id=trainee_id,
+        session_id=session_id,
         source=source,
+        exclude_source=exclude_source,
         completion_status=completion_status,
         search=search,
+        date_from=date_from,
+        date_to=date_to,
         page=page,
         limit=limit,
     )
+
+
+async def create_records_bulk(db: AsyncSession, data, actor: AdminUser) -> tuple[int, int]:
+    """일정 → 교육생 일괄 연결. 로직은 course_session_service 쪽에 있다.
+
+    (course_session_service 가 _record_no 를 가져다 쓰므로 lazy import — 순환 회피)
+    """
+    from app.domain.institution.service.course_session_service import (
+        create_records_for_session,
+    )
+
+    records, skipped = await create_records_for_session(
+        db,
+        data.session_id,
+        data.trainee_ids,
+        data.completed_hours,
+        data.completion_status,
+        data.memo,
+        actor,
+    )
+    return len(records), skipped
 
 
 async def create_record(
@@ -88,6 +117,9 @@ async def create_record(
     if total_hours is None and course is not None:
         total_hours = course.total_hours
 
+    # 확인서 표기용 감리원 정보 — 입력 없으면 교육생 마스터(감리원 등급)에서 자동 주입
+    supervisor_grade = data.supervisor_grade or trainee.supervisor_grade
+    supervisor_cert_no = data.supervisor_cert_no or trainee.cert_no
     record = TrainingRecord(
         training_record_no=_record_no(),
         trainee_id=data.trainee_id,
@@ -97,8 +129,8 @@ async def create_record(
         institution_name=institution_name,
         form_no=data.form_no,
         doc_no=data.doc_no,
-        supervisor_grade=data.supervisor_grade,
-        supervisor_cert_no=data.supervisor_cert_no,
+        supervisor_grade=supervisor_grade,
+        supervisor_cert_no=supervisor_cert_no,
         total_hours=total_hours if total_hours is not None else 0,
         completed_hours=data.completed_hours,
         started_at=data.started_at,

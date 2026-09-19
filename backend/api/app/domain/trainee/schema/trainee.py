@@ -11,6 +11,8 @@ class TraineeResponse(BaseModel):
 
     id: uuid.UUID
     trainee_no: str | None
+    cert_no: str | None
+    supervisor_grade: str | None
     name: str
     birth_date: date | None
     phone_masked: str | None
@@ -31,6 +33,8 @@ class TraineeResponse(BaseModel):
         return cls(
             id=t.id,
             trainee_no=t.trainee_no,
+            cert_no=t.cert_no,
+            supervisor_grade=t.supervisor_grade,
             name=t.name,
             birth_date=t.birth_date,
             phone_masked=phone,
@@ -49,6 +53,8 @@ class TraineeCreate(BaseModel):
     """어드민 수기 등록 — 신원을 어드민이 직접 확인했음을 전제로 approved 로 들어간다."""
 
     name: str
+    cert_no: str | None = None  # 감리원증번호
+    supervisor_grade: str | None = None  # 감리원 등급 (감리원/수석감리원)
     birth_date: date | None = None
     phone: str | None = None  # 평문 수신 → 암호화 저장
     email: EmailStr | None = None
@@ -60,6 +66,8 @@ class TraineeUpdate(BaseModel):
     """review_status 는 본인인증 심사(identity) 플로우에서만 변경 — 여기서 다루지 않는다."""
 
     name: str | None = None
+    cert_no: str | None = None  # 감리원증번호
+    supervisor_grade: str | None = None  # 감리원 등급
     birth_date: date | None = None
     phone: str | None = None  # 평문 수신 → 암호화 저장
     email: EmailStr | None = None

@@ -27,6 +27,7 @@ class PaymentOrderResponse(BaseModel):
     order_no: str
     certificate_request_id: uuid.UUID | None = None
     trainee_id: uuid.UUID
+    trainee_name: str | None = None
     amount_krw: int
     currency: str
     status: str
@@ -35,6 +36,23 @@ class PaymentOrderResponse(BaseModel):
 
     model_config = {"from_attributes": True}
 
+    @classmethod
+    def from_orm(cls, o) -> "PaymentOrderResponse":
+        return cls(
+            id=o.id,
+            order_no=o.order_no,
+            certificate_request_id=o.certificate_request_id,
+            trainee_id=o.trainee_id,
+            trainee_name=o.trainee.name if o.trainee else None,
+            amount_krw=o.amount_krw,
+            currency=o.currency,
+            status=o.status,
+            paid_at=o.paid_at,
+            created_at=o.created_at,
+        )
+
 
 class RefundCreate(BaseModel):
     reason: str
+    # 오류 정정 환불 — 발급된 확인서가 있어도 강제 환불 (확인서 폐기는 별도 처리)
+    force: bool = False

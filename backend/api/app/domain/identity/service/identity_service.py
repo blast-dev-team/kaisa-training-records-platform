@@ -1,5 +1,6 @@
 import secrets
 import uuid
+from datetime import date
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -26,8 +27,41 @@ from app.domain.user.model import User
 from app.integrations import portone
 
 
+async def _auto_match_trainee(
+    db: AsyncSession, user: User, name: str | None, birthday: str | None
+) -> Trainee | None:
+    """이름+생년월일 자동 매칭 — 이관 교육생(CI 없음) 연결용.
+
+    후보가 정확히 1명일 때만 연결한다. 없거나 2명 이상(개명·동명이인)이면
+    None 을 돌려 수동 심사로 넘긴다 — 잘못 연결은 되돌리기 어렵다.
+    """
+    if not name or not birthday:
+        return None
+    try:
+        birth = date.fromisoformat(birthday)
+    except ValueError:
+        return None
+    candidates = (
+        await db.execute(
+            select(Trainee).where(
+                Trainee.deleted_at.is_(None),
+                Trainee.user_id.is_(None),
+                Trainee.name == name.strip(),
+                Trainee.birth_date == birth,
+            )
+        )
+    ).scalars().all()
+    if len(candidates) != 1:
+        return None
+    trainee = candidates[0]
+    trainee.user_id = user.id
+    trainee.review_status = "approved"
+    trainee.reviewed_at = now_kst()
+    return trainee
+
+
 async def _ensure_demo_grade(db: AsyncSession) -> MembershipGrade:
-    """데모 교육생용 등급 — 시드된 첫 등급, 없으면 일반을 만든다 (기본 단가 3,000원)."""
+    """데모 교육생용 등급 — 시드된 첫 등급(일반), 없으면 만든다 (기본 단가 3,000원)."""
     grade = (
         await db.execute(
             select(MembershipGrade).order_by(MembershipGrade.sort_order).limit(1)
@@ -164,14 +198,25 @@ async def complete_pass(
 
     # 매칭·등급 판별은 비동기 점검 — 로그인 제한 없음
     trainee = await repo.find_trainee_by_user_id(db, user.id)
+    auto_matched = False
+    if trainee is None:
+        # CI 로 연결된 교육생이 없으면 이름+생년월일로 이관 데이터 자동 매칭.
+        # 후보가 유일할 때만 연결 — 없거나 중복이면 수동 심사로 넘어간다.
+        auto_candidate = await _auto_match_trainee(db, user, name, birthday)
+        if auto_candidate is not None:
+            trainee = auto_candidate
+            auto_matched = True
     if trainee is None and settings.ENVIRONMENT != "production":
         # local·staging(dev) — 데모: 교육생 미연결 회원은 자동 생성해 발급·결제
         # 플로우를 바로 체험할 수 있게 한다. production 은 수동 심사로 간다.
         trainee = await _create_demo_trainee(db, user, name, phone)
     if trainee is not None:
+        # 매칭된 교육생에 전화번호가 없으면 본인인증 결과로 채운다 (기존값 보존)
+        if phone and not trainee.phone_encrypted:
+            trainee.phone_encrypted = encrypt_field(str(phone))
         # 심사 기록은 상태가 바뀔 때만 남긴다 — 승인된 회원의 재인증마다 남기면
         # 어드민 심사 목록에 동일 인원 row 가 계속 쌓인다 (인증 이력은 verifications 에 기록)
-        if trainee.review_status != "approved":
+        if auto_matched or trainee.review_status != "approved":
             trainee.review_status = "approved"
             trainee.reviewed_at = now_kst()
             db.add(
@@ -180,7 +225,7 @@ async def complete_pass(
                     user_id=user.id,
                     trainee_id=trainee.id,
                     status="approved",
-                    matched_by="ci",
+                    matched_by="legacy_id" if auto_matched else "ci",
                     determined_grade_id=trainee.membership_grade_id,
                     reviewed_at=now_kst(),
                 )
@@ -363,6 +408,13 @@ async def approve_review(
                 message="이미 다른 계정에 연결된 교육생이에요",
             )
         trainee.user_id = review.user_id
+        # 전화번호가 없는 교육생 — 본인인증 결과의 번호를 채운다 (암호문 그대로 복사)
+        if not trainee.phone_encrypted and review.identity_verification_id:
+            verification = await db.get(
+                IdentityVerification, review.identity_verification_id
+            )
+            if verification and verification.verified_phone_encrypted:
+                trainee.phone_encrypted = verification.verified_phone_encrypted
 
     trainee.review_status = "approved"
     trainee.reviewed_at = now_kst()

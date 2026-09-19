@@ -15,6 +15,7 @@ from app.core.session import (
     resolve_user_session_expiry,
 )
 from app.domain.certificate.model import Certificate
+from app.domain.identity.repository import identity_repository as identity_repo
 from app.domain.me.repository import me_repository as repo
 from app.domain.me.schema import (
     CertificatePriceResponse,
@@ -46,8 +47,19 @@ async def get_session(db: AsyncSession, token: str | None) -> MeSessionResponse:
             )
         )
     ).scalar_one_or_none()
-    if trainee is None or expires_at is None:
-        raise api_error("TRAINEE_NOT_LINKED")
+    if trainee is None:
+        # 교육생 미연결 — 로그인 자체는 성공. WEB이 심사 대기 화면으로 분기한다
+        if expires_at is None:
+            raise api_error("SESSION_EXPIRED")
+        pending = await identity_repo.find_pending_manual_review(db, user.id)
+        return MeSessionResponse(
+            name=user.name or "본인인증 고객",
+            expires_at=expires_at,
+            trainee_linked=False,
+            review_pending=pending is not None,
+        )
+    if expires_at is None:
+        raise api_error("SESSION_EXPIRED")
     return MeSessionResponse(name=trainee.name, expires_at=expires_at)
 
 
@@ -66,8 +78,19 @@ async def extend_session(db: AsyncSession, token: str | None) -> MeSessionRespon
             )
         )
     ).scalar_one_or_none()
-    if trainee is None or expires_at is None:
-        raise api_error("TRAINEE_NOT_LINKED")
+    if trainee is None:
+        # 교육생 미연결 — 로그인 자체는 성공. WEB이 심사 대기 화면으로 분기한다
+        if expires_at is None:
+            raise api_error("SESSION_EXPIRED")
+        pending = await identity_repo.find_pending_manual_review(db, user.id)
+        return MeSessionResponse(
+            name=user.name or "본인인증 고객",
+            expires_at=expires_at,
+            trainee_linked=False,
+            review_pending=pending is not None,
+        )
+    if expires_at is None:
+        raise api_error("SESSION_EXPIRED")
     return MeSessionResponse(name=trainee.name, expires_at=expires_at)
 
 
@@ -271,6 +294,26 @@ async def get_member_record_response(
 
 async def list_my_certificates(db: AsyncSession, trainee: Trainee):
     return await repo.list_my_certificates(db, trainee.id)
+
+
+async def mark_certificate_downloaded(
+    db: AsyncSession, trainee: Trainee, certificate_id: uuid.UUID
+) -> None:
+    """WEB에서 PDF 저장 시 호출 — 최초 시각 기록 + 횟수 누적.
+
+    다운로드는 브라우저에서 일어나 서버가 강제할 수 없어, 클라 신고를 신뢰한다.
+    실패해도 다운로드 자체는 막지 않는다(fire-and-forget).
+    """
+    from app.domain.certificate.model import Certificate
+
+    cert = await db.get(Certificate, certificate_id)
+    if cert is None or cert.trainee_id != trainee.id:
+        return  # 남의 확인서/없는 건 — 조용히 무시
+    now = now_kst()
+    if cert.downloaded_at is None:
+        cert.downloaded_at = now
+    cert.download_count = (cert.download_count or 0) + 1
+    await db.commit()
 
 
 async def list_my_requests(db: AsyncSession, trainee: Trainee):

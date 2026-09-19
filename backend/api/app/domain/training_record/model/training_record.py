@@ -30,6 +30,7 @@ class TrainingRecord(Base):
     __table_args__ = (
         Index("ix_records_trainee_ended_at", "trainee_id", "ended_at"),
         Index("ix_records_course_id", "course_id"),
+        Index("ix_records_session_id", "session_id"),
         Index("ix_records_institution_id", "institution_id"),
         Index("ix_records_completion_status", "completion_status"),
         Index("ix_records_source", "source"),
@@ -44,6 +45,10 @@ class TrainingRecord(Base):
     )
     course_id: Mapped[uuid.UUID | None] = mapped_column(
         Uuid, ForeignKey("training_courses.id", ondelete="SET NULL"), nullable=True
+    )
+    # 연결된 교육 일정 — 일정 등록 후 교육생 연결로 생성된 이력만 갖는다
+    session_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid, ForeignKey("course_sessions.id", ondelete="SET NULL"), nullable=True
     )
     institution_id: Mapped[uuid.UUID | None] = mapped_column(
         Uuid, ForeignKey("training_institutions.id", ondelete="SET NULL"), nullable=True

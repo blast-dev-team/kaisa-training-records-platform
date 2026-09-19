@@ -6,6 +6,7 @@ from app.domain.auth.schema.auth import (
     AllowedEmailCreate,
     AllowedEmailResponse,
     MeResponse,
+    PasswordChangeRequest,
 )
 
 __all__ = [
@@ -16,4 +17,5 @@ __all__ = [
     "AllowedEmailCreate",
     "AllowedEmailResponse",
     "MeResponse",
+    "PasswordChangeRequest",
 ]

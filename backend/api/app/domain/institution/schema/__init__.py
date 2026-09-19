@@ -1,3 +1,8 @@
+from app.domain.institution.schema.course_session import (
+    SessionCreate,
+    SessionResponse,
+    SessionUpdate,
+)
 from app.domain.institution.schema.institution import (
     CourseCreate,
     CourseResponse,
@@ -5,6 +10,11 @@ from app.domain.institution.schema.institution import (
     InstitutionCreate,
     InstitutionResponse,
     InstitutionUpdate,
+)
+from app.domain.institution.schema.session_name import (
+    SessionNameCreate,
+    SessionNameResponse,
+    SessionNameUpdate,
 )
 
 __all__ = [
@@ -14,4 +24,10 @@ __all__ = [
     "InstitutionCreate",
     "InstitutionResponse",
     "InstitutionUpdate",
+    "SessionCreate",
+    "SessionNameCreate",
+    "SessionNameResponse",
+    "SessionNameUpdate",
+    "SessionResponse",
+    "SessionUpdate",
 ]

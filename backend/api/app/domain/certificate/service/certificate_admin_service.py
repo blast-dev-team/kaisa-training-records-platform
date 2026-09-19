@@ -17,11 +17,20 @@ async def list_certificates(
     trainee_id: uuid.UUID | None = None,
     status: str | None = None,
     search: str | None = None,
+    date_from=None,
+    date_to=None,
     page: int = 1,
     limit: int = 20,
 ) -> tuple[list[Certificate], int]:
     return await repo.list_certificates(
-        db, trainee_id=trainee_id, status=status, search=search, page=page, limit=limit
+        db,
+        trainee_id=trainee_id,
+        status=status,
+        search=search,
+        date_from=date_from,
+        date_to=date_to,
+        page=page,
+        limit=limit,
     )
 
 

@@ -44,6 +44,8 @@ class InstitutionResponse(BaseModel):
 class CourseCreate(BaseModel):
     institution_id: uuid.UUID
     name: str
+    session_name_id: uuid.UUID | None = None  # 회차명 마스터 참조
+    is_external: bool = False  # 외부 교육과정
     course_code: str | None = None
     description: str | None = None
     total_hours: Decimal = Decimal(0)
@@ -52,6 +54,8 @@ class CourseCreate(BaseModel):
 
 class CourseUpdate(BaseModel):
     name: str | None = None
+    session_name_id: uuid.UUID | None = None
+    is_external: bool | None = None
     course_code: str | None = None
     description: str | None = None
     total_hours: Decimal | None = None
@@ -63,6 +67,9 @@ class CourseResponse(BaseModel):
     id: uuid.UUID
     institution_id: uuid.UUID
     institution_name: str
+    session_name_id: uuid.UUID | None = None
+    session_name: str | None = None
+    is_external: bool = False
     course_code: str | None
     name: str
     description: str | None
@@ -77,6 +84,9 @@ class CourseResponse(BaseModel):
             id=c.id,
             institution_id=c.institution_id,
             institution_name=c.institution.name if c.institution else "",
+            session_name_id=c.session_name_id,
+            session_name=c.session_name.name if c.session_name else None,
+            is_external=c.is_external,
             course_code=c.course_code,
             name=c.name,
             description=c.description,
