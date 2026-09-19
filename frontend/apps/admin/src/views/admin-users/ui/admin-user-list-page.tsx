@@ -226,7 +226,8 @@ function EditDialog({
   onClose: () => void
   onSave: (body: { name?: string; role?: AdminRole; password?: string }) => void
 }) {
-  const [name, setName] = useState(admin.name)
+  // 이름이 비어 있는(등록 시 미입력) 관리자 대비 — null 방어
+  const [name, setName] = useState(admin.name ?? '')
   const [role, setRole] = useState<AdminRole>(admin.role)
   const [newPassword, setNewPassword] = useState('')
 
