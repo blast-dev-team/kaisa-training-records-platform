@@ -12,6 +12,7 @@ import { Dialog } from "@/src/shared/ui/dialog";
 import { PageContainer } from "@/src/shared/ui/page-container";
 import { PageHead } from "@/src/shared/ui/page-head";
 import { Pill } from "@/src/shared/ui/pill";
+import { Select } from "@/src/shared/ui/select";
 import { toYMD } from "@/src/shared/utils/format";
 import {
   courseQueries,
@@ -49,10 +50,27 @@ export function InstitutionListPage() {
   const queryClient = useQueryClient();
 
   const q = searchParams.get("q") ?? "";
+  const status = searchParams.get("status") ?? "";
+  const category = searchParams.get("category") ?? "";
+  const courseType = searchParams.get("course_type") ?? "";
+  const page = Math.max(1, Number(searchParams.get("page") ?? 1) || 1);
   const [searchInput, setSearchInput] = useState(q);
 
-  const { data: institutions } = useQuery(institutionQueries.list({ q: q || undefined }));
-  const { data: courses } = useQuery(courseQueries.list({ search: q || undefined }));
+  const isActive = status === "" ? undefined : status === "active";
+  const { data: institutions } = useQuery(
+    institutionQueries.list({ q: q || undefined, isActive, page, limit: 20 }),
+  );
+  const { data: courses } = useQuery(
+    courseQueries.list({
+      search: q || undefined,
+      isActive,
+      category: category || undefined,
+      isExternal: courseType === "" ? undefined : courseType === "external",
+      page,
+      limit: 20,
+    }),
+  );
+  const { data: categories } = useQuery(courseQueries.categories({ search: "" }));
 
   const deleteMutation = useMutation({
     mutationFn: () => {
@@ -74,6 +92,17 @@ export function InstitutionListPage() {
     const next = new URLSearchParams(searchParams);
     if (key === "institution") next.delete("tab");
     else next.set("tab", key);
+    next.delete("page");
+    setSearchParams(next, { replace: false });
+  };
+
+  const updateTabParam = (patch: Record<string, string | null>, resetPage = true) => {
+    const next = new URLSearchParams(searchParams);
+    for (const [k, v] of Object.entries(patch)) {
+      if (v === null || v === "") next.delete(k);
+      else next.set(k, v);
+    }
+    if (resetPage) next.delete("page");
     setSearchParams(next, { replace: false });
   };
 
@@ -147,14 +176,48 @@ export function InstitutionListPage() {
       {
         accessorKey: "name",
         header: "과정명",
-        meta: { width: 240 },
-        cell: ({ row }) => <span className="font-medium text-ink">{row.original.name}</span>,
+        meta: { width: 420 },
+        cell: ({ row }) => (
+          <span
+            className="block max-w-[380px] truncate font-medium text-ink"
+            title={row.original.name}
+          >
+            {row.original.name}
+          </span>
+        ),
+      },
+      {
+        accessorKey: "isExternal",
+        header: "구분",
+        meta: { width: 110 },
+        cell: ({ row }) => (
+          <Pill tone={row.original.isExternal ? "info" : "default"}>
+            {row.original.isExternal ? "외부" : "계속교육"}
+          </Pill>
+        ),
+      },
+      {
+        accessorKey: "sessionName",
+        header: "회차명",
+        meta: { width: 300 },
+        cell: ({ row }) => (
+          <span
+            className="block max-w-[280px] truncate text-ink-2"
+            title={row.original.sessionName ?? ""}
+          >
+            {row.original.sessionName ?? "—"}
+          </span>
+        ),
       },
       {
         accessorKey: "institutionName",
         header: "소속 기관",
         meta: { width: 160 },
-        cell: ({ row }) => row.original.institutionName ?? "—",
+        cell: ({ row }) => (
+          <span className="block max-w-[160px] truncate" title={row.original.institutionName ?? ""}>
+            {row.original.institutionName ?? "—"}
+          </span>
+        ),
       },
       {
         accessorKey: "courseCode",
@@ -183,7 +246,7 @@ export function InstitutionListPage() {
       {
         id: "actions",
         header: "",
-        meta: { width: 130, align: "right", sticky: "right" },
+        meta: { width: 130, align: "right" },
         cell: ({ row }) => (
           <div className="flex items-center justify-end gap-1.5">
             <Button
@@ -259,7 +322,9 @@ export function InstitutionListPage() {
           >
             {t.label}
             <span className="ml-1.5 text-[11px] text-ink-3">
-              {t.key === "institution" ? (institutions ?? []).length : (courses ?? []).length}
+              {t.key === "institution"
+                ? (institutions?.total ?? 0).toLocaleString()
+                : (courses?.total ?? 0).toLocaleString()}
             </span>
           </button>
         ))}
@@ -270,16 +335,14 @@ export function InstitutionListPage() {
             className="flex items-center gap-2"
             onSubmit={(e) => {
               e.preventDefault();
-              const next = new URLSearchParams(searchParams);
-              if (searchInput.trim()) next.set("q", searchInput.trim());
-              else next.delete("q");
-              next.delete("page");
-              setSearchParams(next, { replace: false });
+              updateTabParam({ q: searchInput.trim() || null });
             }}
           >
             <Input
               className="w-64"
-              placeholder={tab === "institution" ? "기관명" : "과정명 · 과정코드"}
+              placeholder={
+                tab === "institution" ? "기관명 · 기관코드" : "과정명 · 코드 · 회차명 · 기관명"
+              }
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
             />
@@ -288,20 +351,72 @@ export function InstitutionListPage() {
             </Button>
           </form>
         </FilterRow>
+        <FilterRow label="상태">
+          <Select
+            className="w-28"
+            value={status}
+            onChange={(e) => updateTabParam({ status: e.target.value || null })}
+          >
+            <option value="">전체</option>
+            <option value="active">사용중</option>
+            <option value="inactive">비활성</option>
+          </Select>
+        </FilterRow>
+        {tab === "course" && (
+          <FilterRow label="구분">
+            <Select
+              className="w-28"
+              value={courseType}
+              onChange={(e) => updateTabParam({ course_type: e.target.value || null })}
+            >
+              <option value="">전체</option>
+              <option value="internal">계속교육</option>
+              <option value="external">외부교육</option>
+            </Select>
+          </FilterRow>
+        )}
+        {tab === "course" && (
+          <FilterRow label="분류">
+            <Select
+              className="w-32"
+              value={category}
+              onChange={(e) => updateTabParam({ category: e.target.value || null })}
+            >
+              <option value="">전체</option>
+              {(categories ?? []).map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </Select>
+          </FilterRow>
+        )}
       </FilterBar>
       {tab === "institution" ? (
         <AppTable
           columns={institutionColumns}
-          data={institutions ?? []}
+          data={institutions?.items ?? []}
           isLoading={!institutions}
           emptyMessage="등록된 기관이 없어요. 첫 기관을 등록해 보세요"
+          page={page}
+          totalPages={institutions?.totalPages ?? 1}
+          onPageChange={(p) => updateTabParam({ page: String(p) }, false)}
+          paginationInfo={`총 ${(institutions?.total ?? 0).toLocaleString()}건 · ${page}/${institutions?.totalPages ?? 1}페이지`}
+          columnDividers
         />
       ) : (
         <AppTable
           columns={courseColumns}
-          data={courses ?? []}
+          data={courses?.items ?? []}
           isLoading={!courses}
+          fixedLayout
+          minWidth={1420}
           emptyMessage="등록된 과정이 없어요. 첫 과정을 등록해 보세요"
+          page={page}
+          totalPages={courses?.totalPages ?? 1}
+          onPageChange={(p) => updateTabParam({ page: String(p) }, false)}
+          paginationInfo={`총 ${(courses?.total ?? 0).toLocaleString()}건 · ${page}/${courses?.totalPages ?? 1}페이지`}
+          columnDividers
         />
       )}
 

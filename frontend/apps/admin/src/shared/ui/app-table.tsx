@@ -8,7 +8,7 @@ import {
   type SortingState,
   type RowData,
 } from '@tanstack/react-table'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Pagination } from './pagination'
 
 declare module '@tanstack/react-table' {
@@ -35,6 +35,13 @@ interface AppTableProps<TData extends RowData> {
   columnDividers?: boolean
   /** 셀 패딩 축소(px-2.5 py-2) — 너비 확보가 중요한 와이드 테이블용 */
   dense?: boolean
+  /**
+   * 테이블 레이아웃 고정 — 컬럼 선언 폭(min-width 합)을 정확히 지키고
+   * 좁은 화면에서는 가로 스크롤. 컬럼 폭이 설계대로 나와야 하는 와이드 테이블용.
+   */
+  fixedLayout?: boolean
+  /** fixed 레이아웃에서 유동 컬럼 최소 폭 확보용 — 컬럼 폭 합보다 크게 지정 */
+  minWidth?: number
   page?: number
   totalPages?: number
   onPageChange?: (page: number) => void
@@ -77,6 +84,8 @@ export function AppTable<TData extends RowData>({
   onRowClick,
   columnDividers,
   dense,
+  fixedLayout,
+  minWidth: minWidthOverride,
   page,
   totalPages,
   onPageChange,
@@ -121,10 +130,64 @@ export function AppTable<TData extends RowData>({
     }
   }
 
+  // 컬럼 선언 폭 합계를 테이블 최소 폭으로 — 좁은 화면에서 컬럼이 눌리지 않고 스크롤된다
+  const declaredWidth = columns.reduce(
+    (sum, c) => sum + ((c.meta as { width?: number } | undefined)?.width ?? 0),
+    0,
+  )
+  const minTableWidth =
+    minWidthOverride ?? (declaredWidth > 0 ? declaredWidth : 0)
+
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const proxyRef = useRef<HTMLDivElement>(null)
+  const proxyInnerRef = useRef<HTMLDivElement>(null)
+  const [hasOverflow, setHasOverflow] = useState(false)
+
+  // 가로 스크롤이 생길 때만 프록시 스크롤바 노출
+  useEffect(() => {
+    const el = scrollRef.current
+    if (!el) return
+    const measure = () => {
+      setHasOverflow(el.scrollWidth > el.clientWidth + 1)
+      if (proxyInnerRef.current) {
+        proxyInnerRef.current.style.width = `${el.scrollWidth}px`
+      }
+    }
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+
+  const onProxyScroll = () => {
+    const main = scrollRef.current
+    const proxy = proxyRef.current
+    if (main && proxy && main.scrollLeft !== proxy.scrollLeft) {
+      main.scrollLeft = proxy.scrollLeft
+    }
+  }
+
   return (
     <div className="rounded-lg border border-line bg-panel overflow-hidden">
-      <div className="overflow-x-auto">
-        <table className="w-full text-[13px]">
+      <div
+        ref={scrollRef}
+        className="overflow-x-auto"
+        onScroll={() => {
+          const main = scrollRef.current
+          const proxy = proxyRef.current
+          if (main && proxy && proxy.scrollLeft !== main.scrollLeft) {
+            proxy.scrollLeft = main.scrollLeft
+          }
+        }}
+      >
+        <table
+          className="w-full text-[13px]"
+          style={
+            fixedLayout && minTableWidth > 0
+              ? { minWidth: `${minTableWidth}px`, tableLayout: 'fixed' }
+              : undefined
+          }
+        >
           <thead>
             {table.getHeaderGroups().map(hg => (
               <tr key={hg.id} className="border-b border-line bg-panel-2">
@@ -210,6 +273,16 @@ export function AppTable<TData extends RowData>({
             )}
           </tbody>
         </table>
+        {hasOverflow && (
+          <div
+            ref={proxyRef}
+            role="presentation"
+            className="sticky bottom-0 z-[5] h-3 overflow-x-auto overflow-y-hidden border-t border-line bg-panel-2"
+            onScroll={onProxyScroll}
+          >
+            <div ref={proxyInnerRef} className="h-px" />
+          </div>
+        )}
       </div>
 
       {hasPagination && (

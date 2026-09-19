@@ -17,3 +17,9 @@ export interface RegisterInput {
   email: string
   password: string
 }
+
+/** PATCH /auth/password 바디 — 본인 비밀번호 변경 (현재 비밀번호 확인 필수) */
+export interface PasswordChangeInput {
+  currentPassword: string
+  newPassword: string
+}

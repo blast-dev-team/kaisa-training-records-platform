@@ -5,19 +5,21 @@ import type { ColumnDef } from '@tanstack/react-table'
 import { AppTable } from '@/src/shared/ui/app-table'
 import { Button } from '@/src/shared/ui/button'
 import { Dialog } from '@/src/shared/ui/dialog'
+import { Input } from '@/src/shared/ui/input'
+import { Label } from '@/src/shared/ui/label'
 import { PageContainer } from '@/src/shared/ui/page-container'
 import { PageHead } from '@/src/shared/ui/page-head'
 import { Pill, statusTone } from '@/src/shared/ui/pill'
+import { Select } from '@/src/shared/ui/select'
 import { formatDateTime, toYMD } from '@/src/shared/utils/format'
-import { authQueries } from '@/src/entities/auth'
+import { authQueries, type AdminRole, type Me } from '@/src/entities/auth'
 import {
+  ADMIN_ROLE_LABELS,
   ADMIN_STATUS_LABELS,
   adminUserQueries,
   patchAdminUser,
   type AdminUser,
 } from '@/src/entities/admin-user'
-
-const ROLE_LABELS: Record<string, string> = { super: '총관리자', staff: '일반' }
 
 export function AdminUserListPage() {
   const { data: me } = useQuery(authQueries.me())
@@ -34,21 +36,37 @@ export function AdminUserListPage() {
     )
   }
 
-  return <AdminUserTable />
+  return <AdminUserTable me={me} />
 }
 
-function AdminUserTable() {
+function AdminUserTable({ me }: { me: Me }) {
   const queryClient = useQueryClient()
   const { data } = useQuery(adminUserQueries.list())
 
   const [blockTarget, setBlockTarget] = useState<AdminUser | null>(null)
+  const [editTarget, setEditTarget] = useState<AdminUser | null>(null)
 
   const statusMutation = useMutation({
     mutationFn: (input: { admin: AdminUser; status: 'active' | 'disabled' }) =>
-      patchAdminUser(input.admin.id, input.status),
+      patchAdminUser(input.admin.id, { status: input.status }),
     onSuccess: (_d, input) => {
       toast.success(input.status === 'disabled' ? '계정을 차단했어요' : '계정을 복구했어요')
       setBlockTarget(null)
+      queryClient.invalidateQueries({ queryKey: adminUserQueries.all() })
+    },
+    onError: (e: Error) => toast.error(e.message),
+  })
+
+  const editMutation = useMutation({
+    mutationFn: (input: {
+      admin: AdminUser
+      body: { name?: string; role?: AdminRole; password?: string }
+    }) => patchAdminUser(input.admin.id, input.body),
+    onSuccess: (_d, input) => {
+      toast.success(
+        input.body.password ? '비밀번호를 재설정했어요' : '관리자 정보를 수정했어요',
+      )
+      setEditTarget(null)
       queryClient.invalidateQueries({ queryKey: adminUserQueries.all() })
     },
     onError: (e: Error) => toast.error(e.message),
@@ -73,7 +91,7 @@ function AdminUserTable() {
         accessorKey: 'role',
         header: '역할',
         meta: { width: 100 },
-        cell: ({ row }) => ROLE_LABELS[row.original.role] ?? row.original.role,
+        cell: ({ row }) => ADMIN_ROLE_LABELS[row.original.role] ?? row.original.role,
       },
       {
         accessorKey: 'status',
@@ -101,29 +119,39 @@ function AdminUserTable() {
       {
         id: 'actions',
         header: '',
-        meta: { width: 90, align: 'right', sticky: 'right' },
-        cell: ({ row }) =>
-          row.original.status === 'active' ? (
+        meta: { width: 130, align: 'right', sticky: 'right' },
+        cell: ({ row }) => (
+          <div className="flex justify-end gap-1">
             <Button
               variant="ghost"
               size="sm"
-              className="text-danger hover:text-danger"
-              onClick={() => setBlockTarget(row.original)}
+              onClick={() => setEditTarget(row.original)}
             >
-              차단
+              수정
             </Button>
-          ) : (
-            <Button
-              variant="ghost"
-              size="sm"
-              disabled={statusMutation.isPending}
-              onClick={() =>
-                statusMutation.mutate({ admin: row.original, status: 'active' })
-              }
-            >
-              복구
-            </Button>
-          ),
+            {row.original.status === 'active' ? (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-danger hover:text-danger"
+                onClick={() => setBlockTarget(row.original)}
+              >
+                차단
+              </Button>
+            ) : (
+              <Button
+                variant="ghost"
+                size="sm"
+                disabled={statusMutation.isPending}
+                onClick={() =>
+                  statusMutation.mutate({ admin: row.original, status: 'active' })
+                }
+              >
+                복구
+              </Button>
+            )}
+          </div>
+        ),
       },
     ],
     [statusMutation.isPending],
@@ -170,6 +198,119 @@ function AdminUserTable() {
           차단해도 감사 로그는 남아요. 필요하면 복구할 수 있어요.
         </p>
       </Dialog>
+
+      {editTarget && (
+        <EditDialog
+          key={editTarget.id}
+          admin={editTarget}
+          meId={me.id}
+          isPending={editMutation.isPending}
+          onClose={() => setEditTarget(null)}
+          onSave={body => editMutation.mutate({ admin: editTarget, body })}
+        />
+      )}
     </PageContainer>
+  )
+}
+
+function EditDialog({
+  admin,
+  meId,
+  isPending,
+  onClose,
+  onSave,
+}: {
+  admin: AdminUser
+  meId: string
+  isPending: boolean
+  onClose: () => void
+  onSave: (body: { name?: string; role?: AdminRole; password?: string }) => void
+}) {
+  const [name, setName] = useState(admin.name)
+  const [role, setRole] = useState<AdminRole>(admin.role)
+  const [newPassword, setNewPassword] = useState('')
+
+  const isSelf = admin.id === meId
+  const trimmed = name.trim()
+  const isValidPassword =
+    newPassword.length === 0 ||
+    (newPassword.length >= 10 && /[a-zA-Z]/.test(newPassword) && /[0-9]/.test(newPassword))
+  const canSave = trimmed.length > 0 && trimmed.length <= 100 && isValidPassword
+
+  return (
+    <Dialog
+      isOpen
+      onClose={onClose}
+      title="관리자 정보 수정"
+      size="sm"
+      description={`${admin.email} — 이메일은 변경할 수 없어요.`}
+      actions={[
+        { label: '취소', onClick: onClose },
+        {
+          label: '저장',
+          isDisabled: !canSave,
+          isLoading: isPending,
+          onClick: () => {
+            if (!canSave) return
+            const body: { name?: string; role?: AdminRole; password?: string } = {}
+            if (trimmed !== admin.name) body.name = trimmed
+            if (!isSelf && role !== admin.role) body.role = role
+            if (newPassword) body.password = newPassword
+            // 변경 없음 — 그냥 닫기
+            if (Object.keys(body).length === 0) {
+              onClose()
+              return
+            }
+            onSave(body)
+          },
+        },
+      ]}
+    >
+      <div className="flex flex-col gap-4 pt-1">
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="admin-name">이름</Label>
+          <Input
+            id="admin-name"
+            value={name}
+            maxLength={100}
+            placeholder="이름을 입력해 주세요"
+            onChange={e => setName(e.target.value)}
+          />
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="admin-role">역할</Label>
+          <Select
+            id="admin-role"
+            value={role}
+            disabled={isSelf}
+            onChange={e => setRole(e.target.value as AdminRole)}
+          >
+            <option value="super">{ADMIN_ROLE_LABELS.super}</option>
+            <option value="staff">{ADMIN_ROLE_LABELS.staff}</option>
+          </Select>
+          {isSelf && (
+            <p className="text-xs text-ink-2">
+              내 계정의 역할은 변경할 수 없어요. 다른 총관리자에게 부탁해 주세요.
+            </p>
+          )}
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="admin-password">새 비밀번호</Label>
+          <Input
+            id="admin-password"
+            type="password"
+            autoComplete="new-password"
+            placeholder="비워두면 변경하지 않아요"
+            value={newPassword}
+            onChange={e => setNewPassword(e.target.value)}
+          />
+          {newPassword.length > 0 && !isValidPassword && (
+            <p className="text-xs text-danger">
+              10자 이상, 영문과 숫자를 조합해 주세요
+            </p>
+          )}
+        </div>
+      </div>
+    </Dialog>
   )
 }

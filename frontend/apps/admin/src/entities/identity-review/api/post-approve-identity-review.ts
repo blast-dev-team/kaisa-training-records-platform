@@ -21,7 +21,9 @@ export const postApproveIdentityReview = async (
       const now = new Date().toISOString().slice(0, 19)
       const created = {
         id: `trn-${Date.now().toString(36)}`,
-        traineeNo: `TR-${now.slice(0, 10).replaceAll('-', '')}-NEW`,
+        certNo: null,
+    supervisorGrade: null,
+      traineeNo: `TR-${now.slice(0, 10).replaceAll('-', '')}-NEW`,
         name: input.new_trainee.name,
         birthDate: null,
         phoneMasked: '',

@@ -1,110 +1,118 @@
-import { useMemo, useState } from 'react'
-import { useSearchParams } from 'react-router'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { toast } from 'react-toastify'
-import type { ColumnDef } from '@tanstack/react-table'
-import { Plus, X } from 'lucide-react'
-import { AppTable } from '@/src/shared/ui/app-table'
-import { Button } from '@/src/shared/ui/button'
-import { Dialog } from '@/src/shared/ui/dialog'
-import { FilterBar, FilterRow } from '@/src/shared/ui/filter-bar'
-import { PageContainer } from '@/src/shared/ui/page-container'
-import { PageHead } from '@/src/shared/ui/page-head'
-import { Pill, statusTone } from '@/src/shared/ui/pill'
-import { Input } from '@/src/shared/ui/input'
-import { Select } from '@/src/shared/ui/select'
+import { useMemo, useState } from "react";
+import { useSearchParams } from "react-router";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "react-toastify";
+import type { ColumnDef } from "@tanstack/react-table";
+import { CalendarPlus, Plus, X } from "lucide-react";
+import { AppTable } from "@/src/shared/ui/app-table";
+import { Button } from "@/src/shared/ui/button";
+import { Dialog } from "@/src/shared/ui/dialog";
+import { FilterBar, FilterRow } from "@/src/shared/ui/filter-bar";
+import { PageContainer } from "@/src/shared/ui/page-container";
+import { PageHead } from "@/src/shared/ui/page-head";
+import { Pill, statusTone } from "@/src/shared/ui/pill";
+import { Input } from "@/src/shared/ui/input";
+import { Select } from "@/src/shared/ui/select";
 import {
   deleteTrainingRecord,
   trainingRecordQueries,
   COMPLETION_STATUS_LABELS,
   TRAINING_SOURCE_LABELS,
   type TrainingRecord,
-} from '@/src/entities/training-record'
-import { TrainingRecordFormDialog } from './training-record-form-dialog'
+} from "@/src/entities/training-record";
+import { TrainingRecordFormDialog } from "./training-record-form-dialog";
+import { SessionPickerDialog } from "@/src/views/course-sessions/ui/session-picker-dialog";
+import { AttachTraineesDialog } from "@/src/views/course-sessions/ui/attach-trainees-dialog";
+import type { CourseSession } from "@/src/entities/course-session";
 
 interface Props {
   /** 'external' 이면 외부 수료 전용 뷰 — source 고정, 등록 기본값 external */
-  variant?: 'all' | 'external'
+  variant?: "all" | "external";
 }
 
-export function TrainingRecordListPage({ variant = 'all' }: Props) {
-  const isExternal = variant === 'external'
-  const [searchParams, setSearchParams] = useSearchParams()
-  const traineeId = searchParams.get('trainee_id') ?? ''
-  const source = isExternal ? 'external' : searchParams.get('source') ?? ''
-  const status = searchParams.get('status') ?? ''
-  const q = searchParams.get('q') ?? ''
-  const page = Math.max(1, Number(searchParams.get('page') ?? 1) || 1)
+export function TrainingRecordListPage({ variant = "all" }: Props) {
+  const isExternal = variant === "external";
+  const [searchParams, setSearchParams] = useSearchParams();
+  const traineeId = searchParams.get("trainee_id") ?? "";
+  const source = isExternal ? "external" : (searchParams.get("source") ?? "");
+  const status = searchParams.get("status") ?? "";
+  const q = searchParams.get("q") ?? "";
+  const from = searchParams.get("from") ?? "";
+  const to = searchParams.get("to") ?? "";
+  const page = Math.max(1, Number(searchParams.get("page") ?? 1) || 1);
 
-  const [searchInput, setSearchInput] = useState(q)
-  const [formOpen, setFormOpen] = useState(false)
-  const [editTarget, setEditTarget] = useState<TrainingRecord | null>(null)
-  const [deleteTarget, setDeleteTarget] = useState<TrainingRecord | null>(null)
+  const [searchInput, setSearchInput] = useState(q);
+  const [formOpen, setFormOpen] = useState(false);
+  const [editTarget, setEditTarget] = useState<TrainingRecord | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<TrainingRecord | null>(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [attachSession, setAttachSession] = useState<CourseSession | null>(null);
 
   const { data } = useQuery(
     trainingRecordQueries.list({
       traineeId: traineeId || undefined,
       source: source || undefined,
+      excludeSource: !isExternal ? 'external' : undefined,
       completionStatus: status || undefined,
       search: q || undefined,
+      dateFrom: from || undefined,
+      dateTo: to || undefined,
       page,
     }),
-  )
+  );
 
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteTrainingRecord(id),
     onSuccess: () => {
-      toast.success('이력을 삭제했어요')
-      setDeleteTarget(null)
-      queryClient.invalidateQueries({ queryKey: trainingRecordQueries.all() })
+      toast.success("이력을 삭제했어요");
+      setDeleteTarget(null);
+      queryClient.invalidateQueries({ queryKey: trainingRecordQueries.all() });
     },
     onError: (e: Error) => toast.error(e.message),
-  })
+  });
 
   const updateParams = (patch: Record<string, string | null>, resetPage = true) => {
-    const next = new URLSearchParams(searchParams)
+    const next = new URLSearchParams(searchParams);
     for (const [k, v] of Object.entries(patch)) {
-      if (v === null || v === '') next.delete(k)
-      else next.set(k, v)
+      if (v === null || v === "") next.delete(k);
+      else next.set(k, v);
     }
-    if (resetPage) next.delete('page')
-    setSearchParams(next, { replace: false })
-  }
+    if (resetPage) next.delete("page");
+    setSearchParams(next, { replace: false });
+  };
 
   const columns = useMemo<ColumnDef<TrainingRecord, unknown>[]>(
     () => [
       {
-        accessorKey: 'courseName',
-        header: '과정명',
+        accessorKey: "courseName",
+        header: "과정명",
         meta: { width: 220 },
-        cell: ({ row }) => (
-          <span className="font-medium text-ink">{row.original.courseName}</span>
-        ),
+        cell: ({ row }) => <span className="font-medium text-ink">{row.original.courseName}</span>,
       },
       {
-        accessorKey: 'institutionName',
-        header: '기관',
+        accessorKey: "institutionName",
+        header: "기관",
         meta: { width: 150 },
-        cell: ({ row }) => row.original.institutionName ?? '—',
+        cell: ({ row }) => row.original.institutionName ?? "—",
       },
       {
-        id: 'trainee',
-        header: '교육생',
+        id: "trainee",
+        header: "교육생",
         meta: { width: 150 },
         cell: ({ row }) => (
           <span>
-            <span className="text-ink">{row.original.traineeName ?? '—'}</span>
-            <span className="ml-1.5 text-[11px] text-ink-3">{row.original.traineeNo ?? ''}</span>
+            <span className="text-ink">{row.original.traineeName ?? "—"}</span>
+            <span className="ml-1.5 text-[11px] text-ink-3">{row.original.traineeNo ?? ""}</span>
           </span>
         ),
       },
       ...(!isExternal
         ? [
             {
-              accessorKey: 'source',
-              header: '구분',
+              accessorKey: "source",
+              header: "구분",
               meta: { width: 80 },
               cell: ({ row }: { row: { original: TrainingRecord } }) => (
                 <Pill tone={statusTone(row.original.source)}>
@@ -115,8 +123,8 @@ export function TrainingRecordListPage({ variant = 'all' }: Props) {
           ]
         : []),
       {
-        accessorKey: 'completionStatus',
-        header: '수료상태',
+        accessorKey: "completionStatus",
+        header: "수료상태",
         meta: { width: 100 },
         cell: ({ row }) => (
           <Pill tone={statusTone(row.original.completionStatus)}>
@@ -125,38 +133,38 @@ export function TrainingRecordListPage({ variant = 'all' }: Props) {
         ),
       },
       {
-        id: 'hours',
-        header: '시수',
-        meta: { width: 90, align: 'right' },
+        id: "hours",
+        header: "시수",
+        meta: { width: 90, align: "right" },
         cell: ({ row }) => {
-          const { completedHours, totalHours } = row.original
-          if (completedHours === null && totalHours === null) return '—'
-          return `${completedHours ?? '—'}/${totalHours ?? '—'}`
+          const { completedHours, totalHours } = row.original;
+          if (completedHours === null && totalHours === null) return "—";
+          return `${completedHours ?? "—"}/${totalHours ?? "—"}`;
         },
       },
       {
-        id: 'period',
-        header: '기간',
+        id: "period",
+        header: "기간",
         meta: { width: 180 },
         cell: ({ row }) => {
-          const s = row.original.startedAt
-          const e = row.original.endedAt
-          if (!s && !e) return '—'
-          return `${s ?? '?'} ~ ${e ?? '진행중'}`
+          const s = row.original.startedAt;
+          const e = row.original.endedAt;
+          if (!s && !e) return "—";
+          return `${s ?? "?"} ~ ${e ?? "진행중"}`;
         },
       },
       {
-        id: 'actions',
-        header: '',
-        meta: { width: 130, align: 'right', sticky: 'right' },
+        id: "actions",
+        header: "",
+        meta: { width: 130, align: "right", sticky: "right" },
         cell: ({ row }) => (
           <div className="flex items-center justify-end gap-1.5">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => {
-                setEditTarget(row.original)
-                setFormOpen(true)
+                setEditTarget(row.original);
+                setFormOpen(true);
               }}
             >
               수정
@@ -174,26 +182,33 @@ export function TrainingRecordListPage({ variant = 'all' }: Props) {
       },
     ],
     [isExternal],
-  )
+  );
 
-  const items = data?.items ?? []
-  const total = data?.total ?? 0
-  const totalPages = data?.totalPages ?? 1
+  const items = data?.items ?? [];
+  const total = data?.total ?? 0;
+  const totalPages = data?.totalPages ?? 1;
 
   return (
     <PageContainer>
       <PageHead
-        title={isExternal ? '외부 수료 관리' : '감리 교육 관리'}
+        title={isExternal ? "외부 이력 관리" : "교육 이력 관리"}
         subtitle={`총 ${total.toLocaleString()}건`}
         actions={
-          <Button
-            onClick={() => {
-              setEditTarget(null)
-              setFormOpen(true)
-            }}
-          >
-            <Plus className="size-4" /> 이력 등록
-          </Button>
+          <div className="flex items-center gap-2">
+            {!isExternal && (
+              <Button variant="outline" onClick={() => setPickerOpen(true)}>
+                <CalendarPlus className="size-4" /> 일정으로 등록
+              </Button>
+            )}
+            <Button
+              onClick={() => {
+                setEditTarget(null);
+                setFormOpen(true);
+              }}
+            >
+              <Plus className="size-4" /> 이력 등록
+            </Button>
+          </div>
         }
       />
 
@@ -212,8 +227,8 @@ export function TrainingRecordListPage({ variant = 'all' }: Props) {
           <form
             className="flex items-center gap-2"
             onSubmit={(e) => {
-              e.preventDefault()
-              updateParams({ q: searchInput.trim() || null })
+              e.preventDefault();
+              updateParams({ q: searchInput.trim() || null });
             }}
           >
             <Input
@@ -227,7 +242,25 @@ export function TrainingRecordListPage({ variant = 'all' }: Props) {
             </Button>
           </form>
         </FilterRow>
-        <FilterRow label="필터">
+                <FilterRow label="기간">
+          <div className="flex items-center gap-1.5">
+            <Input
+              type="date"
+              className="w-36"
+              value={from}
+              onChange={(e) => updateParams({ from: e.target.value || null })}
+            />
+            <span className="text-ink-3">~</span>
+            <Input
+              type="date"
+              className="w-36"
+              value={to}
+              min={from || undefined}
+              onChange={(e) => updateParams({ to: e.target.value || null })}
+            />
+          </div>
+        </FilterRow>
+<FilterRow label="필터">
           {!isExternal && (
             <Select
               className="w-32"
@@ -235,11 +268,13 @@ export function TrainingRecordListPage({ variant = 'all' }: Props) {
               onChange={(e) => updateParams({ source: e.target.value || null })}
             >
               <option value="">구분 전체</option>
-              {Object.entries(TRAINING_SOURCE_LABELS).map(([value, label]) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              ))}
+              {Object.entries(TRAINING_SOURCE_LABELS)
+                .filter(([value]) => isExternal || value !== 'external')
+                .map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
             </Select>
           )}
           <Select
@@ -261,7 +296,9 @@ export function TrainingRecordListPage({ variant = 'all' }: Props) {
         columns={columns}
         data={items}
         isLoading={!data}
-        emptyMessage={isExternal ? '등록된 외부 수료 이력이 없어요' : '조건에 맞는 교육이력이 없어요'}
+        emptyMessage={
+          isExternal ? "등록된 외부 수료 이력이 없어요" : "조건에 맞는 교육이력이 없어요"
+        }
         page={page}
         totalPages={totalPages}
         onPageChange={(p) => updateParams({ page: String(p) }, false)}
@@ -273,7 +310,18 @@ export function TrainingRecordListPage({ variant = 'all' }: Props) {
         isOpen={formOpen}
         onClose={() => setFormOpen(false)}
         record={editTarget}
-        defaultSource={isExternal ? 'external' : 'internal'}
+        defaultSource={isExternal ? "external" : "internal"}
+      />
+
+      <SessionPickerDialog
+        isOpen={pickerOpen}
+        onClose={() => setPickerOpen(false)}
+        onSelect={(session) => setAttachSession(session)}
+      />
+      <AttachTraineesDialog
+        isOpen={attachSession !== null}
+        onClose={() => setAttachSession(null)}
+        session={attachSession}
       />
 
       <Dialog
@@ -282,22 +330,22 @@ export function TrainingRecordListPage({ variant = 'all' }: Props) {
         title="이력 삭제"
         description={
           deleteTarget
-            ? `${deleteTarget.traineeName ?? ''}의 '${deleteTarget.courseName}' 이력을 삭제할까요? 삭제 후에도 감사로그에는 남아요.`
+            ? `${deleteTarget.traineeName ?? ""}의 '${deleteTarget.courseName}' 이력을 삭제할까요? 삭제 후에도 감사로그에는 남아요.`
             : undefined
         }
         actions={[
-          { label: '취소', onClick: () => setDeleteTarget(null) },
+          { label: "취소", onClick: () => setDeleteTarget(null) },
           {
-            label: '삭제',
-            variant: 'danger',
+            label: "삭제",
+            variant: "danger",
             isLoading: deleteMutation.isPending,
             onClick: () => {
-              if (!deleteTarget) return
-              deleteMutation.mutate(deleteTarget.id)
+              if (!deleteTarget) return;
+              deleteMutation.mutate(deleteTarget.id);
             },
           },
         ]}
       />
     </PageContainer>
-  )
+  );
 }

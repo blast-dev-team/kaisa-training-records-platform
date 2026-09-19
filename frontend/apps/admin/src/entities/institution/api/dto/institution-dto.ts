@@ -10,6 +10,9 @@ export interface CourseDto {
   id: string
   institution_id: string
   institution_name: string | null
+  session_name_id: string | null
+  session_name: string | null
+  is_external: boolean
   name: string
   course_code: string | null
   description: string | null

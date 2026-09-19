@@ -17,6 +17,8 @@ export function mapCertificate(dto: CertificateDto): Certificate {
     trainingStartedAt: dto.training_started_at,
     trainingEndedAt: dto.training_ended_at,
     issuedAt: dto.issued_at,
+    downloadedAt: dto.downloaded_at,
+    downloadCount: dto.download_count != null ? Number(dto.download_count) : 0,
     expiresAt: dto.expires_at,
     status: dto.status,
     revokedAt: dto.revoked_at,

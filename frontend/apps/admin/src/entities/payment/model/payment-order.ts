@@ -22,6 +22,7 @@ export interface PaymentOrder {
   orderNo: string
   certificateRequestId: string | null
   traineeId: string
+  traineeName: string | null
   amountKrw: number
   currency: string
   status: PaymentStatus

@@ -38,6 +38,9 @@ export const MOCK_INSTITUTIONS: Institution[] = [
 export const MOCK_COURSES: Course[] = [
   {
     id: 'crs-001',
+    sessionNameId: null,
+    sessionName: null,
+    isExternal: false,
     institutionId: 'ins-001',
     institutionName: '협회 본부',
     name: '비파괴검사 계속교육 (정기)',
@@ -50,6 +53,9 @@ export const MOCK_COURSES: Course[] = [
   },
   {
     id: 'crs-002',
+    sessionNameId: null,
+    sessionName: null,
+    isExternal: false,
     institutionId: 'ins-002',
     institutionName: '부산지회',
     name: '감리원 법정 계속교육 2차',
@@ -62,6 +68,9 @@ export const MOCK_COURSES: Course[] = [
   },
   {
     id: 'crs-003',
+    sessionNameId: null,
+    sessionName: null,
+    isExternal: false,
     institutionId: 'ins-003',
     institutionName: '서울지회',
     name: '건설기술 계속교육 (온라인)',
@@ -74,6 +83,9 @@ export const MOCK_COURSES: Course[] = [
   },
   {
     id: 'crs-004',
+    sessionNameId: null,
+    sessionName: null,
+    isExternal: false,
     institutionId: 'ins-001',
     institutionName: '협회 본부',
     name: '설비공사 감리 실무협의',
@@ -86,6 +98,9 @@ export const MOCK_COURSES: Course[] = [
   },
   {
     id: 'crs-005',
+    sessionNameId: null,
+    sessionName: null,
+    isExternal: false,
     institutionId: 'ins-004',
     institutionName: '대구지회',
     name: '토목 안전관리 세미나',
@@ -98,6 +113,9 @@ export const MOCK_COURSES: Course[] = [
   },
   {
     id: 'crs-006',
+    sessionNameId: null,
+    sessionName: null,
+    isExternal: false,
     institutionId: 'ins-002',
     institutionName: '부산지회',
     name: '환경 영향 평가 교육',

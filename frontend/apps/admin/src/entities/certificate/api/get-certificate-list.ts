@@ -27,6 +27,8 @@ export const getCertificateList = async (
       trainee_id: query.traineeId || undefined,
       status: query.status || undefined,
       search: query.search || undefined,
+      date_from: query.dateFrom || undefined,
+      date_to: query.dateTo || undefined,
       page: query.page ?? 1,
       limit: query.limit ?? 20,
     },

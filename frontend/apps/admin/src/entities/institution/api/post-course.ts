@@ -12,6 +12,9 @@ export const postCourse = async (input: CourseInput): Promise<Course> => {
     const created: Course = {
       id: `crs-${Date.now().toString(36)}`,
       institutionId: input.institution_id,
+      sessionNameId: input.session_name_id ?? null,
+      sessionName: null,
+      isExternal: input.is_external ?? false,
       institutionName: institution?.name ?? null,
       name: input.name,
       courseCode: input.course_code ?? null,

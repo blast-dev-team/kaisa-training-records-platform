@@ -13,6 +13,8 @@ export const postTrainee = async (input: TraineeCreateInput): Promise<Trainee> =
     const created: Trainee = {
       id: `tr-${Date.now().toString(36)}`,
       traineeNo: `TR-${now.slice(0, 10).replaceAll('-', '')}-NEW`,
+      certNo: input.cert_no ?? null,
+      supervisorGrade: input.supervisor_grade ?? null,
       name: input.name,
       birthDate: input.birth_date ?? null,
       phoneMasked: input.phone ? `${input.phone.slice(0, 3)}-****-${input.phone.slice(-4)}` : '',

@@ -41,6 +41,8 @@ export const MOCK_GRADES: MembershipGrade[] = [
 export const MOCK_TRAINEES: Trainee[] = [
   {
     id: 'tr-001',
+    certNo: null,
+    supervisorGrade: null,
     traineeNo: 'T-2026-0001',
     name: '김민준',
     birthDate: '1990-05-12',
@@ -56,6 +58,8 @@ export const MOCK_TRAINEES: Trainee[] = [
   },
   {
     id: 'tr-002',
+    certNo: null,
+    supervisorGrade: null,
     traineeNo: 'T-2026-0002',
     name: '이서연',
     birthDate: '1990-05-12',
@@ -71,6 +75,8 @@ export const MOCK_TRAINEES: Trainee[] = [
   },
   {
     id: 'tr-003',
+    certNo: null,
+    supervisorGrade: null,
     traineeNo: 'T-2026-0003',
     name: '박도윤',
     birthDate: '1990-05-12',
@@ -86,6 +92,8 @@ export const MOCK_TRAINEES: Trainee[] = [
   },
   {
     id: 'tr-004',
+    certNo: null,
+    supervisorGrade: null,
     traineeNo: 'T-2026-0004',
     name: '최지우',
     birthDate: '1990-05-12',
@@ -101,6 +109,8 @@ export const MOCK_TRAINEES: Trainee[] = [
   },
   {
     id: 'tr-005',
+    certNo: null,
+    supervisorGrade: null,
     traineeNo: 'T-2026-0005',
     name: '정하준',
     birthDate: '1990-05-12',
@@ -116,6 +126,8 @@ export const MOCK_TRAINEES: Trainee[] = [
   },
   {
     id: 'tr-006',
+    certNo: null,
+    supervisorGrade: null,
     traineeNo: 'T-2026-0006',
     name: '강지민',
     birthDate: '1990-05-12',
@@ -131,6 +143,8 @@ export const MOCK_TRAINEES: Trainee[] = [
   },
   {
     id: 'tr-007',
+    certNo: null,
+    supervisorGrade: null,
     traineeNo: 'T-2026-0007',
     name: '윤서준',
     birthDate: '1990-05-12',
@@ -146,6 +160,8 @@ export const MOCK_TRAINEES: Trainee[] = [
   },
   {
     id: 'tr-008',
+    certNo: null,
+    supervisorGrade: null,
     traineeNo: 'T-2026-0008',
     name: '한시우',
     birthDate: '1990-05-12',

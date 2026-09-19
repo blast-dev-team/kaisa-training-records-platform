@@ -9,6 +9,7 @@ import { MOCK_PAYMENT_ORDERS } from './payment-mock'
 export const postRefundPaymentOrder = async (
   orderId: string,
   reason: string,
+  force = false,
 ): Promise<PaymentOrder> => {
   if (USE_MOCK) {
     await mockDelay()
@@ -20,7 +21,7 @@ export const postRefundPaymentOrder = async (
   }
   const { data } = await apiClient.post<PaymentOrderDto>(
     `/payment-orders/${orderId}/refunds`,
-    { reason },
+    { reason, force },
   )
   return mapPaymentOrder(data)
 }

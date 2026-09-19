@@ -1,15 +1,18 @@
+import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router'
-import { LogOut } from 'lucide-react'
+import { KeyRound, LogOut } from 'lucide-react'
 import { toast } from 'react-toastify'
 
 import { postLogout, type Me } from '@/src/entities/auth'
 import { Badge } from '@/src/shared/ui/badge'
 import { Button } from '@/src/shared/ui/button'
+import { PasswordChangeDialog } from '@/src/widget/password-change-dialog'
 
 export function Header({ me }: { me: Me }) {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const [showPasswordChange, setShowPasswordChange] = useState(false)
 
   const logoutMutation = useMutation({
     mutationFn: postLogout,
@@ -30,6 +33,14 @@ export function Header({ me }: { me: Me }) {
         <Button
           variant="ghost"
           size="sm"
+          onClick={() => setShowPasswordChange(true)}
+        >
+          <KeyRound />
+          비밀번호 변경
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={() => logoutMutation.mutate()}
           disabled={logoutMutation.isPending}
         >
@@ -37,6 +48,9 @@ export function Header({ me }: { me: Me }) {
           로그아웃
         </Button>
       </div>
+      {showPasswordChange && (
+        <PasswordChangeDialog onClose={() => setShowPasswordChange(false)} />
+      )}
     </header>
   )
 }

@@ -21,27 +21,46 @@ import {
   postRevokeCertificate,
   type Certificate,
 } from "@/src/entities/certificate";
+import { paymentOrderQueries, postRefundPaymentOrder } from "@/src/entities/payment";
+import { formatWon } from "@/src/shared/utils/format";
 
 export function CertificateListPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const status = searchParams.get("status") ?? "";
   const q = searchParams.get("q") ?? "";
+  const from = searchParams.get("from") ?? "";
+  const to = searchParams.get("to") ?? "";
   const page = Math.max(1, Number(searchParams.get("page") ?? 1) || 1);
 
   const [searchInput, setSearchInput] = useState(q);
 
-  const [revokeTarget, setRevokeTarget] = useState<Certificate | null>(null);
-  const [reason, setReason] = useState("");
+  const [refundTarget, setRefundTarget] = useState<Certificate | null>(null);
+  const [refundReason, setRefundReason] = useState("");
 
   const queryClient = useQueryClient();
-  const { data } = useQuery(certificateQueries.list({ status, search: q || undefined, page }));
+  const { data } = useQuery(
+    certificateQueries.list({
+      status,
+      search: q || undefined,
+      dateFrom: from || undefined,
+      dateTo: to || undefined,
+      page,
+    }),
+  );
 
-  const revokeMutation = useMutation({
-    mutationFn: () => postRevokeCertificate(revokeTarget!.id, reason.trim()),
-    onSuccess: () => {
-      toast.success("확인서를 철회했어요");
-      setRevokeTarget(null);
+  // 확인서 폐기(철회) → 결제 환불. 폐기 후엔 유효 확인서가 없어 환불 가드를 그대로 통과한다
+  const refundMutation = useMutation({
+    mutationFn: async () => {
+      // 폐기가 끝난 뒤 환불 — 유효 확인서가 사라져야 환불 가드를 통과한다
+      await postRevokeCertificate(refundTarget!.id, refundReason.trim());
+      return postRefundPaymentOrder(refundTarget!.paymentOrderId!, refundReason.trim());
+    },
+    onSuccess: (order) => {
+      toast.success(`확인서를 폐기하고 결제를 환불했어요 — ${formatWon(order.amountKrw)}`);
+      setRefundTarget(null);
+      setRefundReason("");
       queryClient.invalidateQueries({ queryKey: certificateQueries.all() });
+      queryClient.invalidateQueries({ queryKey: paymentOrderQueries.all() });
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -113,6 +132,23 @@ export function CertificateListPage() {
         cell: ({ row }) => (row.original.issuedAt ? formatDateTime(row.original.issuedAt) : "—"),
       },
       {
+        id: "download",
+        header: "다운로드",
+        meta: { width: 110 },
+        cell: ({ row }) => {
+          const { downloadCount, downloadedAt } = row.original;
+          if (!downloadCount) return <span className="text-ink-3">미다운로드</span>;
+          return (
+            <span className="flex flex-col">
+              <span className="text-ink">{downloadCount}회</span>
+              {downloadedAt && (
+                <span className="text-[11px] text-ink-3">{toYMD(downloadedAt)}</span>
+              )}
+            </span>
+          );
+        },
+      },
+      {
         accessorKey: "status",
         header: "상태",
         meta: { width: 100 },
@@ -154,6 +190,24 @@ export function CertificateListPage() {
             </Button>
           </form>
         </FilterRow>
+        <FilterRow label="기간">
+          <div className="flex items-center gap-1.5">
+            <Input
+              type="date"
+              className="w-36"
+              value={from}
+              onChange={(e) => updateParams({ from: e.target.value || null })}
+            />
+            <span className="text-ink-3">~</span>
+            <Input
+              type="date"
+              className="w-36"
+              value={to}
+              min={from || undefined}
+              onChange={(e) => updateParams({ to: e.target.value || null })}
+            />
+          </div>
+        </FilterRow>
         <FilterRow label="필터">
           <Select
             className="w-36"
@@ -181,6 +235,46 @@ export function CertificateListPage() {
         paginationInfo={`총 ${total.toLocaleString()}건 · ${page}/${totalPages}페이지`}
         columnDividers
       />
+
+      <Dialog
+        isOpen={refundTarget !== null}
+        onClose={() => {
+          setRefundTarget(null);
+          setRefundReason("");
+        }}
+        title="결제 환불"
+        description={
+          refundTarget
+            ? `'${refundTarget.certificateNo}' 확인서를 폐기하고 연결된 결제를 환불해요. 금액은 결제 주문 기준이에요.`
+            : undefined
+        }
+        actions={[
+          {
+            label: "취소",
+            onClick: () => {
+              setRefundTarget(null);
+              setRefundReason("");
+            },
+          },
+          {
+            label: "폐기 후 환불",
+            variant: "danger",
+            isLoading: refundMutation.isPending,
+            isDisabled: !refundReason.trim(),
+            onClick: () => refundMutation.mutate(),
+          },
+        ]}
+      >
+        <div className="space-y-1.5 pt-1">
+          <Label>환불 사유 (필수)</Label>
+          <Textarea
+            rows={3}
+            placeholder="예: 발급 정보 오류 — 정정 후 재발급 예정"
+            value={refundReason}
+            onChange={(e) => setRefundReason(e.target.value)}
+          />
+        </div>
+      </Dialog>
     </PageContainer>
   );
 }

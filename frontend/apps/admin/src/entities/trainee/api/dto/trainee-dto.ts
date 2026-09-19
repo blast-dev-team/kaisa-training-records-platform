@@ -1,6 +1,8 @@
 export interface TraineeDto {
   id: string
   trainee_no: string
+  cert_no: string | null
+  supervisor_grade: string | null
   name: string
   birth_date: string | null
   phone_masked: string

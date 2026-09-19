@@ -26,6 +26,8 @@ export function PaymentOrderListPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const status = searchParams.get("status") ?? "";
   const q = searchParams.get("q") ?? "";
+  const from = searchParams.get("from") ?? "";
+  const to = searchParams.get("to") ?? "";
   const page = Math.max(1, Number(searchParams.get("page") ?? 1) || 1);
 
   const [searchInput, setSearchInput] = useState(q);
@@ -37,9 +39,10 @@ export function PaymentOrderListPage() {
   const { data } = useQuery(paymentOrderQueries.list({ status, search: q || undefined, page }));
 
   const refundMutation = useMutation({
+    // 이 결제로 발급된 확인서는 서버가 전부 폐기한 뒤 환불한다
     mutationFn: () => postRefundPaymentOrder(refundTarget!.id, reason.trim()),
     onSuccess: () => {
-      toast.success("환불을 처리했어요");
+      toast.success("확인서를 폐기하고 환불을 처리했어요");
       setRefundTarget(null);
       queryClient.invalidateQueries({ queryKey: paymentOrderQueries.all() });
     },
@@ -65,6 +68,12 @@ export function PaymentOrderListPage() {
         cell: ({ row }) => (
           <span className="font-mono text-[12px] font-medium text-ink">{row.original.orderNo}</span>
         ),
+      },
+      {
+        id: "trainee",
+        header: "결제자",
+        meta: { width: 110 },
+        cell: ({ row }) => row.original.traineeName ?? "—",
       },
       {
         accessorKey: "amountKrw",
@@ -98,6 +107,25 @@ export function PaymentOrderListPage() {
         meta: { width: 150 },
         cell: ({ row }) => formatDateTime(row.original.createdAt),
       },
+      {
+        id: "actions",
+        header: "",
+        meta: { width: 90, align: "right" },
+        cell: ({ row }) =>
+          row.original.status === "paid" ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-danger hover:text-danger"
+              onClick={() => {
+                setRefundTarget(row.original);
+                setReason("");
+              }}
+            >
+              환불
+            </Button>
+          ) : null,
+      },
     ],
     [],
   );
@@ -129,6 +157,24 @@ export function PaymentOrderListPage() {
               검색
             </Button>
           </form>
+        </FilterRow>
+        <FilterRow label="기간">
+          <div className="flex items-center gap-1.5">
+            <Input
+              type="date"
+              className="w-36"
+              value={from}
+              onChange={(e) => updateParams({ from: e.target.value || null })}
+            />
+            <span className="text-ink-3">~</span>
+            <Input
+              type="date"
+              className="w-36"
+              value={to}
+              min={from || undefined}
+              onChange={(e) => updateParams({ to: e.target.value || null })}
+            />
+          </div>
         </FilterRow>
         <FilterRow label="필터">
           <Select
@@ -180,6 +226,10 @@ export function PaymentOrderListPage() {
         ]}
       >
         <div className="space-y-1.5 pt-1">
+          <p className="rounded-md bg-bg-2 px-3 py-2 text-[12px] leading-[1.5] text-ink-3">
+            이 결제로 발급된 확인서는 모두 폐기되고, WEB 회원의 결제 내역에는
+            환불로 표시돼요.
+          </p>
           <Label>환불 사유 (필수)</Label>
           <Textarea
             rows={3}

@@ -3,6 +3,7 @@ export interface PaymentOrderDto {
   order_no: string
   certificate_request_id: string | null
   trainee_id: string
+  trainee_name?: string | null
   amount_krw: number
   currency: string
   status: 'ready' | 'pending' | 'paid' | 'failed' | 'canceled' | 'partial_refunded' | 'refunded'

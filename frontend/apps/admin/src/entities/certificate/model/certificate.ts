@@ -4,7 +4,7 @@ export type CertificateStatus = 'issued' | 'revoked' | 'superseded'
 
 export const CERTIFICATE_STATUS_LABELS: Record<CertificateStatus, string> = {
   issued: '발급됨',
-  revoked: '철회',
+  revoked: '환불',
   superseded: '대체',
 }
 
@@ -23,6 +23,9 @@ export interface Certificate {
   trainingStartedAt: string | null
   trainingEndedAt: string | null
   issuedAt: string | null
+  /** WEB에서 PDF 저장한 기록 — 최초 시각 · 횟수 */
+  downloadedAt: string | null
+  downloadCount: number
   expiresAt: string | null
   status: CertificateStatus
   revokedAt: string | null

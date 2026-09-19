@@ -20,6 +20,8 @@ export interface TrainingRecord {
   traineeName: string | null
   traineeNo: string | null
   courseId: string | null
+  /** 연결된 교육 일정 — 일정 연결로 생성된 이력만 보유 */
+  sessionId: string | null
   institutionId: string | null
   courseName: string
   institutionName: string | null

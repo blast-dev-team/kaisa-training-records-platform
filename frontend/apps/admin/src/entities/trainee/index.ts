@@ -4,6 +4,7 @@ export {
   membershipGradeQueries,
 } from './api/trainee-queries'
 export { getTraineeList } from './api/get-trainee-list'
+export { getTraineeDuplicates } from './api/get-trainee-duplicates'
 export { getTraineeDetail } from './api/get-trainee-detail'
 export { patchTrainee } from './api/patch-trainee'
 export { postTrainee } from './api/post-trainee'

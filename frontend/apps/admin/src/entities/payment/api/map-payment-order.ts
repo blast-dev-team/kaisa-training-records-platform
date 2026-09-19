@@ -7,6 +7,7 @@ export function mapPaymentOrder(dto: PaymentOrderDto): PaymentOrder {
     orderNo: dto.order_no,
     certificateRequestId: dto.certificate_request_id,
     traineeId: dto.trainee_id,
+    traineeName: dto.trainee_name ?? null,
     amountKrw: dto.amount_krw,
     currency: dto.currency,
     status: dto.status,

@@ -8,6 +8,7 @@ export function mapTrainingRecord(dto: TrainingRecordDto): TrainingRecord {
     traineeName: dto.trainee_name,
     traineeNo: dto.trainee_no,
     courseId: dto.course_id,
+    sessionId: dto.session_id,
     institutionId: dto.institution_id,
     courseName: dto.course_name,
     institutionName: dto.institution_name,

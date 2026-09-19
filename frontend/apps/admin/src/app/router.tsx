@@ -36,6 +36,13 @@ export const router = createBrowserRouter([
         },
       },
       {
+        path: 'course-sessions',
+        lazy: async () => {
+          const { CourseSessionListPage } = await import('@/src/views/course-sessions')
+          return { Component: CourseSessionListPage }
+        },
+      },
+      {
         path: 'training-records',
         lazy: async () => {
           const { TrainingRecordListPage } = await import('@/src/views/training-records')
@@ -47,6 +54,13 @@ export const router = createBrowserRouter([
         lazy: async () => {
           const { ExternalCompletionListPage } = await import('@/src/views/external-completions')
           return { Component: ExternalCompletionListPage }
+        },
+      },
+      {
+        path: 'session-names',
+        lazy: async () => {
+          const { SessionNameListPage } = await import('@/src/views/session-names')
+          return { Component: SessionNameListPage }
         },
       },
       {

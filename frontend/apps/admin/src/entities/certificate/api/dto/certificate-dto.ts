@@ -15,6 +15,8 @@ export interface CertificateDto {
   issued_at: string | null
   expires_at: string | null
   status: 'issued' | 'revoked' | 'superseded'
+  downloaded_at: string | null
+  download_count: string | number | null
   revoked_at: string | null
   revoked_reason: string | null
 }

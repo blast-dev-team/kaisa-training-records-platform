@@ -10,6 +10,10 @@ export const TRAINEE_REVIEW_STATUS_LABELS: Record<TraineeReviewStatus, string> =
 export interface Trainee {
   id: string
   traineeNo: string
+  /** 감리원증번호 */
+  certNo: string | null
+  /** 감리원 등급 (감리원/수석감리원) — 확인서 표기용. 회원등급(결제 단가)과 별개 */
+  supervisorGrade: string | null
   name: string
   birthDate: string | null
   phoneMasked: string
@@ -25,6 +29,8 @@ export interface Trainee {
 
 export interface TraineeUpdateInput {
   name?: string
+  cert_no?: string | null
+  supervisor_grade?: string | null
   birth_date?: string | null
   phone?: string
   email?: string | null
@@ -35,6 +41,8 @@ export interface TraineeUpdateInput {
 
 export interface TraineeCreateInput {
   name: string
+  cert_no?: string | null
+  supervisor_grade?: string | null
   birth_date?: string | null
   phone?: string
   email?: string | null

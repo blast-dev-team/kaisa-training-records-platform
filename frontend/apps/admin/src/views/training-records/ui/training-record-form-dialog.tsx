@@ -1,13 +1,15 @@
-import { useEffect, useMemo, useState } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'react-toastify'
 import { Button } from '@/src/shared/ui/button'
 import { Dialog } from '@/src/shared/ui/dialog'
 import { Input } from '@/src/shared/ui/input'
 import { Label } from '@/src/shared/ui/label'
 import { Select } from '@/src/shared/ui/select'
+import { SearchableSelect, fetchOptions, type SearchableOption } from '@/src/shared/ui/searchable-select'
 import { Textarea } from '@/src/shared/ui/textarea'
-import { courseQueries } from '@/src/entities/institution'
+import { useDebouncedValue } from '@/src/shared/hooks/use-debounced-value'
+import { getCourseDetail, type Course } from '@/src/entities/institution'
 import {
   patchTrainingRecord,
   postTrainingRecord,
@@ -19,6 +21,7 @@ import {
   type TrainingSource,
 } from '@/src/entities/training-record'
 import {
+  getTraineeList,
   postTrainee,
   traineeQueries,
   type Trainee as TraineeEntity,
@@ -36,6 +39,12 @@ interface Props {
 }
 
 const MANUAL = '__manual__'
+
+const courseOptionsFetcher = fetchOptions('/courses', {}, c => ({
+  value: c.id as string,
+  label: c.name as string,
+  hint: c.institution_name as string | undefined,
+}))
 
 export function TrainingRecordFormDialog({
   isOpen,
@@ -58,8 +67,6 @@ export function TrainingRecordFormDialog({
   const [institutionName, setInstitutionName] = useState('')
   const [formNo, setFormNo] = useState('')
   const [docNo, setDocNo] = useState('')
-  const [supervisorGrade, setSupervisorGrade] = useState('')
-  const [supervisorCertNo, setSupervisorCertNo] = useState('')
   const [totalHours, setTotalHours] = useState('')
   const [completedHours, setCompletedHours] = useState('')
   const [source, setSource] = useState<TrainingSource>(defaultSource)
@@ -68,11 +75,29 @@ export function TrainingRecordFormDialog({
   const [endedAt, setEndedAt] = useState('')
   const [memo, setMemo] = useState('')
 
-  const { data: courses } = useQuery(courseQueries.list({ isActive: true }))
-  const { data: traineeResults, isFetching: searchingTrainee } = useQuery({
-    ...traineeQueries.list({ q: traineeQuery ?? '', page: 1, limit: 10 }),
-    enabled: traineeQuery !== null,
+  const traineeDropdownRef = useRef<HTMLDivElement>(null)
+  const debouncedTraineeSearch = useDebouncedValue(traineeSearch.trim(), 300)
+  const [traineeDropdownOpen, setTraineeDropdownOpen] = useState(false)
+
+  // 교육생 검색 — 클릭 시 펼침 + 무한 스크롤 (debounce 300ms)
+  const traineeListQuery = useInfiniteQuery({
+    queryKey: [...traineeQueries.lists(), { q: debouncedTraineeSearch, limit: 20 }],
+    queryFn: ({ pageParam }) =>
+      getTraineeList({ q: debouncedTraineeSearch || undefined, page: pageParam, limit: 20 }),
+    initialPageParam: 1,
+    getNextPageParam: (last) => (last.page < last.totalPages ? last.page + 1 : undefined),
+    enabled: traineeDropdownOpen && !record && !trainee,
   })
+  const traineeOptions = traineeListQuery.data?.pages.flatMap((p) => p.items) ?? []
+
+  useEffect(() => {
+    if (!traineeDropdownOpen) return
+    const onClickOutside = (e: MouseEvent) => {
+      if (!traineeDropdownRef.current?.contains(e.target as Node)) setTraineeDropdownOpen(false)
+    }
+    document.addEventListener('mousedown', onClickOutside)
+    return () => document.removeEventListener('mousedown', onClickOutside)
+  }, [traineeDropdownOpen])
 
   // 검색 결과 없음 → 그 자리에서 생성하고 바로 선택. 교육생 관리와 같은 수기 등록 경로.
   const createTraineeMutation = useMutation({
@@ -106,6 +131,8 @@ export function TrainingRecordFormDialog({
           ? {
               id: record.traineeId,
               traineeNo: record.traineeNo ?? '',
+              certNo: null,
+              supervisorGrade: null,
               name: record.traineeName ?? '',
               birthDate: null,
               phoneMasked: '',
@@ -125,8 +152,6 @@ export function TrainingRecordFormDialog({
       setInstitutionName(record.institutionName ?? '')
       setFormNo(record.formNo ?? '')
       setDocNo(record.docNo ?? '')
-      setSupervisorGrade(record.supervisorGrade ?? '')
-      setSupervisorCertNo(record.supervisorCertNo ?? '')
       setTotalHours(record.totalHours !== null ? String(record.totalHours) : '')
       setCompletedHours(record.completedHours !== null ? String(record.completedHours) : '')
       setSource(record.source)
@@ -141,8 +166,6 @@ export function TrainingRecordFormDialog({
       setInstitutionName('')
       setFormNo('')
       setDocNo('')
-      setSupervisorGrade('')
-      setSupervisorCertNo('')
       setTotalHours('')
       setCompletedHours('')
       setSource(defaultSource)
@@ -154,16 +177,19 @@ export function TrainingRecordFormDialog({
   }, [isOpen, record, presetTrainee, defaultSource])
 
   // 과정 마스터 선택 → 과정명·기관명·총시수 스냅샷 자동 채움
-  const handleCourseChange = (value: string) => {
-    setCourseId(value)
-    if (value === MANUAL) return
-    const course = courses?.find((c) => c.id === value)
-    if (course) {
+  const handleCourseChange = (value: string | null, option?: SearchableOption) => {
+    setCourseId(value ?? MANUAL)
+    if (!value) return
+    // 스냅샷 채움은 과정 상세 조회 후 — 라벨만으로는 시수를 모른다
+    void option
+    getCourseDetail(value).then((course) => {
       setCourseName(course.name)
       setInstitutionName(course.institutionName ?? '')
       setTotalHours(course.totalHours !== null ? String(course.totalHours) : '')
-      if (completedHours === '') setCompletedHours(course.totalHours !== null ? String(course.totalHours) : '')
-    }
+      setCompletedHours((prev) =>
+        prev === '' && course.totalHours !== null ? String(course.totalHours) : prev,
+      )
+    })
   }
 
   const mutation = useMutation({
@@ -175,8 +201,6 @@ export function TrainingRecordFormDialog({
         institution_name: institutionName.trim() || undefined,
         form_no: formNo.trim() || null,
         doc_no: docNo.trim() || null,
-        supervisor_grade: supervisorGrade.trim() || null,
-        supervisor_cert_no: supervisorCertNo.trim() || null,
         total_hours: totalHours === '' ? null : Number(totalHours),
         completed_hours: completedHours === '' ? null : Number(completedHours),
         started_at: startedAt || null,
@@ -241,113 +265,128 @@ export function TrainingRecordFormDialog({
               </Button>
             </div>
           ) : (
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
+              <div ref={traineeDropdownRef} className="relative">
                 <Input
-                  placeholder="성명으로 검색"
+                  placeholder="클릭해서 성명으로 검색 · 선택"
                   value={traineeSearch}
-                  onChange={(e) => setTraineeSearch(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault()
-                      setTraineeQuery(traineeSearch.trim() || null)
-                    }
+                  onChange={(e) => {
+                    setTraineeSearch(e.target.value)
+                    setTraineeDropdownOpen(true)
                   }}
+                  onFocus={() => setTraineeDropdownOpen(true)}
                 />
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => setTraineeQuery(traineeSearch.trim() || null)}
-                >
-                  검색
-                </Button>
-              </div>
-              {traineeQuery !== null && (
-                <div className="max-h-40 overflow-y-auto scrollbar-thin rounded-md border border-line divide-y divide-line-2">
-                  {searchingTrainee ? (
-                    <p className="px-3 py-2 text-[13px] text-ink-3">검색 중...</p>
-                  ) : (traineeResults?.items ?? []).length === 0 ? (
-                    <div className="space-y-2 px-3 py-2">
-                      <p className="text-[13px] text-ink-3">검색 결과가 없어요</p>
-                      {!creatingTrainee ? (
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          onClick={() => setCreatingTrainee(true)}
-                          disabled={!traineeSearch.trim()}
-                        >
-                          '{traineeSearch.trim()}' 신규 교육생으로 등록
-                        </Button>
-                      ) : (
-                        <div className="space-y-2">
-                          <div className="grid grid-cols-3 gap-2">
-                            <Input value={traineeSearch.trim()} disabled aria-label="성명" />
-                            <Input
-                              type="date"
-                              value={newTraineeBirth}
-                              onChange={(e) => setNewTraineeBirth(e.target.value)}
-                              aria-label="생년월일"
-                            />
-                            <Input
-                              placeholder="전화번호 (선택)"
-                              value={newTraineePhone}
-                              onChange={(e) => setNewTraineePhone(e.target.value)}
-                            />
-                          </div>
-                          <div className="flex gap-2">
+                {traineeDropdownOpen && (
+                  <div className="absolute z-30 mt-1 w-full rounded-md border border-line bg-white shadow-lg">
+                    <div
+                      className="max-h-56 overflow-y-auto scrollbar-thin divide-y divide-line-2"
+                      onScroll={(e) => {
+                        const el = e.currentTarget
+                        if (
+                          traineeListQuery.hasNextPage &&
+                          !traineeListQuery.isFetchingNextPage &&
+                          el.scrollHeight - el.scrollTop - el.clientHeight < 40
+                        ) {
+                          traineeListQuery.fetchNextPage()
+                        }
+                      }}
+                    >
+                      {traineeListQuery.isPending ? (
+                        <p className="px-3 py-2 text-[13px] text-ink-3">불러오는 중...</p>
+                      ) : traineeOptions.length === 0 ? (
+                        <div className="space-y-2 px-3 py-2">
+                          <p className="text-[13px] text-ink-3">검색 결과가 없어요</p>
+                          {!creatingTrainee && (
                             <Button
+                              variant="secondary"
                               size="sm"
-                              disabled={createTraineeMutation.isPending}
-                              onClick={() => createTraineeMutation.mutate()}
+                              onClick={() => setCreatingTrainee(true)}
+                              disabled={!traineeSearch.trim()}
                             >
-                              {createTraineeMutation.isPending ? '생성 중...' : '생성 후 선택'}
+                              '{traineeSearch.trim()}' 신규 교육생으로 등록
                             </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => setCreatingTrainee(false)}
-                            >
-                              취소
-                            </Button>
-                          </div>
+                          )}
                         </div>
+                      ) : (
+                        traineeOptions.map((t) => (
+                          <button
+                            key={t.id}
+                            type="button"
+                            className="block w-full px-3 py-2 text-left text-[13px] hover:bg-panel-2"
+                            onClick={() => {
+                              setTrainee(t)
+                              setTraineeQuery(null)
+                              setTraineeDropdownOpen(false)
+                            }}
+                          >
+                            <span className="font-medium text-ink">{t.name}</span>
+                            <span className="ml-2 text-ink-3">
+                              {t.traineeNo} · {t.phoneMasked}
+                            </span>
+                          </button>
+                        ))
+                      )}
+                      {traineeListQuery.isFetchingNextPage && (
+                        <p className="px-3 py-1.5 text-center text-[12px] text-ink-3">
+                          불러오는 중…
+                        </p>
                       )}
                     </div>
-                  ) : (
-                    (traineeResults?.items ?? []).map((t) => (
-                      <button
-                        key={t.id}
-                        type="button"
-                        className="block w-full px-3 py-2 text-left text-[13px] hover:bg-panel-2"
-                        onClick={() => {
-                          setTrainee(t)
-                          setTraineeQuery(null)
-                        }}
-                      >
-                        <span className="font-medium text-ink">{t.name}</span>
-                        <span className="ml-2 text-ink-3">
-                          {t.traineeNo} · {t.phoneMasked}
-                        </span>
-                      </button>
-                    ))
-                  )}
-                </div>
-              )}
-            </div>
+                    {/* 검색 결과 없음 → 그 자리에서 신규 생성 (기존 흐름 유지) */}
+                    {traineeOptions.length === 0 && creatingTrainee && (
+                      <div className="space-y-2 border-t border-line px-3 py-2">
+                        <div className="grid grid-cols-3 gap-2">
+                          <Input value={traineeSearch.trim()} disabled aria-label="성명" />
+                          <Input
+                            type="date"
+                            value={newTraineeBirth}
+                            onChange={(e) => setNewTraineeBirth(e.target.value)}
+                            aria-label="생년월일"
+                          />
+                          <Input
+                            placeholder="전화번호 (선택)"
+                            value={newTraineePhone}
+                            onChange={(e) => setNewTraineePhone(e.target.value)}
+                          />
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            disabled={createTraineeMutation.isPending}
+                            onClick={() => createTraineeMutation.mutate()}
+                          >
+                            {createTraineeMutation.isPending ? '생성 중...' : '생성 후 선택'}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setCreatingTrainee(false)}
+                          >
+                            취소
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
           )}
         </div>
 
         {/* 과정 — 마스터 연결 or 직접 입력 */}
         <div className="space-y-1.5">
           <Label>과정</Label>
-          <Select value={courseId} onChange={(e) => handleCourseChange(e.target.value)}>
-            <option value={MANUAL}>직접 입력</option>
-            {(courses ?? []).map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name} {c.institutionName ? `· ${c.institutionName}` : ''}
-              </option>
-            ))}
-          </Select>
+          <SearchableSelect
+            value={courseId === MANUAL ? null : courseId}
+            onChange={handleCourseChange}
+            fetchPage={courseOptionsFetcher}
+            queryKeyPrefix={["options", "record-courses"]}
+            placeholder="과정 검색 · 선택 (직접 입력은 아래)"
+            selectedLabel={record?.courseName ?? undefined}
+            clearable
+          />
+          <p className="text-[11px] text-ink-3">
+            선택 해제 시 직접 입력 — 목록에 없는 교육은 직접 입력을 사용하세요
+          </p>
           {courseId === MANUAL && (
             <div className="grid grid-cols-2 gap-2 pt-1">
               <Input
@@ -379,25 +418,6 @@ export function TrainingRecordFormDialog({
               placeholder="예: 대축-2026-001"
               value={docNo}
               onChange={(e) => setDocNo(e.target.value)}
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-2">
-          <div className="space-y-1.5">
-            <Label>감리원 등급</Label>
-            <Input
-              placeholder="예: 정감리원"
-              value={supervisorGrade}
-              onChange={(e) => setSupervisorGrade(e.target.value)}
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Label>감리원증 발급번호</Label>
-            <Input
-              placeholder="예: 감리-2026-0001"
-              value={supervisorCertNo}
-              onChange={(e) => setSupervisorCertNo(e.target.value)}
             />
           </div>
         </div>
@@ -438,7 +458,7 @@ export function TrainingRecordFormDialog({
           </div>
           <div className="space-y-1.5">
             <Label>종료일</Label>
-            <Input type="date" value={endedAt} onChange={(e) => setEndedAt(e.target.value)} />
+            <Input type="date" value={endedAt} min={startedAt || undefined} onChange={(e) => setEndedAt(e.target.value)} />
           </div>
         </div>
 
