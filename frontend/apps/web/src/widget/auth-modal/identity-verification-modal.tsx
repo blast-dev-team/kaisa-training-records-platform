@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 
-import { postPassComplete } from '@/src/shared/api/post-pass-complete';
-import { postPassStart } from '@/src/shared/api/post-pass-start';
-import { postPassTestLogin } from '@/src/shared/api/post-pass-test-login';
-import { requestPassIdentityVerification } from '@/src/shared/lib/portone/request-identity-verification';
-import { Button, TextField } from '@/src/shared/ui';
+import { postPassComplete } from "@/src/shared/api/post-pass-complete";
+import { useAuthStore } from "@/src/shared/store/auth-store";
+import { postPassStart } from "@/src/shared/api/post-pass-start";
+import { postPassTestLogin } from "@/src/shared/api/post-pass-test-login";
+import { requestPassIdentityVerification } from "@/src/shared/lib/portone/request-identity-verification";
+import { Button, TextField } from "@/src/shared/ui";
 
 /**
  * 본인인증 모달 — 교육이력확인서 발급 버튼 클릭 시 노출.
@@ -17,7 +18,7 @@ import { Button, TextField } from '@/src/shared/ui';
  * 기존 모달 관례에 따라 배경 클릭·ESC 로도 닫는다 (인증 진행 중 제외).
  */
 
-const TEST_LOGIN_NAME = '테스트';
+const TEST_LOGIN_NAME = "테스트";
 
 interface IdentityVerificationModalProps {
   /** PASS 본인인증 성공 — 인증한 성명 전달 */
@@ -25,37 +26,34 @@ interface IdentityVerificationModalProps {
   onClose: () => void;
 }
 
-const digitsOnly = (value: string) => value.replace(/\D/g, '');
+const digitsOnly = (value: string) => value.replace(/\D/g, "");
 
-export function IdentityVerificationModal({
-  onSuccess,
-  onClose,
-}: IdentityVerificationModalProps) {
-  const [name, setName] = useState('');
-  const [birth, setBirth] = useState('');
-  const [phone, setPhone] = useState('');
+export function IdentityVerificationModal({ onSuccess, onClose }: IdentityVerificationModalProps) {
+  const setTraineeLinked = useAuthStore((state) => state.setTraineeLinked);
+  const [name, setName] = useState("");
+  const [birth, setBirth] = useState("");
+  const [phone, setPhone] = useState("");
   const [isPending, setIsPending] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState("");
 
   // 성명 '테스트' — PASS 인증 우회. 생년월일·휴대전화 없이 바로 로그인한다
   const isTestLogin = name.trim() === TEST_LOGIN_NAME;
 
   const canSubmit =
-    name.trim().length > 0 &&
-    (isTestLogin || (birth.length === 8 && phone.length >= 10));
+    name.trim().length > 0 && (isTestLogin || (birth.length === 8 && phone.length >= 10));
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && !isPending) onClose();
+      if (event.key === "Escape" && !isPending) onClose();
     };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isPending, onClose]);
 
   const handleSubmit = async () => {
     if (!canSubmit || isPending) return;
     setIsPending(true);
-    setErrorMessage('');
+    setErrorMessage("");
     try {
       if (isTestLogin) {
         // PASS 인증 생략 — 서버가 세션 쿠키를 바로 내려준다
@@ -76,12 +74,16 @@ export function IdentityVerificationModal({
       });
       // 서버가 포트원 결과를 검증해 고객을 찾거나 생성하고 세션 쿠키를 내려준다
       const user = await postPassComplete(state);
+      // 교육생 미연결(수동 심사 대기) — 심사 대기 화면으로 갈린다
+      if (user.reviewStatus === "manual_review") {
+        setTraineeLinked(false);
+      }
       onSuccess(user.name ?? name.trim());
     } catch (error) {
       setErrorMessage(
         error instanceof Error
           ? error.message
-          : '본인인증에 실패했어요. 잠시 후 다시 시도해 주세요',
+          : "본인인증에 실패했어요. 잠시 후 다시 시도해 주세요",
       );
     } finally {
       setIsPending(false);
@@ -103,11 +105,9 @@ export function IdentityVerificationModal({
         className="flex w-[420px] max-w-full flex-col gap-5 rounded-[20px] bg-white px-8 py-7 shadow-[0px_4px_24px_0px_rgba(0,0,0,0.15)] font-sans"
       >
         <div className="flex flex-col gap-1.5">
-          <p className="text-xl font-semibold tracking-[-0.03em] text-gray-900">
-            본인인증
-          </p>
+          <p className="text-xl font-semibold tracking-[-0.03em] text-gray-900">본인인증</p>
           <p className="text-base leading-[1.5] tracking-[-0.03em] text-gray-500">
-            입력한 정보로 PASS 본인인증을 진행합니다.
+            입력한 정보로 본인인증을 진행합니다.
           </p>
         </div>
 
@@ -119,7 +119,7 @@ export function IdentityVerificationModal({
             value={name}
             maxLength={30}
             helperText={
-              isTestLogin ? '테스트 계정으로 본인인증 없이 바로 로그인합니다.' : undefined
+              isTestLogin ? "테스트 계정으로 본인인증 없이 바로 로그인합니다." : undefined
             }
             onChange={(event) => setName(event.target.value)}
           />
@@ -130,7 +130,7 @@ export function IdentityVerificationModal({
             inputMode="numeric"
             maxLength={8}
             value={birth}
-            helperText={birth.length > 0 && birth.length < 8 ? '8자리를 입력해 주세요' : undefined}
+            helperText={birth.length > 0 && birth.length < 8 ? "8자리를 입력해 주세요" : undefined}
             onChange={(event) => setBirth(digitsOnly(event.target.value))}
           />
           <TextField
@@ -161,7 +161,7 @@ export function IdentityVerificationModal({
             disabled={!canSubmit || isPending}
             onClick={handleSubmit}
           >
-            {isPending ? (isTestLogin ? '로그인 중...' : '인증 진행 중...') : '본인인증 시작'}
+            {isPending ? (isTestLogin ? "로그인 중..." : "인증 진행 중...") : "본인인증 시작"}
           </Button>
         </div>
       </section>

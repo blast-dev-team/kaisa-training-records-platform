@@ -12,6 +12,10 @@ export interface SessionStatus {
   name: string;
   /** 세션 만료 시각 (ISO 8601 — KST 오프셋 포함) */
   expires_at: string;
+  /** 교육생 연결 여부 — false 면 수동 심사 대기 */
+  trainee_linked?: boolean;
+  /** 심사 대기 중인지 */
+  review_pending?: boolean;
 }
 
 export async function getSession(): Promise<SessionStatus | null> {

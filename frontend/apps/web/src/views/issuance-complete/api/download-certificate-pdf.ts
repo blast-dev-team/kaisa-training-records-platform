@@ -1,5 +1,7 @@
 import type { IssuanceResult } from './get-issuance-result';
 
+const API_BASE = import.meta.env.VITE_API_URL ?? "";
+
 /**
  * 확인서 PDF 다운로드.
  *
@@ -31,5 +33,21 @@ export async function downloadCertificatePdf(
   anchor.click();
   anchor.remove();
   URL.revokeObjectURL(url);
+  void reportDownloaded(result.certificateId);
   return true;
+}
+
+/**
+ * 다운로드 사실을 서버에 신고 — 어드민에서 다운로드 여부 조회용.
+ * PDF 저장 자체는 이미 끝났으므로 실패해도 사용자 흐름을 막지 않는다.
+ */
+export async function reportDownloaded(certificateId: string): Promise<void> {
+  try {
+    await fetch(`${API_BASE}/api/me/certificates/${certificateId}/downloaded`, {
+      method: 'POST',
+      credentials: 'include',
+    });
+  } catch (error) {
+    console.warn('다운로드 신고 실패', error);
+  }
 }

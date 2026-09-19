@@ -5,6 +5,8 @@
  */
 
 export interface IssuanceResult {
+  /** 확인서 id — 다운로드 신고용 */
+  certificateId: string;
   /** 확인서 번호 (예: CERT-20260916-1) */
   certificateNumber: string;
   /** 진위확인 ID — 확인서 번호를 그대로 쓴다 (진위확인 API 가 certificate_no 로 검증) */
@@ -23,6 +25,7 @@ export interface IssuanceResult {
 
 /** 백엔드 MyCertificateResponse — snake_case 그대로 */
 interface MyCertificateDto {
+  id: string;
   training_record_id: string;
   certificate_no: string;
   issue_type: string;
@@ -72,6 +75,7 @@ export async function getIssuanceResult(
     throw new Error("발급된 확인서가 없어요");
   }
   return {
+    certificateId: certificate.id,
     certificateNumber: certificate.certificate_no,
     verificationId: certificate.certificate_no,
     issuedAtLabel: formatDateTime(certificate.issued_at),

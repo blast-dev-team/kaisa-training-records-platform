@@ -29,7 +29,8 @@ function SessionGate({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (isPending) return;
-    if (data) signIn(data.name, new Date(data.expires_at).getTime());
+    if (data)
+      signIn(data.name, new Date(data.expires_at).getTime(), data.trainee_linked !== false);
     setIsRestored(true);
   }, [data, isPending, signIn]);
 

@@ -8,6 +8,8 @@ let expireTimer: ReturnType<typeof setTimeout> | null = null;
 interface AuthState {
   /** 본인인증(PASS) 완료 여부 — 세션 동안 유지 */
   isAuthenticated: boolean;
+  /** 교육생 연결 여부 — false 면 수동 심사 대기. 심사 완료(어드민 승인) 후 다음 로그인부터 true */
+  traineeLinked: boolean;
   /** 인증된 사용자 표시명 */
   userName: string;
   /** 10분 타이머 만료로 자동 해제됐는지 — 만료 안내 모달 표시용 */
@@ -15,7 +17,9 @@ interface AuthState {
   /** 인증 만료 시각(epoch ms) — 사이드바 잔여 시간 표시용. 미인증이면 null */
   expiresAt: number | null;
   /** 본인인증 완료 — 발급 플로우 진입 시 호출. expiresAt 미지정 시 10분 뒤 자동 해제된다 */
-  signIn: (userName?: string, expiresAt?: number) => void;
+  signIn: (userName?: string, expiresAt?: number, traineeLinked?: boolean) => void;
+  /** 교육생 연결 상태만 변경 — 본인인증 직후 심사 대기 판정 */
+  setTraineeLinked: (linked: boolean) => void;
   /** 인증 해제 — 사이드바 "인증 해제" 또는 세션 만료 */
   signOut: () => void;
   /** 만료 안내 소비 — 모달 닫을 때 호출 */
@@ -32,10 +36,11 @@ interface AuthState {
  */
 export const useAuthStore = create<AuthState>((set, get) => ({
   isAuthenticated: false,
+  traineeLinked: true,
   userName: "홍○○ 님",
   isSessionExpired: false,
   expiresAt: null,
-  signIn: (userName, expiresAt) => {
+  signIn: (userName, expiresAt, traineeLinked = true) => {
     if (expireTimer) clearTimeout(expireTimer);
     const ttlMs =
       expiresAt !== undefined
@@ -47,6 +52,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }, ttlMs);
     set((state) => ({
       isAuthenticated: true,
+      traineeLinked,
       userName: userName ?? state.userName,
       expiresAt: expiresAt ?? Date.now() + SESSION_TTL_MINUTES * 60 * 1000,
     }));
@@ -56,7 +62,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       clearTimeout(expireTimer);
       expireTimer = null;
     }
-    set({ isAuthenticated: false, expiresAt: null });
+    set({ isAuthenticated: false, traineeLinked: true, expiresAt: null });
   },
+  setTraineeLinked: (linked) => set({ traineeLinked: linked }),
   clearSessionExpired: () => set({ isSessionExpired: false }),
 }));

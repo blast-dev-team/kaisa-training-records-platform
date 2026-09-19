@@ -7,7 +7,10 @@ import { Button, Toast } from "@/src/shared/ui";
 import { cn } from "@/src/shared/utils/cn";
 import { IssuanceStepper } from "@/src/widget";
 
-import { downloadCertificatePdf } from "../api/download-certificate-pdf";
+import {
+  downloadCertificatePdf,
+  reportDownloaded,
+} from "../api/download-certificate-pdf";
 import { getIssuanceResult, type IssuanceResult } from "../api/get-issuance-result";
 import { CertificatePreview, CertificatePrintSheet } from "./certificate-preview";
 
@@ -71,6 +74,8 @@ export function IssuanceCompletePage() {
     try {
       const downloaded = await downloadCertificatePdf(result);
       if (!downloaded) {
+        // 인쇄 폴백도 저장 시도로 집계 — 취소 여부는 브라우저가 알려주지 않는다
+        void reportDownloaded(result.certificateId);
         window.print();
       }
     } catch (err) {
