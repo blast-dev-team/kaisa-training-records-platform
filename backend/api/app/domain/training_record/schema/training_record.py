@@ -4,6 +4,8 @@ from decimal import Decimal
 
 from pydantic import BaseModel
 
+from app.core.crypto import decrypt_field, mask_phone
+
 
 class TrainingRecordCreate(BaseModel):
     """어드민 이력 등록 — 외부 수료도 동일 경로(source='external' + 증빙첨부)."""
@@ -52,6 +54,8 @@ class TrainingRecordResponse(BaseModel):
     # 어드민 목록 표시용 — trainee 조인 값 (model_validate 로는 안 채워진다)
     trainee_name: str | None = None
     trainee_no: str | None = None
+    trainee_birth_date: date | None = None
+    trainee_phone: str | None = None  # 마스킹 — trainee.phone_encrypted 복호화 후 mask_phone
     course_id: uuid.UUID | None
     session_id: uuid.UUID | None = None
     institution_id: uuid.UUID | None
@@ -83,12 +87,19 @@ class TrainingRecordResponse(BaseModel):
     @classmethod
     def from_orm(cls, record) -> "TrainingRecordResponse":
         trainee = record.trainee
+        phone = (
+            mask_phone(decrypt_field(trainee.phone_encrypted))
+            if trainee and trainee.phone_encrypted
+            else None
+        )
         return cls(
             id=record.id,
             training_record_no=record.training_record_no,
             trainee_id=record.trainee_id,
             trainee_name=trainee.name if trainee else None,
             trainee_no=trainee.trainee_no if trainee else None,
+            trainee_birth_date=trainee.birth_date if trainee else None,
+            trainee_phone=phone,
             course_id=record.course_id,
             session_id=record.session_id,
             institution_id=record.institution_id,

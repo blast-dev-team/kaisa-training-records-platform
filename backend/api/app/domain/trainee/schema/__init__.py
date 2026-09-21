@@ -4,6 +4,9 @@ from app.domain.trainee.schema.grade import (
     MembershipGradeUpdate,
 )
 from app.domain.trainee.schema.trainee import (
+    TraineeBulkGradeCreate,
+    TraineeBulkResult,
+    TraineeBulkUpdate,
     TraineeCreate,
     TraineeResponse,
     TraineeUpdate,
@@ -13,6 +16,9 @@ __all__ = [
     "MembershipGradeCreate",
     "MembershipGradeResponse",
     "MembershipGradeUpdate",
+    "TraineeBulkGradeCreate",
+    "TraineeBulkResult",
+    "TraineeBulkUpdate",
     "TraineeCreate",
     "TraineeResponse",
     "TraineeUpdate",

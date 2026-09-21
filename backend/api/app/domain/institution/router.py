@@ -15,6 +15,9 @@ from app.domain.institution.schema import (
     InstitutionCreate,
     InstitutionResponse,
     InstitutionUpdate,
+    SessionBulkDelete,
+    SessionBulkResult,
+    SessionBulkUpdate,
     SessionCreate,
     SessionNameCreate,
     SessionNameResponse,
@@ -209,6 +212,29 @@ async def list_sessions(
         page=page,
         limit=limit,
     )
+
+
+# /bulk 정적 경로 — /{session_id} 보다 먼저 선언해야 한다
+@session_router.patch("/bulk", response_model=SessionBulkResult)
+async def bulk_update_sessions(
+    body: SessionBulkUpdate,
+    db: AsyncSession = Depends(get_db),
+    actor: AdminUser = Depends(require_admin),
+):
+    """선택 일정 행별 저장 — 항목마다 담긴 필드만 해당 일정에 적용."""
+    updated = await course_session_service.bulk_update_sessions(db, body, actor)
+    return SessionBulkResult(updated=updated)
+
+
+@session_router.delete("/bulk", response_model=SessionBulkResult)
+async def bulk_delete_sessions(
+    body: SessionBulkDelete,
+    db: AsyncSession = Depends(get_db),
+    actor: AdminUser = Depends(require_admin),
+):
+    """선택 일정 일괄 삭제 — 연결된 이력은 보존되고 연결만 끊긴다."""
+    deleted = await course_session_service.bulk_delete_sessions(db, body, actor)
+    return SessionBulkResult(deleted=deleted)
 
 
 @session_router.get("/{session_id}", response_model=SessionResponse)

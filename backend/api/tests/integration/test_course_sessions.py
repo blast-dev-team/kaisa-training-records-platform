@@ -210,3 +210,127 @@ class TestCourseSessions:
         )
         assert len(records) == 1  # 이력은 보존, 연결만 끊김
         assert records[0].session_id is None
+
+    async def test_bulk_update_applies_each_row_values(self, client, db):
+        _actor, token = await make_admin(db)
+        course = await make_course(db)
+        await db.commit()
+        ids = []
+        for started in ("2026-09-01", "2026-09-02"):
+            resp = await client.post(
+                "/api/course-sessions",
+                json={
+                    "course_id": str(course.id),
+                    "started_at": started,
+                    "ended_at": "2026-09-05",
+                    "recognized_hours": "4",
+                    "memo": "원래 메모",
+                },
+                cookies=admin_cookie(token),
+            )
+            assert resp.status_code == 201
+            ids.append(resp.json()["id"])
+
+        # 행별로 다른 값 — 각 항목에 담긴 필드만 적용된다
+        resp = await client.patch(
+            "/api/course-sessions/bulk",
+            json={
+                "items": [
+                    {"id": ids[0], "started_at": "2026-09-03", "recognized_hours": "8"},
+                    {"id": ids[1], "is_active": False},
+                ]
+            },
+            cookies=admin_cookie(token),
+        )
+        assert resp.status_code == 200
+        assert resp.json()["updated"] == 2
+
+        resp = await client.get(
+            "/api/course-sessions", params={"search": "파이썬"}, cookies=admin_cookie(token)
+        )
+        rows = {r["id"]: r for r in resp.json()["items"]}
+        assert rows[ids[0]]["started_at"] == "2026-09-03"
+        assert Decimal(rows[ids[0]]["recognized_hours"]) == Decimal(8)
+        assert rows[ids[0]]["ended_at"] == "2026-09-05"  # 미포함 필드는 변경 없음
+        assert rows[ids[0]]["is_active"] is True
+        assert rows[ids[1]]["is_active"] is False
+        assert rows[ids[1]]["started_at"] == "2026-09-02"
+        assert Decimal(rows[ids[1]]["recognized_hours"]) == Decimal(4)
+
+    async def test_bulk_update_rejects_bad_period(self, client, db):
+        _actor, token = await make_admin(db)
+        course = await make_course(db)
+        await db.commit()
+        resp = await client.post(
+            "/api/course-sessions",
+            json={"course_id": str(course.id), "started_at": "2026-09-01"},
+            cookies=admin_cookie(token),
+        )
+        session_id = resp.json()["id"]
+
+        resp = await client.patch(
+            "/api/course-sessions/bulk",
+            json={"items": [{"id": session_id, "ended_at": "2026-08-31"}]},
+            cookies=admin_cookie(token),
+        )
+        assert resp.status_code == 422
+        assert resp.json()["code"] == "VALIDATION_ERROR"
+
+    async def test_bulk_delete_preserves_records(self, client, db):
+        _actor, token = await make_admin(db)
+        course = await make_course(db)
+        t1, t2 = await _two_trainees(db)
+        await db.commit()
+        ids = []
+        for trainee in (t1, t2):
+            resp = await client.post(
+                "/api/course-sessions",
+                json={"course_id": str(course.id), "started_at": "2026-09-01"},
+                cookies=admin_cookie(token),
+            )
+            session_id = resp.json()["id"]
+            ids.append(session_id)
+            await client.post(
+                "/api/training-records/bulk",
+                json={"session_id": session_id, "trainee_ids": [str(trainee.id)]},
+                cookies=admin_cookie(token),
+            )
+
+        resp = await client.request(
+            "DELETE",
+            "/api/course-sessions/bulk",
+            json={"ids": ids},
+            cookies=admin_cookie(token),
+        )
+        assert resp.status_code == 200
+        assert resp.json()["deleted"] == 2
+
+        records = list(
+            (
+                await db.execute(select(TrainingRecord).order_by(TrainingRecord.trainee_id))
+            ).scalars()
+        )
+        assert len(records) == 2  # 이력은 보존, 연결만 끊김
+        assert all(r.session_id is None for r in records)
+
+    async def test_bulk_delete_unknown_id_rejected(self, client, db):
+        _actor, token = await make_admin(db)
+        course = await make_course(db)
+        await db.commit()
+        resp = await client.post(
+            "/api/course-sessions",
+            json={"course_id": str(course.id)},
+            cookies=admin_cookie(token),
+        )
+        session_id = resp.json()["id"]
+
+        resp = await client.request(
+            "DELETE",
+            "/api/course-sessions/bulk",
+            json={"ids": [session_id, str(uuid.uuid4())]},
+            cookies=admin_cookie(token),
+        )
+        assert resp.status_code == 404
+        assert resp.json()["code"] == "NOT_FOUND"
+        # 부분 처리 없음 — 존재 확인 후 한 번에 삭제
+        assert await db.get(CourseSession, uuid.UUID(session_id)) is not None

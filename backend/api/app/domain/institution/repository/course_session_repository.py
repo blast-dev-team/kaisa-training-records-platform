@@ -19,6 +19,17 @@ async def find_by_id(db: AsyncSession, session_id: uuid.UUID) -> CourseSession |
     return result.scalar_one_or_none()
 
 
+async def find_by_ids(
+    db: AsyncSession, session_ids: list[uuid.UUID]
+) -> list[CourseSession]:
+    if not session_ids:
+        return []
+    result = await db.execute(
+        select(CourseSession).where(CourseSession.id.in_(session_ids))
+    )
+    return list(result.scalars().all())
+
+
 async def list_sessions(
     db: AsyncSession,
     course_id: uuid.UUID | None = None,

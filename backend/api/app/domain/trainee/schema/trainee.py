@@ -1,7 +1,7 @@
 import uuid
 from datetime import date, datetime
 
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 
 from app.core.crypto import decrypt_field, mask_phone
 
@@ -74,3 +74,30 @@ class TraineeUpdate(BaseModel):
     memo: str | None = None
     membership_grade_id: uuid.UUID | None = None
     grade_change_reason: str | None = None  # 등급 변경 시 사유 (history 기록용)
+
+
+class TraineeBulkUpdateItem(BaseModel):
+    """일괄 수정 1건. 키를 보내지 않으면 그 필드는 변경 없음."""
+
+    id: uuid.UUID
+    name: str | None = None
+    birth_date: date | None = None
+    phone: str | None = None  # 평문 수신 → 암호화 저장. 빈 문자열 = 변경 없음
+
+
+class TraineeBulkGradeCreate(BaseModel):
+    """선택 교육생 회원등급 일괄 변경 — 사유 없이 바로 변경 (history 사유 None)."""
+
+    trainee_ids: list[uuid.UUID] = Field(min_length=1)
+    membership_grade_id: uuid.UUID
+
+
+class TraineeBulkUpdate(BaseModel):
+    items: list[TraineeBulkUpdateItem] = Field(min_length=1)
+
+
+class TraineeBulkResult(BaseModel):
+    """skipped = 없는/삭제된 id, 이미 같은 등급, 변경 필드 없는 item."""
+
+    updated: int = 0
+    skipped: int = 0

@@ -24,6 +24,20 @@ async def find_by_user_id(db: AsyncSession, user_id: uuid.UUID) -> Trainee | Non
     return result.scalar_one_or_none()
 
 
+async def find_by_ids(
+    db: AsyncSession, trainee_ids: list[uuid.UUID]
+) -> list[Trainee]:
+    """일괄 처리용 — 삭제되지 않은 교육생만. 없는 id 는 결과에서 빠진다."""
+    if not trainee_ids:
+        return []
+    result = await db.execute(
+        select(Trainee).where(
+            Trainee.id.in_(trainee_ids), Trainee.deleted_at.is_(None)
+        )
+    )
+    return list(result.scalars().all())
+
+
 async def list_trainees(
     db: AsyncSession,
     search: str | None = None,

@@ -16,6 +16,8 @@ from app.domain.trainee.repository import trainee_repository as repo
 from app.domain.trainee.schema import (
     MembershipGradeCreate,
     MembershipGradeUpdate,
+    TraineeBulkGradeCreate,
+    TraineeBulkUpdate,
     TraineeCreate,
     TraineeUpdate,
 )
@@ -98,14 +100,18 @@ async def create_trainee(
     return trainee
 
 
-async def update_trainee(
-    db: AsyncSession, trainee_id: uuid.UUID, data: TraineeUpdate, actor: AdminUser
-) -> Trainee:
-    """등급 변경 시 trainee_grade_histories insert + audit. 전화는 암호화 저장."""
-    trainee = await get_trainee(db, trainee_id)
+async def _apply_update(
+    db: AsyncSession, trainee: Trainee, data: TraineeUpdate, actor: AdminUser
+) -> bool:
+    """update_trainee 코어 — commit 없이 필드 반영 + 등급이력/감사로그 기록.
+
+    실제로 반영된 것이 있으면 True (등급 동일·변경 필드 없으면 False).
+    bulk 에서 commit 을 1회로 묶기 위해 추출했다 — 단건은 update_trainee 가 commit 한다.
+    """
     updates = data.model_dump(
         exclude_unset=True, exclude={"phone", "grade_change_reason"}
     )
+    grade_changed = False
 
     if "membership_grade_id" in updates:
         new_grade_id = updates.pop("membership_grade_id")
@@ -139,6 +145,7 @@ async def update_trainee(
                 },
             )
             trainee.membership_grade_id = new_grade_id
+            grade_changed = True
 
     if "phone" in data.model_fields_set:
         phone = data.model_dump(exclude_unset=True).get("phone")
@@ -156,9 +163,70 @@ async def update_trainee(
             after={k: str(v) for k, v in updates.items()},
         )
 
+    return grade_changed or bool(updates) or "phone" in data.model_fields_set
+
+
+async def update_trainee(
+    db: AsyncSession, trainee_id: uuid.UUID, data: TraineeUpdate, actor: AdminUser
+) -> Trainee:
+    """등급 변경 시 trainee_grade_histories insert + audit. 전화는 암호화 저장."""
+    trainee = await get_trainee(db, trainee_id)
+    await _apply_update(db, trainee, data, actor)
     await db.commit()
     await db.refresh(trainee)
     return trainee
+
+
+async def update_trainees_grade_bulk(
+    db: AsyncSession, data: TraineeBulkGradeCreate, actor: AdminUser
+) -> tuple[int, int]:
+    """선택 교육생 회원등급 일괄 변경 — 등급이력은 사유 None 으로 건당 기록. commit 1회."""
+    grade = await repo.find_grade_by_id(db, data.membership_grade_id)
+    if grade is None:
+        raise api_error("NOT_FOUND", message="회원등급을 찾을 수 없어요")
+
+    trainees = await repo.find_by_ids(db, data.trainee_ids)
+    updated = skipped = 0
+    skipped += len(set(data.trainee_ids) - {t.id for t in trainees})  # 없는/삭제된 id
+    for trainee in trainees:
+        changed = await _apply_update(
+            db,
+            trainee,
+            TraineeUpdate(membership_grade_id=data.membership_grade_id),
+            actor,
+        )
+        if changed:
+            updated += 1
+        else:
+            skipped += 1  # 이미 같은 등급
+    await db.commit()
+    return updated, skipped
+
+
+async def update_trainees_bulk(
+    db: AsyncSession, data: TraineeBulkUpdate, actor: AdminUser
+) -> tuple[int, int]:
+    """선택 교육생 기본정보 일괄 수정 — 보낸 필드만 건별 적용. commit 1회."""
+    by_id = {
+        t.id: t for t in await repo.find_by_ids(db, [item.id for item in data.items])
+    }
+    updated = skipped = 0
+    for item in data.items:
+        patch: dict = {}
+        if item.name is not None and item.name.strip():
+            patch["name"] = item.name.strip()
+        if item.birth_date is not None:
+            patch["birth_date"] = item.birth_date
+        if item.phone:
+            patch["phone"] = item.phone  # 빈 문자열 = 기존 유지
+        trainee = by_id.get(item.id)
+        if trainee is None or not patch:
+            skipped += 1
+            continue
+        await _apply_update(db, trainee, TraineeUpdate(**patch), actor)
+        updated += 1
+    await db.commit()
+    return updated, skipped
 
 
 async def delete_trainee(

@@ -13,7 +13,12 @@ from app.domain.institution.model import CourseSession, TrainingCourse
 from app.domain.institution.repository import (
     course_session_repository as session_repo,
 )
-from app.domain.institution.schema import SessionCreate, SessionUpdate
+from app.domain.institution.schema import (
+    SessionBulkDelete,
+    SessionBulkUpdate,
+    SessionCreate,
+    SessionUpdate,
+)
 from app.domain.trainee.model import Trainee
 from app.domain.training_record.model import TrainingRecord
 from app.domain.training_record.service.training_record_service import _record_no
@@ -120,6 +125,71 @@ async def delete_session(
     )
     # 연결된 이력은 session_id 만 끊긴다(FK SET NULL) — 이력 자체는 보존
     await session_repo.delete(db, session)
+
+
+async def bulk_update_sessions(
+    db: AsyncSession, data: SessionBulkUpdate, actor: AdminUser
+) -> int:
+    """행별 값 일괄 저장 — 각 항목에 담긴 필드만 해당 일정에 적용한다."""
+    if not data.items:
+        raise api_error("VALIDATION_ERROR", message="수정할 일정을 선택해 주세요")
+    ids = [item.id for item in data.items]
+    if len(ids) != len(set(ids)):
+        raise api_error("VALIDATION_ERROR", message="중복된 일정이 포함됐어요")
+    sessions = await session_repo.find_by_ids(db, ids)
+    if len(sessions) != len(set(ids)):
+        raise api_error("NOT_FOUND", message="존재하지 않는 일정이 포함됐어요")
+    by_id = {s.id: s for s in sessions}
+    for item in data.items:
+        session = by_id[item.id]
+        for field, value in item.model_dump(exclude_unset=True, exclude={"id"}).items():
+            setattr(session, field, value)
+        if (
+            session.started_at
+            and session.ended_at
+            and session.ended_at < session.started_at
+        ):
+            raise api_error(
+                "VALIDATION_ERROR", message="종료일이 시작일보다 앞설 수 없어요"
+            )
+        record_audit(
+            db,
+            actor_admin_id=actor.id,
+            action="course_session.bulk_updated",
+            entity_type="course_session",
+            entity_id=session.id,
+            # Decimal·date 직렬화
+            after={
+                k: str(v)
+                for k, v in item.model_dump(exclude_unset=True, exclude={"id"}).items()
+            },
+        )
+    await db.commit()
+    return len(data.items)
+
+
+async def bulk_delete_sessions(
+    db: AsyncSession, data: SessionBulkDelete, actor: AdminUser
+) -> int:
+    """선택 일정 일괄 삭제 — 단건과 같이 연결된 이력은 보존되고 연결만 끊긴다."""
+    if not data.ids:
+        raise api_error("VALIDATION_ERROR", message="삭제할 일정을 선택해 주세요")
+    sessions = await session_repo.find_by_ids(db, data.ids)
+    if len(sessions) != len(set(data.ids)):
+        raise api_error("NOT_FOUND", message="존재하지 않는 일정이 포함됐어요")
+    for session in sessions:
+        record_audit(
+            db,
+            actor_admin_id=actor.id,
+            action="course_session.deleted",
+            entity_type="course_session",
+            entity_id=session.id,
+            before={"course_id": str(session.course_id)},
+        )
+        # 연결된 이력은 session_id 만 끊긴다(FK SET NULL) — 이력 자체는 보존
+        await db.delete(session)
+    await db.commit()
+    return len(sessions)
 
 
 async def create_records_for_session(

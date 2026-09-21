@@ -26,6 +26,33 @@ class SessionUpdate(BaseModel):
     memo: str | None = None
 
 
+class SessionBulkUpdateItem(BaseModel):
+    """행별 수정 값 — 담긴 필드만 해당 일정에 적용. 미포함 필드는 변경 없음."""
+
+    id: uuid.UUID
+    started_at: date | None = None
+    ended_at: date | None = None
+    total_hours: Decimal | None = None
+    recognized_hours: Decimal | None = None
+    is_active: bool | None = None
+    memo: str | None = None
+
+
+class SessionBulkUpdate(BaseModel):
+    """일괄 저장 — 항목마다 다른 값을 한 요청으로 저장한다."""
+
+    items: list[SessionBulkUpdateItem]
+
+
+class SessionBulkDelete(BaseModel):
+    ids: list[uuid.UUID]
+
+
+class SessionBulkResult(BaseModel):
+    updated: int = 0
+    deleted: int = 0
+
+
 class SessionResponse(BaseModel):
     id: uuid.UUID
     course_id: uuid.UUID

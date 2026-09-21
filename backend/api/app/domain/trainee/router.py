@@ -11,6 +11,9 @@ from app.domain.trainee.schema import (
     MembershipGradeCreate,
     MembershipGradeResponse,
     MembershipGradeUpdate,
+    TraineeBulkGradeCreate,
+    TraineeBulkResult,
+    TraineeBulkUpdate,
     TraineeCreate,
     TraineeResponse,
     TraineeUpdate,
@@ -65,6 +68,31 @@ async def list_cert_no_duplicates(
     """감리원증번호가 중복인 교육생 목록 — 클라이언트가 직접 수정·삭제하는 데이터."""
     trainees = await trainee_service.list_cert_no_duplicates(db)
     return [TraineeResponse.from_orm(t) for t in trainees]
+
+
+# /bulk* 정적 경로 — /{trainee_id} 보다 먼저 선언해야 한다
+
+
+@router.post("/bulk-grade", response_model=TraineeBulkResult, status_code=200)
+async def bulk_update_grade(
+    body: TraineeBulkGradeCreate,
+    db: AsyncSession = Depends(get_db),
+    actor: AdminUser = Depends(require_admin),
+):
+    """선택 교육생 회원등급 일괄 변경 — 등급이력은 사유 None 으로 건당 기록."""
+    updated, skipped = await trainee_service.update_trainees_grade_bulk(db, body, actor)
+    return TraineeBulkResult(updated=updated, skipped=skipped)
+
+
+@router.post("/bulk-update", response_model=TraineeBulkResult, status_code=200)
+async def bulk_update_trainees(
+    body: TraineeBulkUpdate,
+    db: AsyncSession = Depends(get_db),
+    actor: AdminUser = Depends(require_admin),
+):
+    """선택 교육생 기본정보 일괄 수정 — 보낸 필드만 건별 적용, 없는 id 는 건너뜀."""
+    updated, skipped = await trainee_service.update_trainees_bulk(db, body, actor)
+    return TraineeBulkResult(updated=updated, skipped=skipped)
 
 
 @router.get("/{trainee_id}", response_model=TraineeResponse)
