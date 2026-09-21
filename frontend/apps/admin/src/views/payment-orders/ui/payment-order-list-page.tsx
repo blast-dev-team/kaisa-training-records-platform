@@ -29,6 +29,7 @@ export function PaymentOrderListPage() {
   const from = searchParams.get("from") ?? "";
   const to = searchParams.get("to") ?? "";
   const page = Math.max(1, Number(searchParams.get("page") ?? 1) || 1);
+  const limit = Math.max(1, Number(searchParams.get("limit") ?? 10) || 10);
 
   const [searchInput, setSearchInput] = useState(q);
 
@@ -36,7 +37,7 @@ export function PaymentOrderListPage() {
   const [reason, setReason] = useState("");
 
   const queryClient = useQueryClient();
-  const { data } = useQuery(paymentOrderQueries.list({ status, search: q || undefined, page }));
+  const { data } = useQuery(paymentOrderQueries.list({ status, search: q || undefined, page, limit }));
 
   const refundMutation = useMutation({
     // 이 결제로 발급된 확인서는 서버가 전부 폐기한 뒤 환불한다
@@ -200,6 +201,8 @@ export function PaymentOrderListPage() {
         page={page}
         totalPages={totalPages}
         onPageChange={(p) => updateParams({ page: String(p) }, false)}
+        limit={limit}
+        onLimitChange={(n) => updateParams({ limit: String(n) })}
         paginationInfo={`총 ${total.toLocaleString()}건 · ${page}/${totalPages}페이지`}
         columnDividers
       />

@@ -31,6 +31,7 @@ export function SessionNameListPage() {
   const q = searchParams.get("q") ?? "";
   const status = searchParams.get("status") ?? "";
   const page = Math.max(1, Number(searchParams.get("page") ?? 1) || 1);
+  const limit = Math.max(1, Number(searchParams.get("limit") ?? 10) || 10);
   const [searchInput, setSearchInput] = useState(q);
   const [edit, setEdit] = useState<EditState | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
@@ -40,6 +41,7 @@ export function SessionNameListPage() {
       q: q || undefined,
       isActive: status === "" ? undefined : status === "active",
       page,
+      limit,
     }),
   );
   const queryClient = useQueryClient();
@@ -176,6 +178,8 @@ export function SessionNameListPage() {
         page={page}
         totalPages={totalPages}
         onPageChange={(p) => updateParams({ page: String(p) }, false)}
+        limit={limit}
+        onLimitChange={(n) => updateParams({ limit: String(n) })}
         paginationInfo={`총 ${total.toLocaleString()}건 · ${page}/${totalPages}페이지`}
         columnDividers
       />

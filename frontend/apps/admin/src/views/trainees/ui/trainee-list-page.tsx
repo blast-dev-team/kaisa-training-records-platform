@@ -1,121 +1,176 @@
-import { useMemo, useState } from 'react'
-import { Link, useSearchParams } from 'react-router'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { toast } from 'react-toastify'
-import type { ColumnDef } from '@tanstack/react-table'
-import { AppTable } from '@/src/shared/ui/app-table'
-import { Button } from '@/src/shared/ui/button'
-import { Dialog } from '@/src/shared/ui/dialog'
-import { FilterBar, FilterRow } from '@/src/shared/ui/filter-bar'
-import { Input } from '@/src/shared/ui/input'
-import { PageHead } from '@/src/shared/ui/page-head'
-import { PageContainer } from '@/src/shared/ui/page-container'
-import { Pill, statusTone } from '@/src/shared/ui/pill'
-import { Select } from '@/src/shared/ui/select'
-import { toYMD } from '@/src/shared/utils/format'
-import { Plus } from 'lucide-react'
-import { AlertTriangle } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Link, useSearchParams } from "react-router";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "react-toastify";
+import type { ColumnDef } from "@tanstack/react-table";
+import { AppTable } from "@/src/shared/ui/app-table";
+import { Button } from "@/src/shared/ui/button";
+import { Dialog } from "@/src/shared/ui/dialog";
+import { FilterBar, FilterRow } from "@/src/shared/ui/filter-bar";
+import { Input } from "@/src/shared/ui/input";
+import { PageHead } from "@/src/shared/ui/page-head";
+import { PageContainer } from "@/src/shared/ui/page-container";
+import { Pill, statusTone } from "@/src/shared/ui/pill";
+import { Select } from "@/src/shared/ui/select";
+import { toYMD } from "@/src/shared/utils/format";
+import { Check, Minus, Plus } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 import {
   deleteTrainee,
-  getTraineeDuplicates,
   membershipGradeQueries,
   traineeQueries,
   TRAINEE_REVIEW_STATUS_LABELS,
   type Trainee,
-} from '@/src/entities/trainee'
-import { GradeChangeDialog } from './grade-change-dialog'
-import { TraineeFormDialog } from './trainee-form-dialog'
+} from "@/src/entities/trainee";
+import { BulkEditDialog } from "./bulk-edit-dialog";
+import { BulkGradeDialog } from "./bulk-grade-dialog";
+import { GradeChangeDialog } from "./grade-change-dialog";
+import { TraineeFormDialog } from "./trainee-form-dialog";
+import { TraineeDuplicatesDialog } from "./trainee-duplicates-dialog";
 
 export function TraineeListPage() {
-  const [searchParams, setSearchParams] = useSearchParams()
-  const queryClient = useQueryClient()
-  const q = searchParams.get('q') ?? ''
-  const status = searchParams.get('status') ?? ''
-  const gradeId = searchParams.get('grade') ?? ''
-  const page = Math.max(1, Number(searchParams.get('page') ?? 1) || 1)
+  const [searchParams, setSearchParams] = useSearchParams();
+  const queryClient = useQueryClient();
+  const q = searchParams.get("q") ?? "";
+  const status = searchParams.get("status") ?? "";
+  const gradeId = searchParams.get("grade") ?? "";
+  const page = Math.max(1, Number(searchParams.get("page") ?? 1) || 1);
+  const limit = Math.max(1, Number(searchParams.get("limit") ?? 10) || 10);
 
-  const [searchInput, setSearchInput] = useState(q)
-  const [gradeTarget, setGradeTarget] = useState<Trainee | null>(null)
-  const [deleteTarget, setDeleteTarget] = useState<Trainee | null>(null)
-  const [formOpen, setFormOpen] = useState(false)
-  const [editTarget, setEditTarget] = useState<Trainee | null>(null)
-  const [duplicatesOpen, setDuplicatesOpen] = useState(false)
+  const [searchInput, setSearchInput] = useState(q);
+  const [gradeTarget, setGradeTarget] = useState<Trainee | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Trainee | null>(null);
+  const [formOpen, setFormOpen] = useState(false);
+  const [editTarget, setEditTarget] = useState<Trainee | null>(null);
+  const [duplicatesOpen, setDuplicatesOpen] = useState(false);
+  const [bulkGradeOpen, setBulkGradeOpen] = useState(false);
+  const [bulkEditOpen, setBulkEditOpen] = useState(false);
+  /** id → Trainee — 페이지를 넘어 선택해도 일괄 모달에서 프리필할 수 있게 객체를 저장 */
+  const [selected, setSelected] = useState<Record<string, Trainee>>({});
 
-  const { data } = useQuery(
-    traineeQueries.list({ q, reviewStatus: status, gradeId, page }),
-  )
-  const { data: grades } = useQuery(membershipGradeQueries.list(true))
+  const { data } = useQuery(traineeQueries.list({ q, reviewStatus: status, gradeId, page, limit }));
+  const { data: grades } = useQuery(membershipGradeQueries.list(true));
+
+  // 검색·필터가 바뀌면 행 집합의 의미가 달라진다 — 안 보이는 교육생이 남지 않게 선택 해제
+  useEffect(() => {
+    setSelected({});
+  }, [q, status, gradeId]);
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteTrainee(id),
     onSuccess: () => {
-      toast.success('교육생을 삭제했어요 — 이력·확인서는 보존돼요')
-      setDeleteTarget(null)
-      queryClient.invalidateQueries({ queryKey: traineeQueries.all() })
+      toast.success("교육생을 삭제했어요 — 이력·확인서는 보존돼요");
+      setDeleteTarget(null);
+      queryClient.invalidateQueries({ queryKey: traineeQueries.all() });
     },
     onError: (e: Error) => toast.error(e.message),
-  })
+  });
 
   const updateParams = (patch: Record<string, string | null>, resetPage = true) => {
-    const next = new URLSearchParams(searchParams)
+    const next = new URLSearchParams(searchParams);
     for (const [k, v] of Object.entries(patch)) {
-      if (v === null || v === '') next.delete(k)
-      else next.set(k, v)
+      if (v === null || v === "") next.delete(k);
+      else next.set(k, v);
     }
-    if (resetPage) next.delete('page')
-    setSearchParams(next, { replace: false })
-  }
+    if (resetPage) next.delete("page");
+    setSearchParams(next, { replace: false });
+  };
+
+  const items = useMemo(() => data?.items ?? [], [data]);
+  const total = data?.total ?? 0;
+  const totalPages = data?.totalPages ?? 1;
+
+  const toggleRow = (t: Trainee) => {
+    setSelected((prev) => {
+      const next = { ...prev };
+      if (t.id in next) delete next[t.id];
+      else next[t.id] = t;
+      return next;
+    });
+  };
+
+  const toggleAllPage = useCallback(() => {
+    setSelected((prev) => {
+      const next = { ...prev };
+      const allSelected = items.length > 0 && items.every((t) => t.id in next);
+      for (const t of items) {
+        if (allSelected) delete next[t.id];
+        else next[t.id] = t;
+      }
+      return next;
+    });
+  }, [items]);
+
+  const selectedCount = Object.keys(selected).length;
+  const pageSelectedCount = items.filter((t) => t.id in selected).length;
+  const allPageSelected = items.length > 0 && pageSelectedCount === items.length;
 
   const columns = useMemo<ColumnDef<Trainee, unknown>[]>(
     () => [
       {
-        accessorKey: 'traineeNo',
-        header: '교육생번호',
-        meta: { width: 120 },
-        cell: ({ row }) => <span className="font-medium text-ink">{row.original.traineeNo}</span>,
-      },
-      { accessorKey: 'name', header: '성명', meta: { width: 100 } },
-      {
-        accessorKey: 'birthDate',
-        header: '생년월일',
-        meta: { width: 110 },
-        cell: ({ row }) => row.original.birthDate ?? '—',
-      },
-      {
-        accessorKey: 'supervisorGrade',
-        header: '감리원 등급',
-        meta: { width: 100 },
-        cell: ({ row }) => row.original.supervisorGrade ?? '—',
-      },
-      {
-        accessorKey: 'certNo',
-        header: '감리원증번호',
-        meta: { width: 180 },
+        id: "select",
+        header: () => (
+          <RowCheckbox
+            checked={allPageSelected}
+            indeterminate={pageSelectedCount > 0 && !allPageSelected}
+            onChange={toggleAllPage}
+          />
+        ),
+        meta: { width: 44 },
         cell: ({ row }) => (
-          <span
-            className="block max-w-[180px] truncate"
-            title={row.original.certNo ?? ''}
-          >
-            {row.original.certNo ?? '—'}
+          <span onClick={(e) => e.stopPropagation()}>
+            <RowCheckbox
+              checked={row.original.id in selected}
+              onChange={() => toggleRow(row.original)}
+            />
           </span>
         ),
       },
-      { accessorKey: 'phoneMasked', header: '전화', meta: { width: 130 } },
       {
-        accessorKey: 'email',
-        header: '이메일',
-        meta: { width: 200 },
-        cell: ({ row }) => <span className="text-ink-2">{row.original.email ?? '—'}</span>,
+        accessorKey: "traineeNo",
+        header: "교육생번호",
+        meta: { width: 120 },
+        cell: ({ row }) => <span className="font-medium text-ink">{row.original.traineeNo}</span>,
+      },
+      { accessorKey: "name", header: "성명", meta: { width: 100 } },
+      {
+        accessorKey: "birthDate",
+        header: "생년월일",
+        meta: { width: 110 },
+        cell: ({ row }) => row.original.birthDate ?? "—",
       },
       {
-        accessorKey: 'gradeName',
-        header: '회원등급',
+        accessorKey: "supervisorGrade",
+        header: "감리원 등급",
         meta: { width: 100 },
-        cell: ({ row }) => row.original.gradeName ?? '—',
+        cell: ({ row }) => row.original.supervisorGrade ?? "—",
       },
       {
-        accessorKey: 'reviewStatus',
-        header: '인증상태',
+        accessorKey: "certNo",
+        header: "감리원증번호",
+        meta: { width: 180 },
+        cell: ({ row }) => (
+          <span className="block max-w-[180px] truncate" title={row.original.certNo ?? ""}>
+            {row.original.certNo ?? "—"}
+          </span>
+        ),
+      },
+      { accessorKey: "phoneMasked", header: "전화", meta: { width: 130 } },
+      {
+        accessorKey: "email",
+        header: "이메일",
+        meta: { width: 200 },
+        cell: ({ row }) => <span className="text-ink-2">{row.original.email ?? "—"}</span>,
+      },
+      {
+        accessorKey: "gradeName",
+        header: "회원등급",
+        meta: { width: 100 },
+        cell: ({ row }) => row.original.gradeName ?? "—",
+      },
+      {
+        accessorKey: "reviewStatus",
+        header: "인증상태",
         meta: { width: 100 },
         cell: ({ row }) => (
           <Pill tone={statusTone(row.original.reviewStatus)}>
@@ -124,24 +179,24 @@ export function TraineeListPage() {
         ),
       },
       {
-        accessorKey: 'createdAt',
-        header: '등록일',
+        accessorKey: "createdAt",
+        header: "등록일",
         meta: { width: 110 },
-        cell: ({ row }) => toYMD(row.original.createdAt) ?? '—',
+        cell: ({ row }) => toYMD(row.original.createdAt) ?? "—",
       },
       {
-        id: 'actions',
-        header: '',
-        meta: { width: 230, align: 'right', sticky: 'right' },
+        id: "actions",
+        header: "",
+        meta: { width: 230, align: "right", sticky: "right" },
         cell: ({ row }) => (
           <div className="flex items-center justify-end gap-1.5">
             <Button
               variant="outline"
               size="sm"
               onClick={(e) => {
-                e.stopPropagation()
-                setEditTarget(row.original)
-                setFormOpen(true)
+                e.stopPropagation();
+                setEditTarget(row.original);
+                setFormOpen(true);
               }}
             >
               수정
@@ -150,8 +205,8 @@ export function TraineeListPage() {
               variant="outline"
               size="sm"
               onClick={(e) => {
-                e.stopPropagation()
-                setGradeTarget(row.original)
+                e.stopPropagation();
+                setGradeTarget(row.original);
               }}
             >
               등급변경
@@ -164,8 +219,8 @@ export function TraineeListPage() {
               size="sm"
               className="text-danger hover:text-danger"
               onClick={(e) => {
-                e.stopPropagation()
-                setDeleteTarget(row.original)
+                e.stopPropagation();
+                setDeleteTarget(row.original);
               }}
             >
               삭제
@@ -174,12 +229,9 @@ export function TraineeListPage() {
         ),
       },
     ],
-    [],
-  )
-
-  const items = data?.items ?? []
-  const total = data?.total ?? 0
-  const totalPages = data?.totalPages ?? 1
+    // selected 를 닫아야 체크 상태가 갱신된다
+    [selected, allPageSelected, pageSelectedCount, toggleAllPage],
+  );
 
   return (
     <PageContainer>
@@ -189,8 +241,8 @@ export function TraineeListPage() {
         actions={
           <Button
             onClick={() => {
-              setEditTarget(null)
-              setFormOpen(true)
+              setEditTarget(null);
+              setFormOpen(true);
             }}
           >
             <Plus className="size-4" /> 교육생 등록
@@ -203,8 +255,8 @@ export function TraineeListPage() {
           <form
             className="flex items-center gap-2"
             onSubmit={(e) => {
-              e.preventDefault()
-              updateParams({ q: searchInput.trim() || null })
+              e.preventDefault();
+              updateParams({ q: searchInput.trim() || null });
             }}
           >
             <Input
@@ -254,6 +306,23 @@ export function TraineeListPage() {
         </FilterRow>
       </FilterBar>
 
+      {selectedCount > 0 && (
+        <div className="flex items-center gap-2 rounded-lg border border-line bg-panel px-4 py-2.5">
+          <span className="text-[13px] font-medium text-ink">선택 {selectedCount}명</span>
+          <div className="ml-auto flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => setSelected({})}>
+              선택 해제
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => setBulkEditOpen(true)}>
+              정보 수정
+            </Button>
+            <Button size="sm" onClick={() => setBulkGradeOpen(true)}>
+              등급 변경
+            </Button>
+          </div>
+        </div>
+      )}
+
       <AppTable
         columns={columns}
         data={items}
@@ -262,6 +331,8 @@ export function TraineeListPage() {
         page={page}
         totalPages={totalPages}
         onPageChange={(p) => updateParams({ page: String(p) }, false)}
+        limit={limit}
+        onLimitChange={(n) => updateParams({ limit: String(n) })}
         paginationInfo={`총 ${total.toLocaleString()}명 · ${page}/${totalPages}페이지`}
         columnDividers
       />
@@ -274,21 +345,29 @@ export function TraineeListPage() {
         trainee={editTarget}
       />
 
-      <Dialog
+      <TraineeDuplicatesDialog
         isOpen={duplicatesOpen}
         onClose={() => setDuplicatesOpen(false)}
-        title="감리원증번호 중복 확인"
-        description="증번호가 같은 교육생들 — 이름 개명 등으로 발생해요. 클릭해서 수정하세요"
-        actions={[{ label: "닫기", onClick: () => setDuplicatesOpen(false) }]}
-      >
-        <TraineeDuplicates
-          onEdit={(t) => {
-            setDuplicatesOpen(false);
-            setEditTarget(t);
-            setFormOpen(true);
-          }}
-        />
-      </Dialog>
+        onEdit={(t) => {
+          setDuplicatesOpen(false);
+          setEditTarget(t);
+          setFormOpen(true);
+        }}
+      />
+
+      <BulkGradeDialog
+        isOpen={bulkGradeOpen}
+        onClose={() => setBulkGradeOpen(false)}
+        trainees={Object.values(selected)}
+        onDone={() => setSelected({})}
+      />
+
+      <BulkEditDialog
+        isOpen={bulkEditOpen}
+        onClose={() => setBulkEditOpen(false)}
+        trainees={Object.values(selected)}
+        onDone={() => setSelected({})}
+      />
 
       <Dialog
         isOpen={deleteTarget !== null}
@@ -300,117 +379,44 @@ export function TraineeListPage() {
             : undefined
         }
         actions={[
-          { label: '취소', onClick: () => setDeleteTarget(null) },
+          { label: "취소", onClick: () => setDeleteTarget(null) },
           {
-            label: '삭제',
-            variant: 'danger',
+            label: "삭제",
+            variant: "danger",
             isLoading: deleteMutation.isPending,
             onClick: () => {
-              if (!deleteTarget) return
-              deleteMutation.mutate(deleteTarget.id)
+              if (!deleteTarget) return;
+              deleteMutation.mutate(deleteTarget.id);
             },
           },
         ]}
       />
     </PageContainer>
-  )
+  );
 }
 
-
-/** 감리원증번호 중복 교육생 목록 — 행 클릭 시 수정, 바로 삭제도 가능 */
-function TraineeDuplicates({ onEdit }: { onEdit: (trainee: Trainee) => void }) {
-  const queryClient = useQueryClient();
-  const { data, isLoading } = useQuery({
-    queryKey: ['trainees', 'duplicates'],
-    queryFn: getTraineeDuplicates,
-  });
-  const [confirmingId, setConfirmingId] = useState<string | null>(null);
-  const deleteMutation = useMutation({
-    mutationFn: (id: string) => deleteTrainee(id),
-    onSuccess: () => {
-      toast.success('교육생을 삭제했어요');
-      setConfirmingId(null);
-      queryClient.invalidateQueries({ queryKey: ['trainees'] });
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
-
-  if (isLoading) {
-    return <p className="p-3 text-[13px] text-ink-3">불러오는 중…</p>;
-  }
-
-  const rows = data ?? [];
-  if (rows.length === 0) {
-    return (
-      <p className="p-3 text-[13px] text-ink-3">
-        중복된 감리원증번호가 없어요
-      </p>
-    );
-  }
-
-  const groups = new Map<string, Trainee[]>();
-  for (const t of rows) {
-    const key = t.certNo ?? '';
-    if (!groups.has(key)) groups.set(key, []);
-    groups.get(key)!.push(t);
-  }
-
+/** 커스텀 체크박스 — sr-only input + 스타일 span (attach-trainees-dialog 와 같은 패턴) */
+function RowCheckbox({
+  checked,
+  indeterminate = false,
+  onChange,
+}: {
+  checked: boolean;
+  indeterminate?: boolean;
+  onChange: () => void;
+}) {
+  const shown = checked || indeterminate;
   return (
-    <div className="max-h-72 space-y-3 overflow-y-auto">
-      {[...groups.entries()].map(([certNo, trainees]) => (
-        <div key={certNo} className="rounded-md border border-line">
-          <p className="border-b border-line bg-bg-2 px-3 py-1.5 text-[12px] font-medium text-ink">
-            {certNo}
-            <span className="ml-1.5 text-ink-3">({trainees.length}명)</span>
-          </p>
-          {trainees.map((t) => (
-            <div
-              key={t.id}
-              className="flex items-center gap-2 border-b border-line px-3 py-2 text-[13px] last:border-b-0"
-            >
-              <button
-                type="button"
-                className="flex flex-1 items-center gap-2 text-left hover:underline"
-                onClick={() => onEdit(t)}
-              >
-                <span className="text-ink">{t.name}</span>
-                <span className="text-[11px] text-ink-3">{t.traineeNo}</span>
-                <span className="ml-auto text-[11px] text-ink-3">
-                  {t.birthDate ?? '생년월일 없음'}
-                </span>
-              </button>
-              {confirmingId === t.id ? (
-                <span className="flex shrink-0 items-center gap-1">
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    disabled={deleteMutation.isPending}
-                    onClick={() => deleteMutation.mutate(t.id)}
-                  >
-                    {deleteMutation.isPending ? '삭제 중…' : '삭제'}
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setConfirmingId(null)}
-                  >
-                    취소
-                  </Button>
-                </span>
-              ) : (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="shrink-0 text-danger hover:text-danger"
-                  onClick={() => setConfirmingId(t.id)}
-                >
-                  삭제
-                </Button>
-              )}
-            </div>
-          ))}
-        </div>
-      ))}
-    </div>
+    <label className="flex cursor-pointer items-center justify-center cursor-pointer">
+      <input type="checkbox" className="sr-only" checked={checked} onChange={onChange} />
+      <span
+        className={`flex size-4 shrink-0 items-center justify-center rounded border ${
+          shown ? "border-accent bg-accent" : "border-line"
+        }`}
+      >
+        {checked && !indeterminate && <Check className="size-3 text-white" />}
+        {indeterminate && <Minus className="size-3 text-white" />}
+      </span>
+    </label>
   );
 }

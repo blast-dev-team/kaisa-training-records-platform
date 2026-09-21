@@ -36,3 +36,19 @@ export interface CourseSessionUpdateInput {
   is_active?: boolean | null
   memo?: string | null
 }
+
+/** 행별 수정 값 — 키가 아예 없으면 그 필드는 변경하지 않음 */
+export interface CourseSessionBulkUpdateItemInput {
+  id: string
+  started_at?: string | null
+  ended_at?: string | null
+  total_hours?: number | null
+  recognized_hours?: number | null
+  is_active?: boolean | null
+  memo?: string | null
+}
+
+/** 일괄 저장 — 항목마다 다른 값을 한 요청으로 저장 */
+export interface CourseSessionBulkUpdateInput {
+  items: CourseSessionBulkUpdateItemInput[]
+}

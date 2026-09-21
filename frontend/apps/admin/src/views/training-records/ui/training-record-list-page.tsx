@@ -3,7 +3,7 @@ import { useSearchParams } from "react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import type { ColumnDef } from "@tanstack/react-table";
-import { CalendarPlus, Plus, X } from "lucide-react";
+import { CalendarPlus, FileDown, Plus, X } from "lucide-react";
 import { AppTable } from "@/src/shared/ui/app-table";
 import { Button } from "@/src/shared/ui/button";
 import { Dialog } from "@/src/shared/ui/dialog";
@@ -21,6 +21,7 @@ import {
   type TrainingRecord,
 } from "@/src/entities/training-record";
 import { TrainingRecordFormDialog } from "./training-record-form-dialog";
+import { CertificatePreviewModal } from "./certificate-preview-modal";
 import { SessionPickerDialog } from "@/src/views/course-sessions/ui/session-picker-dialog";
 import { AttachTraineesDialog } from "@/src/views/course-sessions/ui/attach-trainees-dialog";
 import type { CourseSession } from "@/src/entities/course-session";
@@ -40,6 +41,7 @@ export function TrainingRecordListPage({ variant = "all" }: Props) {
   const from = searchParams.get("from") ?? "";
   const to = searchParams.get("to") ?? "";
   const page = Math.max(1, Number(searchParams.get("page") ?? 1) || 1);
+  const limit = Math.max(1, Number(searchParams.get("limit") ?? 10) || 10);
 
   const [searchInput, setSearchInput] = useState(q);
   const [formOpen, setFormOpen] = useState(false);
@@ -48,16 +50,21 @@ export function TrainingRecordListPage({ variant = "all" }: Props) {
   const [pickerOpen, setPickerOpen] = useState(false);
   const [attachSession, setAttachSession] = useState<CourseSession | null>(null);
 
+  // 확인서 PDF 발급 — 체크박스 선택(페이지 이동 간 유지) + 모달 미리보기 후 다운로드
+  const [selected, setSelected] = useState<Map<string, TrainingRecord>>(new Map());
+  const [previewRecords, setPreviewRecords] = useState<TrainingRecord[] | null>(null);
+
   const { data } = useQuery(
     trainingRecordQueries.list({
       traineeId: traineeId || undefined,
       source: source || undefined,
-      excludeSource: !isExternal ? 'external' : undefined,
+      excludeSource: !isExternal ? "external" : undefined,
       completionStatus: status || undefined,
       search: q || undefined,
       dateFrom: from || undefined,
       dateTo: to || undefined,
       page,
+      limit,
     }),
   );
 
@@ -86,6 +93,43 @@ export function TrainingRecordListPage({ variant = "all" }: Props) {
   const columns = useMemo<ColumnDef<TrainingRecord, unknown>[]>(
     () => [
       {
+        id: "select",
+        header: ({ table }) => {
+          const pageRows = table.getCoreRowModel().rows;
+          const pageIds = pageRows.map((r) => r.original.id);
+          const allSelected = pageIds.length > 0 && pageIds.every((id) => selected.has(id));
+          return (
+            <input
+              type="checkbox"
+              className="size-4 accent-accent cursor-pointer"
+              checked={allSelected}
+              onChange={(e) => {
+                const next = new Map(selected);
+                for (const r of pageRows) {
+                  if (e.target.checked) next.set(r.original.id, r.original);
+                  else next.delete(r.original.id);
+                }
+                setSelected(next);
+              }}
+            />
+          );
+        },
+        cell: ({ row }) => (
+          <input
+            type="checkbox"
+            className="size-4 accent-accent cursor-pointer"
+            checked={selected.has(row.original.id)}
+            onChange={(e) => {
+              const next = new Map(selected);
+              if (e.target.checked) next.set(row.original.id, row.original);
+              else next.delete(row.original.id);
+              setSelected(next);
+            }}
+          />
+        ),
+        meta: { width: 40 },
+      },
+      {
         accessorKey: "courseName",
         header: "과정명",
         meta: { width: 220 },
@@ -107,6 +151,18 @@ export function TrainingRecordListPage({ variant = "all" }: Props) {
             <span className="ml-1.5 text-[11px] text-ink-3">{row.original.traineeNo ?? ""}</span>
           </span>
         ),
+      },
+      {
+        accessorKey: "traineeBirthDate",
+        header: "생년월일",
+        meta: { width: 110 },
+        cell: ({ row }) => row.original.traineeBirthDate ?? "—",
+      },
+      {
+        accessorKey: "traineePhone",
+        header: "전화",
+        meta: { width: 130 },
+        cell: ({ row }) => row.original.traineePhone ?? "—",
       },
       ...(!isExternal
         ? [
@@ -156,9 +212,12 @@ export function TrainingRecordListPage({ variant = "all" }: Props) {
       {
         id: "actions",
         header: "",
-        meta: { width: 130, align: "right", sticky: "right" },
+        meta: { width: 175, align: "right", sticky: "right" },
         cell: ({ row }) => (
           <div className="flex items-center justify-end gap-1.5">
+            <Button variant="ghost" size="sm" onClick={() => setPreviewRecords([row.original])}>
+              <FileDown className="size-3.5" /> PDF
+            </Button>
             <Button
               variant="ghost"
               size="sm"
@@ -181,7 +240,7 @@ export function TrainingRecordListPage({ variant = "all" }: Props) {
         ),
       },
     ],
-    [isExternal],
+    [isExternal, selected],
   );
 
   const items = data?.items ?? [];
@@ -242,7 +301,7 @@ export function TrainingRecordListPage({ variant = "all" }: Props) {
             </Button>
           </form>
         </FilterRow>
-                <FilterRow label="기간">
+        <FilterRow label="기간">
           <div className="flex items-center gap-1.5">
             <Input
               type="date"
@@ -260,7 +319,7 @@ export function TrainingRecordListPage({ variant = "all" }: Props) {
             />
           </div>
         </FilterRow>
-<FilterRow label="필터">
+        <FilterRow label="필터">
           {!isExternal && (
             <Select
               className="w-32"
@@ -269,7 +328,7 @@ export function TrainingRecordListPage({ variant = "all" }: Props) {
             >
               <option value="">구분 전체</option>
               {Object.entries(TRAINING_SOURCE_LABELS)
-                .filter(([value]) => isExternal || value !== 'external')
+                .filter(([value]) => isExternal || value !== "external")
                 .map(([value, label]) => (
                   <option key={value} value={value}>
                     {label}
@@ -292,6 +351,19 @@ export function TrainingRecordListPage({ variant = "all" }: Props) {
         </FilterRow>
       </FilterBar>
 
+      {selected.size > 0 && (
+        <div className="mb-4 flex items-center gap-2 rounded-lg border border-line bg-panel px-4 py-2.5">
+          <span className="text-sm text-ink-2">선택 {selected.size}건</span>
+          <span className="flex-1" />
+          <Button variant="ghost" size="sm" onClick={() => setSelected(new Map())}>
+            선택 해제
+          </Button>
+          <Button size="sm" onClick={() => setPreviewRecords([...selected.values()])}>
+            <FileDown className="size-4" /> 확인서 미리보기
+          </Button>
+        </div>
+      )}
+
       <AppTable
         columns={columns}
         data={items}
@@ -302,6 +374,8 @@ export function TrainingRecordListPage({ variant = "all" }: Props) {
         page={page}
         totalPages={totalPages}
         onPageChange={(p) => updateParams({ page: String(p) }, false)}
+        limit={limit}
+        onLimitChange={(n) => updateParams({ limit: String(n) })}
         paginationInfo={`총 ${total.toLocaleString()}건 · ${page}/${totalPages}페이지`}
         columnDividers
       />
@@ -311,6 +385,12 @@ export function TrainingRecordListPage({ variant = "all" }: Props) {
         onClose={() => setFormOpen(false)}
         record={editTarget}
         defaultSource={isExternal ? "external" : "internal"}
+      />
+
+      <CertificatePreviewModal
+        isOpen={previewRecords !== null}
+        onClose={() => setPreviewRecords(null)}
+        records={previewRecords ?? []}
       />
 
       <SessionPickerDialog

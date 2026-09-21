@@ -19,6 +19,9 @@ export interface TrainingRecord {
   traineeId: string
   traineeName: string | null
   traineeNo: string | null
+  /** trainee 조인 값 — 목록 표시용 */
+  traineeBirthDate: string | null
+  traineePhone: string | null
   courseId: string | null
   /** 연결된 교육 일정 — 일정 연결로 생성된 이력만 보유 */
   sessionId: string | null

@@ -50,6 +50,31 @@ export interface TraineeCreateInput {
   membership_grade_id?: string
 }
 
+// ── 일괄 처리 ───────────────────────────────────────────────────────────────────
+
+export interface TraineeBulkGradeInput {
+  trainee_ids: string[]
+  membership_grade_id: string
+}
+
+export interface TraineeBulkUpdateItem {
+  id: string
+  name?: string
+  birth_date?: string
+  /** 빈 값/생략 = 기존 번호 유지 */
+  phone?: string
+}
+
+export interface TraineeBulkUpdateInput {
+  items: TraineeBulkUpdateItem[]
+}
+
+export interface TraineeBulkResult {
+  /** skipped = 없는/삭제된 id, 이미 같은 등급, 변경 필드 없는 항목 */
+  updated: number
+  skipped: number
+}
+
 // ── 회원등급 마스터 ───────────────────────────────────────────────────────────
 
 export interface MembershipGrade {

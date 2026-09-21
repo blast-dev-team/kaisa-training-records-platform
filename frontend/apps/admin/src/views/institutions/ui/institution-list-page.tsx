@@ -54,11 +54,12 @@ export function InstitutionListPage() {
   const category = searchParams.get("category") ?? "";
   const courseType = searchParams.get("course_type") ?? "";
   const page = Math.max(1, Number(searchParams.get("page") ?? 1) || 1);
+  const limit = Math.max(1, Number(searchParams.get("limit") ?? 10) || 10);
   const [searchInput, setSearchInput] = useState(q);
 
   const isActive = status === "" ? undefined : status === "active";
   const { data: institutions } = useQuery(
-    institutionQueries.list({ q: q || undefined, isActive, page, limit: 20 }),
+    institutionQueries.list({ q: q || undefined, isActive, page, limit }),
   );
   const { data: courses } = useQuery(
     courseQueries.list({
@@ -67,7 +68,7 @@ export function InstitutionListPage() {
       category: category || undefined,
       isExternal: courseType === "" ? undefined : courseType === "external",
       page,
-      limit: 20,
+      limit,
     }),
   );
   const { data: categories } = useQuery(courseQueries.categories({ search: "" }));
@@ -401,6 +402,8 @@ export function InstitutionListPage() {
           page={page}
           totalPages={institutions?.totalPages ?? 1}
           onPageChange={(p) => updateTabParam({ page: String(p) }, false)}
+          limit={limit}
+          onLimitChange={(n) => updateTabParam({ limit: String(n) })}
           paginationInfo={`총 ${(institutions?.total ?? 0).toLocaleString()}건 · ${page}/${institutions?.totalPages ?? 1}페이지`}
           columnDividers
         />
@@ -415,6 +418,8 @@ export function InstitutionListPage() {
           page={page}
           totalPages={courses?.totalPages ?? 1}
           onPageChange={(p) => updateTabParam({ page: String(p) }, false)}
+          limit={limit}
+          onLimitChange={(n) => updateTabParam({ limit: String(n) })}
           paginationInfo={`총 ${(courses?.total ?? 0).toLocaleString()}건 · ${page}/${courses?.totalPages ?? 1}페이지`}
           columnDividers
         />

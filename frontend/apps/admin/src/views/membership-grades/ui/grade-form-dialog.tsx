@@ -1,41 +1,41 @@
-import { useEffect, useState } from 'react'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { toast } from 'react-toastify'
-import { Dialog } from '@/src/shared/ui/dialog'
-import { Input } from '@/src/shared/ui/input'
-import { Label } from '@/src/shared/ui/label'
-import { Textarea } from '@/src/shared/ui/textarea'
+import { useEffect, useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "react-toastify";
+import { Dialog } from "@/src/shared/ui/dialog";
+import { Input } from "@/src/shared/ui/input";
+import { Label } from "@/src/shared/ui/label";
+import { Textarea } from "@/src/shared/ui/textarea";
 import {
   membershipGradeQueries,
   patchMembershipGrade,
   postMembershipGrade,
   type MembershipGrade,
-} from '@/src/entities/trainee'
+} from "@/src/entities/trainee";
 
 interface Props {
-  isOpen: boolean
-  onClose: () => void
-  grade: MembershipGrade | null
+  isOpen: boolean;
+  onClose: () => void;
+  grade: MembershipGrade | null;
 }
 
 export function GradeFormDialog({ isOpen, onClose, grade }: Props) {
-  const queryClient = useQueryClient()
-  const [code, setCode] = useState('')
-  const [name, setName] = useState('')
-  const [description, setDescription] = useState('')
-  const [sortOrder, setSortOrder] = useState('0')
-  const [priceKrw, setPriceKrw] = useState('0')
-  const [isActive, setIsActive] = useState(true)
+  const queryClient = useQueryClient();
+  const [code, setCode] = useState("");
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [sortOrder, setSortOrder] = useState("0");
+  const [priceKrw, setPriceKrw] = useState("0");
+  const [isActive, setIsActive] = useState(true);
 
   useEffect(() => {
-    if (!isOpen) return
-    setCode(grade?.code ?? '')
-    setName(grade?.name ?? '')
-    setDescription(grade?.description ?? '')
-    setSortOrder(grade ? String(grade.sortOrder) : '0')
-    setPriceKrw(grade ? String(grade.priceKrw) : '0')
-    setIsActive(grade?.isActive ?? true)
-  }, [isOpen, grade])
+    if (!isOpen) return;
+    setCode(grade?.code ?? "");
+    setName(grade?.name ?? "");
+    setDescription(grade?.description ?? "");
+    setSortOrder(grade ? String(grade.sortOrder) : "0");
+    setPriceKrw(grade ? String(grade.priceKrw) : "0");
+    setIsActive(grade?.isActive ?? true);
+  }, [isOpen, grade]);
 
   const mutation = useMutation({
     mutationFn: async () => {
@@ -46,7 +46,7 @@ export function GradeFormDialog({ isOpen, onClose, grade }: Props) {
           sort_order: Number(sortOrder || 0),
           price_krw: Number(priceKrw || 0),
           is_active: isActive,
-        })
+        });
       }
       return postMembershipGrade({
         code: code.trim(),
@@ -54,27 +54,27 @@ export function GradeFormDialog({ isOpen, onClose, grade }: Props) {
         description: description.trim() || undefined,
         sort_order: Number(sortOrder || 0),
         price_krw: Number(priceKrw || 0),
-      })
+      });
     },
     onSuccess: () => {
-      toast.success(grade ? '등급을 수정했어요' : '등급을 등록했어요')
-      queryClient.invalidateQueries({ queryKey: membershipGradeQueries.all() })
-      onClose()
+      toast.success(grade ? "등급을 수정했어요" : "등급을 등록했어요");
+      queryClient.invalidateQueries({ queryKey: membershipGradeQueries.all() });
+      onClose();
     },
     onError: (e: Error) => toast.error(e.message),
-  })
+  });
 
   return (
     <Dialog
       isOpen={isOpen}
       onClose={onClose}
-      title={grade ? '회원등급 수정' : '회원등급 등록'}
+      title={grade ? "회원등급 수정" : "회원등급 등록"}
       description="발급 단가는 등급에 설정한 가격으로 결정돼요"
       actions={[
-        { label: '취소', onClick: onClose },
+        { label: "취소", onClick: onClose },
         {
-          label: grade ? '수정' : '등록',
-          variant: 'primary',
+          label: grade ? "수정" : "등록",
+          variant: "primary",
           isLoading: mutation.isPending,
           isDisabled: !name.trim() || (!grade && !code.trim()),
           onClick: () => mutation.mutate(),
@@ -94,11 +94,7 @@ export function GradeFormDialog({ isOpen, onClose, grade }: Props) {
           </div>
           <div className="space-y-1.5">
             <Label>정렬순서</Label>
-            <Input
-              type="number"
-              value={sortOrder}
-              onChange={(e) => setSortOrder(e.target.value)}
-            />
+            <Input type="number" value={sortOrder} onChange={(e) => setSortOrder(e.target.value)} />
           </div>
         </div>
         <div className="space-y-1.5">
@@ -134,7 +130,7 @@ export function GradeFormDialog({ isOpen, onClose, grade }: Props) {
           <label className="flex items-center gap-2 text-[13px] text-ink-2">
             <input
               type="checkbox"
-              className="size-4 accent-[--color-accent]"
+              className="size-4 accent-[--color-accent] cursor-pointer"
               checked={isActive}
               onChange={(e) => setIsActive(e.target.checked)}
             />
@@ -143,5 +139,5 @@ export function GradeFormDialog({ isOpen, onClose, grade }: Props) {
         )}
       </div>
     </Dialog>
-  )
+  );
 }

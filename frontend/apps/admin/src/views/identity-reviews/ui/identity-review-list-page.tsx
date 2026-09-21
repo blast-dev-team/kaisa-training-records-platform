@@ -26,6 +26,7 @@ export function IdentityReviewListPage() {
   const status = searchParams.get('status') ?? DEFAULT_STATUS
   const q = searchParams.get('q') ?? ''
   const page = Math.max(1, Number(searchParams.get('page') ?? 1) || 1)
+  const limit = Math.max(1, Number(searchParams.get('limit') ?? 10) || 10)
 
   const [searchInput, setSearchInput] = useState(q)
   const [reviewTarget, setReviewTarget] = useState<IdentityReview | null>(null)
@@ -42,7 +43,7 @@ export function IdentityReviewListPage() {
     }
   }, [searchParams, setSearchParams])
 
-  const { data } = useQuery(identityReviewQueries.list({ status, search: q || undefined, page }))
+  const { data } = useQuery(identityReviewQueries.list({ status, search: q || undefined, page, limit }))
 
   const updateParams = (patch: Record<string, string | null>, resetPage = true) => {
     const next = new URLSearchParams(searchParams)
@@ -177,6 +178,8 @@ export function IdentityReviewListPage() {
         page={page}
         totalPages={totalPages}
         onPageChange={(p) => updateParams({ page: String(p) }, false)}
+        limit={limit}
+        onLimitChange={(n) => updateParams({ limit: String(n) })}
         paginationInfo={`총 ${total.toLocaleString()}건 · ${page}/${totalPages}페이지`}
         columnDividers
       />

@@ -24,6 +24,7 @@ export function AuditLogListPage() {
   const entityId = searchParams.get('id') ?? '';
   const q = searchParams.get('q') ?? '';
   const page = Math.max(1, Number(searchParams.get('page') ?? 1) || 1);
+  const limit = Math.max(1, Number(searchParams.get('limit') ?? 10) || 10);
 
   const [detail, setDetail] = useState<AuditLog | null>(null);
 
@@ -33,6 +34,7 @@ export function AuditLogListPage() {
       entityId: entityId || undefined,
       q: q || undefined,
       page,
+      limit,
     }),
   );
 
@@ -166,6 +168,8 @@ export function AuditLogListPage() {
         page={page}
         totalPages={totalPages}
         onPageChange={(p) => updateParams({ page: String(p) }, false)}
+        limit={limit}
+        onLimitChange={(n) => updateParams({ limit: String(n) })}
         paginationInfo={`총 ${total.toLocaleString()}건 · ${page}/${totalPages}페이지`}
         columnDividers
       />

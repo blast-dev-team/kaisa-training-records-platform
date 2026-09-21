@@ -31,6 +31,7 @@ export function CertificateListPage() {
   const from = searchParams.get("from") ?? "";
   const to = searchParams.get("to") ?? "";
   const page = Math.max(1, Number(searchParams.get("page") ?? 1) || 1);
+  const limit = Math.max(1, Number(searchParams.get("limit") ?? 10) || 10);
 
   const [searchInput, setSearchInput] = useState(q);
 
@@ -45,6 +46,7 @@ export function CertificateListPage() {
       dateFrom: from || undefined,
       dateTo: to || undefined,
       page,
+      limit,
     }),
   );
 
@@ -232,6 +234,8 @@ export function CertificateListPage() {
         page={page}
         totalPages={totalPages}
         onPageChange={(p) => updateParams({ page: String(p) }, false)}
+        limit={limit}
+        onLimitChange={(n) => updateParams({ limit: String(n) })}
         paginationInfo={`총 ${total.toLocaleString()}건 · ${page}/${totalPages}페이지`}
         columnDividers
       />

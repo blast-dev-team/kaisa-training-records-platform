@@ -245,7 +245,7 @@ export function CourseFormDialog({ isOpen, onClose, course }: Props) {
           <label className="flex items-center gap-2 text-[13px] text-ink-2">
             <input
               type="checkbox"
-              className="size-4 accent-[--color-accent]"
+              className="size-4 accent-[--color-accent] cursor-pointer"
               checked={isActive}
               onChange={(e) => setIsActive(e.target.checked)}
             />
@@ -254,7 +254,7 @@ export function CourseFormDialog({ isOpen, onClose, course }: Props) {
           <label className="flex items-center gap-2 text-[13px] text-ink-2">
             <input
               type="checkbox"
-              className="size-4 accent-[--color-accent]"
+              className="size-4 accent-[--color-accent] cursor-pointer"
               checked={isExternal}
               onChange={(e) => setIsExternal(e.target.checked)}
             />

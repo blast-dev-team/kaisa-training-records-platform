@@ -3,6 +3,8 @@ export interface TrainingRecordDto {
   trainee_id: string
   trainee_name: string | null
   trainee_no: string | null
+  trainee_birth_date: string | null
+  trainee_phone: string | null
   course_id: string | null
   session_id: string | null
   institution_id: string | null
