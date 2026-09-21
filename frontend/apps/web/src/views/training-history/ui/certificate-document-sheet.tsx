@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
 
+import associationSeal from "@/src/assets/association-seal.png";
 import type { TrainingHistoryDetail } from "../api/get-training-history-detail";
 
 export interface CertificateDocumentSheetProps {
@@ -14,7 +15,6 @@ export interface CertificateDocumentSheetProps {
 }
 
 const LINE = "1px solid #000";
-const STAMP_RED = "rgba(196, 30, 30, 0.78)";
 
 /** A4 @96dpi — PDF 1페이지와 1:1 대응 */
 const PAGE_WIDTH = 794;
@@ -208,31 +208,21 @@ export function CertificateDocumentSheet({
                 <div style={{ fontSize: 17, fontWeight: 700 }}>
                   (사)정보시스템감리협회장
                 </div>
-                {/* 도장 — 실제 인감 에셋을 받으면 이 자리를 <img>로 교체 */}
-                <div
+                {/* 인감 도장 — 협회 제공 인장 이미지 */}
+                <img
+                  src={associationSeal}
+                  alt="(사)정보시스템감리협회 인감"
                   style={{
                     position: "absolute",
                     left: "59%",
                     top: "58%",
                     transform: "translateY(-50%) rotate(-12deg)",
-                    width: 106,
-                    height: 106,
-                    borderRadius: "50%",
-                    border: `3px solid ${STAMP_RED}`,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    color: STAMP_RED,
-                    fontSize: 13,
-                    fontWeight: 700,
-                    textAlign: "center",
-                    lineHeight: 1.35,
+                    width: 118,
+                    height: 118,
+                    // 인감 잉크 — 아래 텍스트가 도장을 비쳐 보이게 (실제 날인과 같은 겹침)
+                    mixBlendMode: "multiply",
                   }}
-                >
-                  (사)정보시스템
-                  <br />
-                  감리협회
-                </div>
+                />
               </div>
             </td>
           </tr>
