@@ -30,6 +30,9 @@ out/
 dist/
 build/
 
+# Vite 캐시 (vitest 4 가 앱 루트에 생성)
+.vite/
+
 # IDE
 .idea/
 .vscode/
