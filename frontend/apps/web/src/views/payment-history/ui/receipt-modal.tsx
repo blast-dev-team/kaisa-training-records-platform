@@ -37,12 +37,12 @@ export function ReceiptModal({ imageUrl, onDownload, onClose }: ReceiptModalProp
         onClick={(event) => event.stopPropagation()}
         className="relative flex h-[765px] max-h-[calc(100dvh-40px)] w-[500px] max-w-full flex-col overflow-clip rounded-[20px] bg-white shadow-[0px_1px_3px_0px_rgba(166,175,195,0.4)] font-sans"
       >
-        {/* 모바일 — 전체화면형 모달이라 X 로 닫는다 */}
+        {/* 모바일·데스크톱 공통 — X 로 닫는다 */}
         <button
           type="button"
           aria-label="닫기"
           onClick={onClose}
-          className="absolute right-4 top-4 z-10 hidden size-8 cursor-pointer items-center justify-center text-gray-500 mobile:flex"
+          className="absolute right-4 top-4 z-10 flex size-8 cursor-pointer items-center justify-center text-gray-500"
         >
           <XIcon className="size-6" />
         </button>

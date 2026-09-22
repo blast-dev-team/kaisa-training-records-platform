@@ -48,12 +48,12 @@ export function VerificationResultModal({
         onClick={(event) => event.stopPropagation()}
         className="relative flex w-[480px] max-w-full flex-col gap-6 rounded-[12px] bg-white px-10 py-8 shadow-[0px_4px_24px_0px_rgba(0,0,0,0.15)] font-sans mobile:w-full mobile:p-5"
       >
-        {/* 모바일 — 전체화면형 모달이라 X 로 닫는다 */}
+        {/* 모바일·데스크톱 공통 — X 로 닫는다 */}
         <button
           type="button"
           aria-label="닫기"
           onClick={onClose}
-          className="absolute right-4 top-4 hidden size-8 cursor-pointer items-center justify-center text-gray-500 mobile:flex"
+          className="absolute right-4 top-4 flex size-8 cursor-pointer items-center justify-center text-gray-500"
         >
           <XIcon className="size-6" />
         </button>

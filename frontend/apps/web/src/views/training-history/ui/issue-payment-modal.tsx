@@ -290,13 +290,14 @@ export function IssuePaymentModal({ recordIds, issueType, onClose, onIssued }: I
             : "h-[600px] w-[840px] mobile:h-[calc(100dvh-40px)] mobile:w-full",
         )}
       >
-        {/* 모바일 — 전체화면형 모달이라 X 로 닫는다. 결제 진행 중엔 닫을 수 없다 */}
-        {canClose && (
+        {/* 결제 단계 — X 로 닫는다. 결제 진행 중엔 닫을 수 없다.
+            발급 완료 단계는 아래 헤더의 X 를 쓴다(본문 스크롤과 분리) */}
+        {canClose && phase === "payment" && (
           <button
             type="button"
             aria-label="닫기"
             onClick={onClose}
-            className="absolute right-4 top-4 z-10 hidden size-8 cursor-pointer items-center justify-center text-gray-500 mobile:flex"
+            className="absolute right-4 top-4 z-10 flex size-8 cursor-pointer items-center justify-center text-gray-500"
           >
             <XIcon className="size-6" />
           </button>
@@ -428,8 +429,24 @@ export function IssuePaymentModal({ recordIds, issueType, onClose, onIssued }: I
             </>
           )
         ) : (
-          // 발급 완료 — node 78:4475. 높이 600 고정, 본문(content-area)만 스크롤
+          // 발급 완료 — node 78:4475. 높이 600 고정, 헤더는 고정·본문(content-area)만 스크롤
           <>
+            {/* 헤더 — 스크롤 영역 밖. 본문이 스크롤돼도 X 가 항상 보인다 */}
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg leading-normal font-bold text-gray-900 mobile:text-base">
+                발급 완료
+              </h2>
+              {canClose && (
+                <button
+                  type="button"
+                  aria-label="닫기"
+                  onClick={onClose}
+                  className="flex size-8 cursor-pointer items-center justify-center text-gray-500"
+                >
+                  <XIcon className="size-6" />
+                </button>
+              )}
+            </div>
             <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto overscroll-contain">
               {issuance.isLoading ? (
                 <p className="py-20 text-center text-sm text-gray-500">
