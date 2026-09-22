@@ -62,13 +62,19 @@ Table trainees {
   id uuid [pk]
   user_id uuid [unique, note: '회원가입 전에는 NULL 허용']
   trainee_no varchar(100) [unique, note: '협회에서 관리하는 교육생 고유번호']
+  cert_no varchar(100) [note: '감리원증번호 (구 시스템 감리원추가 E열)']
+  supervisor_grade varchar(50) [note: '감리원 등급 (감리원/수석감리원) — 확인서 표기용, 회원등급과 별개']
+  cert_issued_date date [note: '감리원증 발급일자 — 엑셀 일괄 등록에서 받는 참조 정보']
   name varchar(100) [not null]
+  birth_date date [note: '생년월일 (어드민 수정 항목)']
   phone_encrypted text
   email varchar(255)
   membership_grade_id uuid
+  grade_expires_at date [note: '연간 등급 만료일 — 만료일 당일까지 유효, 다음날 KST 부터 일반 자동 전환']
   review_status varchar(30) [not null, default: 'unverified', note: '교육생 매칭·등급 판별 상태 (로그인 제어 아님): unverified / pending / approved / rejected']
   reviewed_at timestamptz
   memo text
+  deleted_at timestamptz [note: 'soft delete — 진행 중 신청·미결제 주문 있으면 409 차단. 활성 조회에서만 숨김']
   created_at timestamptz [not null]
   updated_at timestamptz [not null]
 
@@ -76,6 +82,7 @@ Table trainees {
     (name)
     (membership_grade_id)
     (review_status)
+    (grade_expires_at)
   }
 
   Note: 'CI는 users.ci_hash 단일 소스. 이관 시 CI를 보유한 교육생은 users 행을 미리 생성해 user_id로 연결 — 로그인 시 users.ci_hash 조회로 매칭. CI 없는 이관분은 수동 매칭(manual_review)'
@@ -388,6 +395,7 @@ Table payment_webhook_events {
 Table certificates {
   id uuid [pk]
   certificate_no varchar(100) [not null, unique, note: '시스템에서 생성하는 확인서 번호']
+  bundle_no varchar(100) [note: '묶음 확인서 번호 — 한 발급 이벤트가 공유하는 표시 번호(첫 확인서의 certificate_no). 단건 발급은 자기 번호와 같음']
   certificate_request_id uuid [not null, unique]
   trainee_id uuid [not null]
   training_record_id uuid [not null]
@@ -416,6 +424,7 @@ Table certificates {
     (trainee_id, issued_at)
     (training_record_id, issued_at)
     (certificate_no, issued_at)
+    (bundle_no)
   }
 
   Note: '발급 당시 교육정보를 스냅샷으로 보존. 유효기간 만료 여부는 expires_at과 현재시각으로 판단'

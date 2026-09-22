@@ -47,6 +47,8 @@
 { "items": [ ... ], "total": 87, "page": 1, "limit": 20, "total_pages": 5 }
 ```
 
+교육이력 목록은 선택 필드 `total_hours_sum` 을 추가로 내려준다 — **현재 필터(기간·검색·교육생) 전체 집합의 시수 합계**다. 현재 페이지 행의 합이 아니라 페이지네이션과 무관하게 전체 집계다.
+
 마스터성 목록(기관·과정·등급·관리자·화이트리스트)은 페이지네이션 없는 단순 배열.
 
 ### 날짜·시간
@@ -165,6 +167,7 @@ PATCH /api/certificate-pricing-rules/{rule_id} { price_krw | valid_to | is_activ
 | POST | `/api/training-records` | 아래 Create | 등록 (201) — internal/external 동일 경로 |
 | PATCH | `/api/training-records/{record_id}` | 아래 Update | 수정 |
 | DELETE | `/api/training-records/{record_id}` | | 소프트딜리트 (204) |
+| POST | `/api/training-records/match-preview` | multipart `file` (.xlsx) | 엑셀 행 → 교육생 대조 — `{total_rows, matched[], unmatched[]}`. 대조 키 우선순위: 감리원증번호 → 교육생번호 → 이름(동명 2명+ 제외). 일정 연결 모달의 엑셀 자동 선택용 |
 
 `TrainingRecordCreate`:
 

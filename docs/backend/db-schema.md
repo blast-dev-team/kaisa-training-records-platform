@@ -68,11 +68,15 @@ PASS 성공 시 CI로 find-or-create. 재가입 절차 없음 — 같은 CI 재�
 | id | uuid PK | |
 | user_id | uuid UNIQUE FK→users SET NULL | 회원가입 전 NULL 허용 |
 | trainee_no | varchar(100) UNIQUE | 협회 관리 교육생 고유번호 |
+| cert_no | varchar(100) | 감리원증번호 (구 시스템 감리원추가 E열) |
+| supervisor_grade | varchar(50) | 감리원 등급 (감리원/수석감리원) — 확인서 표기용, 회원등급과 별개 |
+| cert_issued_date | date | 감리원증 발급일자 — 엑셀 일괄 등록에서 받는 참조 정보 |
 | name | varchar(100) NOT NULL | |
 | birth_date | date | 생년월일 (어드민 수정 항목) |
 | phone_encrypted | text | Fernet 암호화 |
 | email | varchar(255) | |
 | membership_grade_id | uuid FK→membership_grades SET NULL | |
+| grade_expires_at | date | 연간 등급 만료일 — 만료일 당일까지 유효, 다음날 KST 부터 일반 자동 전환 |
 | review_status | varchar(30) NOT NULL DEFAULT 'unverified' | unverified / pending / approved / rejected (로그인 제어 아님) |
 | reviewed_at | timestamptz | |
 | memo | text | |
@@ -81,7 +85,7 @@ PASS 성공 시 CI로 find-or-create. 재가입 절차 없음 — 같은 CI 재�
 
 CI 는 `users.ci_hash` 단일 소스. CI 없는 이관분은 수동 매칭.
 
-인덱스: `(name)`, `(membership_grade_id)`, `(review_status)`
+인덱스: `(name)`, `(membership_grade_id)`, `(review_status)`, `(grade_expires_at)`
 
 ### membership_grades — 회원등급 마스터
 
@@ -391,6 +395,7 @@ CI 는 `users.ci_hash` 단일 소스. CI 없는 이관분은 수동 매칭.
 |------|------|------|
 | id | uuid PK | |
 | certificate_no | varchar(100) NOT NULL UNIQUE | 시스템 생성 번호 |
+| bundle_no | varchar(100) | 묶음 확인서 번호 — 한 발급 이벤트가 공유하는 표시 번호(첫 확인서의 certificate_no). 단건 발급은 자기 번호와 같음 |
 | certificate_request_id | uuid NOT NULL UNIQUE FK→certificate_requests | 1:1 |
 | trainee_id / training_record_id | uuid NOT NULL FK | |
 | payment_order_id | uuid FK→payment_orders SET NULL | |
@@ -406,7 +411,7 @@ CI 는 `users.ci_hash` 단일 소스. CI 없는 이관분은 수동 매칭.
 | pdf_sha256 | varchar(64) | PDF 무결성 해시 |
 | created_at / updated_at | timestamptz NOT NULL | |
 
-인덱스: `(trainee_id, issued_at)`, `(training_record_id, issued_at)`, `(certificate_no, issued_at)`
+인덱스: `(trainee_id, issued_at)`, `(training_record_id, issued_at)`, `(certificate_no, issued_at)`, `(bundle_no)`
 
 ---
 
