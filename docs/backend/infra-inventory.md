@@ -45,6 +45,7 @@
 
 - `DATABASE_URL`은 시크릿에 없음 — compose가 `DB_PASSWORD`로 조립.
 - 값 변경: `aws secretsmanager put-secret-value`로 기존 JSON **병합** 후 재배포 (부팅 시 로드).
+- 삭제 SOP: `aws secretsmanager delete-secret --recovery-window-in-days 30` 만 사용. `--force-delete-without-recovery` 금지 — `CRYPTO_KEY` 가 전화번호 암호문의 유일한 복호화 수단이라 시크릿 유실 = 암호화 데이터 영구 손실. (recovery window는 삭제 시점에 지정하는 값이라 미리 설정해 둘 수 없다.)
 - 정적 access key 미사용 — EC2는 인스턴스 롤(IMDS), 로컬은 `.env` 명시 키. gongcar `.env`의 `AWS_ACCESS_KEY_ID` 방식을 일부러 안 따랐다.
 
 ## 3. IAM 권한 설계
@@ -128,7 +129,7 @@ aws secretsmanager put-secret-value --secret-id kaisa-prod --secret-string file:
 |---|---|---|
 | SSH 22 전면 개방 | staging·prod 모두 0.0.0.0/0. GitHub Actions 배포가 22를 쓰므로 닫으면 배포 깨짐 → **배포를 SSM send-command로 전환할 때 함께 잠금** (사용자 결정: 당분간 유지) | 중 |
 | prod→staging DB 미러 | gongcar `mirror-prod-to-staging.sh` 대응물. 백업이 S3에 있어 만들 준비 완료 | 중 |
-| `kaisa-prod` 시크릿 recovery window 0 | 즉시 삭제 가능 상태. 30일로 올리면 CRYPTO_KEY 유실 방어 | 중 |
+| 시크릿 삭제 가드 (staging·prod) | recovery window는 미리 설정하는 속성이 아니라 **삭제 시점에 지정하는 값**이라 standing 설정 불가 (2026-09-22 확인 — `update-secret`에 옵션 없음). 방어 수단: 삭제 시 `aws secretsmanager delete-secret --recovery-window-in-days 30` 만 사용하고 `--force-delete-without-recovery` 는 금지 — CRYPTO_KEY 분실 시 전화번호 암호문 영구 복호화 불가. 강제 차단은 IAM에서 `secretsmanager:DeleteSecret` 을 관리자 한정으로 제한하는 방법 | 중 |
 | files 버킷 CORS/presigned | 프론트 직접 업로드 기능 구현 시 추가 | 낮음 |
 | Slack 배포 알림 | gongcar deploy.yml에는 있음. 팀 문서 Phase D 통과 후 추가 예정 | 낮음 |
 | S3 백업 성공 알림 | 현재 조용히 실패할 수 있음(cron 로그만 봄). 실패 시 Slack/이메일 알림 고려 | 낮음 |
@@ -145,3 +146,4 @@ aws secretsmanager put-secret-value --secret-id kaisa-prod --secret-string file:
 | 2026-09-14 | 로컬 개발용 IAM 사용자 `kaisa-local-dev` 발급 |
 | 2026-09-14 | 시크릿 `CORS_ORIGINS` 추가 (FE 도메인 분리 — dev-admin/admin) + api 컨테이너 force-recreate로 반영. Amplify(`kaisa-edu` da0pjubdzn206·`kaisa-admin` d2kv9rc28llymz, ap-northeast-2) 브랜치 환경변수 `VITE_API_URL` 주입. **주의: `docker compose up -d` 는 이미지 동일 시 재생성 안 함 — 시크릿 변경 시 `--force-recreate api` 필요** |
 | 2026-09-14 | 시크릿 `ADMIN_EMAIL`·`ADMIN_PASSWORD` 추가 + 마스터 관리자 시드. staging은 `python -m app.seed` 전체(등급·교육생 더미 포함), prod는 관리자+등급만(교육생 더미 제외 — 전용 스크립트). 양쪽 로그인 200 검증 |
+| 2026-09-22 | 시크릿 recovery window 조사 — 삭제 시점 지정 값이라 standing 설정 불가 확인, §7 TODO 정정 + §2 삭제 SOP 추가. `ENVIRONMENT`·`CRYPTO_KEY` 등 13키(staging)/8키(prod) 현행 점검 — prod는 PortOne 계열 4키 미입력(출시 전) 확인 |
