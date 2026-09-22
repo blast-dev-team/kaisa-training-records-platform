@@ -1,0 +1,3 @@
+# 관리자 화면 — 검색엔진 색인 금지
+User-agent: *
+Disallow: /

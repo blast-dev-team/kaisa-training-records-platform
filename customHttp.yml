@@ -1,23 +1,47 @@
-# AWS Amplify Hosting 커스텀 헤더 (web · admin 모노레포 공통 적용)
+# AWS Amplify Hosting 커스텀 헤더 (web · admin 모노레포)
+#
+# ⚠️ 모노레포 앱은 이 포맷만 유효하다 — 최상위 customHeaders 단독이면
+#    'Monorepo spec provided without "applications" key' 로 배포 실패 (2026-09-22).
+#    appRoot 는 Amplify 콘솔에 설정된 앱 루트 경로와 정확히 일치해야 한다.
 #
 # 1) stale chunk 방지 — 배포 후 열려 있던 탭이 옛 index.html 로 새 청크를 못 찾는 문제.
 #    - index.html · SPA 폴백 경로: 항상 재검증(no-cache) → 배포 즉시 새 해시를 받는다
 #    - /assets/** (Vite 해시 파일명): 1년 immutable → 내용이 바뀌면 파일명이 바뀌므로 안전
 # 2) 보안 응답 헤더 — BE nginx 와 동일한 세트 (backend/api/nginx/templates/default.conf.template)
-customHeaders:
-  - pattern: "**"
-    headers:
-      - key: "Cache-Control"
-        value: "no-cache"
-      - key: "Strict-Transport-Security"
-        value: "max-age=31536000; includeSubDomains"
-      - key: "X-Content-Type-Options"
-        value: "nosniff"
-      - key: "X-Frame-Options"
-        value: "DENY"
-      - key: "Referrer-Policy"
-        value: "strict-origin-when-cross-origin"
-  - pattern: "/assets/**"
-    headers:
-      - key: "Cache-Control"
-        value: "public, max-age=31536000, immutable"
+applications:
+  - appRoot: frontend/apps/web
+    customHeaders:
+      - pattern: "**"
+        headers:
+          - key: "Cache-Control"
+            value: "no-cache"
+          - key: "Strict-Transport-Security"
+            value: "max-age=31536000; includeSubDomains"
+          - key: "X-Content-Type-Options"
+            value: "nosniff"
+          - key: "X-Frame-Options"
+            value: "DENY"
+          - key: "Referrer-Policy"
+            value: "strict-origin-when-cross-origin"
+      - pattern: "/assets/**"
+        headers:
+          - key: "Cache-Control"
+            value: "public, max-age=31536000, immutable"
+  - appRoot: frontend/apps/admin
+    customHeaders:
+      - pattern: "**"
+        headers:
+          - key: "Cache-Control"
+            value: "no-cache"
+          - key: "Strict-Transport-Security"
+            value: "max-age=31536000; includeSubDomains"
+          - key: "X-Content-Type-Options"
+            value: "nosniff"
+          - key: "X-Frame-Options"
+            value: "DENY"
+          - key: "Referrer-Policy"
+            value: "strict-origin-when-cross-origin"
+      - pattern: "/assets/**"
+        headers:
+          - key: "Cache-Control"
+            value: "public, max-age=31536000, immutable"
