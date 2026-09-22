@@ -19,6 +19,7 @@ export const postTraineeBulkUpdate = async (
       }
       if (item.name !== undefined) trainee.name = item.name
       if (item.birth_date !== undefined) trainee.birthDate = item.birth_date
+      if (item.cert_no) trainee.certNo = item.cert_no
       trainee.updatedAt = new Date().toISOString().slice(0, 19)
       updated += 1
     }

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'react-toastify'
 import { Dialog } from '@/src/shared/ui/dialog'
+import { Input } from '@/src/shared/ui/input'
 import { Label } from '@/src/shared/ui/label'
 import { Select } from '@/src/shared/ui/select'
 import {
@@ -10,6 +11,10 @@ import {
   traineeQueries,
   type Trainee,
 } from '@/src/entities/trainee'
+import { yearsAgoYMD } from '@/src/shared/utils/format'
+
+/** 연간 등급 코드 — BE PERIOD_GRADE_CODE 와 일치. 이 등급만 기간(만료일)이 있다 */
+const PERIOD_GRADE_CODE = 'annual'
 
 interface Props {
   isOpen: boolean
@@ -24,11 +29,17 @@ interface Props {
 export function BulkGradeDialog({ isOpen, onClose, trainees, onDone }: Props) {
   const queryClient = useQueryClient()
   const [gradeId, setGradeId] = useState('')
+  const [expiresAt, setExpiresAt] = useState('')
 
   const { data: grades } = useQuery(membershipGradeQueries.list(true))
+  const selectedGrade = (grades ?? []).find((g) => g.id === gradeId)
+  const isAnnual = selectedGrade?.code === PERIOD_GRADE_CODE
 
   useEffect(() => {
-    if (isOpen) setGradeId('')
+    if (isOpen) {
+      setGradeId('')
+      setExpiresAt(yearsAgoYMD(-1))
+    }
   }, [isOpen])
 
   const mutation = useMutation({
@@ -36,6 +47,7 @@ export function BulkGradeDialog({ isOpen, onClose, trainees, onDone }: Props) {
       postTraineeBulkGrade({
         trainee_ids: trainees.map((t) => t.id),
         membership_grade_id: gradeId,
+        grade_expires_at: isAnnual ? expiresAt || undefined : undefined,
       }),
     onSuccess: ({ updated, skipped }) => {
       toast.success(`등급을 변경했어요 — ${updated}명${skipped ? ` (제외 ${skipped}명)` : ''}`)
@@ -58,7 +70,7 @@ export function BulkGradeDialog({ isOpen, onClose, trainees, onDone }: Props) {
           label: `${trainees.length}명 변경`,
           variant: 'primary',
           isLoading: mutation.isPending,
-          isDisabled: !gradeId,
+          isDisabled: !gradeId || (isAnnual && !expiresAt),
           onClick: () => {
             if (!gradeId) return
             mutation.mutate()
@@ -78,6 +90,19 @@ export function BulkGradeDialog({ isOpen, onClose, trainees, onDone }: Props) {
             ))}
           </Select>
         </div>
+        {isAnnual && (
+          <div className="space-y-1.5">
+            <Label>만료일</Label>
+            <Input
+              type="date"
+              value={expiresAt}
+              onChange={(e) => setExpiresAt(e.target.value)}
+            />
+            <p className="text-[12px] text-ink-3">
+              전원에 같은 만료일이 적용돼요 — 만료일이 지나면 자동으로 일반 등급으로 바뀌어요
+            </p>
+          </div>
+        )}
         {trainees[0] && (
           <p className="text-[12px] text-ink-3">
             적용 대상: {trainees[0].name}

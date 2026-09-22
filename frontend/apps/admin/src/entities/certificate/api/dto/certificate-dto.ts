@@ -1,6 +1,7 @@
 export interface CertificateDto {
   id: string
   certificate_no: string
+  bundle_no: string | null
   certificate_request_id: string | null
   trainee_id: string
   training_record_id: string

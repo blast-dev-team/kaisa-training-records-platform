@@ -34,6 +34,7 @@ export const getTraineeDuplicates = async (): Promise<Trainee[]> => {
     reviewStatus: d.review_status,
     membershipGradeId: d.membership_grade_id,
     gradeName: d.grade_name,
+    gradeExpiresAt: null,
     userId: d.user_id,
     memo: d.memo,
     createdAt: d.created_at,

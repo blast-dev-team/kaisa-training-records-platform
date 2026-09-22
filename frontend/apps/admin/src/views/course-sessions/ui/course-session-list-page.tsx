@@ -217,7 +217,7 @@ export function CourseSessionListPage() {
         cell: ({ row }) => (
           <div className="flex items-center justify-end gap-1.5">
             <Button variant="ghost" size="sm" onClick={() => setAttachTarget(row.original)}>
-              <Users className="size-3.5" /> 교육생 연결
+              <Users className="size-3.5" /> 감리원 연결
             </Button>
             <Button
               variant="ghost"
@@ -339,7 +339,7 @@ export function CourseSessionListPage() {
         columns={columns}
         data={items}
         isLoading={!data}
-        emptyMessage="등록된 교육 일정이 없어요. 일정을 등록하고 교육생을 연결해 보세요"
+        emptyMessage="등록된 교육 일정이 없어요. 일정을 등록하고 감리원을 연결해 보세요"
         page={page}
         totalPages={totalPages}
         onPageChange={(p) => updateParams({ page: String(p) }, false)}
@@ -359,7 +359,7 @@ export function CourseSessionListPage() {
         isOpen={bulkDeleteOpen}
         onClose={() => setBulkDeleteOpen(false)}
         title="일괄 삭제"
-        description={`선택한 ${selectedCount.toLocaleString()}개 일정을 삭제할까요? 연결된 교육 이력은 삭제되지 않고, 일정과의 연결만 끊겨요.`}
+        description={`선택한 ${selectedCount.toLocaleString()}개 일정을 삭제할까요? 연결된 교육 내역은 삭제되지 않고, 일정과의 연결만 끊겨요.`}
         actions={[
           { label: "취소", onClick: () => setBulkDeleteOpen(false) },
           {
@@ -387,7 +387,7 @@ export function CourseSessionListPage() {
         title="일정 삭제"
         description={
           deleteTarget
-            ? `'${deleteTarget.courseName}' 일정을 삭제할까요? 연결된 교육 이력은 삭제되지 않아요.`
+            ? `'${deleteTarget.courseName}' 일정을 삭제할까요? 연결된 교육 내역은 삭제되지 않아요.`
             : undefined
         }
         actions={[

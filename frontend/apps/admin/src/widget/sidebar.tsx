@@ -33,7 +33,7 @@ const NAV_GROUPS: { title: string; items: NavItem[] }[] = [
   {
     title: "회원",
     items: [
-      { to: "/trainees", label: "교육생", icon: Users },
+      { to: "/trainees", label: "감리원", icon: Users },
       { to: "/membership-grades", label: "회원등급", icon: Medal },
       { to: "/identity-reviews", label: "본인인증 심사", icon: ShieldCheck },
     ],
@@ -42,8 +42,8 @@ const NAV_GROUPS: { title: string; items: NavItem[] }[] = [
     title: "교육",
     items: [
       { to: "/course-sessions", label: "교육 일정", icon: CalendarDays },
-      { to: "/training-records", label: "교육 이력", icon: GraduationCap },
-      { to: "/external-completions", label: "외부 이력", icon: FileBadge },
+      { to: "/training-records", label: "교육 내역", icon: GraduationCap },
+      { to: "/external-completions", label: "외부 내역", icon: FileBadge },
       { to: "/institutions", label: "기관 · 과정", icon: Building2 },
       { to: "/session-names", label: "회차명 관리", icon: ListOrdered },
     ],
@@ -74,7 +74,7 @@ export function Sidebar({ role }: { role: "super" | "staff" }) {
 
         <div className="leading-tight">
           <p className="text-[14px] font-semibold text-ink">KAISA 관리자</p>
-          <p className="text-[11px] text-ink-3">교육이력 관리</p>
+          <p className="text-[11px] text-ink-3">교육내역 관리</p>
         </div>
       </div>
 

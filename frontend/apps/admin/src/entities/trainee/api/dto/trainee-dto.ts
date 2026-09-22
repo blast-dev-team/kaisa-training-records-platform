@@ -10,6 +10,7 @@ export interface TraineeDto {
   review_status: 'unverified' | 'pending' | 'approved' | 'rejected'
   membership_grade_id: string | null
   grade_name: string | null
+  grade_expires_at: string | null
   user_id: string | null
   memo: string | null
   created_at: string

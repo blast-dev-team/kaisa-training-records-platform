@@ -45,5 +45,6 @@ export const getTrainingRecordList = async (
     page: data.page,
     limit: data.limit,
     totalPages: data.total_pages,
+    totalHoursSum: data.total_hours_sum ?? 0,
   }
 }

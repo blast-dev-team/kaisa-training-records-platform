@@ -20,7 +20,7 @@ interface DialogProps {
   title: string
   description?: ReactNode
   /** default: 'md' */
-  size?: 'sm' | 'md' | 'lg' | 'xl'
+  size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl'
   /** default: true */
   closeOnBackdrop?: boolean
   /** default: true */
@@ -40,6 +40,7 @@ const SIZES: Record<NonNullable<DialogProps['size']>, string> = {
   md: 'max-w-[440px]',
   lg: 'max-w-[520px]',
   xl: 'max-w-[760px]',
+  '2xl': 'max-w-[1100px]',
 }
 
 const VARIANT_CLASSES: Record<DialogActionVariant, string> = {

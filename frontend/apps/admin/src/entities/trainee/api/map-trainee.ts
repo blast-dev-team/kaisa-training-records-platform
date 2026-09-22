@@ -14,6 +14,7 @@ export function mapTrainee(dto: TraineeDto): Trainee {
     reviewStatus: dto.review_status,
     membershipGradeId: dto.membership_grade_id,
     gradeName: dto.grade_name,
+    gradeExpiresAt: dto.grade_expires_at,
     userId: dto.user_id,
     memo: dto.memo,
     createdAt: dto.created_at,

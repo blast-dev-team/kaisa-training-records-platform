@@ -13,7 +13,7 @@ import { PageContainer } from "@/src/shared/ui/page-container";
 import { Pill, statusTone } from "@/src/shared/ui/pill";
 import { Select } from "@/src/shared/ui/select";
 import { toYMD } from "@/src/shared/utils/format";
-import { Check, Minus, Plus } from "lucide-react";
+import { Check, FileSpreadsheet, Minus, Plus } from "lucide-react";
 import { AlertTriangle } from "lucide-react";
 import {
   deleteTrainee,
@@ -27,6 +27,7 @@ import { BulkGradeDialog } from "./bulk-grade-dialog";
 import { GradeChangeDialog } from "./grade-change-dialog";
 import { TraineeFormDialog } from "./trainee-form-dialog";
 import { TraineeDuplicatesDialog } from "./trainee-duplicates-dialog";
+import { TraineeImportDialog } from "./trainee-import-dialog";
 
 export function TraineeListPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -41,6 +42,7 @@ export function TraineeListPage() {
   const [gradeTarget, setGradeTarget] = useState<Trainee | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Trainee | null>(null);
   const [formOpen, setFormOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<Trainee | null>(null);
   const [duplicatesOpen, setDuplicatesOpen] = useState(false);
   const [bulkGradeOpen, setBulkGradeOpen] = useState(false);
@@ -59,7 +61,7 @@ export function TraineeListPage() {
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteTrainee(id),
     onSuccess: () => {
-      toast.success("교육생을 삭제했어요 — 이력·확인서는 보존돼요");
+      toast.success("감리원을 삭제했어요 — 이력·확인서는 보존돼요");
       setDeleteTarget(null);
       queryClient.invalidateQueries({ queryKey: traineeQueries.all() });
     },
@@ -126,12 +128,6 @@ export function TraineeListPage() {
           </span>
         ),
       },
-      {
-        accessorKey: "traineeNo",
-        header: "교육생번호",
-        meta: { width: 120 },
-        cell: ({ row }) => <span className="font-medium text-ink">{row.original.traineeNo}</span>,
-      },
       { accessorKey: "name", header: "성명", meta: { width: 100 } },
       {
         accessorKey: "birthDate",
@@ -165,8 +161,16 @@ export function TraineeListPage() {
       {
         accessorKey: "gradeName",
         header: "회원등급",
-        meta: { width: 100 },
-        cell: ({ row }) => row.original.gradeName ?? "—",
+        meta: { width: 150 },
+        cell: ({ row }) =>
+          row.original.gradeExpiresAt ? (
+            <span>
+              {row.original.gradeName ?? "—"}{" "}
+              <span className="text-ink-3">· ~{row.original.gradeExpiresAt}</span>
+            </span>
+          ) : (
+            (row.original.gradeName ?? "—")
+          ),
       },
       {
         accessorKey: "reviewStatus",
@@ -236,17 +240,22 @@ export function TraineeListPage() {
   return (
     <PageContainer>
       <PageHead
-        title="교육생 관리"
+        title="감리원 관리"
         subtitle={`총 ${total.toLocaleString()}명`}
         actions={
-          <Button
-            onClick={() => {
-              setEditTarget(null);
-              setFormOpen(true);
-            }}
-          >
-            <Plus className="size-4" /> 교육생 등록
-          </Button>
+          <>
+            <Button variant="outline" onClick={() => setImportOpen(true)}>
+              <FileSpreadsheet className="size-4" /> 엑셀 등록
+            </Button>
+            <Button
+              onClick={() => {
+                setEditTarget(null);
+                setFormOpen(true);
+              }}
+            >
+              <Plus className="size-4" /> 감리원 등록
+            </Button>
+          </>
         }
       />
 
@@ -261,7 +270,7 @@ export function TraineeListPage() {
           >
             <Input
               className="w-64"
-              placeholder="성명 · 교육생번호 · 감리원증번호"
+              placeholder="성명 · 감리원증번호"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
             />
@@ -327,7 +336,7 @@ export function TraineeListPage() {
         columns={columns}
         data={items}
         isLoading={!data}
-        emptyMessage="조건에 맞는 교육생이 없어요"
+        emptyMessage="조건에 맞는 감리원이 없어요"
         page={page}
         totalPages={totalPages}
         onPageChange={(p) => updateParams({ page: String(p) }, false)}
@@ -369,13 +378,15 @@ export function TraineeListPage() {
         onDone={() => setSelected({})}
       />
 
+      <TraineeImportDialog isOpen={importOpen} onClose={() => setImportOpen(false)} />
+
       <Dialog
         isOpen={deleteTarget !== null}
         onClose={() => setDeleteTarget(null)}
-        title="교육생 삭제"
+        title="감리원 삭제"
         description={
           deleteTarget
-            ? `'${deleteTarget.name}' 교육생을 삭제할까요? 발급 이력·확인서·결제 기록은 보존되고, 목록과 회원 서비스에서만 사라져요. 진행 중인 신청·결제가 있으면 삭제할 수 없어요.`
+            ? `'${deleteTarget.name}' 감리원을 삭제할까요? 발급 이력·확인서·결제 기록은 보존되고, 목록과 회원 서비스에서만 사라져요. 진행 중인 신청·결제가 있으면 삭제할 수 없어요.`
             : undefined
         }
         actions={[

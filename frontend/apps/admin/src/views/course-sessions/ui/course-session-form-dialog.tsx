@@ -22,7 +22,7 @@ interface Props {
   onCreated?: (session: CourseSession) => void;
 }
 
-const fetchCourses = fetchOptions("/courses", {}, c => ({
+const fetchCourses = fetchOptions("/courses", {}, (c) => ({
   value: c.id as string,
   label: c.name as string,
   hint: c.institution_name as string | undefined,
@@ -45,9 +45,7 @@ export function CourseSessionFormDialog({ isOpen, onClose, session, onCreated }:
     setStartedAt(session?.startedAt ?? "");
     setEndedAt(session?.endedAt ?? "");
     setTotalHours(session?.totalHours != null ? String(session.totalHours) : "");
-    setRecognizedHours(
-      session?.recognizedHours != null ? String(session.recognizedHours) : "",
-    );
+    setRecognizedHours(session?.recognizedHours != null ? String(session.recognizedHours) : "");
     setMemo(session?.memo ?? "");
     setIsActive(session?.isActive ?? true);
   }, [isOpen, session]);
@@ -74,7 +72,7 @@ export function CourseSessionFormDialog({ isOpen, onClose, session, onCreated }:
         memo: memo.trim() || null,
       });
     },
-    onSuccess: created => {
+    onSuccess: (created) => {
       toast.success(session ? "일정을 수정했어요" : "일정을 등록했어요");
       queryClient.invalidateQueries({ queryKey: courseSessionQueries.all() });
       if (!session && onCreated) {
@@ -92,11 +90,11 @@ export function CourseSessionFormDialog({ isOpen, onClose, session, onCreated }:
       isOpen={isOpen}
       onClose={onClose}
       title={session ? "교육 일정 수정" : "교육 일정 등록"}
-      description="일정 등록 후 교육생을 연결하면 교육 이력이 생성돼요"
+      description="일정 등록 후 감리원을 연결하면 교육 내역이 생성돼요"
       actions={[
         { label: "취소", onClick: onClose },
         {
-          label: session ? "수정" : "등록 후 교육생 연결",
+          label: session ? "수정" : "등록 후 감리원 연결",
           isLoading: mutation.isPending,
           isDisabled: !session && !courseId,
           onClick: () => mutation.mutate(),
@@ -109,7 +107,7 @@ export function CourseSessionFormDialog({ isOpen, onClose, session, onCreated }:
             <Label>과정</Label>
             <SearchableSelect
               value={courseId || null}
-              onChange={v => setCourseId(v ?? "")}
+              onChange={(v) => setCourseId(v ?? "")}
               fetchPage={fetchCourses}
               queryKeyPrefix={["options", "courses"]}
               placeholder="과정 검색 · 선택"

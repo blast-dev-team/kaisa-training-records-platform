@@ -11,6 +11,8 @@ export const CERTIFICATE_STATUS_LABELS: Record<CertificateStatus, string> = {
 export interface Certificate {
   id: string
   certificateNo: string
+  /** 묶음 확인서 번호 — 한 발급 이벤트가 공유하는 표시 번호(첫 확인서 번호) */
+  bundleNo: string | null
   certificateRequestId: string | null
   traineeId: string
   trainingRecordId: string

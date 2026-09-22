@@ -53,3 +53,10 @@ export function toYMD(value: string | null | undefined): string | null {
 export function todayYMD(): string {
   return new Date().toLocaleString('sv-SE').slice(0, 10)
 }
+
+/** 오늘 기준 N년 전 'YYYY-MM-DD' — 기간 필터 칩의 조회 시작일. 매 호출 재계산 ('오늘'을 굳히지 않는다). */
+export function yearsAgoYMD(years: number): string {
+  const d = new Date()
+  d.setFullYear(d.getFullYear() - years)
+  return d.toLocaleString('sv-SE').slice(0, 10)
+}

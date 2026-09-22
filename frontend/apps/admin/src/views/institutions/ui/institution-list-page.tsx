@@ -81,7 +81,7 @@ export function InstitutionListPage() {
         : deleteCourse(deleteTarget.id);
     },
     onSuccess: () => {
-      toast.success("삭제했어요 — 기존 교육이력 표시는 그대로 유지돼요");
+      toast.success("삭제했어요 — 기존 교육내역 표시는 그대로 유지돼요");
       setDeleteTarget(null);
       queryClient.invalidateQueries({ queryKey: institutionQueries.all() });
       queryClient.invalidateQueries({ queryKey: courseQueries.all() });
@@ -444,7 +444,7 @@ export function InstitutionListPage() {
           deleteTarget
             ? `'${deleteTarget.name}' ${
                 deleteTarget.kind === "institution" ? "기관" : "과정"
-              }을 삭제할까요? 비활성 전환되어 선택 목록에서 사라지고, 과거 교육이력 표시는 그대로 남아요.`
+              }을 삭제할까요? 비활성 전환되어 선택 목록에서 사라지고, 과거 교육내역 표시는 그대로 남아요.`
             : undefined
         }
         actions={[

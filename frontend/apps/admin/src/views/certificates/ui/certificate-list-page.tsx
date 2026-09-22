@@ -90,6 +90,24 @@ export function CertificateListPage() {
         ),
       },
       {
+        // 묶음 확인서 — 여러 이력을 한 문서로 발급한 묶음 번호. 단건은 자기
+        // 번호와 같아 "—" 로 숨긴다 (묶음일 때만 노출)
+        id: "bundleNo",
+        header: "묶음번호",
+        meta: { width: 150 },
+        cell: ({ row }) => {
+          const { bundleNo, certificateNo } = row.original;
+          if (!bundleNo || bundleNo === certificateNo) {
+            return <span className="text-ink-3">—</span>;
+          }
+          return (
+            <span className="font-mono text-[12px] text-ink" title={bundleNo}>
+              {bundleNo}
+            </span>
+          );
+        },
+      },
+      {
         accessorKey: "issuedName",
         header: "성명",
         meta: { width: 100 },

@@ -22,6 +22,7 @@ export const postTrainee = async (input: TraineeCreateInput): Promise<Trainee> =
       reviewStatus: 'approved',
       membershipGradeId: input.membership_grade_id ?? null,
       gradeName: null,
+      gradeExpiresAt: null,
       userId: null,
       memo: input.memo ?? null,
       createdAt: now,

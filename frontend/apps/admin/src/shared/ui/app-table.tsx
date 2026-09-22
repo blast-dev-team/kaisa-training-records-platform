@@ -168,8 +168,8 @@ export function AppTable<TData extends RowData>({
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const proxyRef = useRef<HTMLDivElement>(null);
-  const proxyInnerRef = useRef<HTMLDivElement>(null);
   const [hasOverflow, setHasOverflow] = useState(false);
+  const [scrollWidth, setScrollWidth] = useState(0);
 
   // 가로 스크롤이 생길 때만 프록시 스크롤바 노출
   useEffect(() => {
@@ -177,13 +177,14 @@ export function AppTable<TData extends RowData>({
     if (!el) return;
     const measure = () => {
       setHasOverflow(el.scrollWidth > el.clientWidth + 1);
-      if (proxyInnerRef.current) {
-        proxyInnerRef.current.style.width = `${el.scrollWidth}px`;
-      }
+      setScrollWidth(el.scrollWidth);
     };
     measure();
     const observer = new ResizeObserver(measure);
     observer.observe(el);
+    // 테이블 자체도 관찰 — 데이터 로드로 테이블이 커져도 컨테이너 크기는 안 변해
+    // 이 관찰이 없으면 프록시 스크롤바 폭이 낡아 끝까지 스크롤이 안 닿는다
+    if (el.firstElementChild) observer.observe(el.firstElementChild);
     return () => observer.disconnect();
   }, []);
 
@@ -295,6 +296,9 @@ export function AppTable<TData extends RowData>({
                       <td
                         key={cell.id}
                         className={`${cellPad} whitespace-nowrap ${
+                          // 고정 레이아웃에선 셀 폭이 설계값으로 묶이므로 넘치는 텍스트를 잘라낸다 — 안 그러면 다음 컬럼에 겹쳐 그려진다
+                          fixedLayout ? "overflow-hidden text-ellipsis" : ""
+                        } ${
                           align === "right" ? "text-right" : align === "center" ? "text-center" : ""
                         } ${divider ? COL_DIVIDER : ""} ${
                           sticky
@@ -314,17 +318,20 @@ export function AppTable<TData extends RowData>({
             )}
           </tbody>
         </table>
-        {hasOverflow && (
-          <div
-            ref={proxyRef}
-            role="presentation"
-            className="sticky bottom-0 z-[5] h-3 overflow-x-auto overflow-y-hidden border-t border-line bg-panel-2"
-            onScroll={onProxyScroll}
-          >
-            <div ref={proxyInnerRef} className="h-px" />
-          </div>
-        )}
       </div>
+
+      {/* 프록시 스크롤바 — 스크롤 컨테이너 밖(형제)에 둬야 가로 스크롤해도 트랙이 흘러가지 않고
+          전체 폭을 유지한다. 안에 두면(sticky right 포함) 컨테이너 밖으로 못 나가 트랙이 줄어든다. */}
+      {hasOverflow && (
+        <div
+          ref={proxyRef}
+          role="presentation"
+          className="h-3 overflow-x-auto overflow-y-hidden border-t border-line bg-panel-2"
+          onScroll={onProxyScroll}
+        >
+          <div className="h-px" style={{ width: scrollWidth || undefined }} />
+        </div>
+      )}
 
       {hasPagination && (
         <TableFooter

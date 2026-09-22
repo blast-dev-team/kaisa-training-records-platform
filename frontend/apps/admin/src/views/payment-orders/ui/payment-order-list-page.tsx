@@ -37,7 +37,9 @@ export function PaymentOrderListPage() {
   const [reason, setReason] = useState("");
 
   const queryClient = useQueryClient();
-  const { data } = useQuery(paymentOrderQueries.list({ status, search: q || undefined, page, limit }));
+  const { data } = useQuery(
+    paymentOrderQueries.list({ status, search: q || undefined, page, limit }),
+  );
 
   const refundMutation = useMutation({
     // 이 결제로 발급된 확인서는 서버가 전부 폐기한 뒤 환불한다
@@ -150,7 +152,7 @@ export function PaymentOrderListPage() {
           >
             <Input
               className="w-64"
-              placeholder="주문번호 · 교육생 성명"
+              placeholder="주문번호 · 감리원 성명"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
             />
@@ -230,8 +232,7 @@ export function PaymentOrderListPage() {
       >
         <div className="space-y-1.5 pt-1">
           <p className="rounded-md bg-bg-2 px-3 py-2 text-[12px] leading-[1.5] text-ink-3">
-            이 결제로 발급된 확인서는 모두 폐기되고, WEB 회원의 결제 내역에는
-            환불로 표시돼요.
+            이 결제로 발급된 확인서는 모두 폐기되고, WEB 회원의 결제 내역에는 환불로 표시돼요.
           </p>
           <Label>환불 사유 (필수)</Label>
           <Textarea

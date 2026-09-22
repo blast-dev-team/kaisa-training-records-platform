@@ -8,6 +8,7 @@ export const MOCK_CERTIFICATES: Certificate[] = [
   {
     id: 'crt-001',
     certificateNo: 'KAISA-2026-0004821',
+    bundleNo: null,
     certificateRequestId: null,
     traineeId: 'tr-001',
     trainingRecordId: 'rcd-001',
@@ -30,6 +31,7 @@ export const MOCK_CERTIFICATES: Certificate[] = [
   {
     id: 'crt-002',
     certificateNo: 'KAISA-2026-0004102',
+    bundleNo: null,
     certificateRequestId: null,
     traineeId: 'tr-002',
     trainingRecordId: 'rcd-002',
@@ -52,6 +54,7 @@ export const MOCK_CERTIFICATES: Certificate[] = [
   {
     id: 'crt-003',
     certificateNo: 'KAISA-2025-0002861',
+    bundleNo: null,
     certificateRequestId: null,
     traineeId: 'tr-005',
     trainingRecordId: 'rcd-003',

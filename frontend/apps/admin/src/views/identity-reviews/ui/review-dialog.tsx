@@ -1,19 +1,19 @@
-import { useEffect, useState } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'react-toastify';
-import { Button } from '@/src/shared/ui/button';
-import { Dialog } from '@/src/shared/ui/dialog';
-import { Input } from '@/src/shared/ui/input';
-import { Label } from '@/src/shared/ui/label';
-import { Select } from '@/src/shared/ui/select';
-import { Textarea } from '@/src/shared/ui/textarea';
-import { membershipGradeQueries, traineeQueries, type Trainee } from '@/src/entities/trainee';
+import { useEffect, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "react-toastify";
+import { Button } from "@/src/shared/ui/button";
+import { Dialog } from "@/src/shared/ui/dialog";
+import { Input } from "@/src/shared/ui/input";
+import { Label } from "@/src/shared/ui/label";
+import { Select } from "@/src/shared/ui/select";
+import { Textarea } from "@/src/shared/ui/textarea";
+import { membershipGradeQueries, traineeQueries, type Trainee } from "@/src/entities/trainee";
 import {
   identityReviewQueries,
   postApproveIdentityReview,
   postRejectIdentityReview,
   type IdentityReview,
-} from '@/src/entities/identity-review';
+} from "@/src/entities/identity-review";
 
 interface Props {
   review: IdentityReview | null;
@@ -28,33 +28,33 @@ export function ReviewDialog({ review, onClose }: Props) {
   const queryClient = useQueryClient();
 
   /** 연결 방식 — 검색으로 기존 교육생 대조 or 검색 실패 시 신규 생성 */
-  const [mode, setMode] = useState<'search' | 'new'>('search');
-  const [search, setSearch] = useState('');
+  const [mode, setMode] = useState<"search" | "new">("search");
+  const [search, setSearch] = useState("");
   const [query, setQuery] = useState<string | null>(null);
   const [selected, setSelected] = useState<Trainee | null>(null);
-  const [newName, setNewName] = useState('');
-  const [newPhone, setNewPhone] = useState('');
-  const [newEmail, setNewEmail] = useState('');
-  const [gradeId, setGradeId] = useState('');
-  const [note, setNote] = useState('');
+  const [newName, setNewName] = useState("");
+  const [newPhone, setNewPhone] = useState("");
+  const [newEmail, setNewEmail] = useState("");
+  const [gradeId, setGradeId] = useState("");
+  const [note, setNote] = useState("");
 
   const { data: grades } = useQuery(membershipGradeQueries.list(true));
   const { data: results, isFetching: searching } = useQuery({
-    ...traineeQueries.list({ q: query ?? '', page: 1, limit: 10 }),
+    ...traineeQueries.list({ q: query ?? "", page: 1, limit: 10 }),
     enabled: query !== null,
   });
 
   useEffect(() => {
     if (review) {
-      setMode('search');
+      setMode("search");
       setSearch(review.verifiedName);
       setQuery(null);
       setSelected(null);
       setNewName(review.verifiedName);
-      setNewPhone('');
-      setNewEmail('');
-      setGradeId('');
-      setNote('');
+      setNewPhone("");
+      setNewEmail("");
+      setGradeId("");
+      setNote("");
     }
   }, [review]);
 
@@ -62,12 +62,12 @@ export function ReviewDialog({ review, onClose }: Props) {
 
   /** 신규 생성 모드 — 성명·등급 필수 (등급 없으면 발급이 막힌다) */
   const canApprove =
-    mode === 'search' ? selected !== null : newName.trim() !== '' && gradeId !== '';
+    mode === "search" ? selected !== null : newName.trim() !== "" && gradeId !== "";
 
   const approveMutation = useMutation({
     mutationFn: () => {
       const input =
-        mode === 'search'
+        mode === "search"
           ? {
               trainee_id: selected!.id,
               determined_grade_id: gradeId || undefined,
@@ -83,7 +83,7 @@ export function ReviewDialog({ review, onClose }: Props) {
       return postApproveIdentityReview(review!.id, input);
     },
     onSuccess: () => {
-      toast.success(mode === 'new' ? '신규 교육생을 생성하고 연결했어요' : '심사를 승인했어요');
+      toast.success(mode === "new" ? "신규 감리원을 생성하고 연결했어요" : "심사를 승인했어요");
       invalidate();
       onClose();
     },
@@ -93,7 +93,7 @@ export function ReviewDialog({ review, onClose }: Props) {
   const rejectMutation = useMutation({
     mutationFn: () => postRejectIdentityReview(review!.id, { review_note: note.trim() }),
     onSuccess: () => {
-      toast.success('심사를 거절했어요');
+      toast.success("심사를 거절했어요");
       invalidate();
       onClose();
     },
@@ -110,18 +110,18 @@ export function ReviewDialog({ review, onClose }: Props) {
       onClose={onClose}
       size="xl"
       title="본인인증 수동 심사"
-      description="성명으로 교육생을 찾아 전화번호(마스킹)를 눈으로 대조한 뒤 연결해 주세요"
+      description="성명으로 감리원을 찾아 전화번호(마스킹)를 눈으로 대조한 뒤 연결해 주세요"
       actions={[
         {
-          label: '거절',
-          variant: 'secondary',
+          label: "거절",
+          variant: "secondary",
           isLoading: rejectMutation.isPending,
           isDisabled: busy || !note.trim(),
           onClick: () => rejectMutation.mutate(),
         },
         {
-          label: mode === 'new' ? '생성 후 승인' : '승인',
-          variant: 'primary',
+          label: mode === "new" ? "생성 후 승인" : "승인",
+          variant: "primary",
           isLoading: approveMutation.isPending,
           isDisabled: busy || !canApprove,
           onClick: () => approveMutation.mutate(),
@@ -148,30 +148,30 @@ export function ReviewDialog({ review, onClose }: Props) {
             </div>
           </div>
 
-          {/* 교육생 연결 — 검색 대조 or 신규 생성 */}
+          {/* 감리원 연결 — 검색 대조 or 신규 생성 */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label>{mode === 'new' ? '신규 교육생 생성' : '교육생 연결 — 성명 검색'}</Label>
+              <Label>{mode === "new" ? "신규 감리원 생성" : "감리원 연결 — 성명 검색"}</Label>
               <button
                 type="button"
                 onClick={() => {
-                  setMode(mode === 'search' ? 'new' : 'search');
+                  setMode(mode === "search" ? "new" : "search");
                   setQuery(null);
                 }}
                 className="text-[12px] font-medium text-accent hover:underline"
               >
-                {mode === 'search' ? '신규 교육생으로 생성' : '기존 검색으로 돌아가기'}
+                {mode === "search" ? "신규 감리원으로 생성" : "기존 검색으로 돌아가기"}
               </button>
             </div>
 
-            {mode === 'search' && (
+            {mode === "search" && (
               <div className="flex items-center gap-2">
                 <Input
-                  placeholder="교육생 성명"
+                  placeholder="감리원 성명"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
+                    if (e.key === "Enter") {
                       e.preventDefault();
                       runSearch(search);
                     }
@@ -183,12 +183,12 @@ export function ReviewDialog({ review, onClose }: Props) {
               </div>
             )}
 
-            {mode === 'search' ? (
+            {mode === "search" ? (
               selected ? (
                 <div className="flex items-center justify-between rounded-md border border-accent-soft bg-accent-soft px-3 py-2.5">
                   <div className="text-[13px]">
                     <span className="font-medium text-accent-ink">
-                      {selected.traineeNo} · {selected.name}
+                      {selected.certNo} · {selected.name}
                     </span>
                     <span className="ml-2 font-mono text-[12px] text-accent-ink">
                       {selected.phoneMasked}
@@ -196,13 +196,13 @@ export function ReviewDialog({ review, onClose }: Props) {
                     <span
                       className={`ml-2 text-[12px] font-medium ${
                         selected.phoneMasked === review.verifiedPhoneMasked
-                          ? 'text-ok'
-                          : 'text-warn'
+                          ? "text-ok"
+                          : "text-warn"
                       }`}
                     >
                       {selected.phoneMasked === review.verifiedPhoneMasked
-                        ? '전화 일치'
-                        : '전화 불일치 — 신중히 확인'}
+                        ? "전화 일치"
+                        : "전화 불일치 — 신중히 확인"}
                     </span>
                   </div>
                   <Button variant="ghost" size="sm" onClick={() => setSelected(null)}>
@@ -215,7 +215,7 @@ export function ReviewDialog({ review, onClose }: Props) {
                     <p className="px-3 py-2 text-[13px] text-ink-3">검색 중...</p>
                   ) : (results?.items ?? []).length === 0 ? (
                     <p className="px-3 py-2 text-[13px] text-ink-3">
-                      검색 결과가 없어요 — 신규 교육생이라면 승인이 아니라 거절 후 별도 등록이
+                      검색 결과가 없어요 — 신규 감리원이라면 승인이 아니라 거절 후 별도 등록이
                       필요해요
                     </p>
                   ) : (
@@ -230,15 +230,15 @@ export function ReviewDialog({ review, onClose }: Props) {
                         }}
                       >
                         <span className="text-[13px] font-medium text-ink">{t.name}</span>
-                        <span className="ml-2 text-[12px] text-ink-3">{t.traineeNo}</span>
+                        <span className="ml-2 text-[12px] text-ink-3">{t.certNo}</span>
                         <span className="ml-2 font-mono text-[12px] text-ink-2">
                           {t.phoneMasked}
                           <span
                             className={`ml-1.5 not-italic font-sans ${
-                              t.phoneMasked === review.verifiedPhoneMasked ? 'text-ok' : 'text-warn'
+                              t.phoneMasked === review.verifiedPhoneMasked ? "text-ok" : "text-warn"
                             }`}
                           >
-                            {t.phoneMasked === review.verifiedPhoneMasked ? '일치' : '불일치'}
+                            {t.phoneMasked === review.verifiedPhoneMasked ? "일치" : "불일치"}
                           </span>
                         </span>
                       </button>
@@ -252,7 +252,7 @@ export function ReviewDialog({ review, onClose }: Props) {
                   <div className="space-y-1.5">
                     <Label>성명</Label>
                     <Input
-                      placeholder="교육생 성명 (인증 성명으로 채워짐)"
+                      placeholder="감리원 성명 (인증 성명으로 채워짐)"
                       value={newName}
                       onChange={(e) => setNewName(e.target.value)}
                     />
@@ -275,7 +275,7 @@ export function ReviewDialog({ review, onClose }: Props) {
                   />
                 </div>
                 <p className="text-[11px] text-ink-3">
-                  생성과 연결이 한 번에 처리돼요 — 교육생 목록에 바로 반영돼요. 성명·전화는 나중에
+                  생성과 연결이 한 번에 처리돼요 — 감리원 목록에 바로 반영돼요. 성명·전화는 나중에
                   수정 가능해요
                 </p>
               </div>
@@ -283,7 +283,7 @@ export function ReviewDialog({ review, onClose }: Props) {
           </div>
 
           <div className="space-y-1.5">
-            <Label>{mode === 'new' ? '확정 등급 (필수)' : '확정 등급 (선택)'}</Label>
+            <Label>{mode === "new" ? "확정 등급 (필수)" : "확정 등급 (선택)"}</Label>
             <Select value={gradeId} onChange={(e) => setGradeId(e.target.value)}>
               {(grades ?? []).map((g) => (
                 <option key={g.id} value={g.id}>

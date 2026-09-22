@@ -5,6 +5,7 @@ export function mapCertificate(dto: CertificateDto): Certificate {
   return {
     id: dto.id,
     certificateNo: dto.certificate_no,
+    bundleNo: dto.bundle_no,
     certificateRequestId: dto.certificate_request_id,
     traineeId: dto.trainee_id,
     trainingRecordId: dto.training_record_id,

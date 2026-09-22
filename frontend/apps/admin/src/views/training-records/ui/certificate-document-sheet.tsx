@@ -3,7 +3,16 @@ import type { CSSProperties } from "react";
 import associationSeal from "@/src/assets/association-seal.png";
 
 /** 이력 행 → 서식 행 스냅샷 (WEB 상세와 같은 매핑 — 시간은 total_hours 기준) */
-export function toSheetRows(records: { institutionName: string | null; courseName: string; startedAt: string | null; endedAt: string | null; totalHours: number | null; completedHours: number | null }[]): CertificateSheetRow[] {
+export function toSheetRows(
+  records: {
+    institutionName: string | null;
+    courseName: string;
+    startedAt: string | null;
+    endedAt: string | null;
+    totalHours: number | null;
+    completedHours: number | null;
+  }[],
+): CertificateSheetRow[] {
   return records.map((record) => ({
     institutionName: record.institutionName,
     courseName: record.courseName,
@@ -264,21 +273,17 @@ export function CertificateDocumentSheet({
                   <br />
                   이수한 계속교육임을 증명합니다.
                 </p>
-                <div style={{ fontSize: 16, paddingLeft: 170 }}>
-                  {issuedOnLabel ?? ""}
-                </div>
-                <div style={{ fontSize: 17, fontWeight: 700 }}>
-                  (사)정보시스템감리협회장
-                </div>
+                <div style={{ fontSize: 16, paddingLeft: 170 }}>{issuedOnLabel ?? ""}</div>
+                <div style={{ fontSize: 17, fontWeight: 700 }}>(사)정보시스템감리협회장</div>
                 {/* 인감 도장 — 협회 제공 인장 이미지 */}
                 <img
                   src={associationSeal}
                   alt="(사)정보시스템감리협회 인감"
                   style={{
                     position: "absolute",
-                    left: "59%",
-                    top: "58%",
-                    transform: "translateY(-50%) rotate(-12deg)",
+                    left: "60%",
+                    top: "70%",
+                    transform: "translateY(-50%)",
                     width: 118,
                     height: 118,
                     // 인감 잉크 — 아래 텍스트가 도장을 비쳐 보이게 (실제 날인과 같은 겹침)

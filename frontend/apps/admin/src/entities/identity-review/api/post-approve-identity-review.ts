@@ -31,6 +31,7 @@ export const postApproveIdentityReview = async (
         reviewStatus: 'approved' as const,
         membershipGradeId: input.determined_grade_id ?? null,
         gradeName: null,
+        gradeExpiresAt: null,
         userId: review.userId,
         memo: null,
         createdAt: now,

@@ -1,14 +1,14 @@
-import { useQuery } from '@tanstack/react-query'
-import { Link } from 'react-router'
-import { ChevronRight } from 'lucide-react'
-import { PageContainer } from '@/src/shared/ui/page-container'
-import { PageHead } from '@/src/shared/ui/page-head'
-import { formatNumber, todayYMD } from '@/src/shared/utils/format'
-import { traineeQueries } from '@/src/entities/trainee'
-import { identityReviewQueries } from '@/src/entities/identity-review'
-import { certificateQueries } from '@/src/entities/certificate'
-import { paymentOrderQueries, PAYMENT_STATUS_LABELS } from '@/src/entities/payment'
-import { courseSessionQueries } from '@/src/entities/course-session'
+import { useQuery } from "@tanstack/react-query";
+import { Link } from "react-router";
+import { ChevronRight } from "lucide-react";
+import { PageContainer } from "@/src/shared/ui/page-container";
+import { PageHead } from "@/src/shared/ui/page-head";
+import { formatNumber, todayYMD } from "@/src/shared/utils/format";
+import { traineeQueries } from "@/src/entities/trainee";
+import { identityReviewQueries } from "@/src/entities/identity-review";
+import { certificateQueries } from "@/src/entities/certificate";
+import { paymentOrderQueries, PAYMENT_STATUS_LABELS } from "@/src/entities/payment";
+import { courseSessionQueries } from "@/src/entities/course-session";
 
 function addDays(ymd: string, days: number): string {
   const d = new Date(`${ymd}T00:00:00`);
@@ -24,17 +24,17 @@ function WeekSection({
   total,
   emptyMessage,
   head,
-  className = '',
+  className = "",
   children,
 }: {
-  title: string
-  to: string
-  linkLabel: string
-  total: number | undefined
-  emptyMessage: string
-  head: string[]
-  className?: string
-  children: React.ReactNode
+  title: string;
+  to: string;
+  linkLabel: string;
+  total: number | undefined;
+  emptyMessage: string;
+  head: string[];
+  className?: string;
+  children: React.ReactNode;
 }) {
   return (
     <section
@@ -44,15 +44,10 @@ function WeekSection({
         <h3 className="flex items-baseline gap-2 text-[14px] font-semibold text-ink">
           {title}
           {total !== undefined && (
-            <span className="text-[12px] font-normal text-ink-3">
-              {total.toLocaleString()}건
-            </span>
+            <span className="text-[12px] font-normal text-ink-3">{total.toLocaleString()}건</span>
           )}
         </h3>
-        <Link
-          to={to}
-          className="flex items-center gap-0.5 text-[12px] text-accent hover:underline"
-        >
+        <Link to={to} className="flex items-center gap-0.5 text-[12px] text-accent hover:underline">
           {linkLabel}
           <ChevronRight className="size-3.5" />
         </Link>
@@ -79,15 +74,15 @@ function WeekSection({
         </table>
       )}
     </section>
-  )
+  );
 }
 
 interface KpiProps {
-  title: string
-  value: number | undefined
-  to: string
-  hint: string
-  emphasis?: boolean
+  title: string;
+  value: number | undefined;
+  to: string;
+  hint: string;
+  emphasis?: boolean;
 }
 
 function KpiCard({ title, value, to, hint, emphasis }: KpiProps) {
@@ -105,7 +100,7 @@ function KpiCard({ title, value, to, hint, emphasis }: KpiProps) {
       ) : (
         <p
           className={`text-[28px] font-semibold leading-none tabular-nums ${
-            emphasis && value > 0 ? 'text-accent' : 'text-ink'
+            emphasis && value > 0 ? "text-accent" : "text-ink"
           }`}
         >
           {formatNumber(value)}
@@ -114,7 +109,7 @@ function KpiCard({ title, value, to, hint, emphasis }: KpiProps) {
       )}
       <p className="text-[12px] text-ink-3">{hint}</p>
     </Link>
-  )
+  );
 }
 
 export function DashboardPage() {
@@ -122,18 +117,18 @@ export function DashboardPage() {
   const weekEnd = addDays(today, 7);
   const weekAgo = addDays(today, -6);
 
-  const { data: trainees } = useQuery(traineeQueries.list({ page: 1 }))
+  const { data: trainees } = useQuery(traineeQueries.list({ page: 1 }));
   const { data: reviews } = useQuery(
-    identityReviewQueries.list({ status: 'manual_review', page: 1 }),
-  )
-  const { data: certificates } = useQuery(certificateQueries.list({ status: 'issued', page: 1 }))
-  const { data: payments } = useQuery(paymentOrderQueries.list({ status: 'paid', page: 1 }))
+    identityReviewQueries.list({ status: "manual_review", page: 1 }),
+  );
+  const { data: certificates } = useQuery(certificateQueries.list({ status: "issued", page: 1 }));
+  const { data: payments } = useQuery(paymentOrderQueries.list({ status: "paid", page: 1 }));
   const { data: weekSessions } = useQuery(
     courseSessionQueries.list({ dateFrom: today, dateTo: weekEnd, limit: 8 }),
-  )
+  );
   const { data: weekPayments } = useQuery(
     paymentOrderQueries.list({ dateFrom: weekAgo, dateTo: today, limit: 8 }),
-  )
+  );
 
   return (
     <PageContainer>
@@ -147,12 +142,7 @@ export function DashboardPage() {
           hint="자동 매칭 실패 건 — 처리가 필요해요"
           emphasis
         />
-        <KpiCard
-          title="교육생"
-          value={trainees?.total}
-          to="/trainees"
-          hint="등록된 감리원 교육생"
-        />
+        <KpiCard title="감리원" value={trainees?.total} to="/trainees" hint="등록된 감리원" />
         <KpiCard
           title="발급된 확인서"
           value={certificates?.total}
@@ -182,7 +172,10 @@ export function DashboardPage() {
               <td className="max-w-[140px] truncate px-5 py-2.5 text-ink" title={s.courseName}>
                 {s.courseName}
               </td>
-              <td className="max-w-[90px] truncate px-5 py-2.5 text-ink-2" title={s.institutionName}>
+              <td
+                className="max-w-[90px] truncate px-5 py-2.5 text-ink-2"
+                title={s.institutionName}
+              >
                 {s.institutionName}
               </td>
               <td className="px-5 py-2.5 tabular-nums text-ink-2">
@@ -214,8 +207,7 @@ export function DashboardPage() {
             </tr>
           ))}
         </WeekSection>
-
       </div>
     </PageContainer>
-  )
+  );
 }

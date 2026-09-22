@@ -31,13 +31,16 @@ export interface CertificateDownloadGroup {
 }
 
 /** 선택 이력 → 교육생별 묶음. 머리 표기(등급·서식·문서번호)는 첫 이력 값 */
-export function buildDownloadGroups(
-  records: TrainingRecord[],
-): CertificateDownloadGroup[] {
+export function buildDownloadGroups(records: TrainingRecord[]): CertificateDownloadGroup[] {
   const issuedOnLabel = formatIssuedOnLabel(new Date());
-  const byTrainee = new Map<string, CertificateDownloadGroup>();
+  // 이력 행을 교육생별로 전부 모은 뒤 페이지로 나눈다 — 건별로 나누면
+  // 한 페이지에 행 1개짜리 페이지가 이력 수만큼 생긴다
+  const rowsByTrainee = new Map<
+    string,
+    Omit<CertificateDownloadGroup, "pages"> & { rows: CertificateSheetRow[] }
+  >();
   for (const record of records) {
-    let group = byTrainee.get(record.traineeId);
+    let group = rowsByTrainee.get(record.traineeId);
     if (!group) {
       group = {
         key: record.traineeId,
@@ -46,14 +49,17 @@ export function buildDownloadGroups(
         supervisorCertNo: record.supervisorCertNo,
         formNo: record.formNo,
         docNo: record.docNo,
-        pages: [],
+        rows: [],
         issuedOnLabel,
       };
-      byTrainee.set(record.traineeId, group);
+      rowsByTrainee.set(record.traineeId, group);
     }
-    group.pages.push(...chunkRows(toSheetRows([record])));
+    group.rows.push(...toSheetRows([record]));
   }
-  return [...byTrainee.values()];
+  return [...rowsByTrainee.values()].map(({ rows, ...header }) => ({
+    ...header,
+    pages: chunkRows(rows),
+  }));
 }
 
 interface Props {
@@ -86,9 +92,7 @@ export function CertificatePreviewModal({ isOpen, onClose, records }: Props) {
     try {
       for (const group of groups) {
         const els = Array.from(
-          container.querySelectorAll<HTMLElement>(
-            `[data-group="${group.key}"] [data-sheet-page]`,
-          ),
+          container.querySelectorAll<HTMLElement>(`[data-group="${group.key}"] [data-sheet-page]`),
         );
         if (els.length === 0) continue;
         await generateCertificatePdf(
@@ -97,9 +101,7 @@ export function CertificatePreviewModal({ isOpen, onClose, records }: Props) {
         );
       }
       toast.success(
-        groups.length > 1
-          ? `확인서 ${groups.length}개 파일을 저장했어요`
-          : "PDF를 저장했어요",
+        groups.length > 1 ? `확인서 ${groups.length}개 파일을 저장했어요` : "PDF를 저장했어요",
       );
       onClose();
     } catch (e) {
@@ -117,9 +119,9 @@ export function CertificatePreviewModal({ isOpen, onClose, records }: Props) {
         title="확인서 미리보기"
         description={
           groups.length > 1
-            ? `${groups.length}명의 교육생 · 이력 ${recordCount}건 — 교육생별 PDF로 저장돼요`
+            ? `${groups.length}명의 감리원 · 내역 ${recordCount}건 — 감리원별 PDF로 저장돼요`
             : groups[0]
-              ? `${groups[0].traineeName || "교육생"} · 이력 ${recordCount}건`
+              ? `${groups[0].traineeName || "감리원"} · 내역 ${recordCount}건`
               : undefined
         }
         size="xl"
@@ -138,7 +140,7 @@ export function CertificatePreviewModal({ isOpen, onClose, records }: Props) {
             <section key={group.key} className="mb-6 last:mb-0">
               {groups.length > 1 && (
                 <h3 className="mb-2 text-[13px] font-medium text-ink">
-                  {group.traineeName || "교육생"} · {group.pages.length}페이지
+                  {group.traineeName || "감리원"} · {group.pages.length}페이지
                 </h3>
               )}
               <div
@@ -187,11 +189,7 @@ export function CertificatePreviewModal({ isOpen, onClose, records }: Props) {
       </Dialog>
 
       {/* 캡처 전용 원본 크기 시트 — 화면 밖에 두고 PDF 생성에만 쓴다 */}
-      <div
-        aria-hidden
-        style={{ position: "fixed", left: -20000, top: 0 }}
-        ref={captureRef}
-      >
+      <div aria-hidden style={{ position: "fixed", left: -20000, top: 0 }} ref={captureRef}>
         {isOpen &&
           groups.map((group) => (
             <div key={group.key} data-group={group.key}>

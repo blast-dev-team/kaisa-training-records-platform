@@ -17,6 +17,7 @@ export const postTrainingRecord = async (input: TrainingRecordInput): Promise<Tr
       traineeId: input.trainee_id,
       traineeName: trainee?.name ?? null,
       traineeNo: trainee?.traineeNo ?? null,
+      traineeCertNo: trainee?.certNo ?? null,
       traineeBirthDate: trainee?.birthDate ?? null,
       traineePhone: trainee?.phoneMasked ?? null,
       courseId: input.course_id ?? null,

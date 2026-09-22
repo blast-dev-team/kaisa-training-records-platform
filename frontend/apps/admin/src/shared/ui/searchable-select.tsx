@@ -31,6 +31,8 @@ interface Props {
    */
   onCreate?: (name: string) => Promise<string | null>;
   createLabel?: (search: string) => string;
+  /** true 면 '+ 새로 추가' 자유입력 행을 숨긴다 — 마스터에서 선택만 하는 용도 */
+  disableCreate?: boolean;
 }
 
 /**
@@ -50,6 +52,7 @@ export function SearchableSelect({
   selectedLabel,
   onCreate,
   createLabel,
+  disableCreate = false,
 }: Props) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -138,7 +141,7 @@ export function SearchableSelect({
             {!query.isPending && options.length === 0 && !onCreate && (
               <p className="p-3 text-[13px] text-ink-3">{emptyMessage}</p>
             )}
-            {search.trim() !== "" && (
+            {!disableCreate && search.trim() !== "" && (
               <button
                 type="button"
                 disabled={creating}
