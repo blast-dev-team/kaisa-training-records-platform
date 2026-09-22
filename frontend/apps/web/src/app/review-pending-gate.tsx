@@ -24,14 +24,14 @@ export function ReviewPendingGate({ children }: { children: React.ReactNode }) {
           ⏳
         </div>
         <h1 className="text-lg font-semibold tracking-[-0.02em] text-gray-900">
-          교육생 심사가 진행 중이에요
+          감리원 심사가 진행 중이에요
         </h1>
         <p className="mt-3 text-[15px] leading-[1.6] text-gray-500">
           {userName}님의 본인인증은 완료됐어요.
           <br />
-          가입 정보와 기존 교육생 데이터의 매칭 심사가 끝나면
+          가입 정보와 기존 감리원 데이터의 매칭 심사가 끝나면
           <br />
-          로그인 후 교육 이력과 확인서 발급을 이용할 수 있어요.
+          로그인 후 교육 내역과 확인서 발급을 이용할 수 있어요.
         </p>
         <p className="mt-4 rounded-lg bg-gray-50 px-4 py-3 text-[13px] leading-[1.6] text-gray-500">
           심사는 영업일 기준 1~2일이 걸려요.

@@ -5,6 +5,12 @@
  * 결과는 유효(valid)만 상세를 노출하고 expired·revoked·not_found 는 확인 불가로 처리한다.
  */
 
+/** 묶음 확인서의 교육이력 1행 — 확인서에 인쇄된 정보만 서버가 공개한다 */
+export interface VerificationRecordRow {
+  courseName: string;
+  hoursSummary: string;
+}
+
 export interface VerificationResult {
   /** 진위확인 결과 — true면 유효한 확인서 */
   isValid: boolean;
@@ -20,6 +26,8 @@ export interface VerificationResult {
   issuedAt: string;
   /** 조회일 (YYYY.MM.DD) */
   queriedAt: string;
+  /** 묶음 확인서의 전체 교육내역 — 1건 발급이면 빈 배열 */
+  records: VerificationRecordRow[];
 }
 
 export interface VerificationLookupParams {
@@ -38,6 +46,12 @@ interface PublicVerificationDto {
   total_hours: string | number | null;
   training_ended_at: string | null;
   issued_at: string | null;
+  records: Array<{
+    course_name: string;
+    institution_name: string | null;
+    total_hours: string | number;
+    training_ended_at: string | null;
+  }> | null;
   message: string | null;
 }
 
@@ -65,6 +79,7 @@ function toResult(dto: PublicVerificationDto): VerificationResult {
       completionSummary: "",
       issuedAt: "",
       queriedAt: todayYMD(),
+      records: [],
     };
   }
   const hours = dto.total_hours != null ? Number(dto.total_hours) : null;
@@ -77,6 +92,15 @@ function toResult(dto: PublicVerificationDto): VerificationResult {
       hours != null ? `${hours}시간 (${formatYMD(dto.training_ended_at)})` : "",
     issuedAt: formatYMD(dto.issued_at),
     queriedAt: todayYMD(),
+    records: (dto.records ?? []).map((record) => {
+      const recordHours = Number(record.total_hours);
+      return {
+        courseName: record.course_name,
+        hoursSummary: Number.isNaN(recordHours)
+          ? ""
+          : `${recordHours}시간 (${formatYMD(record.training_ended_at)})`,
+      };
+    }),
   };
 }
 

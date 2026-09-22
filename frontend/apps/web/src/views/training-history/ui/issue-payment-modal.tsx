@@ -1,17 +1,23 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { XIcon } from "@/src/shared/icon";
 import { Button, Checkbox, Toast } from "@/src/shared/ui";
 import { cn } from "@/src/shared/utils/cn";
 
-import { getIssuanceResult, type IssuanceResult } from "../../issuance-complete/api/get-issuance-result";
+import { getIssuanceBundles, type IssuanceBundle } from "../../issuance-complete/api/get-issuance-result";
 import { useAuthStore } from "@/src/shared/store/auth-store";
 import { generateCertificatePdf } from "../api/generate-certificate-pdf";
 import { getCertificatePrice } from "../api/get-certificate-price";
 import { getTrainingHistoryDetail, type TrainingHistoryDetail } from "../api/get-training-history-detail";
 import { postIssuancePayment } from "../api/post-issuance-payment";
-import { CertificateDocumentSheet } from "./certificate-document-sheet";
+import {
+  CertificateDocumentSheet,
+  chunkRows,
+  ROWS_PER_PAGE,
+  toSheetRows,
+  type CertificateSheetRow,
+} from "./certificate-document-sheet";
 
 export interface IssuePaymentModalProps {
   /** 발급 대상 교육이력 ID 목록 — 1건이면 단건과 동일, N건이면 일괄 결제 */
@@ -81,10 +87,11 @@ export function IssuePaymentModal({ recordIds, issueType, onClose, onIssued }: I
     enabled: details !== undefined,
   });
 
-  // 발급 완료 결과 — 결제·무료 재발급으로 발급이 확정된 뒤 조회한다
+  // 발급 완료 결과 — 묶음 확인서(한 발급 이벤트 = 확인서 1건). 결제·무료 재발급으로
+  // 발급이 확정된 뒤 조회한다
   const issuance = useQuery({
     queryKey: ["issuance-complete", ...recordIds],
-    queryFn: () => Promise.all(recordIds.map((id) => getIssuanceResult(id))),
+    queryFn: () => getIssuanceBundles(recordIds),
     enabled: phase === "issued",
   });
 
@@ -166,14 +173,20 @@ export function IssuePaymentModal({ recordIds, issueType, onClose, onIssued }: I
   };
 
   /**
-   * PDF 다운로드 — 화면 밖에 렌더해 둔 확인서 문서 시트를 캡처해 A4 PDF로 저장한다.
-   * 선택한 교육 건의 실데이터(기관·교육명·기간·시간, 서식·문서번호, 감리원 정보)로 구성된다.
+   * PDF 다운로드 — 화면 밖에 렌더해 둔 확인서 문서 페이지들을 캡처해
+   * A4 PDF 한 파일로 저장한다. 선택한 교육 건들이 하나의 문서(묶음 확인서)로
+   * 합쳐진다 — 5건까지 1페이지, 넘으면 페이지가 이어진다.
    */
   const handleDownloadPdf = async () => {
-    if (!sheetRef.current) return;
+    const container = sheetRef.current;
+    if (!container) return;
     setIsPdfGenerating(true);
     try {
-      await generateCertificatePdf(sheetRef.current, "교육이력확인서.pdf");
+      const elements = Array.from(
+        container.querySelectorAll<HTMLElement>("[data-sheet-page]"),
+      );
+      if (elements.length === 0) return;
+      await generateCertificatePdf(elements, "교육이력확인서.pdf");
       showToast("다운로드했어요");
     } catch (err) {
       showToast(
@@ -221,9 +234,28 @@ export function IssuePaymentModal({ recordIds, issueType, onClose, onIssued }: I
 
   /** 칩이 가리키는 건 — 목록이 바뀌면 범위를 벗어나지 않게 */
   const activeDetail = details?.[Math.min(activeIndex, details.length - 1)];
-  const activeResult = issuance.data?.[
+
+  /** 발급 완료 — 칩은 묶음(확인서 1건)을 가리킨다. 보통 묶음은 1개다 */
+  const activeBundle = issuance.data?.[
     Math.min(activeIndex, issuance.data.length - 1)
   ];
+
+  /** 묶음에 포함된 이력 — 사용자가 선택한 순서 유지 */
+  const bundleDetails = useMemo(() => {
+    if (activeBundle === undefined || details === undefined) return [];
+    const byId = new Map(details.map((detail) => [detail.id, detail]));
+    return activeBundle.recordIds
+      .map((id) => byId.get(id))
+      .filter((detail): detail is TrainingHistoryDetail => detail !== undefined);
+  }, [activeBundle, details]);
+
+  /** 묶음 문서 페이지 — 5행/페이지, 넘는 건 다음 페이지(연번 이어짐)로 */
+  const sheetPages = useMemo(
+    () => chunkRows(toSheetRows(bundleDetails)),
+    [bundleDetails],
+  );
+  /** 문서 머리 표기(서식·문서번호·감리원) — 첫 이력 값 */
+  const bundleHeadDetail = bundleDetails[0];
 
   /** 확인서 성명 — 표시명의 " 님" 접미를 뗀 값 */
   const memberName = useAuthStore((state) => state.userName).replace(/\s*님$/, "");
@@ -420,28 +452,30 @@ export function IssuePaymentModal({ recordIds, issueType, onClose, onIssued }: I
                 </div>
               ) : (
                 <>
-                  {/* 발급 건 칩 — 선택한 건의 확인서를 보여준다 */}
-                  <div className="flex flex-wrap items-start gap-2">
-                    {issuance.data.map((result, index) => (
-                      <button
-                        key={result.verificationId}
-                        type="button"
-                        aria-pressed={index === activeIndex}
-                        onClick={() => setActiveIndex(index)}
-                        className={cn(
-                          "cursor-pointer rounded-md px-3 py-1.5 font-sans text-[13px] font-medium leading-normal whitespace-nowrap mobile:text-xs",
-                          index === activeIndex
-                            ? "bg-primary-700 text-white"
-                            : "bg-gray-100 text-gray-800",
-                        )}
-                      >
-                        {details?.[index]?.courseName ?? `확인서 ${index + 1}`}
-                      </button>
-                    ))}
-                  </div>
+                  {/* 묶음이 여러 개일 때만 칩 노출 — 한 묶음이면 선택할 필요 없다 */}
+                  {issuance.data.length > 1 && (
+                    <div className="flex flex-wrap items-start gap-2">
+                      {issuance.data.map((bundle, index) => (
+                        <button
+                          key={bundle.verificationId}
+                          type="button"
+                          aria-pressed={index === activeIndex}
+                          onClick={() => setActiveIndex(index)}
+                          className={cn(
+                            "cursor-pointer rounded-md px-3 py-1.5 font-sans text-[13px] font-medium leading-normal whitespace-nowrap mobile:text-xs",
+                            index === activeIndex
+                              ? "bg-primary-700 text-white"
+                              : "bg-gray-100 text-gray-800",
+                          )}
+                        >
+                          {bundleChipLabel(bundle, details)}
+                        </button>
+                      ))}
+                    </div>
+                  )}
 
-                  {/* 액션 — 선택 건 PDF 다운로드 · 인쇄 · 진위확인 링크 복사 (node 78:4510 / 모바일 131:9652) */}
-                  {activeResult && (
+                  {/* 액션 — 묶음 확인서 PDF 다운로드 · 인쇄 · 진위확인 링크 복사 (node 78:4510 / 모바일 131:9652) */}
+                  {activeBundle && (
                     <div className="flex flex-wrap items-center gap-3 mobile:gap-2">
                       <Button
                         className="rounded-lg px-6 py-3 text-sm mobile:rounded-lg mobile:px-4 mobile:py-2"
@@ -462,7 +496,7 @@ export function IssuePaymentModal({ recordIds, issueType, onClose, onIssued }: I
                         variant="outlined"
                         color="gray"
                         className="rounded-lg px-6 py-3 text-sm font-medium text-gray-700 mobile:rounded-lg mobile:px-4 mobile:py-2"
-                        onClick={() => handleCopyLink(activeResult, showToast)}
+                        onClick={() => handleCopyLink(activeBundle, showToast)}
                       >
                         진위확인 링크 복사
                       </Button>
@@ -472,34 +506,44 @@ export function IssuePaymentModal({ recordIds, issueType, onClose, onIssued }: I
                   {/* 안내 배너 — node 78:4517 */}
                   <NoticeBanner />
 
-                  {/* 확인서 미리보기 — 선택 건 데이터로 문서를 그려 보여준다 (node 78:4508) */}
-                  {activeDetail && activeResult && (
+                  {/* 확인서 미리보기 — 선택한 이력 전체가 한 문서(묶음)로 보인다 (node 78:4508).
+                      미리보기·인쇄·PDF 가 같은 문서라 화면과 다운로드 결과가 달라지지 않는다 */}
+                  {activeBundle && bundleDetails.length > 0 && (
                     <div
                       ref={previewRef}
-                      className="w-full flex-none pointer-events-none overflow-hidden"
-                      style={{ aspectRatio: "794 / 1123" }}
+                      className="w-full flex-none pointer-events-none"
                     >
-                      {/* 모달 본문 폭에 맞춘 등비 축소 — 시트 원본은 A4 794px */}
-                      <div
-                        style={{
-                          width: 794,
-                          transform: `scale(${previewScale})`,
-                          transformOrigin: "top left",
-                        }}
-                      >
-                        <ActiveCertificateSheet
-                          detail={activeDetail}
-                          result={activeResult}
-                          memberName={memberName}
-                        />
-                      </div>
+                      {sheetPages.map((pageRows, pageIndex) => (
+                        <div
+                          key={pageIndex}
+                          className="overflow-hidden"
+                          style={{ aspectRatio: "794 / 1123" }}
+                        >
+                          {/* 모달 본문 폭에 맞춘 등비 축소 — 시트 원본은 A4 794px */}
+                          <div
+                            style={{
+                              width: 794,
+                              transform: `scale(${previewScale})`,
+                              transformOrigin: "top left",
+                            }}
+                          >
+                            <BundleSheet
+                              pageRows={pageRows}
+                              pageIndex={pageIndex}
+                              bundle={activeBundle}
+                              headDetail={bundleHeadDetail}
+                              memberName={memberName}
+                            />
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   )}
 
-                  {/* 발급 정보 카드 — 선택 건 (node 78:4519) */}
-                  {activeResult && (
+                  {/* 발급 정보 카드 — 묶음 확인서 (node 78:4519) */}
+                  {activeBundle && (
                     <InfoCard
-                      result={activeResult}
+                      result={activeBundle}
                       reissueFreeUntilLabel={freeReissueUntilLabel}
                     />
                   )}
@@ -517,31 +561,42 @@ export function IssuePaymentModal({ recordIds, issueType, onClose, onIssued }: I
               확인
             </Button>
 
-            {/* 인쇄 시에만 노출 — 선택 건 확인서 문서를 그대로 출력 */}
-            {activeDetail && (
+            {/* 인쇄 시에만 노출 — 묶음 확인서 문서 전체를 출력 */}
+            {activeBundle && bundleHeadDetail && (
               <div className="fixed inset-0 z-[999] hidden overflow-auto bg-white print:block">
                 <div className="mx-auto w-fit bg-white">
-                  <ActiveCertificateSheet
-                    detail={activeDetail}
-                    result={activeResult}
-                    memberName={memberName}
-                  />
+                  {sheetPages.map((pageRows, pageIndex) => (
+                    <BundleSheet
+                      key={pageIndex}
+                      pageRows={pageRows}
+                      pageIndex={pageIndex}
+                      bundle={activeBundle}
+                      headDetail={bundleHeadDetail}
+                      memberName={memberName}
+                    />
+                  ))}
                 </div>
               </div>
             )}
 
-            {/* 화면 밖 렌더 — PDF 캡처 대상 (인쇄 흐름과 분리) */}
-            {activeDetail && (
+            {/* 화면 밖 렌더 — PDF 캡처 대상 (인쇄 흐름과 분리). 페이지 전체를 담는다 */}
+            {activeBundle && bundleHeadDetail && (
               <div
                 aria-hidden
                 className="fixed left-[-10000px] top-0 print:hidden"
               >
                 <div ref={sheetRef}>
-                  <ActiveCertificateSheet
-                    detail={activeDetail}
-                    result={activeResult}
-                    memberName={memberName}
-                  />
+                  {sheetPages.map((pageRows, pageIndex) => (
+                    <div key={pageIndex} data-sheet-page>
+                      <BundleSheet
+                        pageRows={pageRows}
+                        pageIndex={pageIndex}
+                        bundle={activeBundle}
+                        headDetail={bundleHeadDetail}
+                        memberName={memberName}
+                      />
+                    </div>
+                  ))}
                 </div>
               </div>
             )}
@@ -580,7 +635,7 @@ function InfoCard({
   result,
   reissueFreeUntilLabel,
 }: {
-  result: IssuanceResult;
+  result: IssuanceBundle;
   reissueFreeUntilLabel?: string;
 }) {
   const rows: Array<[label: string, value: string]> = [
@@ -638,30 +693,57 @@ function formatDotDate(iso: string): string {
 }
 
 /**
- * 발급 건 데이터를 확인서 문서로 묶어 렌더 — 미리보기·인쇄·PDF 캡처 공용.
+ * 묶음 확인서 1페이지 — 미리보기·인쇄·PDF 캡처 공용.
+ * 문서 머리(서식·문서번호·감리원)는 첫 이력 값, 확인서 번호는 묶음 번호 하나.
  */
-function ActiveCertificateSheet({
-  detail,
-  result,
+function BundleSheet({
+  pageRows,
+  pageIndex,
+  bundle,
+  headDetail,
   memberName,
 }: {
-  detail: TrainingHistoryDetail;
-  result?: IssuanceResult;
+  pageRows: CertificateSheetRow[];
+  pageIndex: number;
+  bundle: IssuanceBundle;
+  headDetail?: TrainingHistoryDetail;
   memberName: string;
 }) {
   return (
     <CertificateDocumentSheet
-      detail={detail}
+      rows={pageRows}
       memberName={memberName}
-      issuedOnLabel={result ? formatKoreanDate(result.issuedAt) : undefined}
-      certificateNumber={result?.certificateNumber}
+      supervisorGrade={headDetail?.supervisorGrade}
+      supervisorCertNo={headDetail?.supervisorCertNo}
+      formNo={headDetail?.formNo}
+      docNo={headDetail?.docNo}
+      startNo={pageIndex * ROWS_PER_PAGE + 1}
+      issuedOnLabel={formatKoreanDate(bundle.issuedAt)}
+      certificateNumber={bundle.certificateNumber}
     />
   );
 }
 
+/** 묶음 칩 표기 — 대표 교육명 + 나머지 건수 (결제내역 화면과 같은 형식) */
+function bundleChipLabel(
+  bundle: IssuanceBundle,
+  details: TrainingHistoryDetail[] | undefined,
+): string {
+  if (!details) return "확인서";
+  const byId = new Map(details.map((detail) => [detail.id, detail]));
+  const names = bundle.recordIds
+    .map((id) => byId.get(id)?.courseName)
+    .filter((name): name is string => name !== undefined);
+  const headName = names[0];
+  if (headName === undefined) return "확인서";
+  return names.length > 1
+    ? `${headName} 외 ${names.length - 1}건`
+    : headName;
+}
+
 /** 진위확인 링크 복사 — ?id= 자동 입력되는 공개 진위확인 페이지로 연결 */
 async function handleCopyLink(
-  result: IssuanceResult,
+  result: IssuanceBundle,
   showToast: (message: string) => void,
 ): Promise<void> {
   const url = `${window.location.origin}/verification-no-auth?id=${encodeURIComponent(result.verificationId)}`;

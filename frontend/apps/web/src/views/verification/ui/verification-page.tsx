@@ -1,13 +1,13 @@
-import { useState, type FormEvent } from 'react';
-import { useMutation } from '@tanstack/react-query';
-import { useSearchParams } from 'react-router';
+import { useState, type FormEvent } from "react";
+import { useMutation } from "@tanstack/react-query";
+import { useSearchParams } from "react-router";
 
 import {
   getVerificationResult,
   type VerificationResult,
-} from '@/src/shared/api/get-verification-result';
-import { Button, TextField } from '@/src/shared/ui';
-import { VerificationFailModal, VerificationResultModal } from '@/src/widget/verification-modal';
+} from "@/src/shared/api/get-verification-result";
+import { Button, TextField } from "@/src/shared/ui";
+import { VerificationFailModal, VerificationResultModal } from "@/src/widget/verification-modal";
 
 /**
  * 계속교육이력확인서 진위확인 — Figma node 19:25634 (Main Content) 기반.
@@ -18,8 +18,8 @@ import { VerificationFailModal, VerificationResultModal } from '@/src/widget/ver
  */
 export function VerificationPage() {
   const [searchParams] = useSearchParams();
-  const [verificationId, setVerificationId] = useState(searchParams.get('id') ?? '');
-  const [applicantName, setApplicantName] = useState('');
+  const [verificationId, setVerificationId] = useState(searchParams.get("id") ?? "");
+  const [applicantName, setApplicantName] = useState("");
   const [result, setResult] = useState<VerificationResult | null>(null);
 
   const lookupMutation = useMutation({
@@ -36,8 +36,7 @@ export function VerificationPage() {
   };
 
   // 두 입력(진위확인 ID · 성명)을 모두 채워야 활성화
-  const isSubmittable =
-    verificationId.trim() !== '' && applicantName.trim() !== '';
+  const isSubmittable = verificationId.trim() !== "" && applicantName.trim() !== "";
 
   return (
     <section className="-mx-8 -my-10 flex flex-1 flex-col bg-[#f9f9f7] px-10 py-10 font-sans mobile:-mx-5 mobile:-mt-5 mobile:-mb-10 mobile:px-5 mobile:pt-5 mobile:pb-10">
@@ -45,7 +44,7 @@ export function VerificationPage() {
       <div className="flex flex-1 flex-col items-center justify-center gap-6 mobile:gap-6">
         <div className="flex w-full flex-col gap-3 text-center">
           <h1 className="text-[28px] leading-normal font-bold text-gray-900 mobile:text-2xl">
-            계속교육이력확인서 진위확인
+            계속교육내역확인서 진위확인
           </h1>
           <p className="text-sm leading-[1.6] text-gray-600 mobile:text-xs">
             확인서 하단의 진위확인 ID와 발급 대상자의 성명을 입력하시면 해당 확인서의 유효 여부를
@@ -82,14 +81,14 @@ export function VerificationPage() {
               disabled={!isSubmittable || lookupMutation.isPending}
               className="rounded-lg px-6 py-4 mobile:py-3"
             >
-              {lookupMutation.isPending ? '확인 중...' : '진위 확인'}
+              {lookupMutation.isPending ? "확인 중..." : "진위 확인"}
             </Button>
 
             {lookupMutation.isError && (
               <p className="text-sm text-red-500">
                 {lookupMutation.error instanceof Error
                   ? lookupMutation.error.message
-                  : '문제가 생겨요. 잠시 후 다시 시도해 주세요'}
+                  : "문제가 생겨요. 잠시 후 다시 시도해 주세요"}
               </p>
             )}
           </form>

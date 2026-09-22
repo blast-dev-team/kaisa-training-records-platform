@@ -34,15 +34,15 @@ interface HeaderVariantConfig {
 
 const HEADER_VARIANTS: Record<"default" | "terms" | "verification", HeaderVariantConfig> = {
   default: {
-    title: "교육이력 서비스",
+    title: "교육내역 서비스",
     navItems: HEADER_NAV_ITEMS,
   },
   terms: {
-    title: "교육이력 서비스",
+    title: "교육내역 서비스",
     navItems: TERMS_NAV_ITEMS,
   },
   verification: {
-    title: "교육이력 서비스",
+    title: "교육내역 서비스",
     navItems: VERIFICATION_NAV_ITEMS,
   },
 };

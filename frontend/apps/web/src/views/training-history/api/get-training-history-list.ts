@@ -52,6 +52,8 @@ export interface TrainingHistoryListResult {
   totalPages: number;
   /** 발급 가능 건수 (issuable + reissuable) — 요약 표기용 */
   issuableCount: number;
+  /** 현재 필터(기간·검색) 전체의 이수시간 합계 — 현재 페이지 합이 아님 */
+  totalHoursSum: number;
 }
 
 const API_BASE = import.meta.env.VITE_API_URL ?? "";
@@ -136,5 +138,6 @@ export async function getTrainingHistoryList(
     issuableCount: items.filter(
       (item) => item.certificateStatus !== "unavailable",
     ).length,
+    totalHoursSum: Number(data.total_hours_sum ?? 0),
   };
 }

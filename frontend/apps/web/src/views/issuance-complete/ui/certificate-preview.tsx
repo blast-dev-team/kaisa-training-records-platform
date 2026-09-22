@@ -13,10 +13,7 @@ export interface CertificatePreviewProps {
  * 디자인은 스크린샷 1252×1780 에셋을 임베딩해 뒀다. 발급 에셋을 그대로
  * 받아 저장했고, API 연결 후 previewImageUrl로 실제 확인서 이미지를 받는다.
  */
-export function CertificatePreview({
-  imageUrl,
-  className,
-}: CertificatePreviewProps) {
+export function CertificatePreview({ imageUrl, className }: CertificatePreviewProps) {
   return (
     <figure
       className={cn(
@@ -26,7 +23,7 @@ export function CertificatePreview({
     >
       <img
         src={imageUrl ?? defaultPreview}
-        alt="계속교육이력확인서 미리보기"
+        alt="계속교육내역확인서 미리보기"
         className="absolute inset-0 size-full object-cover"
       />
     </figure>
@@ -46,7 +43,7 @@ export function CertificatePrintSheet({ imageUrl }: CertificatePrintSheetProps) 
     <div className="fixed inset-0 z-[999] hidden overflow-auto bg-white p-10 print:block">
       <img
         src={imageUrl ?? defaultPreview}
-        alt="계속교육이력확인서"
+        alt="계속교육내역확인서"
         className="mx-auto w-full max-w-[794px]"
       />
     </div>

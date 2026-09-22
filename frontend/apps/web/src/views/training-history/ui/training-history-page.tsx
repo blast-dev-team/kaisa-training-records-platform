@@ -47,6 +47,11 @@ function yearsAgoYMD(years: number): string {
   return localYMD(date);
 }
 
+/** 32 → "32", 8.5 → "8.5" — 서버 합계의 소수점 꼬리 정리 */
+function formatHours(value: number): string {
+  return String(Number(value.toFixed(2)));
+}
+
 /**
  * 교육이력 조회 — Figma node 25:2446(메인 콘텐츠) 기반.
  *
@@ -180,7 +185,7 @@ export function TrainingHistoryPage() {
   return (
     <section className="flex flex-col gap-6 mobile:gap-5">
       <h1 className="font-sans text-[28px] leading-normal font-bold text-gray-900 mobile:text-2xl">
-        교육이력 조회
+        교육내역 조회
       </h1>
 
       {/* 필터 행 — 좌: 조회 기간 picker + 기간 칩 / 우: 교육명 검색 + 조회.
@@ -321,7 +326,7 @@ export function TrainingHistoryPage() {
       {isLoading ? (
         <div className="flex w-full flex-col overflow-hidden rounded-xl border border-solid border-gray-200">
           <div className="flex w-full items-center justify-center bg-white px-4 py-12 text-sm text-gray-500">
-            교육이력을 불러오고 있어요
+            교육내역을 불러오고 있어요
           </div>
         </div>
       ) : isError ? (
@@ -387,7 +392,8 @@ export function TrainingHistoryPage() {
       {/* 목록 하단 — 건수 요약 + 페이지네이션 (node 25:2497). 모바일은 세로 중앙 정렬 (node 128:2614) */}
       <div className="flex w-full items-center justify-between mobile:flex-col mobile:items-center mobile:gap-3">
         <p className="font-sans text-sm leading-normal text-gray-500 mobile:text-[13px]">
-          총 {data?.total ?? 0}건 · 발급 가능 {data?.issuableCount ?? 0}건
+          총 {data?.total ?? 0}건 · 발급 가능 {data?.issuableCount ?? 0}건 · 총{" "}
+          {formatHours(data?.totalHoursSum ?? 0)}시간
         </p>
         <Pagination
           page={data?.page ?? page}

@@ -34,21 +34,16 @@ export interface TrainingHistoryDetail {
 
 const API_BASE = import.meta.env.VITE_API_URL ?? "";
 
-export async function getTrainingHistoryDetail(
-  id: string,
-): Promise<TrainingHistoryDetail> {
-  const response = await fetch(
-    `${API_BASE}/api/me/training-records/${encodeURIComponent(id)}`,
-    { credentials: "include" },
-  );
+export async function getTrainingHistoryDetail(id: string): Promise<TrainingHistoryDetail> {
+  const response = await fetch(`${API_BASE}/api/me/training-records/${encodeURIComponent(id)}`, {
+    credentials: "include",
+  });
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
     if (response.status === 404) {
-      throw new Error(body.message ?? "교육이력을 찾을 수 없어요");
+      throw new Error(body.message ?? "교육내역을 찾을 수 없어요");
     }
-    throw new Error(
-      body.message ?? "문제가 생겨요. 잠시 후 다시 시도해 주세요",
-    );
+    throw new Error(body.message ?? "문제가 생겨요. 잠시 후 다시 시도해 주세요");
   }
 
   const data = await response.json();

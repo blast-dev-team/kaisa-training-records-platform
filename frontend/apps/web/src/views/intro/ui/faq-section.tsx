@@ -1,9 +1,9 @@
-import { PlusIcon } from '@/src/shared/icon';
+import { PlusIcon } from "@/src/shared/icon";
 
 const FAQ_ITEMS = [
-  '조회되지 않는 교육 이력이 있습니다.',
-  '발급한 확인서를 다시 받을 수 있습니까?',
-  '환불 규정은 어떻게 됩니까?',
+  "조회되지 않는 교육 내역이 있습니다.",
+  "발급한 확인서를 다시 받을 수 있습니까?",
+  "환불 규정은 어떻게 됩니까?",
 ] as const;
 
 /**

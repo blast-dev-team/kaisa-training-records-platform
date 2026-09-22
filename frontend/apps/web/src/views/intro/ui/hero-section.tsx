@@ -92,12 +92,12 @@ export function HeroSection() {
         <div className="mx-auto flex w-full max-w-[1400px] flex-col justify-center gap-10 px-20 mobile:gap-5 mobile:px-5">
           <div className="flex w-full flex-col gap-4 mobile:gap-3">
             <h1 className="text-4xl font-bold leading-[1.3] text-gray-900 mobile:text-2xl">
-              계속교육이력확인서
+              계속교육내역확인서
               <br />
               온라인 발급 서비스
             </h1>
             <p className="text-base leading-[1.5] tracking-[-0.03em] text-gray-600 mobile:text-sm">
-              기존에는 협회 담당자가 수동으로 발급하였던 교육이력 확인서를, 본인인증을 통해 직접
+              기존에는 협회 담당자가 수동으로 발급하였던 교육내역 확인서를, 본인인증을 통해 직접
               조회·발급하실 수 있습니다.
             </p>
           </div>
@@ -145,7 +145,7 @@ export function HeroSection() {
                   disabled={!isAgreed}
                   onClick={() => setIsVerificationOpen(true)}
                 >
-                  교육이력확인서 발급
+                  교육내역확인서 발급
                 </Button>
                 <Button
                   size="m"
@@ -154,7 +154,7 @@ export function HeroSection() {
                   disabled={!isAgreed}
                   onClick={() => setIsVerificationOpen(true)}
                 >
-                  교육이력확인서 발급
+                  교육내역확인서 발급
                 </Button>
                 <div className="flex w-full flex-col gap-3">
                   {ISSUE_STEPS.map((label, index) => (

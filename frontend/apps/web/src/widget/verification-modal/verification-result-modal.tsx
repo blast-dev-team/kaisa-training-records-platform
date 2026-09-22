@@ -80,6 +80,26 @@ export function VerificationResultModal({
               <p className="whitespace-nowrap">{result[row.key]}</p>
             </div>
           ))}
+          {/* 묶음 확인서 — 교육이력이 여러 건이면 전체 내역을 보여준다.
+              단건 확인서의 교육명·이수시간 행이 첫 건 값이라 겹쳐 보이지 않게 목록으로 대체 */}
+          {result.records.length > 1 && (
+            <div className="flex w-full gap-6 py-3 mobile:gap-3 mobile:py-2">
+              <p className="w-20 shrink-0 font-bold">교육내역</p>
+              <div className="flex min-w-0 flex-1 flex-col gap-2">
+                {result.records.map((record, index) => (
+                  <div
+                    key={`${record.courseName}-${index}`}
+                    className="flex w-full items-baseline justify-between gap-3"
+                  >
+                    <p className="min-w-0 truncate">{record.courseName}</p>
+                    <p className="shrink-0 whitespace-nowrap text-gray-500">
+                      {record.hoursSummary}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         <p className="text-xs text-gray-400">

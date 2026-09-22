@@ -3,15 +3,55 @@ import type { CSSProperties } from "react";
 import associationSeal from "@/src/assets/association-seal.png";
 import type { TrainingHistoryDetail } from "../api/get-training-history-detail";
 
+export interface CertificateSheetRow {
+  /** 교육기관명 */
+  institutionName: string | null;
+  /** 교육명 */
+  courseName: string;
+  /** 교육기간 (YYYY-MM-DD) */
+  trainedOn: string;
+  /** 교육시간 */
+  hours: number;
+}
+
+/** 발급 대상 이력 → 서식 행 스냅샷 (ADMIN 상세와 같은 매핑) */
+export function toSheetRows(details: TrainingHistoryDetail[]): CertificateSheetRow[] {
+  return details.map((detail) => ({
+    institutionName: detail.institutionName ?? null,
+    courseName: detail.courseName,
+    trainedOn: detail.trainedOn,
+    hours: detail.hours,
+  }));
+}
+
+/** 서식 행을 페이지(5건) 단위로 나눈다 */
+export function chunkRows(rows: CertificateSheetRow[]): CertificateSheetRow[][] {
+  const pages: CertificateSheetRow[][] = [];
+  for (let i = 0; i < rows.length; i += ROWS_PER_PAGE) {
+    pages.push(rows.slice(i, i + ROWS_PER_PAGE));
+  }
+  return pages.length > 0 ? pages : [[]];
+}
+
 export interface CertificateDocumentSheetProps {
-  /** 발급 대상 교육이력 — 표기 필드(formNo·docNo·감리원 정보) 포함 */
-  detail: TrainingHistoryDetail;
+  /** 교육내역 행 — 페이지당 최대 ROWS_PER_PAGE 건 */
+  rows: CertificateSheetRow[];
   /** 신청인 성명 (auth store 이름 — " 님" 접미 제거한 값) */
   memberName: string;
+  /** 감리원 등급 — 신청인 칸 표기 */
+  supervisorGrade?: string;
+  /** 감리원증 발급번호 — 신청인 칸 표기 */
+  supervisorCertNo?: string;
+  /** 서식번호 (예: 제31호) — 좌측 상단 표기 */
+  formNo?: string;
+  /** 문서번호 — 우측 상단 표기 */
+  docNo?: string;
   /** 발급일 표시문 (예: 2026년 7월 23일) */
   issuedOnLabel?: string;
-  /** 확인서 번호 — 하단 진위확인용 표기 */
+  /** 확인서 번호 — 하단 진위확인용 표기 (묶음 확인서 번호) */
   certificateNumber?: string;
+  /** 이 페이지 첫 행의 연번 (2페이지부터 이어지는 번호) */
+  startNo?: number;
 }
 
 const LINE = "1px solid #000";
@@ -20,6 +60,9 @@ const LINE = "1px solid #000";
 const PAGE_WIDTH = 794;
 const PAGE_HEIGHT = 1123;
 const CONTENT_WIDTH = 700;
+
+/** 서식 고정 행이 5칸 — 5건까지만 한 페이지에, 넘으면 다음 페이지 */
+export const ROWS_PER_PAGE = 5;
 
 /**
  * 표 폭을 35px 기본 칸 20개로 쪼개 각 행을 colSpan 조합으로 구성한다.
@@ -37,20 +80,36 @@ const cell: CSSProperties = {
   padding: "0 8px",
 };
 
+/** 시간 합계 표기 — 8.0 → "8", 7.5 → "7.5" */
+function formatHours(hours: number): string {
+  return String(Number.isInteger(hours) ? hours : Number(hours.toFixed(1)));
+}
+
 /**
  * 계속교육내역 확인서 — 별지 제31호 서식 레이아웃.
+ *
+ * 선택한 교육 건 여러 건을 한 문서의 교육내역 행으로 합쳐 담는다(묶음 확인서).
+ * 서식 행은 고정 5칸이라 넘는 건 다음 페이지(연번 이어짐)에 이어진다.
  *
  * PDF 생성(html2canvas-pro)과 인쇄 양쪽에서 같은 모양을 내기 위해
  * Tailwind 클래스 없이 inline style(px·hex)만 사용한다.
  */
 export function CertificateDocumentSheet({
-  detail,
+  rows,
   memberName,
+  supervisorGrade,
+  supervisorCertNo,
+  formNo,
+  docNo,
   issuedOnLabel,
   certificateNumber,
+  startNo = 1,
 }: CertificateDocumentSheetProps) {
-  const period = detail.trainedOn.replaceAll("-", ".");
-  const hours = String(detail.hours);
+  // 서식 행 고정 — 부족하면 빈 행으로 채워 레이아웃을 유지한다
+  const paddedRows: (CertificateSheetRow | null)[] = [...rows];
+  while (paddedRows.length < ROWS_PER_PAGE) paddedRows.push(null);
+
+  const totalHours = rows.reduce((sum, row) => sum + row.hours, 0);
 
   return (
     <div
@@ -78,8 +137,8 @@ export function CertificateDocumentSheet({
           marginBottom: 6,
         }}
       >
-        <span>[별지] {detail.formNo ?? ""} 서식</span>
-        <span>{detail.docNo ?? ""}</span>
+        <span>[별지] {formNo ?? ""} 서식</span>
+        <span>{docNo ?? ""}</span>
       </div>
 
       <table
@@ -118,13 +177,13 @@ export function CertificateDocumentSheet({
               감리원 등급
             </td>
             <td colSpan={5} style={{ border: LINE, ...cell, fontSize: 14 }}>
-              {detail.supervisorGrade ?? ""}
+              {supervisorGrade ?? ""}
             </td>
             <td colSpan={5} style={{ border: LINE, ...cell, fontSize: 14 }}>
               감리원증 발급번호
             </td>
             <td colSpan={7} style={{ border: LINE, ...cell, fontSize: 14 }}>
-              {detail.supervisorCertNo ?? ""}
+              {supervisorCertNo ?? ""}
             </td>
           </tr>
           <tr>
@@ -149,32 +208,32 @@ export function CertificateDocumentSheet({
               교육시간
             </td>
           </tr>
-          <tr>
-            <td colSpan={2} style={{ border: LINE, height: 72, ...cell }}>1</td>
-            <td colSpan={4} style={{ border: LINE, ...cell, fontSize: 14 }}>
-              {detail.institutionName ?? ""}
-            </td>
-            <td colSpan={8} style={{ border: LINE, ...cell, fontSize: 14 }}>
-              {detail.courseName}
-            </td>
-            <td colSpan={3} style={{ border: LINE, ...cell }}>{period}</td>
-            <td colSpan={3} style={{ border: LINE, ...cell }}>{hours}시간</td>
-          </tr>
-          {/* 서식 높이 유지용 빈 행 — 열 구분선을 유지한다 */}
-          {[0, 1, 2, 3].map((row) => (
-            <tr key={row}>
-              <td colSpan={2} style={{ border: LINE, height: 72 }} />
-              <td colSpan={4} style={{ border: LINE }} />
-              <td colSpan={8} style={{ border: LINE }} />
-              <td colSpan={3} style={{ border: LINE }} />
-              <td colSpan={3} style={{ border: LINE }} />
+          {paddedRows.map((row, index) => (
+            <tr key={index}>
+              <td colSpan={2} style={{ border: LINE, height: 72, ...cell }}>
+                {row ? startNo + index : ""}
+              </td>
+              <td colSpan={4} style={{ border: LINE, ...cell, fontSize: 14 }}>
+                {row?.institutionName ?? ""}
+              </td>
+              <td colSpan={8} style={{ border: LINE, ...cell, fontSize: 14 }}>
+                {row?.courseName ?? ""}
+              </td>
+              <td colSpan={3} style={{ border: LINE, ...cell }}>
+                {row ? row.trainedOn.replaceAll("-", ".") : ""}
+              </td>
+              <td colSpan={3} style={{ border: LINE, ...cell }}>
+                {row ? `${formatHours(row.hours)}시간` : ""}
+              </td>
             </tr>
           ))}
           <tr>
             <td colSpan={17} style={{ border: LINE, height: 52, ...cell }}>
               합계
             </td>
-            <td colSpan={3} style={{ border: LINE, ...cell }}>{hours}시간</td>
+            <td colSpan={3} style={{ border: LINE, ...cell }}>
+              {formatHours(totalHours)}시간
+            </td>
           </tr>
           {/* 증명 문구 · 발급일 · 발급 기관 · 도장 — 서식 안 마지막 칸 */}
           <tr>
@@ -202,12 +261,8 @@ export function CertificateDocumentSheet({
                   <br />
                   이수한 계속교육임을 증명합니다.
                 </p>
-                <div style={{ fontSize: 16, paddingLeft: 170 }}>
-                  {issuedOnLabel ?? ""}
-                </div>
-                <div style={{ fontSize: 17, fontWeight: 700 }}>
-                  (사)정보시스템감리협회장
-                </div>
+                <div style={{ fontSize: 16, paddingLeft: 170 }}>{issuedOnLabel ?? ""}</div>
+                <div style={{ fontSize: 17, fontWeight: 700 }}>(사)정보시스템감리협회장</div>
                 {/* 인감 도장 — 협회 제공 인장 이미지 */}
                 <img
                   src={associationSeal}
@@ -215,8 +270,8 @@ export function CertificateDocumentSheet({
                   style={{
                     position: "absolute",
                     left: "59%",
-                    top: "58%",
-                    transform: "translateY(-50%) rotate(-12deg)",
+                    top: "70%",
+                    transform: "translateY(-50%)",
                     width: 118,
                     height: 118,
                     // 인감 잉크 — 아래 텍스트가 도장을 비쳐 보이게 (실제 날인과 같은 겹침)
@@ -232,9 +287,7 @@ export function CertificateDocumentSheet({
       {/* 표를 페이지 세로 중앙에 두고, 확인서 번호만 하단에 고정한다 */}
       <div style={{ flex: 1 }} />
       {certificateNumber && (
-        <div style={{ textAlign: "center", fontSize: 12 }}>
-          확인서 번호: {certificateNumber}
-        </div>
+        <div style={{ textAlign: "center", fontSize: 12 }}>확인서 번호: {certificateNumber}</div>
       )}
     </div>
   );
