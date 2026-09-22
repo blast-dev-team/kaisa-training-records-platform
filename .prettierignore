@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Build artifacts
+**/dist/
+**/build/
+**/.next/
+**/.turbo/
+**/out/
+
+# Lock files
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+
+# Backend (Python — ruff 사용)
+backend/
+
+# Test coverage
+**/coverage/
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+
+# Logs
+*.log
+
+# Local/temp
+.env*
+*.local

@@ -1,0 +1,21 @@
+# Dependencies
+node_modules
+
+# Build
+dist
+dist-ssr
+
+# Local env
+.env
+.env*.local
+
+# Misc
+.DS_Store
+*.pem
+*.local
+
+# Turbo
+.turbo
+
+# TS build info
+*.tsbuildinfo

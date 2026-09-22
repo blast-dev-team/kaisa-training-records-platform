@@ -1,0 +1,462 @@
+import { useMemo, useState } from "react";
+import { useSearchParams } from "react-router";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "react-toastify";
+import type { ColumnDef } from "@tanstack/react-table";
+import { Plus } from "lucide-react";
+import { AppTable } from "@/src/shared/ui/app-table";
+import { Button } from "@/src/shared/ui/button";
+import { FilterBar, FilterRow } from "@/src/shared/ui/filter-bar";
+import { Input } from "@/src/shared/ui/input";
+import { Dialog } from "@/src/shared/ui/dialog";
+import { PageContainer } from "@/src/shared/ui/page-container";
+import { PageHead } from "@/src/shared/ui/page-head";
+import { Pill } from "@/src/shared/ui/pill";
+import { Select } from "@/src/shared/ui/select";
+import { toYMD } from "@/src/shared/utils/format";
+import {
+  courseQueries,
+  deleteCourse,
+  deleteInstitution,
+  institutionQueries,
+  type Course,
+  type Institution,
+} from "@/src/entities/institution";
+import { InstitutionFormDialog } from "./institution-form-dialog";
+import { CourseFormDialog } from "./course-form-dialog";
+
+const TABS = [
+  { key: "institution", label: "기관" },
+  { key: "course", label: "과정" },
+] as const;
+
+function ActivePill({ isActive }: { isActive: boolean }) {
+  return <Pill tone={isActive ? "ok" : "default"}>{isActive ? "사용중" : "비활성"}</Pill>;
+}
+
+export function InstitutionListPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tab = searchParams.get("tab") === "course" ? "course" : "institution";
+
+  const [institutionFormOpen, setInstitutionFormOpen] = useState(false);
+  const [editInstitution, setEditInstitution] = useState<Institution | null>(null);
+  const [courseFormOpen, setCourseFormOpen] = useState(false);
+  const [editCourse, setEditCourse] = useState<Course | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{
+    kind: "institution" | "course";
+    id: string;
+    name: string;
+  } | null>(null);
+  const queryClient = useQueryClient();
+
+  const q = searchParams.get("q") ?? "";
+  const status = searchParams.get("status") ?? "";
+  const category = searchParams.get("category") ?? "";
+  const courseType = searchParams.get("course_type") ?? "";
+  const page = Math.max(1, Number(searchParams.get("page") ?? 1) || 1);
+  const limit = Math.max(1, Number(searchParams.get("limit") ?? 10) || 10);
+  const [searchInput, setSearchInput] = useState(q);
+
+  const isActive = status === "" ? undefined : status === "active";
+  const { data: institutions } = useQuery(
+    institutionQueries.list({ q: q || undefined, isActive, page, limit }),
+  );
+  const { data: courses } = useQuery(
+    courseQueries.list({
+      search: q || undefined,
+      isActive,
+      category: category || undefined,
+      isExternal: courseType === "" ? undefined : courseType === "external",
+      page,
+      limit,
+    }),
+  );
+  const { data: categories } = useQuery(courseQueries.categories({ search: "" }));
+
+  const deleteMutation = useMutation({
+    mutationFn: () => {
+      if (!deleteTarget) return Promise.resolve();
+      return deleteTarget.kind === "institution"
+        ? deleteInstitution(deleteTarget.id)
+        : deleteCourse(deleteTarget.id);
+    },
+    onSuccess: () => {
+      toast.success("삭제했어요 — 기존 교육내역 표시는 그대로 유지돼요");
+      setDeleteTarget(null);
+      queryClient.invalidateQueries({ queryKey: institutionQueries.all() });
+      queryClient.invalidateQueries({ queryKey: courseQueries.all() });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const setTab = (key: string) => {
+    const next = new URLSearchParams(searchParams);
+    if (key === "institution") next.delete("tab");
+    else next.set("tab", key);
+    next.delete("page");
+    setSearchParams(next, { replace: false });
+  };
+
+  const updateTabParam = (patch: Record<string, string | null>, resetPage = true) => {
+    const next = new URLSearchParams(searchParams);
+    for (const [k, v] of Object.entries(patch)) {
+      if (v === null || v === "") next.delete(k);
+      else next.set(k, v);
+    }
+    if (resetPage) next.delete("page");
+    setSearchParams(next, { replace: false });
+  };
+
+  const institutionColumns = useMemo<ColumnDef<Institution, unknown>[]>(
+    () => [
+      {
+        accessorKey: "name",
+        header: "기관명",
+        meta: { width: 240 },
+        cell: ({ row }) => <span className="font-medium text-ink">{row.original.name}</span>,
+      },
+      {
+        accessorKey: "institutionCode",
+        header: "기관코드",
+        meta: { width: 140 },
+        cell: ({ row }) => row.original.institutionCode ?? "—",
+      },
+      {
+        accessorKey: "isActive",
+        header: "상태",
+        meta: { width: 110 },
+        cell: ({ row }) => <ActivePill isActive={row.original.isActive} />,
+      },
+      {
+        accessorKey: "createdAt",
+        header: "등록일",
+        meta: { width: 120 },
+        cell: ({ row }) => toYMD(row.original.createdAt) ?? "—",
+      },
+      {
+        id: "actions",
+        header: "",
+        meta: { width: 130, align: "right", sticky: "right" },
+        cell: ({ row }) => (
+          <div className="flex items-center justify-end gap-1.5">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setEditInstitution(row.original);
+                setInstitutionFormOpen(true);
+              }}
+            >
+              수정
+            </Button>
+            {row.original.isActive && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-danger hover:text-danger"
+                onClick={() =>
+                  setDeleteTarget({
+                    kind: "institution",
+                    id: row.original.id,
+                    name: row.original.name,
+                  })
+                }
+              >
+                삭제
+              </Button>
+            )}
+          </div>
+        ),
+      },
+    ],
+    [],
+  );
+
+  const courseColumns = useMemo<ColumnDef<Course, unknown>[]>(
+    () => [
+      {
+        accessorKey: "name",
+        header: "과정명",
+        meta: { width: 420 },
+        cell: ({ row }) => (
+          <span
+            className="block max-w-[380px] truncate font-medium text-ink"
+            title={row.original.name}
+          >
+            {row.original.name}
+          </span>
+        ),
+      },
+      {
+        accessorKey: "isExternal",
+        header: "구분",
+        meta: { width: 110 },
+        cell: ({ row }) => (
+          <Pill tone={row.original.isExternal ? "info" : "default"}>
+            {row.original.isExternal ? "외부" : "계속교육"}
+          </Pill>
+        ),
+      },
+      {
+        accessorKey: "sessionName",
+        header: "회차명",
+        meta: { width: 300 },
+        cell: ({ row }) => (
+          <span
+            className="block max-w-[280px] truncate text-ink-2"
+            title={row.original.sessionName ?? ""}
+          >
+            {row.original.sessionName ?? "—"}
+          </span>
+        ),
+      },
+      {
+        accessorKey: "institutionName",
+        header: "소속 기관",
+        meta: { width: 160 },
+        cell: ({ row }) => (
+          <span className="block max-w-[160px] truncate" title={row.original.institutionName ?? ""}>
+            {row.original.institutionName ?? "—"}
+          </span>
+        ),
+      },
+      {
+        accessorKey: "courseCode",
+        header: "과정코드",
+        meta: { width: 120 },
+        cell: ({ row }) => row.original.courseCode ?? "—",
+      },
+      {
+        accessorKey: "category",
+        header: "분류",
+        meta: { width: 110 },
+        cell: ({ row }) => row.original.category ?? "—",
+      },
+      {
+        accessorKey: "totalHours",
+        header: "시수",
+        meta: { width: 80, align: "right" },
+        cell: ({ row }) => row.original.totalHours ?? "—",
+      },
+      {
+        accessorKey: "isActive",
+        header: "상태",
+        meta: { width: 110 },
+        cell: ({ row }) => <ActivePill isActive={row.original.isActive} />,
+      },
+      {
+        id: "actions",
+        header: "",
+        meta: { width: 130, align: "right" },
+        cell: ({ row }) => (
+          <div className="flex items-center justify-end gap-1.5">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setEditCourse(row.original);
+                setCourseFormOpen(true);
+              }}
+            >
+              수정
+            </Button>
+            {row.original.isActive && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-danger hover:text-danger"
+                onClick={() =>
+                  setDeleteTarget({
+                    kind: "course",
+                    id: row.original.id,
+                    name: row.original.name,
+                  })
+                }
+              >
+                삭제
+              </Button>
+            )}
+          </div>
+        ),
+      },
+    ],
+    [],
+  );
+
+  return (
+    <PageContainer>
+      <PageHead
+        title="기관 · 과정 관리"
+        subtitle="이력 등록에서 선택하는 마스터 — 삭제해도 과거 이력 표시는 유지돼요"
+        actions={
+          tab === "institution" ? (
+            <Button
+              onClick={() => {
+                setEditInstitution(null);
+                setInstitutionFormOpen(true);
+              }}
+            >
+              <Plus className="size-4" /> 기관 등록
+            </Button>
+          ) : (
+            <Button
+              onClick={() => {
+                setEditCourse(null);
+                setCourseFormOpen(true);
+              }}
+            >
+              <Plus className="size-4" /> 과정 등록
+            </Button>
+          )
+        }
+      />
+
+      <div className="flex items-center gap-1 rounded-lg border border-line bg-panel-2/30 p-1 w-fit">
+        {TABS.map((t) => (
+          <button
+            key={t.key}
+            type="button"
+            className={`rounded-md px-3.5 py-1.5 text-[13px] font-medium transition-colors ${
+              tab === t.key ? "bg-panel text-ink shadow-sm" : "text-ink-3 hover:text-ink"
+            }`}
+            onClick={() => setTab(t.key)}
+          >
+            {t.label}
+            <span className="ml-1.5 text-[11px] text-ink-3">
+              {t.key === "institution"
+                ? (institutions?.total ?? 0).toLocaleString()
+                : (courses?.total ?? 0).toLocaleString()}
+            </span>
+          </button>
+        ))}
+      </div>
+      <FilterBar>
+        <FilterRow label="검색">
+          <form
+            className="flex items-center gap-2"
+            onSubmit={(e) => {
+              e.preventDefault();
+              updateTabParam({ q: searchInput.trim() || null });
+            }}
+          >
+            <Input
+              className="w-64"
+              placeholder={
+                tab === "institution" ? "기관명 · 기관코드" : "과정명 · 코드 · 회차명 · 기관명"
+              }
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+            />
+            <Button type="submit" variant="secondary" size="sm">
+              검색
+            </Button>
+          </form>
+        </FilterRow>
+        <FilterRow label="상태">
+          <Select
+            className="w-28"
+            value={status}
+            onChange={(e) => updateTabParam({ status: e.target.value || null })}
+          >
+            <option value="">전체</option>
+            <option value="active">사용중</option>
+            <option value="inactive">비활성</option>
+          </Select>
+        </FilterRow>
+        {tab === "course" && (
+          <FilterRow label="구분">
+            <Select
+              className="w-28"
+              value={courseType}
+              onChange={(e) => updateTabParam({ course_type: e.target.value || null })}
+            >
+              <option value="">전체</option>
+              <option value="internal">계속교육</option>
+              <option value="external">외부교육</option>
+            </Select>
+          </FilterRow>
+        )}
+        {tab === "course" && (
+          <FilterRow label="분류">
+            <Select
+              className="w-32"
+              value={category}
+              onChange={(e) => updateTabParam({ category: e.target.value || null })}
+            >
+              <option value="">전체</option>
+              {(categories ?? []).map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </Select>
+          </FilterRow>
+        )}
+      </FilterBar>
+      {tab === "institution" ? (
+        <AppTable
+          columns={institutionColumns}
+          data={institutions?.items ?? []}
+          isLoading={!institutions}
+          emptyMessage="등록된 기관이 없어요. 첫 기관을 등록해 보세요"
+          page={page}
+          totalPages={institutions?.totalPages ?? 1}
+          onPageChange={(p) => updateTabParam({ page: String(p) }, false)}
+          limit={limit}
+          onLimitChange={(n) => updateTabParam({ limit: String(n) })}
+          paginationInfo={`총 ${(institutions?.total ?? 0).toLocaleString()}건 · ${page}/${institutions?.totalPages ?? 1}페이지`}
+          columnDividers
+        />
+      ) : (
+        <AppTable
+          columns={courseColumns}
+          data={courses?.items ?? []}
+          isLoading={!courses}
+          fixedLayout
+          minWidth={1420}
+          emptyMessage="등록된 과정이 없어요. 첫 과정을 등록해 보세요"
+          page={page}
+          totalPages={courses?.totalPages ?? 1}
+          onPageChange={(p) => updateTabParam({ page: String(p) }, false)}
+          limit={limit}
+          onLimitChange={(n) => updateTabParam({ limit: String(n) })}
+          paginationInfo={`총 ${(courses?.total ?? 0).toLocaleString()}건 · ${page}/${courses?.totalPages ?? 1}페이지`}
+          columnDividers
+        />
+      )}
+
+      <InstitutionFormDialog
+        isOpen={institutionFormOpen}
+        onClose={() => setInstitutionFormOpen(false)}
+        institution={editInstitution}
+      />
+      <CourseFormDialog
+        isOpen={courseFormOpen}
+        onClose={() => setCourseFormOpen(false)}
+        course={editCourse}
+      />
+
+      <Dialog
+        isOpen={deleteTarget !== null}
+        onClose={() => setDeleteTarget(null)}
+        title={deleteTarget?.kind === "institution" ? "기관 삭제" : "과정 삭제"}
+        description={
+          deleteTarget
+            ? `'${deleteTarget.name}' ${
+                deleteTarget.kind === "institution" ? "기관" : "과정"
+              }을 삭제할까요? 비활성 전환되어 선택 목록에서 사라지고, 과거 교육내역 표시는 그대로 남아요.`
+            : undefined
+        }
+        actions={[
+          { label: "취소", onClick: () => setDeleteTarget(null) },
+          {
+            label: "삭제",
+            variant: "danger",
+            isLoading: deleteMutation.isPending,
+            onClick: () => deleteMutation.mutate(),
+          },
+        ]}
+      />
+    </PageContainer>
+  );
+}

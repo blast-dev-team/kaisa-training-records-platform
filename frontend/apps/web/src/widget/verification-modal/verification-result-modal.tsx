@@ -1,0 +1,112 @@
+import { XIcon } from "@/src/shared/icon";
+
+import { useEffect } from 'react';
+
+import type { VerificationResult } from '@/src/shared/api/get-verification-result';
+
+/**
+ * 진위확인 결과 모달 — Figma 노드 32:20 (modal-valid) 기반.
+ *
+ * 노드에는 닫기 요소가 없어 배경 클릭·ESC 로만 닫는다.
+ * 유효하지 않음(확인 불가)은 별도 모달 — verification-fail-modal.tsx (노드 32:2283).
+ */
+
+interface VerificationResultModalProps {
+  result: VerificationResult;
+  onClose: () => void;
+}
+
+const INFO_ROWS = [
+  { label: '성명', key: 'applicantName' },
+  { label: '확인서번호', key: 'certificateNumber' },
+  { label: '교육명', key: 'courseName' },
+  { label: '이수시간', key: 'completionSummary' },
+  { label: '발급일', key: 'issuedAt' },
+] as const;
+
+export function VerificationResultModal({
+  result,
+  onClose,
+}: VerificationResultModalProps) {
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-5"
+      onClick={onClose}
+    >
+      <section
+        role="dialog"
+        aria-modal="true"
+        aria-label="진위확인 결과"
+        onClick={(event) => event.stopPropagation()}
+        className="relative flex w-[480px] max-w-full flex-col gap-6 rounded-[12px] bg-white px-10 py-8 shadow-[0px_4px_24px_0px_rgba(0,0,0,0.15)] font-sans mobile:w-full mobile:p-5"
+      >
+        {/* 모바일·데스크톱 공통 — X 로 닫는다 */}
+        <button
+          type="button"
+          aria-label="닫기"
+          onClick={onClose}
+          className="absolute right-4 top-4 flex size-8 cursor-pointer items-center justify-center text-gray-500"
+        >
+          <XIcon className="size-6" />
+        </button>
+        <p className="whitespace-pre text-sm text-gray-500 mobile:text-xs">
+          {`결과  ·  유효`}
+        </p>
+
+        <div className="flex items-center gap-4">
+          <span className="rounded-[4px] border border-[#393] bg-[#d9f2d9] px-3 py-1.5 text-sm font-semibold text-[#268026] mobile:text-xs">
+            유효한 확인서
+          </span>
+          <p className="text-sm whitespace-nowrap text-gray-500 mobile:text-xs">
+            {result.queriedAt} 조회
+          </p>
+        </div>
+
+        <div className="flex w-full flex-col gap-1 rounded-[16px] border border-solid border-gray-200 p-4 text-sm text-gray-700">
+          {INFO_ROWS.map((row) => (
+            <div
+              key={row.key}
+              className="flex w-full items-center gap-6 py-3 mobile:gap-3 mobile:py-2"
+            >
+              <p className="w-20 shrink-0 font-bold">{row.label}</p>
+              <p className="whitespace-nowrap">{result[row.key]}</p>
+            </div>
+          ))}
+          {/* 묶음 확인서 — 교육이력이 여러 건이면 전체 내역을 보여준다.
+              단건 확인서의 교육명·이수시간 행이 첫 건 값이라 겹쳐 보이지 않게 목록으로 대체 */}
+          {result.records.length > 1 && (
+            <div className="flex w-full gap-6 py-3 mobile:gap-3 mobile:py-2">
+              <p className="w-20 shrink-0 font-bold">교육내역</p>
+              <div className="flex min-w-0 flex-1 flex-col gap-2">
+                {result.records.map((record, index) => (
+                  <div
+                    key={`${record.courseName}-${index}`}
+                    className="flex w-full items-baseline justify-between gap-3"
+                  >
+                    <p className="min-w-0 truncate">{record.courseName}</p>
+                    <p className="shrink-0 whitespace-nowrap text-gray-500">
+                      {record.hoursSummary}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <p className="text-xs text-gray-400">
+          본 결과는 협회 발급 기록과 일치함을 의미하며, 개인정보 보호를 위해 일부
+          정보는 마스킹됩니다.
+        </p>
+      </section>
+    </div>
+  );
+}

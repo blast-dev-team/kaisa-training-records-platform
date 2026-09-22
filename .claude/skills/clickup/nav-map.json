@@ -1,0 +1,17 @@
+{
+  "_": "사이드바 메뉴 id → ClickUp 티켓. 이름이 같으면(공백·구분자 무시) 자동 매칭되므로 여기엔 이름이 다른 것만 적는다. 대분류는 자동 매칭 대상이 아니라 항상 여기에 적는다.",
+
+  "dashboard-sales": "TICKET-17046",
+  "dashboard-direct": "TICKET-17046",
+  "sales": "TICKET-16766",
+  "accident-crm": "TICKET-16352",
+  "fleet": "TICKET-16925",
+  "operation": "TICKET-16848",
+  "settlement": "TICKET-16567",
+  "agency": "TICKET-16865",
+  "master": "TICKET-17182",
+
+  "master-account": "TICKET-17185",
+  "master-approvals": "TICKET-17187",
+  "master-vehicle": "TICKET-17188"
+}
