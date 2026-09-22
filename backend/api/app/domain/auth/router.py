@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.core.database import get_db
-from app.core.dependencies import require_admin, require_super
+from app.core.dependencies import get_client_ip, require_admin, require_super
 from app.core.session import clear_session_cookie_params, session_cookie_params
 from app.domain.auth.model import AdminUser
 from app.domain.auth.schema import (
@@ -41,9 +41,11 @@ def _session_token(request: Request, cookie_name: str) -> str | None:
 
 @router.post("/register", response_model=AdminUserResponse, status_code=201)
 async def register_admin(
-    body: AdminRegisterRequest, db: AsyncSession = Depends(get_db)
+    body: AdminRegisterRequest,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
 ):
-    admin = await auth_service.register_admin(db, body)
+    admin = await auth_service.register_admin(db, body, get_client_ip(request))
     return admin
 
 
@@ -54,7 +56,7 @@ async def login_admin(
     response: Response,
     db: AsyncSession = Depends(get_db),
 ):
-    ip = request.client.host if request.client else "unknown"
+    ip = get_client_ip(request)
     admin, token = await auth_service.login_admin(
         db, body.email, body.password, ip, request.headers.get("user-agent")
     )
@@ -67,11 +69,16 @@ async def login_admin(
 @router.patch("/password")
 async def change_password(
     body: PasswordChangeRequest,
+    request: Request,
     db: AsyncSession = Depends(get_db),
     actor: AdminUser = Depends(require_admin),
 ):
     await auth_service.change_own_password(
-        db, actor, body.current_password, body.new_password
+        db,
+        actor,
+        body.current_password,
+        body.new_password,
+        current_token=_session_token(request, settings.ADMIN_SESSION_COOKIE_NAME),
     )
     return {"ok": True}
 
@@ -103,15 +110,20 @@ async def me(request: Request, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/pass", response_model=PassStartResponse)
-async def start_pass(body: PassStartRequest):
-    return await identity_service.start_pass(body)
+async def start_pass(body: PassStartRequest, request: Request):
+    return await identity_service.start_pass(body, get_client_ip(request))
 
 
 @router.post("/pass/complete", response_model=PassCompleteResponse)
 async def complete_pass(
-    body: PassCompleteRequest, response: Response, db: AsyncSession = Depends(get_db)
+    body: PassCompleteRequest,
+    request: Request,
+    response: Response,
+    db: AsyncSession = Depends(get_db),
 ):
-    result, token = await identity_service.complete_pass(db, body.state)
+    result, token = await identity_service.complete_pass(
+        db, body.state, get_client_ip(request)
+    )
     response.set_cookie(**session_cookie_params(token))
     return result
 

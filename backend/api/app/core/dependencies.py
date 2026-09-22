@@ -37,6 +37,20 @@ def _read_session_token(request: Request, cookie_name: str) -> str | None:
     return request.cookies.get(cookie_name)
 
 
+def get_client_ip(request: Request) -> str:
+    """실제 클라이언트 IP — nginx 가 덮어쓴 X-Real-IP 만 신뢰한다.
+
+    클라이언트가 보낸 X-Forwarded-For 는 위조 가능하므로 절대 읽지 않는다
+    (rate limit 우회·IP 감사 로그 오염 방지). nginx 템플릿이 X-Real-IP 를
+    $remote_addr 로 세팅하고, XFF 도 클라이언트가 보낸 체인 대신 $remote_addr 로
+    덮어쓴다. LB 를 앞에 두게 되면 realip 모듈 설정이 필요하다.
+    """
+    real_ip = request.headers.get("x-real-ip")
+    if real_ip:
+        return real_ip.strip()
+    return request.client.host if request.client else "unknown"
+
+
 async def get_current_user(
     request: Request,
     db: AsyncSession = Depends(get_db),

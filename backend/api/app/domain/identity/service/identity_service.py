@@ -7,9 +7,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.audit import record_audit
 from app.core.config import settings
-from app.core.crypto import encrypt_field, sha256_hex
+from app.core.crypto import encrypt_field, hash_ip, sha256_hex
 from app.core.error_codes import api_error
 from app.core.kst import now_kst
+from app.core.rate_limit import is_rate_limited, register_attempt
 from app.core.security import issue_state, read_state
 from app.core.session import create_user_session
 from app.domain.auth.model import AdminUser
@@ -95,7 +96,7 @@ async def _create_demo_trainee(
     return trainee
 
 
-async def start_pass(body: PassStartRequest) -> PassStartResponse:
+async def start_pass(body: PassStartRequest, ip: str) -> PassStartResponse:
     """PASS 인증 시작 — FE가 만든 본인인증 건 ID에 서명된 state 를 발급.
 
     인증창은 브라우저 SDK가 열고, 서버는 complete 시점에 포트원에서 결과를
@@ -103,6 +104,16 @@ async def start_pass(body: PassStartRequest) -> PassStartResponse:
     (portone.create_identity_verification)은 모바일 등 SDK 불가 환경 대비만 남긴다.
     인증 row 는 complete 시점에 생성한다 (user_id NOT NULL — 계정은 ci 확정 후 생김).
     """
+    if is_rate_limited(
+        f"pass_start:{hash_ip(ip)}",
+        max_attempts=settings.RATE_LIMIT_PASS_START_MAX,
+        window_seconds=settings.RATE_LIMIT_PASS_START_WINDOW,
+    ):
+        raise api_error("TOO_MANY_ATTEMPTS")
+    register_attempt(
+        f"pass_start:{hash_ip(ip)}",
+        window_seconds=settings.RATE_LIMIT_PASS_START_WINDOW,
+    )
     if not settings.PORTONE_IDENTITY_CHANNEL_KEY or not settings.PORTONE_API_SECRET:
         raise api_error(
             "PORTONE_NOT_CONFIGURED",
@@ -119,12 +130,24 @@ async def start_pass(body: PassStartRequest) -> PassStartResponse:
 
 
 async def complete_pass(
-    db: AsyncSession, state: str
+    db: AsyncSession, state: str, ip: str
 ) -> tuple[PassCompleteResponse, str]:
     """state 검증 → single-fetch → ci/di 즉시 해시 후 폐기 → find-or-create + 세션 발급.
 
     반환은 (응답, 세션 토큰) — 쿠키 세팅은 router 가 담당.
+    무인증 엔드포인트라 state 유무와 무관하게 시도 자체를 IP 단위로 제한한다 —
+    PortOne API 호출 증폭 스팸 방지.
     """
+    if is_rate_limited(
+        f"pass_complete:{hash_ip(ip)}",
+        max_attempts=settings.RATE_LIMIT_PASS_COMPLETE_MAX,
+        window_seconds=settings.RATE_LIMIT_PASS_COMPLETE_WINDOW,
+    ):
+        raise api_error("TOO_MANY_ATTEMPTS")
+    register_attempt(
+        f"pass_complete:{hash_ip(ip)}",
+        window_seconds=settings.RATE_LIMIT_PASS_COMPLETE_WINDOW,
+    )
     verification_id = read_state(state)
     if verification_id is None:
         raise api_error(

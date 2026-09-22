@@ -13,6 +13,15 @@ server {
     ssl_certificate     /etc/letsencrypt/live/${SERVER_NAME}/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/${SERVER_NAME}/privkey.pem;
 
+    # TLS 하한 — 구버전 프로토콜 차단
+    ssl_protocols TLSv1.2 TLSv1.3;
+
+    # 보안 응답 헤더
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "DENY" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
     # 공개 진위확인 등 요청 바디는 작지만 여유 있게 (gongcar 표준 20M)
     client_max_body_size 20M;
 
@@ -21,7 +30,10 @@ server {
         proxy_pass         http://api:8000;
         proxy_set_header   Host              $host;
         proxy_set_header   X-Real-IP         $remote_addr;
-        proxy_set_header   X-Forwarded-For   $proxy_add_x_forwarded_for;
+        # 클라이언트가 보낸 XFF 체인을 그대로 이으면 위조 가능 — BE(app.core.dependencies
+        # .get_client_ip)는 X-Real-IP 만 신뢰하므로 XFF 도 $remote_addr 로 덮어쓴다.
+        # LB 를 앞에 두게 되면 realip 모듈로 신뢰 프록시를 설정한 뒤 되돌린다.
+        proxy_set_header   X-Forwarded-For   $remote_addr;
         proxy_set_header   X-Forwarded-Proto $scheme;
 
         # WebSocket 지원 (필요 시)

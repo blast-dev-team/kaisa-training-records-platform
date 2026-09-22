@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.core.crypto import hash_ip, mask_name
+from app.core.dependencies import get_client_ip
 from app.core.error_codes import api_error
 from app.core.kst import now_kst, to_kst_date
 from app.core.rate_limit import is_rate_limited, register_attempt
@@ -17,17 +18,10 @@ from app.domain.certificate.schema import (
 )
 
 
-def _client_ip(request: Request) -> str:
-    forwarded = request.headers.get("x-forwarded-for")
-    if forwarded:
-        return forwarded.split(",")[0].strip()
-    return request.client.host if request.client else "unknown"
-
-
 async def verify_certificate(
     db: AsyncSession, request: Request, data: PublicVerificationRequest
 ) -> PublicVerificationResponse:
-    ip = _client_ip(request)
+    ip = get_client_ip(request)
     ip_hash = hash_ip(ip)
     if is_rate_limited(
         f"public_verify:{ip_hash}",

@@ -1,5 +1,6 @@
 import uuid
 
+from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.audit import record_audit
@@ -13,11 +14,12 @@ from app.core.session import (
     ADMIN_TOKEN_PREFIX,
     create_admin_session,
     delete_user_session,
+    hash_token,
     resolve_admin_session,
     resolve_user_session,
     revoke_admin_session,
 )
-from app.domain.auth.model import AdminAllowedEmail, AdminUser
+from app.domain.auth.model import AdminAllowedEmail, AdminSession, AdminUser
 from app.domain.auth.repository import auth_repository as repo
 from app.domain.auth.schema import (
     AdminRegisterRequest,
@@ -58,8 +60,20 @@ async def _login_test_admin(db: AsyncSession, user_agent: str | None) -> tuple[A
     return admin, token
 
 
-async def register_admin(db: AsyncSession, data: AdminRegisterRequest) -> AdminUser:
-    """초대(화이트리스트 pending)된 이메일만 가입 허용. 성공 시 status=joined."""
+async def register_admin(
+    db: AsyncSession, data: AdminRegisterRequest, ip: str
+) -> AdminUser:
+    """초대(화이트리스트 pending)된 이메일만 가입 허용. 성공 시 status=joined.
+
+    무인증 엔드포인트 — 시도를 IP 단위로 제한해 화이트리스트 이메일 열거를 막는다
+    (DUPLICATE_EMAIL / EMAIL_NOT_ALLOWED 응답 차이로 존재 여부를 추리할 수 있음).
+    """
+    key = f"register:{hash_ip(ip)}"
+    if is_rate_limited(
+        key, settings.RATE_LIMIT_REGISTER_MAX, settings.RATE_LIMIT_REGISTER_WINDOW
+    ):
+        raise api_error("TOO_MANY_ATTEMPTS")
+    register_attempt(key, settings.RATE_LIMIT_REGISTER_WINDOW)
     if not validate_password(data.password):
         raise api_error("WEAK_PASSWORD")
     if await repo.find_admin_by_email(db, data.email):
@@ -120,9 +134,17 @@ async def login_admin(
 
 
 async def change_own_password(
-    db: AsyncSession, actor: AdminUser, current_password: str, new_password: str
+    db: AsyncSession,
+    actor: AdminUser,
+    current_password: str,
+    new_password: str,
+    current_token: str | None = None,
 ) -> None:
-    """본인 비밀번호 변경 — 현재 비밀번호 검증 후 교체. 감사로그에 평문·해시 미기록."""
+    """본인 비밀번호 변경 — 현재 비밀번호 검증 후 교체. 감사로그에 평문·해시 미기록.
+
+    비밀번호가 바뀌었으면 도난 가능성도 바뀐 것 — 다른 기기의 기존 세션을 전부 폐기하고
+    현재 세션(요청 주체)만 살려둔다.
+    """
     if not verify_password(current_password, actor.password_hash):
         raise api_error(
             "INVALID_CREDENTIALS",
@@ -131,6 +153,12 @@ async def change_own_password(
     if not validate_password(new_password):
         raise api_error("WEAK_PASSWORD")
     actor.password_hash = hash_password(new_password)
+    await db.execute(
+        delete(AdminSession).where(
+            AdminSession.admin_id == actor.id,
+            AdminSession.token_hash != hash_token(current_token or ""),
+        )
+    )
     record_audit(
         db,
         actor_admin_id=actor.id,
@@ -245,6 +273,10 @@ async def update_admin_user(
             raise api_error("WEAK_PASSWORD")
         # 값 자체는 절대 기록하지 않는다 — 발생 사실만 남긴다
         admin.password_hash = hash_password(data.password)
+        # 초기화 = 계정이 도난당했을 가능성 대응 — 대상의 모든 세션 강제 로그아웃
+        await db.execute(
+            delete(AdminSession).where(AdminSession.admin_id == admin.id)
+        )
         record_audit(
             db,
             actor_admin_id=actor.id,

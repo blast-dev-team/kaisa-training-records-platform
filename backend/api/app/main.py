@@ -52,6 +52,8 @@ app = FastAPI(
     lifespan=lifespan,
     docs_url=None,  # Swagger UI 비활성화 — Scalar(/scalar) 사용
     redoc_url=None,
+    # 프로덕션에선 API 스키마 자체를 노출하지 않는다 — 공격자 정찰 자료가 된다
+    openapi_url=None if settings.ENVIRONMENT == "production" else "/openapi.json",
 )
 
 app.add_middleware(
@@ -128,8 +130,10 @@ app.include_router(payment_webhook_router, prefix="/api")
 app.include_router(payment_admin_router, prefix="/api")
 
 
-@app.get("/scalar", include_in_schema=False)
-async def scalar_docs():
-    return get_scalar_api_reference(
-        openapi_url=app.openapi_url, title=settings.APP_NAME
-    )
+if settings.ENVIRONMENT != "production":
+
+    @app.get("/scalar", include_in_schema=False)
+    async def scalar_docs():
+        return get_scalar_api_reference(
+            openapi_url=app.openapi_url, title=settings.APP_NAME
+        )

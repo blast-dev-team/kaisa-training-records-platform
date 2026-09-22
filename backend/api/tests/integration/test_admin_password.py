@@ -154,3 +154,50 @@ class TestSuperResetPassword:
         assert row.entity_id == target.id
         assert row.actor_admin_id == actor.id
         assert NEW_PASSWORD not in str(row.before_data) + str(row.after_data)
+
+
+class TestPasswordChangeRevokesSessions:
+    """비밀번호 변경·초기화 시 대상 계정의 기존 세션이 살아있으면 도난 세션도 살아있는 것."""
+
+    async def test_change_revokes_other_sessions_keeps_current(self, client, db):
+        from app.core.session import create_admin_session
+
+        admin, token_a = await make_admin(db)
+        token_b = await create_admin_session(db, admin.id, "other-device")
+        await db.commit()
+
+        resp = await client.patch(
+            "/api/auth/password",
+            json={"current_password": "admin-passw0rd", "new_password": NEW_PASSWORD},
+            cookies=admin_cookie(token_a),
+        )
+        assert resp.status_code == 200
+
+        # 현재 세션(변경 주체)은 유지
+        me_a = await client.get("/api/auth/me", cookies=admin_cookie(token_a))
+        assert me_a.status_code == 200
+        # 다른 기기 세션은 폐기
+        me_b = await client.get("/api/auth/me", cookies=admin_cookie(token_b))
+        assert me_b.status_code == 401
+
+    async def test_reset_revokes_all_target_sessions(self, client, db):
+        from app.core.session import create_admin_session
+
+        _actor, actor_token = await make_admin(db)
+        target, target_token = await make_admin(
+            db, email="staff@example.com", role="staff"
+        )
+        target_token2 = await create_admin_session(db, target.id, "other-device")
+        await db.commit()
+
+        resp = await client.patch(
+            f"/api/admin-users/{target.id}",
+            json={"password": NEW_PASSWORD},
+            cookies=admin_cookie(actor_token),
+        )
+        assert resp.status_code == 200
+
+        me1 = await client.get("/api/auth/me", cookies=admin_cookie(target_token))
+        assert me1.status_code == 401
+        me2 = await client.get("/api/auth/me", cookies=admin_cookie(target_token2))
+        assert me2.status_code == 401

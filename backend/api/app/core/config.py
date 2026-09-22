@@ -101,6 +101,13 @@ class Settings(BaseSettings):
     RATE_LIMIT_LOGIN_WINDOW: int = 300  # 초
     RATE_LIMIT_PUBLIC_VERIFY_MAX: int = 10
     RATE_LIMIT_PUBLIC_VERIFY_WINDOW: int = 60  # 초
+    # 무인증 엔드포인트 — PASS 본인인증 시작/완료, 관리자 가입
+    RATE_LIMIT_PASS_START_MAX: int = 20
+    RATE_LIMIT_PASS_START_WINDOW: int = 60  # 초
+    RATE_LIMIT_PASS_COMPLETE_MAX: int = 10
+    RATE_LIMIT_PASS_COMPLETE_WINDOW: int = 60  # 초
+    RATE_LIMIT_REGISTER_MAX: int = 5
+    RATE_LIMIT_REGISTER_WINDOW: int = 300  # 초
 
     # 확인서 유효기간 (일). 0 = 무기한
     CERTIFICATE_VALID_DAYS: int = 0
@@ -127,3 +134,20 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+
+# ── 부팅 시 보안 설정 검증 — fail-closed ────────────────────────────────────────
+# 서버 배포(compose)는 Secrets Manager 로 시크릿을 주입한다. 시크릿에 ENVIRONMENT
+# 가 빠져 있으면 기본값 "local" 로 부팅돼 테스트 로그인·비secure 쿠키가 열린다.
+# 그래서 Secrets Manager 를 쓰는데 ENVIRONMENT 가 local 이면 부팅을 거부한다.
+if settings.AWS_SECRETS_NAME and settings.ENVIRONMENT == "local":
+    raise ValueError(
+        "ENVIRONMENT 가 설정되지 않았습니다. 서버 배포 시 Secrets Manager 시크릿에 "
+        "ENVIRONMENT=production (또는 staging) 을 포함하세요."
+    )
+
+logger.info(
+    "Booting ENVIRONMENT=%s secure_cookie=%s debug=%s",
+    settings.ENVIRONMENT,
+    settings.ENVIRONMENT != "local",
+    settings.DEBUG,
+)
