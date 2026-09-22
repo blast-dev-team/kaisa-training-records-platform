@@ -166,6 +166,7 @@ export function CourseSessionListPage() {
             className="size-4 accent-[--color-accent] cursor-pointer"
             checked={selectedIds.has(row.original.id)}
             onChange={(e) => toggleRow(row.original, e.target.checked)}
+            onClick={(e) => e.stopPropagation()}
             aria-label={`${row.original.courseName} 선택`}
           />
         ),
@@ -216,13 +217,21 @@ export function CourseSessionListPage() {
         meta: { width: 220, align: "right", sticky: "right" },
         cell: ({ row }) => (
           <div className="flex items-center justify-end gap-1.5">
-            <Button variant="ghost" size="sm" onClick={() => setAttachTarget(row.original)}>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                setAttachTarget(row.original);
+              }}
+            >
               <Users className="size-3.5" /> 감리원 연결
             </Button>
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => {
+              onClick={(e) => {
+                e.stopPropagation();
                 setEditTarget(row.original);
                 setFormOpen(true);
               }}
@@ -233,7 +242,10 @@ export function CourseSessionListPage() {
               variant="ghost"
               size="sm"
               className="text-danger hover:text-danger"
-              onClick={() => setDeleteTarget(row.original)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setDeleteTarget(row.original);
+              }}
             >
               삭제
             </Button>
@@ -339,6 +351,7 @@ export function CourseSessionListPage() {
         columns={columns}
         data={items}
         isLoading={!data}
+        onRowClick={(s) => toggleRow(s, !selectedIds.has(s.id))}
         emptyMessage="등록된 교육 일정이 없어요. 일정을 등록하고 감리원을 연결해 보세요"
         page={page}
         totalPages={totalPages}

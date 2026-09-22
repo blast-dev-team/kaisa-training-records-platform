@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useSearchParams } from "react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
@@ -105,6 +105,16 @@ export function TrainingRecordListPage({ variant = "all" }: Props) {
     }),
   );
 
+  /** 행 클릭·체크박스 공용 토글 — 행 자체를 클릭해도 선택이 바뀐다 */
+  const toggleRow = useCallback((record: TrainingRecord) => {
+    setSelected((prev) => {
+      const next = new Map(prev);
+      if (next.has(record.id)) next.delete(record.id);
+      else next.set(record.id, record);
+      return next;
+    });
+  }, []);
+
   /** 선택된 교육생 이름 — 옵션 목록에 없어도 드롭다운에 표시 */
   const { data: selectedTrainee } = useQuery({
     ...traineeQueries.detail(traineeId),
@@ -179,6 +189,7 @@ export function TrainingRecordListPage({ variant = "all" }: Props) {
               else next.delete(row.original.id);
               setSelected(next);
             }}
+            onClick={(e) => e.stopPropagation()}
           />
         ),
         meta: { width: 50 },
@@ -253,13 +264,21 @@ export function TrainingRecordListPage({ variant = "all" }: Props) {
         meta: { width: 210, align: "right" },
         cell: ({ row }) => (
           <div className="flex items-center justify-end gap-1.5">
-            <Button variant="ghost" size="sm" onClick={() => setPreviewRecords([row.original])}>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                setPreviewRecords([row.original]);
+              }}
+            >
               <FileDown className="size-3.5" /> PDF
             </Button>
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => {
+              onClick={(e) => {
+                e.stopPropagation();
                 setEditTarget(row.original);
                 setFormOpen(true);
               }}
@@ -270,7 +289,10 @@ export function TrainingRecordListPage({ variant = "all" }: Props) {
               variant="ghost"
               size="sm"
               className="text-danger hover:text-danger"
-              onClick={() => setDeleteTarget(row.original)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setDeleteTarget(row.original);
+              }}
             >
               삭제
             </Button>
@@ -278,6 +300,7 @@ export function TrainingRecordListPage({ variant = "all" }: Props) {
         ),
       },
     ],
+    // toggleRow 는 useCallback([]) 로 안정적이라 deps 제외
     [isExternal, selected],
   );
 
@@ -433,6 +456,7 @@ export function TrainingRecordListPage({ variant = "all" }: Props) {
         columns={columns}
         data={items}
         isLoading={!data}
+        onRowClick={toggleRow}
         emptyMessage={
           isExternal ? "등록된 외부 수료 내역이 없어요" : "조건에 맞는 교육내역이 없어요"
         }

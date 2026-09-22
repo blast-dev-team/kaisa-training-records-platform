@@ -61,12 +61,12 @@ const PAGE_WIDTH = 794;
 const PAGE_HEIGHT = 1123;
 const CONTENT_WIDTH = 700;
 
-/** 서식 고정 행이 5칸 — 5건까지만 한 페이지에, 넘으면 다음 페이지 */
+/** 서식 행 고정 행이 5칸 — 5건까지만 한 페이지에, 넘으면 다음 페이지 */
 export const ROWS_PER_PAGE = 5;
 
 /**
  * 표 폭을 35px 기본 칸 20개로 쪼개 각 행을 colSpan 조합으로 구성한다.
- * 행마다 칸 경계가 어긋나는 그리드를 단일 table(border-collapse: collapse)로
+ * 행마다 칸 경계가 어긋나는 그리드를 단일 table(borderSpacing: 0)로
  * 그리기 위함 — 중첩 테이블을 쓰면 경계선이 겹쳐 두꺼워진다.
  */
 const COLS = 20;
@@ -79,6 +79,23 @@ const cell: CSSProperties = {
   verticalAlign: "middle",
   padding: "0 8px",
 };
+
+/**
+ * 표 선 — 각 변을 정확히 한 번만 그린다 (오른쪽·아래는 모든 칸, 위·왼쪽은 가장자리 칸만).
+ *
+ * border-collapse: collapse 는 브라우저가 공유 경계를 한 번만 그리지만
+ * html2canvas 는 셀마다 경계를 각자 래스터화해 일부 경계가 두 배로 굵어진다
+ * (PDF에서 선 몇 개만 굵게 보이는 원인). separate + 변 1회 배치로
+ * 화면·PDF·인쇄가 모두 같은 1px 선을 내게 한다.
+ */
+function lineStyle(edge: { top?: boolean; left?: boolean }): CSSProperties {
+  return {
+    ...(edge.top ? { borderTop: LINE } : null),
+    ...(edge.left ? { borderLeft: LINE } : null),
+    borderRight: LINE,
+    borderBottom: LINE,
+  };
+}
 
 /** 시간 합계 표기 — 8.0 → "8", 7.5 → "7.5" */
 function formatHours(hours: number): string {
@@ -144,7 +161,8 @@ export function CertificateDocumentSheet({
       <table
         style={{
           width: CONTENT_WIDTH,
-          borderCollapse: "collapse",
+          borderCollapse: "separate",
+          borderSpacing: 0,
           tableLayout: "fixed",
         }}
       >
@@ -155,89 +173,95 @@ export function CertificateDocumentSheet({
         </colgroup>
         <tbody>
           <tr>
-            <td colSpan={COLS} style={{ border: LINE, height: 96, ...cell }}>
+            <td
+              colSpan={COLS}
+              style={{ height: 96, ...lineStyle({ top: true, left: true }), ...cell }}
+            >
               <span style={{ fontSize: 26, fontWeight: 700, letterSpacing: 6 }}>
                 계속교육내역 확인서
               </span>
             </td>
           </tr>
           <tr>
-            <td colSpan={3} style={{ border: LINE, height: 48, ...cell, fontSize: 14 }}>
+            <td colSpan={3} style={{ height: 48, ...lineStyle({ left: true }), ...cell, fontSize: 14 }}>
               신청인
             </td>
-            <td colSpan={3} style={{ border: LINE, ...cell, fontSize: 14 }}>
+            <td colSpan={3} style={{ ...lineStyle({}), ...cell, fontSize: 14 }}>
               성&nbsp;&nbsp;명
             </td>
-            <td colSpan={14} style={{ border: LINE, ...cell, fontSize: 14 }}>
+            <td colSpan={14} style={{ ...lineStyle({}), ...cell, fontSize: 14 }}>
               {memberName}
             </td>
           </tr>
           <tr>
-            <td colSpan={3} style={{ border: LINE, height: 48, ...cell, fontSize: 14 }}>
+            <td colSpan={3} style={{ height: 48, ...lineStyle({ left: true }), ...cell, fontSize: 14 }}>
               감리원 등급
             </td>
-            <td colSpan={5} style={{ border: LINE, ...cell, fontSize: 14 }}>
+            <td colSpan={5} style={{ ...lineStyle({}), ...cell, fontSize: 14 }}>
               {supervisorGrade ?? ""}
             </td>
-            <td colSpan={5} style={{ border: LINE, ...cell, fontSize: 14 }}>
+            <td colSpan={5} style={{ ...lineStyle({}), ...cell, fontSize: 14 }}>
               감리원증 발급번호
             </td>
-            <td colSpan={7} style={{ border: LINE, ...cell, fontSize: 14 }}>
+            <td colSpan={7} style={{ ...lineStyle({}), ...cell, fontSize: 14 }}>
               {supervisorCertNo ?? ""}
             </td>
           </tr>
           <tr>
-            <td colSpan={COLS} style={{ border: LINE, height: 48, ...cell, fontSize: 15 }}>
+            <td
+              colSpan={COLS}
+              style={{ height: 48, ...lineStyle({ left: true }), ...cell, fontSize: 15 }}
+            >
               계속교육내역 (최근 3년간)
             </td>
           </tr>
           <tr>
-            <td colSpan={2} style={{ border: LINE, height: 48, ...cell, fontSize: 15 }}>
+            <td colSpan={2} style={{ height: 48, ...lineStyle({ left: true }), ...cell, fontSize: 15 }}>
               연번
             </td>
-            <td colSpan={4} style={{ border: LINE, ...cell, fontSize: 15 }}>
+            <td colSpan={4} style={{ ...lineStyle({}), ...cell, fontSize: 15 }}>
               교육기관명
             </td>
-            <td colSpan={8} style={{ border: LINE, ...cell, fontSize: 15 }}>
+            <td colSpan={8} style={{ ...lineStyle({}), ...cell, fontSize: 15 }}>
               교육명
             </td>
-            <td colSpan={3} style={{ border: LINE, ...cell, fontSize: 15 }}>
+            <td colSpan={3} style={{ ...lineStyle({}), ...cell, fontSize: 15 }}>
               교육기간
             </td>
-            <td colSpan={3} style={{ border: LINE, ...cell, fontSize: 15 }}>
+            <td colSpan={3} style={{ ...lineStyle({}), ...cell, fontSize: 15 }}>
               교육시간
             </td>
           </tr>
           {paddedRows.map((row, index) => (
             <tr key={index}>
-              <td colSpan={2} style={{ border: LINE, height: 72, ...cell }}>
+              <td colSpan={2} style={{ height: 72, ...lineStyle({ left: true }), ...cell }}>
                 {row ? startNo + index : ""}
               </td>
-              <td colSpan={4} style={{ border: LINE, ...cell, fontSize: 14 }}>
+              <td colSpan={4} style={{ ...lineStyle({}), ...cell, fontSize: 14 }}>
                 {row?.institutionName ?? ""}
               </td>
-              <td colSpan={8} style={{ border: LINE, ...cell, fontSize: 14 }}>
+              <td colSpan={8} style={{ ...lineStyle({}), ...cell, fontSize: 14 }}>
                 {row?.courseName ?? ""}
               </td>
-              <td colSpan={3} style={{ border: LINE, ...cell }}>
+              <td colSpan={3} style={{ ...lineStyle({}), ...cell }}>
                 {row ? row.trainedOn.replaceAll("-", ".") : ""}
               </td>
-              <td colSpan={3} style={{ border: LINE, ...cell }}>
+              <td colSpan={3} style={{ ...lineStyle({}), ...cell }}>
                 {row ? `${formatHours(row.hours)}시간` : ""}
               </td>
             </tr>
           ))}
           <tr>
-            <td colSpan={17} style={{ border: LINE, height: 52, ...cell }}>
+            <td colSpan={17} style={{ height: 52, ...lineStyle({ left: true }), ...cell }}>
               합계
             </td>
-            <td colSpan={3} style={{ border: LINE, ...cell }}>
+            <td colSpan={3} style={{ ...lineStyle({}), ...cell }}>
               {formatHours(totalHours)}시간
             </td>
           </tr>
           {/* 증명 문구 · 발급일 · 발급 기관 · 도장 — 서식 안 마지막 칸 */}
           <tr>
-            <td colSpan={COLS} style={{ border: LINE, padding: 0 }}>
+            <td colSpan={COLS} style={{ ...lineStyle({ left: true }), padding: 0 }}>
               <div
                 style={{
                   position: "relative",

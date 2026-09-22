@@ -216,7 +216,12 @@ export function TraineeListPage() {
               등급변경
             </Button>
             <Button variant="ghost" size="sm" asChild>
-              <Link to={`/training-records?trainee_id=${row.original.id}`}>이력</Link>
+              <Link
+                to={`/training-records?trainee_id=${row.original.id}`}
+                onClick={(e) => e.stopPropagation()}
+              >
+                이력
+              </Link>
             </Button>
             <Button
               variant="ghost"
@@ -336,6 +341,7 @@ export function TraineeListPage() {
         columns={columns}
         data={items}
         isLoading={!data}
+        onRowClick={toggleRow}
         emptyMessage="조건에 맞는 감리원이 없어요"
         page={page}
         totalPages={totalPages}
