@@ -32,6 +32,7 @@ class MeSessionResponse(BaseModel):
 class MyCertificateResponse(BaseModel):
     id: uuid.UUID
     certificate_no: str
+    bundle_no: str | None = None
     training_record_id: uuid.UUID
     course_name: str
     institution_name: str
@@ -50,6 +51,7 @@ class MyCertificateResponse(BaseModel):
         return cls(
             id=c.id,
             certificate_no=c.certificate_no,
+            bundle_no=c.bundle_no,
             training_record_id=c.training_record_id,
             course_name=c.course_name,
             institution_name=c.institution_name,

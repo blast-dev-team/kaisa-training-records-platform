@@ -1,6 +1,6 @@
 import uuid
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, File, Query, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
@@ -15,6 +15,9 @@ from app.domain.trainee.schema import (
     TraineeBulkResult,
     TraineeBulkUpdate,
     TraineeCreate,
+    TraineeImportConfirmRequest,
+    TraineeImportPreviewResponse,
+    TraineeImportResult,
     TraineeResponse,
     TraineeUpdate,
 )
@@ -34,6 +37,8 @@ async def list_trainees(
     db: AsyncSession = Depends(get_db),
     _: AdminUser = Depends(require_admin),
 ):
+    # 조회 시점 자동 전환 — 기간 지난 연간 회원을 일반으로 (스케줄러 없음, timezone 규칙)
+    await trainee_service.expire_due_memberships(db)
     trainees, total = await trainee_service.list_trainees(
         db,
         search=search,
@@ -93,6 +98,35 @@ async def bulk_update_trainees(
     """선택 교육생 기본정보 일괄 수정 — 보낸 필드만 건별 적용, 없는 id 는 건너뜀."""
     updated, skipped = await trainee_service.update_trainees_bulk(db, body, actor)
     return TraineeBulkResult(updated=updated, skipped=skipped)
+
+
+# /import* 정적 경로 — /{trainee_id} 보다 먼저 선언해야 한다
+
+
+@router.post("/import-preview", response_model=TraineeImportPreviewResponse)
+async def preview_trainee_import(
+    file: UploadFile = File(...),
+    db: AsyncSession = Depends(get_db),
+    _: AdminUser = Depends(require_admin),
+):
+    """엑셀 파싱 + 중복 판별 결과를 돌려준다 — 확정 전 프리뷰·편집용."""
+    content = await file.read()
+    return await trainee_service.preview_import(db, content)
+
+
+@router.post("/import-confirm", response_model=TraineeImportResult)
+async def confirm_trainee_import(
+    body: TraineeImportConfirmRequest,
+    db: AsyncSession = Depends(get_db),
+    actor: AdminUser = Depends(require_admin),
+):
+    """프리뷰에서 편집 완료된 행을 일괄 등록 — 중복은 확정 시점에 다시 걸러진다."""
+    created, skipped, failed = await trainee_service.confirm_import(db, body, actor)
+    return TraineeImportResult(
+        created=created,
+        skipped=skipped,
+        failed=[{"row_number": n, "error": msg} for n, msg in failed],
+    )
 
 
 @router.get("/{trainee_id}", response_model=TraineeResponse)

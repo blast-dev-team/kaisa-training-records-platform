@@ -5,6 +5,7 @@ from decimal import Decimal
 
 from sqlalchemy import select
 
+from app.core.kst import today_kst
 from app.domain.institution.model import (
     CourseSession,
     TrainingCourse,
@@ -139,17 +140,17 @@ class TestCourseSessions:
         )
         assert resp.json()["total"] == 2
 
-    async def test_future_session_creates_in_progress(self, client, db):
-        """종료일이 미래인 일정 — 진행중(이수시수 0, 완료일 없음)으로 생성"""
+    async def test_future_session_still_creates_completed(self, client, db):
+        """종료일이 미래여도 연결 시점에 수료 완료로 생성 — 이수시수는 일정 인정시수"""
         import uuid as _uuid
-        from datetime import date, timedelta
+        from datetime import timedelta
 
         _actor, token = await make_admin(db)
         course = await make_course(db)
         t1, _ = await _two_trainees(db)
         await db.commit()
 
-        future = (date.today() + timedelta(days=7)).isoformat()
+        future = (today_kst() + timedelta(days=7)).isoformat()
         resp = await client.post(
             "/api/course-sessions",
             json={"course_id": str(course.id), "started_at": future,
@@ -171,9 +172,9 @@ class TestCourseSessions:
                 )
             )
         ).scalar_one()
-        assert record.completion_status == "in_progress"
-        assert record.completed_hours == Decimal("0.00")
-        assert record.completed_at is None
+        assert record.completion_status == "completed"
+        assert record.completed_hours == Decimal("6.00")
+        assert record.completed_at is not None
 
     async def test_delete_session_preserves_records(self, client, db):
         _actor, token = await make_admin(db)
@@ -275,6 +276,59 @@ class TestCourseSessions:
         )
         assert resp.status_code == 422
         assert resp.json()["code"] == "VALIDATION_ERROR"
+
+    async def test_bulk_delete_records(self, client, db):
+        """선택 이력 일괄 삭제 — 소프트딜리트라 row 는 남고 deleted_at 만 찍힌다"""
+        _actor, token = await make_admin(db)
+        course = await make_course(db)
+        t1, t2 = await _two_trainees(db)
+        await db.commit()
+
+        resp = await client.post(
+            "/api/course-sessions",
+            json={"course_id": str(course.id), "started_at": "2026-09-01"},
+            cookies=admin_cookie(token),
+        )
+        session_id = resp.json()["id"]
+        resp = await client.post(
+            "/api/training-records/bulk",
+            json={"session_id": session_id, "trainee_ids": [str(t1.id), str(t2.id)]},
+            cookies=admin_cookie(token),
+        )
+        assert resp.json() == {"created": 2, "skipped": 0}
+
+        record_ids = [
+            str(r.id)
+            for r in (
+                await db.execute(
+                    select(TrainingRecord).where(
+                        TrainingRecord.session_id == uuid.UUID(session_id)
+                    )
+                )
+            ).scalars()
+        ]
+
+        resp = await client.request(
+            "DELETE",
+            "/api/training-records/bulk",
+            json={"ids": record_ids},
+            cookies=admin_cookie(token),
+        )
+        assert resp.status_code == 200
+        assert resp.json()["deleted"] == 2
+
+        # 소프트딜리트 — row 는 보존되고 deleted_at 만 기록
+        rows = list(
+            (
+                await db.execute(
+                    select(TrainingRecord).where(
+                        TrainingRecord.session_id == uuid.UUID(session_id)
+                    )
+                )
+            ).scalars()
+        )
+        assert len(rows) == 2
+        assert all(r.deleted_at is not None for r in rows)
 
     async def test_bulk_delete_preserves_records(self, client, db):
         _actor, token = await make_admin(db)

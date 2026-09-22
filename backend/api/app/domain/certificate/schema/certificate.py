@@ -22,6 +22,7 @@ class CertificateResponse(BaseModel):
 
     id: uuid.UUID
     certificate_no: str
+    bundle_no: str | None = None
     certificate_request_id: uuid.UUID
     trainee_id: uuid.UUID
     training_record_id: uuid.UUID

@@ -19,6 +19,8 @@ class PagedResponse[T](BaseModel):
     total: int
     page: int
     limit: int
+    # 집계가 필요한 도메인만 채운다 — 전체 필터 조건 기준 합계 (현재 페이지 합이 아님)
+    total_hours_sum: float | None = None
 
     @computed_field
     @property

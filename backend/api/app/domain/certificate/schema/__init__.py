@@ -9,6 +9,7 @@ from app.domain.certificate.schema.certificate_request import (
     CertificateRequestResponse,
 )
 from app.domain.certificate.schema.public_verification import (
+    PublicVerificationRecordRow,
     PublicVerificationRequest,
     PublicVerificationResponse,
 )
@@ -20,6 +21,7 @@ __all__ = [
     "CertificateResponse",
     "CertificateRevokeRequest",
     "MyCertificateBrief",
+    "PublicVerificationRecordRow",
     "PublicVerificationRequest",
     "PublicVerificationResponse",
 ]

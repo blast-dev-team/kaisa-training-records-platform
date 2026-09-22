@@ -26,12 +26,16 @@ class Certificate(Base):
         Index("ix_cert_trainee_issued_at", "trainee_id", "issued_at"),
         Index("ix_cert_record_issued_at", "training_record_id", "issued_at"),
         Index("ix_cert_no_issued_at", "certificate_no", "issued_at"),
+        Index("ix_certificates_bundle_no", "bundle_no"),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
     certificate_no: Mapped[str] = mapped_column(
         String(100), nullable=False, unique=True
     )
+    # 묶음 확인서 번호 — 한 번의 발급 이벤트가 공유하는 표시 번호.
+    # 첫 확인서의 certificate_no 를 쓴다(별도 채번 없음). 기존 건은 자기 번호로 백필됨
+    bundle_no: Mapped[str | None] = mapped_column(String(100), nullable=True)
     certificate_request_id: Mapped[uuid.UUID] = mapped_column(
         Uuid, ForeignKey("certificate_requests.id"), nullable=False, unique=True
     )

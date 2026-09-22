@@ -117,6 +117,8 @@ async def confirm_order(
         certificates.append(
             await issuance_service.issue_certificate(db, request, order.id)
         )
+    # 결제 1건으로 발급된 N건 = 묶음 확인서 1건 (종이에 인쇄될 번호 하나)
+    issuance_service.assign_bundle_no(certificates)
     await db.commit()
 
     return PaymentConfirmResponse(

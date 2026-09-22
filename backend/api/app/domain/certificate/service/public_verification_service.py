@@ -11,6 +11,7 @@ from app.core.rate_limit import is_rate_limited, register_attempt
 from app.domain.certificate.model import CertificateVerificationLog
 from app.domain.certificate.repository import certificate_repository as repo
 from app.domain.certificate.schema import (
+    PublicVerificationRecordRow,
     PublicVerificationRequest,
     PublicVerificationResponse,
 )
@@ -63,8 +64,15 @@ async def verify_certificate(
             result="not_found", message="등록되지 않은 확인서 번호예요"
         )
 
+    # 묶음 확인서 — 같은 묶음 번호의 유효 멤버가 진위확인 대상. 개별 번호로
+    # 조회해도 번호가 속한 묶음 전체가 반환된다 (paper 에 찍힌 번호가 묶음 번호)
+    members = await repo.find_bundle_members(db, certificate)
+    if not members:
+        members = [certificate]
 
-    if certificate.status == "revoked":
+    if certificate.status == "revoked" and all(
+        member.status == "revoked" for member in members
+    ):
         await _log("revoked", certificate.id)
         await db.commit()
         return PublicVerificationResponse(
@@ -73,8 +81,9 @@ async def verify_certificate(
             message="폐기된 확인서예요",
         )
 
+    head = members[0]
     result = "valid"
-    if certificate.expires_at is not None and certificate.expires_at < now:
+    if head.expires_at is not None and head.expires_at < now:
         result = "expired"
     await _log(result, certificate.id)
     await db.commit()
@@ -82,12 +91,21 @@ async def verify_certificate(
     return PublicVerificationResponse(
         result=result,
         certificate_no=certificate.certificate_no,
-        issued_name_masked=mask_name(certificate.issued_name),
-        course_name=certificate.course_name,
-        total_hours=certificate.total_hours,
-        training_ended_at=certificate.training_ended_at,
-        issued_at=to_kst_date(certificate.issued_at),
+        issued_name_masked=mask_name(head.issued_name),
+        course_name=head.course_name,
+        total_hours=head.total_hours,
+        training_ended_at=head.training_ended_at,
+        issued_at=to_kst_date(head.issued_at),
         expires_at=(
-            to_kst_date(certificate.expires_at) if certificate.expires_at else None
+            to_kst_date(head.expires_at) if head.expires_at else None
         ),
+        records=[
+            PublicVerificationRecordRow(
+                course_name=member.course_name,
+                institution_name=member.institution_name,
+                total_hours=member.total_hours,
+                training_ended_at=member.training_ended_at,
+            )
+            for member in members
+        ],
     )

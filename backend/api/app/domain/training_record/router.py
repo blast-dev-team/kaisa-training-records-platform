@@ -1,7 +1,7 @@
 import uuid
 from datetime import date
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, File, Query, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
@@ -9,8 +9,11 @@ from app.core.dependencies import require_admin
 from app.core.response import PagedResponse
 from app.domain.auth.model import AdminUser
 from app.domain.training_record.schema import (
+    TraineeMatchPreviewResult,
     TrainingRecordBulkCreate,
+    TrainingRecordBulkDelete,
     TrainingRecordBulkResult,
+    TrainingRecordBulkUpdate,
     TrainingRecordCreate,
     TrainingRecordResponse,
     TrainingRecordUpdate,
@@ -35,7 +38,7 @@ async def list_records(
     db: AsyncSession = Depends(get_db),
     _: AdminUser = Depends(require_admin),
 ):
-    records, total = await training_record_service.list_records(
+    records, total, hours_sum = await training_record_service.list_records(
         db,
         trainee_id=trainee_id,
         session_id=session_id,
@@ -53,6 +56,7 @@ async def list_records(
         total=total,
         page=page,
         limit=limit,
+        total_hours_sum=float(hours_sum),
     )
 
 
@@ -67,6 +71,42 @@ async def create_records_bulk(
         db, body, actor
     )
     return TrainingRecordBulkResult(created=created, skipped=skipped)
+
+
+@router.patch("/bulk", status_code=200)
+async def update_records_bulk(
+    body: TrainingRecordBulkUpdate,
+    db: AsyncSession = Depends(get_db),
+    actor: AdminUser = Depends(require_admin),
+):
+    """선택 이력 일괄 수정 — 행별로 전달된 필드만 변경, 한 트랜잭션으로 커밋."""
+    updated = await training_record_service.bulk_update_records(db, body, actor)
+    return {"ok": True, "updated": updated}
+
+
+@router.delete("/bulk", status_code=200)
+async def delete_records_bulk(
+    body: TrainingRecordBulkDelete,
+    db: AsyncSession = Depends(get_db),
+    actor: AdminUser = Depends(require_admin),
+):
+    """선택 이력 일괄 삭제 — 소프트딜리트라 감사로그·발급 이력은 보존된다."""
+    deleted = await training_record_service.bulk_delete_records(db, body, actor)
+    return {"ok": True, "deleted": deleted}
+
+
+# /match* 정적 경로 — /{record_id} 보다 먼저 선언해야 한다
+
+
+@router.post("/match-preview", response_model=TraineeMatchPreviewResult)
+async def preview_trainee_match(
+    file: UploadFile = File(...),
+    db: AsyncSession = Depends(get_db),
+    _: AdminUser = Depends(require_admin),
+):
+    """엑셀 행을 교육생과 대조 — 매칭된 교육생 목록을 돌려준다(연결 전 자동 선택용)."""
+    content = await file.read()
+    return await training_record_service.match_preview(db, content)
 
 
 @router.get("/{record_id}", response_model=TrainingRecordResponse)

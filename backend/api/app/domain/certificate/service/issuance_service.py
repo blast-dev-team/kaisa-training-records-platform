@@ -123,3 +123,17 @@ async def issue_certificate(
     request.issued_at = issued_at
     await db.flush()
     return certificate
+
+
+def assign_bundle_no(certificates: list[Certificate]) -> None:
+    """한 발급 이벤트의 확인서들을 묶음 확인서 1건으로 묶는다.
+
+    묶음 번호는 별도 채번 없이 첫 확인서의 certificate_no 를 쓴다 —
+    표시 번호 = 첫 확인서 번호 = 묶음 번호 라 결제내역 등 기존 표기가 그대로 맞는다.
+    단건 발급도 묶음 1건으로 만들어 이후 경로(진위확인·조회)를 단일화한다.
+    """
+    if not certificates:
+        return
+    bundle_no = certificates[0].certificate_no
+    for certificate in certificates:
+        certificate.bundle_no = bundle_no

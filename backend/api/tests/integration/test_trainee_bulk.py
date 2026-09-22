@@ -103,6 +103,7 @@ class TestBulkUpdate:
         grade = await make_grade(db, code="g-c1", name="수정등급")
         _, t1 = await make_trainee(db, grade.id, ci_raw="ci-c1", trainee_no="TR-C-0001")
         _, t2 = await make_trainee(db, grade.id, ci_raw="ci-c2", trainee_no="TR-C-0002")
+        t2.cert_no = "2026-0002"
         original_encrypted = t2.phone_encrypted
         _, admin_token = await make_admin(db)
         await db.commit()
@@ -116,6 +117,7 @@ class TestBulkUpdate:
                         "name": "김이박",
                         "birth_date": "1990-01-02",
                         "phone": "01099998888",
+                        "cert_no": "2026-1111",
                     },
                     {
                         "id": str(t2.id),
@@ -140,6 +142,7 @@ class TestBulkUpdate:
         assert row1.name == "김이박"
         assert str(row1.birth_date) == "1990-01-02"
         assert decrypt_field(row1.phone_encrypted) == "01099998888"
+        assert row1.cert_no == "2026-1111"
 
         row2 = (
             await db.execute(
@@ -150,6 +153,7 @@ class TestBulkUpdate:
         ).scalar_one()
         assert row2.name == "최정아"
         assert row2.phone_encrypted == original_encrypted
+        assert row2.cert_no == "2026-0002"  # cert_no 키 생략 → 기존 번호 유지
 
     async def test_bulk_update_validation_and_auth(self, client, db):
         grade = await make_grade(db, code="g-c2", name="검증등급")

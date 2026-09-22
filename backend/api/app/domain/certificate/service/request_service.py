@@ -21,7 +21,14 @@ from app.domain.certificate.schema import (
 from app.domain.certificate.service import issuance_service
 from app.domain.payment.model import PaymentAttempt, PaymentOrder
 from app.domain.trainee.model import Trainee
+from app.domain.trainee.service import trainee_service
 from app.domain.training_record.model import TrainingRecord
+
+
+async def _expire_then_reload(db: AsyncSession, trainee: Trainee) -> None:
+    """단가 산정 전 자동 전환 — 기간 지난 연간 회원은 일반 단가가 적용돼야 한다."""
+    if await trainee_service.expire_due_memberships(db):
+        await db.refresh(trainee)
 
 
 def _request_no() -> str:
@@ -168,6 +175,7 @@ async def create_request(
 
     반환은 request — response 조립에 필요한 order/certificate 는 relationship 으로 접근.
     """
+    await _expire_then_reload(db, trainee)
     _require_determined_grade(trainee)
 
     record, active_cert = await _validate_item(
@@ -193,7 +201,8 @@ async def create_request(
     if amount_krw == 0:
         request.status = "paid"
         request.paid_at = now
-        await issuance_service.issue_certificate(db, request)
+        certificate = await issuance_service.issue_certificate(db, request)
+        issuance_service.assign_bundle_no([certificate])
         await db.commit()
         await db.refresh(request)
         return request
@@ -236,6 +245,7 @@ async def create_requests_batch(
     유료 건이 하나라도 있으면 단가 1회만 청구하는 주문을 만들고 confirm 시
     전건 발급한다. 유료 합계가 0원이면(전 건 0원 가격·무료 재발급) 즉시 발급.
     """
+    await _expire_then_reload(db, trainee)
     _require_determined_grade(trainee)
 
     record_ids = [item.training_record_id for item in data.items]
@@ -268,10 +278,15 @@ async def create_requests_batch(
     paid_amounts = [amount for _, _, _, amount in validated if amount > 0]
     total_krw = max(paid_amounts) if paid_amounts else 0
     if total_krw == 0:
+        certificates = []
         for request in requests:
             request.status = "paid"
             request.paid_at = now
-            await issuance_service.issue_certificate(db, request)
+            certificates.append(
+                await issuance_service.issue_certificate(db, request)
+            )
+        # 한 이벤트에 발급된 N건 = 묶음 확인서 1건
+        issuance_service.assign_bundle_no(certificates)
         await db.commit()
         for request in requests:
             await db.refresh(request)

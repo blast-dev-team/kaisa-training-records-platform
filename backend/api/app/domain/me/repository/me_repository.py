@@ -1,7 +1,8 @@
 import uuid
 from datetime import date, datetime
+from decimal import Decimal
 
-from sqlalchemy import func, or_, select
+from sqlalchemy import ColumnElement, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.domain.certificate.model import Certificate, CertificateRequest
@@ -17,14 +18,15 @@ async def list_member_records(
     ended_to: date | None = None,
     page: int = 1,
     limit: int = 20,
-) -> tuple[list[TrainingRecord], int]:
+) -> tuple[list[TrainingRecord], int, Decimal]:
     """회원 포털 교육이력 — 본인 이력 + 공용 데모 이력(is_demo).
 
     데모 이력은 교육생 소속과 무관하게 모든 로그인 회원에게 노출된다.
+    목록·건수·시수 합계가 같은 필터 조건을 공유한다 (집합 불일치 방지).
     """
-    stmt = select(TrainingRecord).where(TrainingRecord.deleted_at.is_(None))
+    conditions: list[ColumnElement[bool]] = [TrainingRecord.deleted_at.is_(None)]
     if trainee_id is not None:
-        stmt = stmt.where(
+        conditions.append(
             or_(
                 TrainingRecord.trainee_id == trainee_id,
                 TrainingRecord.is_demo.is_(True),
@@ -32,21 +34,27 @@ async def list_member_records(
         )
     else:
         # 교육생 미연결 신규 회원 — 데모 이력만
-        stmt = stmt.where(TrainingRecord.is_demo.is_(True))
+        conditions.append(TrainingRecord.is_demo.is_(True))
     if search:
-        stmt = stmt.where(
+        conditions.append(
             or_(
                 TrainingRecord.course_name.ilike(f"%{search}%"),
                 TrainingRecord.institution_name.ilike(f"%{search}%"),
             )
         )
     if ended_from:
-        stmt = stmt.where(TrainingRecord.ended_at >= ended_from)
+        conditions.append(TrainingRecord.ended_at >= ended_from)
     if ended_to:
-        stmt = stmt.where(TrainingRecord.ended_at <= ended_to)
+        conditions.append(TrainingRecord.ended_at <= ended_to)
 
+    stmt = select(TrainingRecord).where(*conditions)
     total = (
         await db.execute(select(func.count()).select_from(stmt.subquery()))
+    ).scalar_one()
+    hours_sum = (
+        await db.execute(
+            select(func.coalesce(func.sum(TrainingRecord.total_hours), 0)).where(*conditions)
+        )
     ).scalar_one()
     stmt = (
         stmt.order_by(
@@ -56,7 +64,7 @@ async def list_member_records(
         .limit(limit)
     )
     records = list((await db.execute(stmt)).scalars().all())
-    return records, int(total)
+    return records, int(total), hours_sum
 
 
 async def find_downloadable_record(

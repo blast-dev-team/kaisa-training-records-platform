@@ -1,5 +1,6 @@
 import uuid
 from datetime import date, timedelta
+from decimal import Decimal
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -24,6 +25,7 @@ from app.domain.me.schema import (
     MyPaymentHistoryItem,
 )
 from app.domain.trainee.model import Trainee
+from app.domain.trainee.service import trainee_service
 from app.domain.training_record.schema import TrainingRecordResponse
 from app.domain.user.model import User
 from app.integrations import s3
@@ -95,6 +97,9 @@ async def extend_session(db: AsyncSession, token: str | None) -> MeSessionRespon
 
 
 async def get_profile(db: AsyncSession, trainee: Trainee) -> MeProfileResponse:
+    # 등급 표시 전 자동 전환 — 기간 지난 연간 회원은 일반으로 보여야 한다
+    if await trainee_service.expire_due_memberships(db):
+        await db.refresh(trainee)
     phone = decrypt_field(trainee.phone_encrypted) if trainee.phone_encrypted else None
     return MeProfileResponse(
         user_id=trainee.user_id,
@@ -206,7 +211,7 @@ async def list_member_records(
     ended_to_raw: str | None = None,
     page: int = 1,
     limit: int = 20,
-) -> tuple[list[TrainingRecordResponse], int]:
+) -> tuple[list[TrainingRecordResponse], int, Decimal]:
     """회원 포털 교육이력 — 본인 이력 + 공용 데모 이력 + 회원별 발급 상태.
 
     교육생 미연결 신규 회원은 데모 이력만 본다 (get_current_trainee 403 회피).
@@ -221,7 +226,7 @@ async def list_member_records(
         )
         ).scalar_one_or_none()
         trainee_id = trainee.id if trainee else None
-    records, total = await repo.list_member_records(
+    records, total, hours_sum = await repo.list_member_records(
         db,
         trainee_id,
         search=search,
@@ -231,7 +236,7 @@ async def list_member_records(
         limit=limit,
     )
     items = await decorate_member_records(db, trainee_id, records)
-    return items, total
+    return items, total, hours_sum
 
 
 async def get_demo_download_url(db: AsyncSession, user: User, record_id: uuid.UUID) -> str:
@@ -408,6 +413,9 @@ async def get_certificate_price(
     db: AsyncSession, trainee: Trainee, record_id: uuid.UUID, issue_type: str
 ) -> CertificatePriceResponse:
     """발급 요청 전 가격 미리보기 — 소유·수료·등급 판별 게이트를 서버에서 선검사."""
+    # 단가 산정 전 자동 전환 — 기간 지난 연간 회원은 일반 단가가 적용돼야 한다
+    if await trainee_service.expire_due_memberships(db):
+        await db.refresh(trainee)
     record = await get_my_record(db, trainee, record_id)
     if record.completion_status != "completed":
         raise api_error(

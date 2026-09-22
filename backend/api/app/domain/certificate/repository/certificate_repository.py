@@ -21,6 +21,25 @@ async def find_by_no(db: AsyncSession, certificate_no: str) -> Certificate | Non
     return result.scalar_one_or_none()
 
 
+async def find_bundle_members(db: AsyncSession, certificate: Certificate) -> list[Certificate]:
+    """묶음 확인서의 유효 멤버 — 같은 묶음 번호의 issued 건. 연번 순서 유지.
+
+    유효 멤버가 없으면(전 멤버 superseded·revoked) 빈 리스트 — 호출부가
+    단건 fallback 을 한다.
+    """
+    if certificate.bundle_no is None:
+        return [certificate] if certificate.status == "issued" else []
+    result = await db.execute(
+        select(Certificate)
+        .where(
+            Certificate.bundle_no == certificate.bundle_no,
+            Certificate.status == "issued",
+        )
+        .order_by(Certificate.issued_at, Certificate.id)
+    )
+    return list(result.scalars().all())
+
+
 async def list_certificates(
     db: AsyncSession,
     trainee_id: uuid.UUID | None = None,

@@ -29,6 +29,7 @@ class Trainee(Base):
         Index("ix_trainees_name", "name"),
         Index("ix_trainees_membership_grade_id", "membership_grade_id"),
         Index("ix_trainees_review_status", "review_status"),
+        Index("ix_trainees_grade_expires_at", "grade_expires_at"),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
@@ -40,6 +41,8 @@ class Trainee(Base):
     cert_no: Mapped[str | None] = mapped_column(String(100))
     # 감리원 등급 (감리원 / 수석감리원) — 확인서 표기용. 회원등급(결제 단가)과 별개
     supervisor_grade: Mapped[str | None] = mapped_column(String(50))
+    # 감리원증 발급일자 — 엑셀 일괄 등록에서 받는 참조 정보
+    cert_issued_date: Mapped[date | None] = mapped_column(Date)
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     birth_date: Mapped[date | None] = mapped_column(Date)
     phone_encrypted: Mapped[str | None] = mapped_column(Text)
@@ -47,6 +50,8 @@ class Trainee(Base):
     membership_grade_id: Mapped[uuid.UUID | None] = mapped_column(
         Uuid, ForeignKey("membership_grades.id", ondelete="SET NULL"), nullable=True
     )
+    # 연간 등급 만료일 — 만료일 당일까지 유효, 다음날(KST)부터 일반으로 자동 전환
+    grade_expires_at: Mapped[date | None] = mapped_column(Date)
     review_status: Mapped[str] = mapped_column(
         String(30), nullable=False, default="unverified"
     )

@@ -46,19 +46,24 @@ async def revoke_certificate(
             message="유효한 상태의 확인서만 폐기할 수 있어요",
         )
 
-    before = {"status": certificate.status}
-    certificate.status = "revoked"
-    certificate.revoked_at = now_kst()
-    certificate.revoked_reason = reason
-    record_audit(
-        db,
-        actor_admin_id=actor.id,
-        action="certificate.revoked",
-        entity_type="certificate",
-        entity_id=certificate.id,
-        before=before,
-        after={"status": "revoked", "reason": reason},
-    )
+    # 묶음 확인서는 번호가 하나라 부분 폐기가 의미 없다 — 전 멤버를 함께 폐기.
+    # issued 인 certificate 가 호출 조건이라 find_bundle_members 에 반드시 포함된다
+    bundle_members = await repo.find_bundle_members(db, certificate)
+
+    now = now_kst()
+    for member in bundle_members:
+        member.status = "revoked"
+        member.revoked_at = now
+        member.revoked_reason = reason
+        record_audit(
+            db,
+            actor_admin_id=actor.id,
+            action="certificate.revoked",
+            entity_type="certificate",
+            entity_id=member.id,
+            before={"status": "issued"},
+            after={"status": "revoked", "reason": reason},
+        )
     await db.commit()
     await db.refresh(certificate)
     return certificate

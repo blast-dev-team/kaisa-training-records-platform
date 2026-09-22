@@ -2,7 +2,7 @@ import uuid
 from datetime import date, datetime
 from decimal import Decimal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from app.core.crypto import decrypt_field, mask_phone
 
@@ -54,6 +54,7 @@ class TrainingRecordResponse(BaseModel):
     # 어드민 목록 표시용 — trainee 조인 값 (model_validate 로는 안 채워진다)
     trainee_name: str | None = None
     trainee_no: str | None = None
+    trainee_cert_no: str | None = None  # 감리원증번호 — 목록 표시용
     trainee_birth_date: date | None = None
     trainee_phone: str | None = None  # 마스킹 — trainee.phone_encrypted 복호화 후 mask_phone
     course_id: uuid.UUID | None
@@ -98,6 +99,7 @@ class TrainingRecordResponse(BaseModel):
             trainee_id=record.trainee_id,
             trainee_name=trainee.name if trainee else None,
             trainee_no=trainee.trainee_no if trainee else None,
+            trainee_cert_no=trainee.cert_no if trainee else None,
             trainee_birth_date=trainee.birth_date if trainee else None,
             trainee_phone=phone,
             course_id=record.course_id,
@@ -133,6 +135,54 @@ class TrainingRecordBulkCreate(BaseModel):
     memo: str | None = None
 
 
+class TrainingRecordBulkUpdateItem(BaseModel):
+    """일괄 수정 1행 — 전달된 필드만 바꾼다(exclude_unset). null 은 값을 지운다."""
+
+    id: uuid.UUID
+    course_id: uuid.UUID | None = None
+    form_no: str | None = None
+    doc_no: str | None = None
+    completion_status: str | None = None
+    started_at: date | None = None
+    ended_at: date | None = None
+    total_hours: Decimal | None = None
+    completed_hours: Decimal | None = None
+
+
+class TrainingRecordBulkUpdate(BaseModel):
+    updates: list[TrainingRecordBulkUpdateItem] = Field(min_length=1)
+
+
+class TrainingRecordBulkDelete(BaseModel):
+    """선택 이력 일괄 삭제 — 소프트딜리트라 감사로그·발급 이력은 보존된다."""
+
+    ids: list[uuid.UUID] = Field(min_length=1)
+
+
 class TrainingRecordBulkResult(BaseModel):
     created: int
     skipped: int
+
+
+class MatchPreviewMatched(BaseModel):
+    """엑셀 행과 대조가 끝난 교육생 — 연결(이력 생성) 전 자동 선택용."""
+
+    trainee_id: uuid.UUID
+    name: str
+    trainee_no: str | None = None
+    cert_no: str | None = None
+    matched_by: str  # cert_no | trainee_no | name
+
+
+class MatchPreviewUnmatched(BaseModel):
+    row_number: int
+    name: str | None = None
+    # 엑셀에 있었지만 대조에 실패한 값 — 직접 등록으로 신규 교육생을 만들 때 재사용
+    cert_no: str | None = None
+    reason: str
+
+
+class TraineeMatchPreviewResult(BaseModel):
+    total_rows: int
+    matched: list[MatchPreviewMatched]
+    unmatched: list[MatchPreviewUnmatched]

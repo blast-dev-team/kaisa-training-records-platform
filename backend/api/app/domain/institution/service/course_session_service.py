@@ -222,17 +222,9 @@ async def create_records_for_session(
         ).scalars()
     )
 
-    # 수료 상태 자동 판정 — 교육 기간이 아직 안 끝났으면 진행중으로 생성
-    # (명시적으로 다른 상태를 요청하면 그 값을 존중)
-    today = today_kst()
-    effective_end = session.ended_at or session.started_at
-    finished = effective_end is not None and effective_end < today
-    if completion_status == "completed" and not finished:
-        completion_status = "in_progress"
-
+    # 요청 기본값이 completed(스키마 기본)라 연결 즉시 수료 완료로 생성된다.
+    # 종료일이 미래여도 강등하지 않는다 — 현장에서는 교육 시작 전에도 선수료 처리를 한다.
     hours = completed_hours if completed_hours is not None else session.recognized_hours
-    if completion_status == "in_progress":
-        hours = Decimal(0)  # 미수료 — 이수 시수는 수료 처리할 때 입력
     records: list[TrainingRecord] = []
     skipped = 0
     for trainee_id in dict.fromkeys(trainee_ids):  # 요청 내 중복 제거

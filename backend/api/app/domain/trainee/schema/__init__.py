@@ -8,6 +8,10 @@ from app.domain.trainee.schema.trainee import (
     TraineeBulkResult,
     TraineeBulkUpdate,
     TraineeCreate,
+    TraineeImportConfirmRequest,
+    TraineeImportPreviewResponse,
+    TraineeImportResult,
+    TraineeImportRow,
     TraineeResponse,
     TraineeUpdate,
 )
@@ -20,6 +24,10 @@ __all__ = [
     "TraineeBulkResult",
     "TraineeBulkUpdate",
     "TraineeCreate",
+    "TraineeImportConfirmRequest",
+    "TraineeImportPreviewResponse",
+    "TraineeImportResult",
+    "TraineeImportRow",
     "TraineeResponse",
     "TraineeUpdate",
 ]
