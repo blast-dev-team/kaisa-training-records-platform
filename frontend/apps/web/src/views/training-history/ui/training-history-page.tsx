@@ -288,37 +288,54 @@ export function TrainingHistoryPage() {
       </form>
 
       {/* 발급 툴바 — node 99:5098. 체크한 건을 일괄 발급·재발급한다 */}
-      <div className="flex items-center justify-end gap-3 mobile:flex-col mobile:items-stretch mobile:gap-3">
-        {selectedIds.length === 0 && (
-          <p className="font-sans text-sm leading-normal text-gray-500 mobile:text-[13px] mobile:hidden">
-            여러 교육내역 확인서를 한번에 발급할 수 있습니다. 발급 비용은 단 건, 일괄 건 동일합니다.
-          </p>
-        )}
-        <div className="flex items-center justify-end gap-3 mobile:justify-end mobile:gap-2">
-          {/* 데스크톱은 안내 문구가 대신 알려주므로 모바일에서만 선택 건수 노출 */}
-          {selectedIds.length > 0 && (
-            <p className="font-sans text-sm leading-normal text-gray-500 mobile:block mobile:text-[13px]">
-              {selectedIds.length}개 선택
+      <div className="flex items-center justify-between gap-3 mobile:flex-col mobile:items-stretch mobile:gap-3">
+        <p className="font-sans text-sm leading-normal text-gray-500 mobile:text-[13px]">
+          <span className="font-semibold">
+            총 <span className="text-primary-500">{data?.total ?? 0}건</span>
+          </span>{" "}
+          ·{" "}
+          <span className="font-semibold">
+            발급 가능 <span className="text-primary-500">{data?.issuableCount ?? 0}건</span>
+          </span>{" "}
+          ·{" "}
+          <span className="font-semibold">
+            총 이수시간{" "}
+            <span className="text-primary-500">{formatHours(data?.totalHoursSum ?? 0)}시간</span>
+          </span>
+        </p>
+        <div className="flex items-center gap-3">
+          {selectedIds.length === 0 && (
+            <p className="font-sans text-sm leading-normal text-gray-500 mobile:text-[13px] mobile:hidden">
+              여러 교육내역 확인서를 한번에 발급할 수 있습니다. 발급 비용은 단 건, 일괄 건
+              동일합니다.
             </p>
           )}
-          <Button
-            color="black"
-            size="s"
-            disabled={!canReissue}
-            onClick={handleReissueClick}
-            className="rounded-md px-3 py-1.5 text-[13px] font-medium"
-          >
-            재발급
-          </Button>
-          <Button
-            color="black"
-            size="s"
-            disabled={!canIssue}
-            onClick={handleIssueClick}
-            className="rounded-md px-3 py-1.5 text-[13px] font-medium"
-          >
-            발급
-          </Button>
+          <div className="flex items-center justify-end gap-3 mobile:justify-end mobile:gap-2">
+            {/* 데스크톱은 안내 문구가 대신 알려주므로 모바일에서만 선택 건수 노출 */}
+            {selectedIds.length > 0 && (
+              <p className="font-sans text-sm leading-normal text-gray-500 mobile:block mobile:text-[13px]">
+                {selectedIds.length}개 선택
+              </p>
+            )}
+            <Button
+              color="black"
+              size="s"
+              disabled={!canReissue}
+              onClick={handleReissueClick}
+              className="rounded-md px-3 py-1.5 text-[13px] font-medium"
+            >
+              재발급
+            </Button>
+            <Button
+              color="black"
+              size="s"
+              disabled={!canIssue}
+              onClick={handleIssueClick}
+              className="rounded-md px-3 py-1.5 text-[13px] font-medium"
+            >
+              발급
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -390,11 +407,7 @@ export function TrainingHistoryPage() {
       )}
 
       {/* 목록 하단 — 건수 요약 + 페이지네이션 (node 25:2497). 모바일은 세로 중앙 정렬 (node 128:2614) */}
-      <div className="flex w-full items-center justify-between mobile:flex-col mobile:items-center mobile:gap-3">
-        <p className="font-sans text-sm leading-normal text-gray-500 mobile:text-[13px]">
-          총 {data?.total ?? 0}건 · 발급 가능 {data?.issuableCount ?? 0}건 · 총{" "}
-          {formatHours(data?.totalHoursSum ?? 0)}시간
-        </p>
+      <div className="flex w-full items-center justify-end mobile:flex-col mobile:items-center mobile:gap-3">
         <Pagination
           page={data?.page ?? page}
           totalPages={totalPages}
