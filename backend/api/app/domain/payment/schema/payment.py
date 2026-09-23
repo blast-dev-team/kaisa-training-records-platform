@@ -3,6 +3,7 @@ from datetime import datetime
 
 from pydantic import BaseModel
 
+from app.core.crypto import decrypt_field
 from app.domain.certificate.schema import MyCertificateBrief
 
 
@@ -43,7 +44,7 @@ class PaymentOrderResponse(BaseModel):
             order_no=o.order_no,
             certificate_request_id=o.certificate_request_id,
             trainee_id=o.trainee_id,
-            trainee_name=o.trainee.name if o.trainee else None,
+            trainee_name=decrypt_field(o.trainee.name_encrypted) if o.trainee else None,
             amount_krw=o.amount_krw,
             currency=o.currency,
             status=o.status,

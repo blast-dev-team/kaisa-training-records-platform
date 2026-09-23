@@ -27,7 +27,9 @@ class IdentityVerification(Base):
     )
     redirect_state_hash: Mapped[str | None] = mapped_column(String(255))
     status: Mapped[str] = mapped_column(String(30), nullable=False, default="pending")
-    verified_name: Mapped[str | None] = mapped_column(String(100))
+    # 인증 성명 — Fernet 가역 저장 + HMAC blind index
+    verified_name_encrypted: Mapped[str | None] = mapped_column(Text)
+    verified_name_hash: Mapped[str | None] = mapped_column(String(64))
     verified_phone_encrypted: Mapped[str | None] = mapped_column(Text)
     ci_hash: Mapped[str | None] = mapped_column(String(255))
     di_hash: Mapped[str | None] = mapped_column(String(255))

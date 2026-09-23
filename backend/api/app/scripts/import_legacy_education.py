@@ -27,6 +27,7 @@ from decimal import Decimal
 import openpyxl
 from sqlalchemy import select
 
+from app.core.crypto import name_columns
 from app.core.database import async_session
 from app.domain.institution.model import (
     CourseSession,
@@ -102,7 +103,7 @@ async def import_legacy_education(xlsx_path: str) -> None:
         by_identity: dict[tuple[str, str], Trainee] = {}
         for t in existing_trainees.values():
             if t.trainee_no and (t.trainee_no.startswith("EDU-") or t.trainee_no.startswith("LEG-")) and t.birth_date:
-                by_identity.setdefault((t.name, str(t.birth_date)), t)
+                by_identity.setdefault((t.name_hash, str(t.birth_date)), t)
         created = 0
         filled_cert = filled_grade = 0
         for row in wb["감리원추가"].iter_rows(min_row=2, values_only=True):
@@ -121,7 +122,8 @@ async def import_legacy_education(xlsx_path: str) -> None:
                 if found is None:
                     found = Trainee(
                         trainee_no=trainee_no,
-                        name=name,
+                        name_encrypted=name_columns(name)[0],
+                        name_hash=name_columns(name)[1],
                         cert_no=cert_no,
                         supervisor_grade=supervisor_grade,
                         birth_date=birth,

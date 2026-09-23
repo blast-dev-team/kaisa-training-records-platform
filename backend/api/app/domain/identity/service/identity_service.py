@@ -7,7 +7,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.audit import record_audit
 from app.core.config import settings
-from app.core.crypto import encrypt_field, hash_ip, sha256_hex
+from app.core.crypto import (
+    decrypt_field,
+    encrypt_field,
+    hash_ip,
+    name_columns,
+    name_hash,
+    sha256_hex,
+)
 from app.core.error_codes import api_error
 from app.core.kst import now_kst
 from app.core.rate_limit import is_rate_limited, register_attempt
@@ -47,7 +54,7 @@ async def _auto_match_trainee(
             select(Trainee).where(
                 Trainee.deleted_at.is_(None),
                 Trainee.user_id.is_(None),
-                Trainee.name == name.strip(),
+                Trainee.name_hash == name_hash(name),
                 Trainee.birth_date == birth,
             )
         )
@@ -82,10 +89,13 @@ async def _create_demo_trainee(
 ) -> Trainee:
     """본인인증 완료 계정에 데모 교육생 자동 생성 — 등급은 데모 등급을 단다."""
     grade = await _ensure_demo_grade(db)
+    demo_name = decrypt_field(user.name_encrypted) or name or "교육생"
+    name_encrypted, name_hash_value = name_columns(demo_name)
     trainee = Trainee(
         user_id=user.id,
         trainee_no=f"TR-{now_kst().strftime('%Y%m%d')}-{secrets.token_hex(2).upper()}",
-        name=user.name or name or "교육생",
+        name_encrypted=name_encrypted,
+        name_hash=name_hash_value,
         phone_encrypted=encrypt_field(str(phone)) if phone else None,
         membership_grade_id=grade.id,
         review_status="approved",
@@ -197,20 +207,29 @@ async def complete_pass(
     matched = True
     if user is None:
         matched = False
-        user = User(ci_hash=ci_hash, name=name)
+        name_encrypted, name_hash_value = name_columns(name)
+        user = User(
+            ci_hash=ci_hash,
+            name_encrypted=name_encrypted,
+            name_hash=name_hash_value,
+        )
         db.add(user)
         await db.flush()  # user.id 채운 뒤 인증 row 생성 (user_id NOT NULL)
     user.last_login_at = now_kst()
-    user.name = user.name or name
+    # 이름은 기존값 보존 — 비어 있을 때만 본인인증 결과로 채운다
+    if not user.name_encrypted and name:
+        user.name_encrypted, user.name_hash = name_columns(name)
     # 생년월일은 본인인증으로 확정된 값 — 비어 있을 때만 채운다
     if birthday and not user.birth:
         user.birth = str(birthday)
 
+    verified_name_encrypted, verified_name_hash_value = name_columns(name)
     verification = IdentityVerification(
         user_id=user.id,
         provider_verification_id=verification_id,
         status="verified",
-        verified_name=name,
+        verified_name_encrypted=verified_name_encrypted,
+        verified_name_hash=verified_name_hash_value,
         verified_phone_encrypted=encrypt_field(str(phone)) if phone else None,
         ci_hash=ci_hash,
         di_hash=di_hash,
@@ -275,7 +294,7 @@ async def complete_pass(
     return (
         PassCompleteResponse(
             id=user.id,
-            name=user.name,
+            name=decrypt_field(user.name_encrypted),
             matched=matched,
             review_status=review_status,
         ),
@@ -299,17 +318,25 @@ async def test_login(
     matched = True
     if user is None:
         matched = False
-        user = User(ci_hash=ci_hash, name=name)
+        name_encrypted, name_hash_value = name_columns(name)
+        user = User(
+            ci_hash=ci_hash,
+            name_encrypted=name_encrypted,
+            name_hash=name_hash_value,
+        )
         db.add(user)
         await db.flush()
     user.last_login_at = now_kst()
-    user.name = user.name or name
+    if not user.name_encrypted:
+        user.name_encrypted, user.name_hash = name_columns(name)
 
+    verified_name_encrypted, verified_name_hash_value = name_columns(name)
     verification = IdentityVerification(
         user_id=user.id,
         provider_verification_id=f"test-{uuid.uuid4()}",
         status="verified",
-        verified_name=name,
+        verified_name_encrypted=verified_name_encrypted,
+        verified_name_hash=verified_name_hash_value,
         ci_hash=ci_hash,
         verified_at=now_kst(),
     )
@@ -341,9 +368,71 @@ async def test_login(
     return (
         PassCompleteResponse(
             id=user.id,
-            name=user.name,
+            name=decrypt_field(user.name_encrypted),
             matched=matched,
             review_status="approved",
+        ),
+        token,
+    )
+
+
+SUPER_CI = "test:super"
+SUPER_NAME = "KAISA"
+
+
+async def super_login(
+    db: AsyncSession, body: PassTestLoginRequest
+) -> tuple[PassCompleteResponse, str]:
+    """슈퍼 계정 로그인 — 전 회원 교육이력 조회(미리보기). local·staging 전용.
+
+    성명 KAISA + 휴대전화 일치를 FE가 검사하고 여기로 보낸다. 고정 CI 로
+    find-or-create 하고 데모 교육생을 연결해 프로필 화면도 정상 동작하게 한다.
+    발급·결제는 trainee 스코프라 하지 않고, 조회와 문서 미리보기만 허용한다.
+    production 은 404 로 엔드포인트를 숨긴다 (test_login 과 같은 정책).
+    """
+    if settings.ENVIRONMENT == "production":
+        raise api_error("NOT_FOUND", status_code=404, message="리소스를 찾을 수 없어요")
+    name = body.name.strip() or SUPER_NAME
+    ci_hash = sha256_hex(SUPER_CI)
+    user = await repo.find_user_by_ci_hash(db, ci_hash)
+    if user is None:
+        name_encrypted, name_hash_value = name_columns(SUPER_NAME)
+        user = User(
+            ci_hash=ci_hash,
+            name_encrypted=name_encrypted,
+            name_hash=name_hash_value,
+        )
+        db.add(user)
+        await db.flush()
+    user.last_login_at = now_kst()
+
+    verified_name_encrypted, verified_name_hash_value = name_columns(name)
+    verification = IdentityVerification(
+        user_id=user.id,
+        provider_verification_id=f"super-{uuid.uuid4()}",
+        status="verified",
+        verified_name_encrypted=verified_name_encrypted,
+        verified_name_hash=verified_name_hash_value,
+        ci_hash=ci_hash,
+        verified_at=now_kst(),
+    )
+    db.add(verification)
+    await db.flush()
+
+    trainee = await repo.find_trainee_by_user_id(db, user.id)
+    if trainee is None:
+        await _create_demo_trainee(db, user, SUPER_NAME, None)
+
+    token = await create_user_session(db, user.id, "pass")
+    await db.commit()
+
+    return (
+        PassCompleteResponse(
+            id=user.id,
+            name=decrypt_field(user.name_encrypted),
+            matched=True,
+            review_status="approved",
+            is_super=True,
         ),
         token,
     )
@@ -401,10 +490,12 @@ async def approve_review(
         ).scalar_one_or_none()
         if grade is None:
             raise api_error("NOT_FOUND", message="회원등급을 찾을 수 없어요")
+        new_name_encrypted, new_name_hash_value = name_columns(name)
         trainee = Trainee(
             user_id=review.user_id,
             trainee_no=f"TR-{now_kst().strftime('%Y%m%d')}-{secrets.token_hex(2).upper()}",
-            name=name,
+            name_encrypted=new_name_encrypted,
+            name_hash=new_name_hash_value,
             phone_encrypted=encrypt_field(new_trainee.phone)
             if new_trainee.phone
             else None,

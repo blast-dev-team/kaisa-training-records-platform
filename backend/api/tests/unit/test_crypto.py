@@ -8,6 +8,9 @@ from app.core.crypto import (
     hash_ip,
     mask_name,
     mask_phone,
+    name_columns,
+    name_hash,
+    normalize_name,
     sha256_hex,
 )
 
@@ -80,3 +83,34 @@ class TestMaskName:
 
     def test_none(self):
         assert mask_name(None) is None
+
+
+class TestNameHash:
+    """이름 blind index — 결정적 HMAC. 검색은 '전체 이름 일치'만 지원한다."""
+
+    def test_deterministic(self):
+        assert name_hash("홍길동") == name_hash("홍길동")
+
+    def test_normalization_strips_and_nfkc(self):
+        assert normalize_name("  홍길동 ") == "홍길동"
+        # NFKC — 전각/호환 문자 정규화
+        assert normalize_name("ｋｉｍ") == "kim"
+        assert name_hash(" 홍길동 ") == name_hash("홍길동")
+
+    def test_empty_is_stable_not_crash(self):
+        assert normalize_name(None) == ""
+        assert name_hash("") == name_hash(None)
+
+    def test_keyed_differs_from_raw_sha256(self):
+        # 무키 sha256 은 한국 이름 키스페이스가 작아 사전공격이 가능 — 키 있어야 한다
+        assert name_hash("홍길동") != sha256_hex("홍길동")
+
+    def test_name_columns_pair(self):
+        enc, h = name_columns("홍길동")
+        assert enc != "홍길동"
+        assert decrypt_field(enc) == "홍길동"
+        assert h == name_hash("홍길동")
+
+    def test_name_columns_empty(self):
+        assert name_columns("") == (None, None)
+        assert name_columns("   ") == (None, None)

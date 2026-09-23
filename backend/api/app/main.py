@@ -16,7 +16,12 @@ from app.domain.auth.router import (
 from app.domain.auth.router import (
     router as auth_router,
 )
-from app.domain.certificate.router import admin_router as certificate_admin_router
+from app.domain.certificate.router import (
+    admin_router as certificate_admin_router,
+)
+from app.domain.certificate.router import (
+    completion_router as completion_certificate_router,
+)
 from app.domain.certificate.router import (
     public_router as certificate_public_router,
 )
@@ -125,6 +130,7 @@ app.include_router(audit_log_router, prefix="/api")
 app.include_router(certificate_request_router, prefix="/api")
 app.include_router(certificate_admin_router, prefix="/api")
 app.include_router(certificate_public_router, prefix="/api")
+app.include_router(completion_certificate_router, prefix="/api")
 app.include_router(payment_router, prefix="/api")
 app.include_router(payment_webhook_router, prefix="/api")
 app.include_router(payment_admin_router, prefix="/api")

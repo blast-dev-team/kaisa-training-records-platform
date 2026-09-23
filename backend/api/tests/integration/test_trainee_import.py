@@ -6,7 +6,7 @@ from datetime import date
 import openpyxl
 from sqlalchemy import select
 
-from app.core.crypto import decrypt_field
+from app.core.crypto import decrypt_field, name_hash
 from app.domain.trainee.model import Trainee
 from tests.integration.helpers import admin_cookie, make_admin, make_grade, make_trainee
 
@@ -170,7 +170,7 @@ class TestImportConfirm:
         assert resp.json() == {"created": 2, "skipped": 0, "failed": []}
 
         rows = (
-            (await db.execute(select(Trainee).where(Trainee.name == "엑셀사람")))
+            (await db.execute(select(Trainee).where(Trainee.name_hash == name_hash("엑셀사람"))))
             .scalars()
             .all()
         )
@@ -211,7 +211,7 @@ class TestImportConfirm:
         assert resp.json() == {"created": 1, "skipped": 1, "failed": []}
 
         dup = (
-            (await db.execute(select(Trainee).where(Trainee.name == "중복사람")))
+            (await db.execute(select(Trainee).where(Trainee.name_hash == name_hash("중복사람"))))
             .scalars()
             .all()
         )

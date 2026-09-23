@@ -6,7 +6,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import settings
 from app.core.database import get_db
 from app.core.dependencies import get_current_trainee, get_current_user
+from app.core.error_codes import api_error
 from app.core.response import PagedResponse
+from app.domain.certificate.schema import (
+    CompletionCertificateIssueRequest,
+    CompletionCertificateResponse,
+)
+from app.domain.certificate.service import completion_certificate_service
 from app.domain.me.schema import (
     CertificatePriceResponse,
     DownloadUrlResponse,
@@ -103,6 +109,44 @@ async def get_my_training_record(
 ):
     """본인 이력 또는 공용 데모 이력 상세 (발급 상태 포함). 교육생 미연결 신규 회원도 데모는 본다."""
     return await me_service.get_member_record_response(db, user, record_id)
+
+
+@router.post(
+    "/completion-certificates",
+    response_model=list[CompletionCertificateResponse],
+    status_code=201,
+)
+async def issue_my_completion_certificates(
+    body: CompletionCertificateIssueRequest,
+    db: AsyncSession = Depends(get_db),
+    trainee: Trainee = Depends(get_current_trainee),
+):
+    """수료증 발급(웹) — 소유한 내부 기관 수료내역 1건당 1장. 무료·결제 없음.
+
+    기발급 건은 기존 수료증을 그대로 반환한다(멱등). 데모 이력은 공용이라 제외.
+    """
+    certificates = await completion_certificate_service.issue_completion_certificates_for_trainee(
+        db, body.training_record_ids, trainee
+    )
+    return [CompletionCertificateResponse.from_orm(c) for c in certificates]
+
+
+@router.get(
+    "/completion-certificates/preview",
+    response_model=CompletionCertificateResponse,
+)
+async def preview_my_completion_certificate(
+    training_record_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """수료증 미리보기 — 슈퍼 계정 전용. 저장 없이 해당 이력 교육생 데이터로 조립."""
+    if not me_service.is_super_user(user):
+        raise api_error("FORBIDDEN", message="권한이 없어요")
+    preview = await completion_certificate_service.build_preview_completion_certificate(
+        db, training_record_id
+    )
+    return CompletionCertificateResponse(**preview)
 
 
 @router.get("/certificates", response_model=list[MyCertificateResponse])

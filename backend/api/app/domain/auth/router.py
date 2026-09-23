@@ -138,6 +138,16 @@ async def test_login_pass(
     return result
 
 
+@router.post("/pass/super-login", response_model=PassCompleteResponse)
+async def super_login_pass(
+    body: PassTestLoginRequest, response: Response, db: AsyncSession = Depends(get_db)
+):
+    """슈퍼 계정 우회 로그인 — 전 회원 이력 조회(미리보기). production 은 404."""
+    result, token = await identity_service.super_login(db, body)
+    response.set_cookie(**session_cookie_params(token))
+    return result
+
+
 # ── 관리자 계정 관리 (super) ───────────────────────────────────────────────────
 
 

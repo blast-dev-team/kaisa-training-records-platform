@@ -4,6 +4,7 @@ from datetime import date
 from sqlalchemy import func, or_, select, tuple_
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.crypto import name_hash
 from app.domain.trainee.model import MembershipGrade, Trainee
 
 
@@ -47,13 +48,16 @@ async def list_trainees(
     page: int = 1,
     limit: int = 20,
 ) -> tuple[list[Trainee], int]:
-    """이름/교육번 검색 — 전화번호는 암호화 저장이라 부분 검색 불가 (문서 명시)."""
+    """이름/교육번 검색 — 이름·전화번호는 암호화 저장이라 부분 검색 불가 (문서 명시).
+
+    이름은 blind index 로 '전체 이름 일치'만, 번호류는 부분 검색을 지원한다.
+    """
     stmt = select(Trainee).where(Trainee.deleted_at.is_(None))
     if search:
         pattern = f"%{search}%"
         stmt = stmt.where(
             or_(
-                Trainee.name.ilike(pattern),
+                Trainee.name_hash == name_hash(search),
                 Trainee.trainee_no.ilike(pattern),
                 Trainee.cert_no.ilike(pattern),  # 감리원증번호
             )
@@ -86,7 +90,7 @@ async def list_cert_no_duplicates(
             Trainee.deleted_at.is_(None),
             Trainee.cert_no.in_(dup_nos),
         )
-        .order_by(Trainee.cert_no.asc(), Trainee.name.asc())
+        .order_by(Trainee.cert_no.asc(), Trainee.created_at.asc())
     )
     result = await db.execute(stmt)
     return list(result.scalars().all())
@@ -106,7 +110,9 @@ async def find_duplicates_for_import(
         conditions.append(Trainee.cert_no.in_(cert_nos))
     if name_birth_pairs:
         conditions.append(
-            tuple_(Trainee.name, Trainee.birth_date).in_(name_birth_pairs)
+            tuple_(Trainee.name_hash, Trainee.birth_date).in_(
+                [(name_hash(n), b) for n, b in name_birth_pairs]
+            )
         )
     if not conditions:
         return []
@@ -124,7 +130,7 @@ async def find_by_identifiers(
     """엑셀 대조 매칭용 — 이름·감리원증번호·교육생번호 중 하나라도 일치하는 교육생."""
     conditions = []
     if names:
-        conditions.append(Trainee.name.in_(names))
+        conditions.append(Trainee.name_hash.in_([name_hash(n) for n in names]))
     if cert_nos:
         conditions.append(Trainee.cert_no.in_(cert_nos))
     if trainee_nos:

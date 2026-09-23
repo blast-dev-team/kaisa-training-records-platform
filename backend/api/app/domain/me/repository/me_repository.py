@@ -18,23 +18,26 @@ async def list_member_records(
     ended_to: date | None = None,
     page: int = 1,
     limit: int = 20,
+    all_records: bool = False,
 ) -> tuple[list[TrainingRecord], int, Decimal]:
     """회원 포털 교육이력 — 본인 이력 + 공용 데모 이력(is_demo).
 
     데모 이력은 교육생 소속과 무관하게 모든 로그인 회원에게 노출된다.
     목록·건수·시수 합계가 같은 필터 조건을 공유한다 (집합 불일치 방지).
+    all_records 는 슈퍼 계정 전용 — 소속 무관 전 회원 이력(미리보기)을 본다.
     """
     conditions: list[ColumnElement[bool]] = [TrainingRecord.deleted_at.is_(None)]
-    if trainee_id is not None:
-        conditions.append(
-            or_(
-                TrainingRecord.trainee_id == trainee_id,
-                TrainingRecord.is_demo.is_(True),
+    if not all_records:
+        if trainee_id is not None:
+            conditions.append(
+                or_(
+                    TrainingRecord.trainee_id == trainee_id,
+                    TrainingRecord.is_demo.is_(True),
+                )
             )
-        )
-    else:
-        # 교육생 미연결 신규 회원 — 데모 이력만
-        conditions.append(TrainingRecord.is_demo.is_(True))
+        else:
+            # 교육생 미연결 신규 회원 — 데모 이력만
+            conditions.append(TrainingRecord.is_demo.is_(True))
     if search:
         conditions.append(
             or_(
@@ -68,22 +71,29 @@ async def list_member_records(
 
 
 async def find_downloadable_record(
-    db: AsyncSession, record_id: uuid.UUID, trainee_id: uuid.UUID | None
+    db: AsyncSession,
+    record_id: uuid.UUID,
+    trainee_id: uuid.UUID | None,
+    all_records: bool = False,
 ) -> TrainingRecord | None:
-    """다운로드 가능한 이력 — 본인 소속이거나 공용 데모. 타인 소속은 None(404)."""
+    """다운로드 가능한 이력 — 본인 소속이거나 공용 데모. 타인 소속은 None(404).
+
+    all_records 는 슈퍼 계정 전용 — 소속 무관 조회(미리보기).
+    """
     stmt = select(TrainingRecord).where(
         TrainingRecord.id == record_id,
         TrainingRecord.deleted_at.is_(None),
     )
-    if trainee_id is not None:
-        stmt = stmt.where(
-            or_(
-                TrainingRecord.trainee_id == trainee_id,
-                TrainingRecord.is_demo.is_(True),
+    if not all_records:
+        if trainee_id is not None:
+            stmt = stmt.where(
+                or_(
+                    TrainingRecord.trainee_id == trainee_id,
+                    TrainingRecord.is_demo.is_(True),
+                )
             )
-        )
-    else:
-        stmt = stmt.where(TrainingRecord.is_demo.is_(True))
+        else:
+            stmt = stmt.where(TrainingRecord.is_demo.is_(True))
     return (await db.execute(stmt)).scalar_one_or_none()
 
 

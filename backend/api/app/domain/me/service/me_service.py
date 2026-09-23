@@ -6,7 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
-from app.core.crypto import decrypt_field, mask_phone
+from app.core.crypto import decrypt_field, mask_phone, sha256_hex
 from app.core.error_codes import api_error
 from app.core.kst import kst_range_end, kst_range_start, now_kst, today_kst
 from app.core.session import (
@@ -33,6 +33,15 @@ from app.integrations import s3
 # 데모 이력 다운로드에 공통으로 내려주는 파일 — staging 버킷에 수동 업로드된다
 DEMO_PDF_KEY = "demo/training-record-demo.pdf"
 
+# 슈퍼 계정 판정 — 고정 CI(test:super) 유저. identity_service.super_login 이 만든다.
+# 컬럼 추가 없이 판정하기 위해 ci_hash 비교를 쓴다 (스키마 변경 승인 게이트 회피)
+_SUPER_CI_HASH = sha256_hex("test:super")
+
+
+def is_super_user(user: User | None) -> bool:
+    """슈퍼 계정 여부 — 전 회원 이력 조회(미리보기) 허용 판정."""
+    return user is not None and user.ci_hash == _SUPER_CI_HASH
+
 
 async def get_session(db: AsyncSession, token: str | None) -> MeSessionResponse:
     """본인인증 세션 조회 — FE 새로고침 시 인증 상태·잔여 시간 복구용. 무효면 401."""
@@ -55,14 +64,19 @@ async def get_session(db: AsyncSession, token: str | None) -> MeSessionResponse:
             raise api_error("SESSION_EXPIRED")
         pending = await identity_repo.find_pending_manual_review(db, user.id)
         return MeSessionResponse(
-            name=user.name or "본인인증 고객",
+            name=decrypt_field(user.name_encrypted) or "본인인증 고객",
             expires_at=expires_at,
             trainee_linked=False,
             review_pending=pending is not None,
+            is_super=is_super_user(user),
         )
     if expires_at is None:
         raise api_error("SESSION_EXPIRED")
-    return MeSessionResponse(name=trainee.name, expires_at=expires_at)
+    return MeSessionResponse(
+            name=decrypt_field(trainee.name_encrypted),
+            expires_at=expires_at,
+            is_super=is_super_user(user),
+        )
 
 
 async def extend_session(db: AsyncSession, token: str | None) -> MeSessionResponse:
@@ -86,14 +100,19 @@ async def extend_session(db: AsyncSession, token: str | None) -> MeSessionRespon
             raise api_error("SESSION_EXPIRED")
         pending = await identity_repo.find_pending_manual_review(db, user.id)
         return MeSessionResponse(
-            name=user.name or "본인인증 고객",
+            name=decrypt_field(user.name_encrypted) or "본인인증 고객",
             expires_at=expires_at,
             trainee_linked=False,
             review_pending=pending is not None,
+            is_super=is_super_user(user),
         )
     if expires_at is None:
         raise api_error("SESSION_EXPIRED")
-    return MeSessionResponse(name=trainee.name, expires_at=expires_at)
+    return MeSessionResponse(
+            name=decrypt_field(trainee.name_encrypted),
+            expires_at=expires_at,
+            is_super=is_super_user(user),
+        )
 
 
 async def get_profile(db: AsyncSession, trainee: Trainee) -> MeProfileResponse:
@@ -105,7 +124,7 @@ async def get_profile(db: AsyncSession, trainee: Trainee) -> MeProfileResponse:
         user_id=trainee.user_id,
         trainee_id=trainee.id,
         trainee_no=trainee.trainee_no,
-        name=trainee.name,
+        name=decrypt_field(trainee.name_encrypted),
         email=trainee.email,
         phone_masked=mask_phone(phone) if phone else None,
         grade_name=trainee.grade.name if trainee.grade else None,
@@ -127,20 +146,22 @@ def _ymd(value: str | None, field: str) -> date | None:
 
 
 async def _latest_issued_certs(
-    db: AsyncSession, trainee_id: uuid.UUID, record_ids: list[uuid.UUID]
+    db: AsyncSession, trainee_id: uuid.UUID | None, record_ids: list[uuid.UUID]
 ) -> dict[uuid.UUID, Certificate]:
-    """이력별 최신 유효 확인서 — 데모 이력 공유 대응 trainee 스코프."""
+    """이력별 최신 유효 확인서 — 데모 이력 공유 대응 trainee 스코프.
+
+    trainee_id 가 None 이면(슈퍼 계정) 소유자 필터를 뺀다 — 각 이력 실제
+    소유자의 발급 상태를 그대로 보여 준다.
+    """
     if not record_ids:
         return {}
-    result = await db.execute(
-        select(Certificate)
-        .where(
-            Certificate.trainee_id == trainee_id,
-            Certificate.training_record_id.in_(record_ids),
-            Certificate.status == "issued",
-        )
-        .order_by(Certificate.issued_at.desc())
+    stmt = select(Certificate).where(
+        Certificate.training_record_id.in_(record_ids),
+        Certificate.status == "issued",
     )
+    if trainee_id is not None:
+        stmt = stmt.where(Certificate.trainee_id == trainee_id)
+    result = await db.execute(stmt.order_by(Certificate.issued_at.desc()))
     certs: dict[uuid.UUID, Certificate] = {}
     for cert in result.scalars():
         certs.setdefault(cert.training_record_id, cert)
@@ -179,15 +200,19 @@ async def decorate_member_records(
     db: AsyncSession,
     trainee_id: uuid.UUID | None,
     records: list,
+    all_records: bool = False,
 ) -> list[TrainingRecordResponse]:
     """교육이력 응답에 회원별 확인서 발급 상태를 끼워 넣는다 (목록·상세 공통).
 
     training_records 에는 발급 상태가 없다 — 데모 이력은 여러 회원이 공유하므로
     상태는 항상 certificates(trainee 스코프)에서 산출한다.
+    all_records(슈퍼 계정)면 소유자 필터 없이 각 이력의 실제 발급 상태를 산출한다.
     """
     certs = (
-        await _latest_issued_certs(db, trainee_id, [r.id for r in records])
-        if trainee_id is not None
+        await _latest_issued_certs(
+            db, None if all_records else trainee_id, [r.id for r in records]
+        )
+        if (trainee_id is not None or all_records)
         else {}
     )
     now = now_kst()
@@ -217,6 +242,7 @@ async def list_member_records(
     교육생 미연결 신규 회원은 데모 이력만 본다 (get_current_trainee 403 회피).
     """
     trainee_id: uuid.UUID | None = None
+    all_records = is_super_user(user)
     if user is not None:
         trainee = (
             await db.execute(
@@ -234,8 +260,9 @@ async def list_member_records(
         ended_to=_ymd(ended_to_raw, "to"),
         page=page,
         limit=limit,
+        all_records=all_records,
     )
-    items = await decorate_member_records(db, trainee_id, records)
+    items = await decorate_member_records(db, trainee_id, records, all_records)
     return items, total, hours_sum
 
 
@@ -278,7 +305,11 @@ async def get_my_record(db: AsyncSession, trainee: Trainee, record_id: uuid.UUID
 async def get_member_record_response(
     db: AsyncSession, user: User, record_id: uuid.UUID
 ) -> TrainingRecordResponse:
-    """회원 포털 상세 — 본인/공용 데모 이력 + 회원별 발급 상태. 교육생 미연결도 데모는 본다."""
+    """회원 포털 상세 — 본인/공용 데모 이력 + 회원별 발급 상태. 교육생 미연결도 데모는 본다.
+
+    슈퍼 계정은 소속 무관 조회(미리보기)다 — 상태도 실제 소유자 기준.
+    """
+    all_records = is_super_user(user)
     trainee = (
         await db.execute(
             select(Trainee).where(
@@ -287,12 +318,12 @@ async def get_member_record_response(
         )
     ).scalar_one_or_none()
     record = await repo.find_downloadable_record(
-        db, record_id, trainee.id if trainee else None
+        db, record_id, trainee.id if trainee else None, all_records
     )
     if record is None:
         raise api_error("NOT_FOUND", message="교육이력을 찾을 수 없어요")
     (response,) = await decorate_member_records(
-        db, trainee.id if trainee else None, [record]
+        db, trainee.id if trainee else None, [record], all_records
     )
     return response
 

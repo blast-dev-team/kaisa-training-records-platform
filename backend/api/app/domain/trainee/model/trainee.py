@@ -26,7 +26,7 @@ class Trainee(Base):
 
     __tablename__ = "trainees"
     __table_args__ = (
-        Index("ix_trainees_name", "name"),
+        Index("ix_trainees_name_hash", "name_hash"),
         Index("ix_trainees_membership_grade_id", "membership_grade_id"),
         Index("ix_trainees_review_status", "review_status"),
         Index("ix_trainees_grade_expires_at", "grade_expires_at"),
@@ -43,7 +43,9 @@ class Trainee(Base):
     supervisor_grade: Mapped[str | None] = mapped_column(String(50))
     # 감리원증 발급일자 — 엑셀 일괄 등록에서 받는 참조 정보
     cert_issued_date: Mapped[date | None] = mapped_column(Date)
-    name: Mapped[str] = mapped_column(String(100), nullable=False)
+    # 이름 — Fernet 가역 저장 + HMAC blind index (정확히-일치 검색). 부분 검색 불가
+    name_encrypted: Mapped[str] = mapped_column(Text, nullable=False)
+    name_hash: Mapped[str] = mapped_column(String(64), nullable=False)
     birth_date: Mapped[date | None] = mapped_column(Date)
     phone_encrypted: Mapped[str | None] = mapped_column(Text)
     email: Mapped[str | None] = mapped_column(String(255))

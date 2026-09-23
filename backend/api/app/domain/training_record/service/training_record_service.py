@@ -6,9 +6,11 @@ from decimal import Decimal
 
 import openpyxl
 from openpyxl.utils.exceptions import InvalidFileException
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.audit import record_audit
+from app.core.crypto import decrypt_field, name_hash
 from app.core.error_codes import api_error
 from app.core.kst import now_kst
 from app.domain.auth.model import AdminUser
@@ -35,6 +37,8 @@ def _record_no() -> str:
     return f"REC-{now_kst().strftime('%Y%m%d')}-{secrets.token_hex(3)}"
 
 
+
+
 async def get_record(db: AsyncSession, record_id: uuid.UUID) -> TrainingRecord:
     record = await repo.find_by_id(db, record_id)
     if record is None:
@@ -54,6 +58,7 @@ async def list_records(
     date_to=None,
     page: int = 1,
     limit: int = 20,
+    sort: str = "period",
 ) -> tuple[list[TrainingRecord], int, Decimal]:
     return await repo.list_records(
         db,
@@ -67,6 +72,7 @@ async def list_records(
         date_to=date_to,
         page=page,
         limit=limit,
+        sort=sort,
     )
 
 
@@ -133,31 +139,41 @@ async def create_record(
     # 확인서 표기용 감리원 정보 — 입력 없으면 교육생 마스터(감리원 등급)에서 자동 주입
     supervisor_grade = data.supervisor_grade or trainee.supervisor_grade
     supervisor_cert_no = data.supervisor_cert_no or trainee.cert_no
-    record = TrainingRecord(
-        training_record_no=_record_no(),
-        trainee_id=data.trainee_id,
-        course_id=data.course_id,
-        institution_id=data.institution_id,
-        course_name=course_name,
-        institution_name=institution_name,
-        form_no=data.form_no,
-        doc_no=data.doc_no,
-        supervisor_grade=supervisor_grade,
-        supervisor_cert_no=supervisor_cert_no,
-        total_hours=total_hours if total_hours is not None else 0,
-        completed_hours=data.completed_hours,
-        started_at=data.started_at,
-        ended_at=data.ended_at,
-        source=data.source,
-        evidence_file_key=data.evidence_file_key,
-        completion_status=data.completion_status,
-        completed_at=now_kst() if data.completion_status == "completed" else None,
-        memo=data.memo,
-        created_by=actor.id,
-        updated_by=actor.id,
-    )
-    db.add(record)
-    await db.flush()
+    # savepoint 재시도 — training_record_no 가 확률적 채번이라 충돌 시 재생성
+    record: TrainingRecord | None = None
+    for _ in range(5):
+        try:
+            async with db.begin_nested():
+                record = TrainingRecord(
+                    training_record_no=_record_no(),
+                    trainee_id=data.trainee_id,
+                    course_id=data.course_id,
+                    institution_id=data.institution_id,
+                    course_name=course_name,
+                    institution_name=institution_name,
+                    supervisor_grade=supervisor_grade,
+                    supervisor_cert_no=supervisor_cert_no,
+                    total_hours=total_hours if total_hours is not None else 0,
+                    completed_hours=data.completed_hours,
+                    started_at=data.started_at,
+                    ended_at=data.ended_at,
+                    source=data.source,
+                    evidence_file_key=data.evidence_file_key,
+                    completion_status=data.completion_status,
+                    completed_at=now_kst()
+                    if data.completion_status == "completed"
+                    else None,
+                    memo=data.memo,
+                    created_by=actor.id,
+                    updated_by=actor.id,
+                )
+                db.add(record)
+                await db.flush()
+        except IntegrityError:
+            continue
+        break
+    if record is None:  # 5회 재시도 후에도 유니크 충돌 — 사실상 없음
+        raise api_error("INTERNAL_ERROR", message="문서번호 채번에 실패했어요")
     record_audit(
         db,
         actor_admin_id=actor.id,
@@ -382,7 +398,8 @@ async def match_preview(db: AsyncSession, content: bytes) -> TraineeMatchPreview
             by_cert.setdefault(t.cert_no, []).append(t)
         if t.trainee_no:
             by_trainee_no.setdefault(t.trainee_no, []).append(t)
-        by_name.setdefault(t.name, []).append(t)
+        # 성명은 암호화 저장 — blind index 해시를 대조 키로 쓴다
+        by_name.setdefault(t.name_hash, []).append(t)
 
     matched: list[MatchPreviewMatched] = []
     unmatched: list[MatchPreviewUnmatched] = []
@@ -393,7 +410,9 @@ async def match_preview(db: AsyncSession, content: bytes) -> TraineeMatchPreview
         for field, index in (("cert_no", by_cert), ("trainee_no", by_trainee_no), ("name", by_name)):
             if r[field] is None:
                 continue
-            hits = index.get(r[field], [])
+            # 이름 키는 엑셀 원문을 해시해 비교한다
+            lookup = name_hash(r[field]) if field == "name" else r[field]
+            hits = index.get(lookup, [])
             if len(hits) == 1:
                 hit, matched_by = hits[0], field
                 break
@@ -433,7 +452,7 @@ async def match_preview(db: AsyncSession, content: bytes) -> TraineeMatchPreview
         matched.append(
             MatchPreviewMatched(
                 trainee_id=hit.id,
-                name=hit.name,
+                name=decrypt_field(hit.name_encrypted),
                 trainee_no=hit.trainee_no,
                 cert_no=hit.cert_no,
                 matched_by=matched_by,

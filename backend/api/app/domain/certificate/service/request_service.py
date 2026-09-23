@@ -201,7 +201,13 @@ async def create_request(
     if amount_krw == 0:
         request.status = "paid"
         request.paid_at = now
-        certificate = await issuance_service.issue_certificate(db, request)
+        # 문서번호는 발급 이벤트당 1회 채번 — 단건 발급도 묶음 1건이라 번호 1개
+        doc_no = issuance_service.format_doc_no(
+            await issuance_service.next_doc_seq(db)
+        )
+        certificate = await issuance_service.issue_certificate(
+            db, request, doc_no=doc_no
+        )
         issuance_service.assign_bundle_no([certificate])
         await db.commit()
         await db.refresh(request)
@@ -278,14 +284,19 @@ async def create_requests_batch(
     paid_amounts = [amount for _, _, _, amount in validated if amount > 0]
     total_krw = max(paid_amounts) if paid_amounts else 0
     if total_krw == 0:
+        # 한 이벤트에 발급된 N건 = 묶음 확인서 1건 — 문서번호도 1개
+        doc_no = issuance_service.format_doc_no(
+            await issuance_service.next_doc_seq(db)
+        )
         certificates = []
         for request in requests:
             request.status = "paid"
             request.paid_at = now
             certificates.append(
-                await issuance_service.issue_certificate(db, request)
+                await issuance_service.issue_certificate(
+                    db, request, doc_no=doc_no
+                )
             )
-        # 한 이벤트에 발급된 N건 = 묶음 확인서 1건
         issuance_service.assign_bundle_no(certificates)
         await db.commit()
         for request in requests:

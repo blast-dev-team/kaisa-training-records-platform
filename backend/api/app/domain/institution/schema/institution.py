@@ -1,8 +1,12 @@
 import uuid
 from datetime import datetime
 from decimal import Decimal
+from typing import Literal
 
 from pydantic import BaseModel, EmailStr
+
+# 내부/외부 구분 — None(미선택) 허용. internal 인 기관의 수료내역만 수료증 발급 가능
+InstitutionType = Literal["internal", "external"]
 
 
 class InstitutionCreate(BaseModel):
@@ -13,6 +17,7 @@ class InstitutionCreate(BaseModel):
     contact_phone: str | None = None
     contact_email: EmailStr | None = None
     address: str | None = None
+    institution_type: InstitutionType | None = None
 
 
 class InstitutionUpdate(BaseModel):
@@ -23,6 +28,7 @@ class InstitutionUpdate(BaseModel):
     contact_phone: str | None = None
     contact_email: EmailStr | None = None
     address: str | None = None
+    institution_type: InstitutionType | None = None
     is_active: bool | None = None
 
 
@@ -35,6 +41,7 @@ class InstitutionResponse(BaseModel):
     contact_phone: str | None
     contact_email: str | None
     address: str | None
+    institution_type: str | None = None
     is_active: bool
     created_at: datetime
 

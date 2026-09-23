@@ -38,21 +38,21 @@ async def _issued_cert(client, db):
     return cert, token
 
 
-async def _verify(client, cert_no: str):
+async def _verify(client, no: str):
     return await client.post(
         "/api/public/certificate-verifications",
-        json={"certificate_no": cert_no},
+        json={"certificate_no": no},
     )
 
 
 class TestVerify:
     async def test_valid_masked(self, client, db):
         cert, _ = await _issued_cert(client, db)
-        resp = await _verify(client, cert.certificate_no)
+        resp = await _verify(client, "26-E0001")  # 축약형 — 정규화로 조회된다
         assert resp.status_code == 200
         body = resp.json()
         assert body["result"] == "valid"
-        assert body["certificate_no"] == cert.certificate_no
+        assert body["certificate_no"] == cert.doc_no
         assert body["issued_name_masked"] == "홍**"
         assert body["course_name"] == "안전보건교육"
         assert body["total_hours"] == "16.00"
@@ -68,15 +68,33 @@ class TestVerify:
         for name in ("홍길동", "아무개", "x"):
             resp = await client.post(
                 "/api/public/certificate-verifications",
-                json={"certificate_no": cert.certificate_no, "applicant_name": name},
+                json={"certificate_no": cert.doc_no, "applicant_name": name},
             )
             assert resp.status_code == 200
             assert resp.json()["result"] == "valid"
 
     async def test_unknown_no_not_found(self, client, db):
-        resp = await _verify(client, "CERT-DOES-NOT-EXIST")
+        resp = await _verify(client, "26-E9999")
         assert resp.status_code == 200
         assert resp.json()["result"] == "not_found"
+
+    async def test_cert_no_format_no_longer_lookup(self, client, db):
+        """구 확인서 번호(CERT-…)는 조회 입력이 아니다 — 문서번호 형식만 받는다."""
+        cert, _ = await _issued_cert(client, db)
+        resp = await _verify(client, cert.certificate_no)
+        assert resp.status_code == 200
+        assert resp.json()["result"] == "not_found"
+
+    async def test_tolerant_inputs(self, client, db):
+        """띄어쓰기·장식문·대소문자·하이픈 생략 모두 같은 문서번호로 본다."""
+        cert, _ = await _issued_cert(client, db)
+        full = cert.doc_no  # 정감 제26-E0001호
+        for raw in (full, f" {full} ", "정감 제 26 - e 1 호", "26E1"):
+            resp = await _verify(client, raw)
+            assert resp.status_code == 200
+            body = resp.json()
+            assert body["result"] == "valid", raw
+            assert body["certificate_no"] == full
 
     async def test_revoked(self, client, db):
         cert, _ = await _issued_cert(client, db)
@@ -89,7 +107,7 @@ class TestVerify:
         )
         assert resp.status_code == 200
 
-        verify = await _verify(client, cert.certificate_no)
+        verify = await _verify(client, cert.doc_no)
         assert verify.status_code == 200
         assert verify.json()["result"] == "revoked"
 
@@ -98,7 +116,7 @@ class TestLogging:
     async def test_every_attempt_logged_with_ip_hash(self, client, db):
         cert, _ = await _issued_cert(client, db)
         await _verify(client, "CERT-X")  # not_found
-        await _verify(client, cert.certificate_no)  # valid
+        await _verify(client, cert.doc_no)  # valid
 
         logs = (await db.execute(select(CertificateVerificationLog))).scalars().all()
         assert len(logs) == 2

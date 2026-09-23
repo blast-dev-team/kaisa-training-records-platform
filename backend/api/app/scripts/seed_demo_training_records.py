@@ -20,6 +20,7 @@ from decimal import Decimal
 
 from sqlalchemy import func, select
 
+from app.core.crypto import name_columns
 from app.core.database import async_session
 from app.core.kst import now_kst
 from app.domain.institution.model import TrainingCourse, TrainingInstitution
@@ -124,8 +125,10 @@ async def seed_demo_training_records() -> None:
             )
         ).scalar_one_or_none()
         if trainee is None:
+            _n_enc, _n_hash = name_columns("데모 교육생")
             trainee = Trainee(
-                name="데모 교육생",
+                name_encrypted=_n_enc,
+                name_hash=_n_hash,
                 trainee_no=DEMO_TRAINEE_NO,
                 review_status="approved",
             )
@@ -191,27 +194,26 @@ async def seed_demo_training_records() -> None:
                 created += 1
             logger.info("데모 교육이력 %s건 생성 완료", created)
 
-        # 표기 항목 백필 — 서식번호·문서번호·감리원 등급·감리원증 발급번호 (NULL 데모 건만, 멱등)
-        # DEMO-TR-0001 꼬리 번호로 결정론 생성 — 재실행해도 같은 값 유지
+        # 표기 항목 백필 — 감리원 등급·감리원증 발급번호 (NULL 데모 건만, 멱등)
+        # DEMO-TR-0001 꼬리 번호로 결정론 생성 — 재실행해도 같은 값 유지.
+        # 문서번호는 내역이 아니라 발급 건(certificates.doc_no)에 부여된다
         filled = 0
         unmarked = (
             await db.execute(
                 select(TrainingRecord).where(
                     TrainingRecord.is_demo.is_(True),
-                    TrainingRecord.form_no.is_(None),
+                    TrainingRecord.supervisor_grade.is_(None),
                 )
             )
         ).scalars()
         for record in unmarked:
             index = int(record.training_record_no.rsplit("-", 1)[-1])
-            year = record.started_at.year if record.started_at else now_kst().year
-            record.form_no = f"제{index}호"
-            record.doc_no = f"대축-{year}-{index:04d}"
+            year = record.created_at.year if record.created_at else now_kst().year
             record.supervisor_grade = "정감리원" if index % 2 else "부감리원"
             record.supervisor_cert_no = f"감리-{year}-{index:04d}"
             filled += 1
         if filled:
-            logger.info("표기 항목 백필 %s건 (서식·문서번호·감리원 등급·감리원증 발급번호)", filled)
+            logger.info("표기 항목 백필 %s건 (감리원 등급·감리원증 발급번호)", filled)
 
         # 데모 기본 단가 보장 — 가격 미설정 등급만 3,000원으로 채운다 (가격은 등급 소속)
         ensured = 0

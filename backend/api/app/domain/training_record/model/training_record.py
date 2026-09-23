@@ -20,6 +20,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.core.database import Base
 
 if TYPE_CHECKING:
+    from app.domain.institution.model.training_institution import TrainingInstitution
     from app.domain.trainee.model import Trainee
 
 
@@ -55,9 +56,6 @@ class TrainingRecord(Base):
     )
     course_name: Mapped[str] = mapped_column(String(255), nullable=False)
     institution_name: Mapped[str] = mapped_column(String(255), nullable=False)
-    # 교육확인서 상단 표기용 — 서식번호(예: 제○○호 서식), 문서번호(예: 대축-2026-001)
-    form_no: Mapped[str | None] = mapped_column(String(100))
-    doc_no: Mapped[str | None] = mapped_column(String(100))
     # 감리원 등급 (예: 정감리원, 부감리원)
     supervisor_grade: Mapped[str | None] = mapped_column(String(50))
     # 감리원증 발급번호
@@ -100,3 +98,7 @@ class TrainingRecord(Base):
 
     # 어드민 목록에 교육생 이름·번호를 응답에 실기 위한 참조 (응답 스키마 from_orm 용)
     trainee: Mapped["Trainee | None"] = relationship("Trainee", lazy="joined")
+    # 수료증 발급 자격 판정용 기관 구분(institution_type) 읽기 — from_orm 용
+    institution: Mapped["TrainingInstitution | None"] = relationship(
+        "TrainingInstitution", lazy="joined"
+    )

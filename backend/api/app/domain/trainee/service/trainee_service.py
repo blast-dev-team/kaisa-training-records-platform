@@ -11,7 +11,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.audit import record_audit
-from app.core.crypto import encrypt_field
+from app.core.crypto import decrypt_field, encrypt_field, mask_name, name_hash
 from app.core.error_codes import api_error
 from app.core.kst import now_kst, today_kst
 from app.domain.auth.model import AdminUser
@@ -86,7 +86,8 @@ async def create_trainee(
         trainee_no=f"TR-{now_kst().strftime('%Y%m%d')}-{secrets.token_hex(2).upper()}",
         cert_no=data.cert_no,
         supervisor_grade=data.supervisor_grade,
-        name=data.name.strip(),
+        name_encrypted=encrypt_field(data.name.strip()),
+        name_hash=name_hash(data.name),
         birth_date=data.birth_date,
         phone_encrypted=encrypt_field(data.phone) if data.phone else None,
         email=data.email,
@@ -106,7 +107,8 @@ async def create_trainee(
         entity_id=trainee.id,
         after={
             "trainee_no": trainee.trainee_no,
-            "name": trainee.name,
+            # 감사로그 JSONB 에 평문 이름을 남기지 않는다 — 번호로 식별
+            "name": mask_name(data.name),
             "grade_id": str(data.membership_grade_id)
             if data.membership_grade_id
             else None,
@@ -145,6 +147,9 @@ async def _apply_update(
     new_grade_id = updates.pop("membership_grade_id", None)
     expires_sent = "grade_expires_at" in updates
     new_expires = updates.pop("grade_expires_at", None)
+    # 이름도 한 쌍(가역+blind index) — setattr 루프 전에 여기서만 처리한다
+    new_name = updates.pop("name", None)
+    name_sent = new_name is not None and str(new_name).strip() != ""
     grade_changed = False
 
     if new_grade_id and new_grade_id != trainee.membership_grade_id:
@@ -193,19 +198,31 @@ async def _apply_update(
         phone = data.model_dump(exclude_unset=True).get("phone")
         trainee.phone_encrypted = encrypt_field(phone) if phone else None
 
+    if name_sent:
+        trainee.name_encrypted = encrypt_field(str(new_name).strip())
+        trainee.name_hash = name_hash(str(new_name))
+
     for field, value in updates.items():
         setattr(trainee, field, value)
-    if updates or "phone" in data.model_fields_set:
+    audit_updates = dict(updates)
+    if name_sent:
+        # 감사로그 JSONB 에 평문 이름을 남기지 않는다
+        audit_updates["name"] = mask_name(str(new_name))
+    if audit_updates or "phone" in data.model_fields_set:
         record_audit(
             db,
             actor_admin_id=actor.id,
             action="trainee.updated",
             entity_type="trainee",
             entity_id=trainee.id,
-            after={k: str(v) for k, v in updates.items()},
+            after={k: str(v) for k, v in audit_updates.items()},
         )
 
-    return grade_changed or bool(updates) or "phone" in data.model_fields_set
+    return (
+        grade_changed
+        or bool(audit_updates)
+        or "phone" in data.model_fields_set
+    )
 
 
 async def update_trainee(
@@ -514,14 +531,14 @@ async def preview_import(
     pairs = [(r.name, r.birth_date) for r in parsed if r.name and r.birth_date]
     existing = await repo.find_duplicates_for_import(db, cert_nos, pairs)
     by_cert = {t.cert_no: t for t in existing if t.cert_no}
-    by_pair = {(t.name, t.birth_date): t for t in existing if t.birth_date}
+    by_pair = {(t.name_hash, t.birth_date): t for t in existing if t.birth_date}
     for row in parsed:
         hit = by_cert.get(row.cert_no) if row.cert_no else None
         if hit is None and row.name and row.birth_date:
-            hit = by_pair.get((row.name, row.birth_date))
+            hit = by_pair.get((name_hash(row.name), row.birth_date))
         if hit is not None:
             row.is_duplicate = True
-            row.duplicate_of_name = hit.name
+            row.duplicate_of_name = decrypt_field(hit.name_encrypted)
     return TraineeImportPreviewResponse(rows=parsed, total=len(parsed))
 
 
@@ -537,7 +554,7 @@ async def confirm_import(
     pairs = [(i.name.strip(), i.birth_date) for i in data.items if i.birth_date]
     existing = await repo.find_duplicates_for_import(db, cert_nos, pairs)
     taken_certs = {t.cert_no for t in existing if t.cert_no}
-    taken_pairs = {(t.name, t.birth_date) for t in existing if t.birth_date}
+    taken_pairs = {(t.name_hash, t.birth_date) for t in existing if t.birth_date}
 
     created: list[Trainee] = []
     skipped = 0
@@ -550,7 +567,7 @@ async def confirm_import(
         if item.cert_no and item.cert_no in taken_certs:
             skipped += 1  # 감리원증번호 중복
             continue
-        if item.birth_date and (name, item.birth_date) in taken_pairs:
+        if item.birth_date and (name_hash(name), item.birth_date) in taken_pairs:
             skipped += 1  # 이름+생년월일 중복
             continue
         trainee = Trainee(
@@ -558,7 +575,8 @@ async def confirm_import(
             cert_no=item.cert_no,
             supervisor_grade=item.supervisor_grade,
             cert_issued_date=item.cert_issued_date,
-            name=name,
+            name_encrypted=encrypt_field(name),
+            name_hash=name_hash(name),
             birth_date=item.birth_date,
             phone_encrypted=encrypt_field(item.phone) if item.phone else None,
             review_status="approved",
@@ -577,7 +595,8 @@ async def confirm_import(
                 entity_id=trainee.id,
                 after={
                     "trainee_no": trainee.trainee_no,
-                    "name": trainee.name,
+                    # 감사로그 JSONB 에 평문 이름을 남기지 않는다
+                    "name": mask_name(name),
                     "source": "excel_import",
                 },
             )

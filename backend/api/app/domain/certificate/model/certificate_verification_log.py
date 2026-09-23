@@ -19,6 +19,11 @@ class CertificateVerificationLog(Base):
     certificate_id: Mapped[uuid.UUID | None] = mapped_column(
         Uuid, ForeignKey("certificates.id", ondelete="SET NULL"), nullable=True
     )
+    # 수료증 진위확인 — 확인서와 한 스트림으로 조회 이력을 유지하기 위한 참조
+    completion_certificate_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid, ForeignKey("completion_certificates.id", ondelete="SET NULL"),
+        nullable=True,
+    )
     input_certificate_no: Mapped[str] = mapped_column(String(100), nullable=False)
     result: Mapped[str] = mapped_column(String(30), nullable=False)
     requester_ip_hash: Mapped[str | None] = mapped_column(String(255))

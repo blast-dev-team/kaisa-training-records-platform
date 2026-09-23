@@ -37,6 +37,8 @@ class PassCompleteResponse(BaseModel):
     name: str | None
     matched: bool
     review_status: str | None
+    # 슈퍼 계정 — 전 회원 이력 조회(미리보기) 가능. WEB에서 발급 버튼을 미리보기로 바꾼다
+    is_super: bool = False
 
 
 class IdentityReviewResponse(BaseModel):
@@ -64,9 +66,13 @@ class IdentityReviewResponse(BaseModel):
             id=review.id,
             identity_verification_id=review.identity_verification_id,
             user_id=review.user_id,
-            user_name=review.user.name if review.user else None,
+            user_name=decrypt_field(review.user.name_encrypted)
+            if review.user
+            else None,
             trainee_id=review.trainee_id,
-            verified_name=iv.verified_name if iv else None,
+            verified_name=decrypt_field(iv.verified_name_encrypted)
+            if iv and iv.verified_name_encrypted
+            else None,
             verified_phone_masked=phone,
             status=review.status,
             matched_by=review.matched_by,
