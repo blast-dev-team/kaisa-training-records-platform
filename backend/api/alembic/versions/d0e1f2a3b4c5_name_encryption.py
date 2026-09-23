@@ -21,7 +21,6 @@ from collections.abc import Sequence
 import sqlalchemy as sa
 
 from alembic import op
-from app.core.crypto import decrypt_field, name_columns
 
 # revision identifiers, used by Alembic.
 revision: str = "d0e1f2a3b4c5"
@@ -43,6 +42,10 @@ _NULLABLE_NOW = {"trainees", "certificates"}
 
 
 def _backfill(conn: sa.Connection, table: str, src: str, enc: str, hsh: str) -> None:
+    # 모듈 임포트가 아닌 함수 안에서 — alembic heads 같은 읽기 명령까지 CRYPTO_KEY 를
+    # 요구하지 않게 한다 (실제 upgrade 에선 키 없으면 여기서 실패 = 의도된 fail-fast)
+    from app.core.crypto import name_columns
+
     rows = conn.execute(
         sa.text(f"SELECT id, {src} FROM {table} WHERE {src} IS NOT NULL")
     ).fetchall()
@@ -82,6 +85,8 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     # downgrades name_encrypted/name_hash — 구 평문 컬럼은 아래에서 복원한다.
+    from app.core.crypto import decrypt_field
+
     op.drop_index("ix_certificates_issued_name_hash", table_name="certificates")
     op.drop_index("ix_trainees_name_hash", table_name="trainees")
 

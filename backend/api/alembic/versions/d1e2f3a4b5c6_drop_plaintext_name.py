@@ -17,8 +17,6 @@ import sqlalchemy as sa
 
 from alembic import op
 
-from app.core.crypto import decrypt_field
-
 # revision identifiers, used by Alembic.
 revision: str = "d1e2f3a4b5c6"
 down_revision: str | None = "d0e1f2a3b4c5"
@@ -42,6 +40,9 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     # 암호문에서 평문을 복원 — 컬럼을 되살린 뒤 되우고 제약을 되돌린다
+    # 함수 안 임포트 — alembic heads 등 읽기 명령이 CRYPTO_KEY 없이 돌아가게
+    from app.core.crypto import decrypt_field
+
     for table, src, enc, was_not_null in reversed(_TARGETS):
         op.add_column(table, sa.Column(src, sa.String(length=100), nullable=True))
         conn = op.get_bind()
