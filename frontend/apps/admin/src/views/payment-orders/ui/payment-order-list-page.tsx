@@ -152,7 +152,7 @@ export function PaymentOrderListPage() {
           >
             <Input
               className="w-64"
-              placeholder="주문번호 · 감리원 성명"
+              placeholder="주문번호 · 감리원 성명(전체)"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
             />

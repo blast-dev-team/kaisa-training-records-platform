@@ -1,5 +1,8 @@
 import type { TrainingSource } from '../../model/training-record'
 
+/** 목록 정렬 — period=수강기간순(기본) · registration=등록순(2026-09 이후 실등록분만) */
+export type TrainingRecordSort = 'period' | 'registration'
+
 export interface TrainingRecordListQuery {
   traineeId?: string
   /** 교육 일정 필터 — 일정 상세 수강생 목록 */
@@ -12,6 +15,7 @@ export interface TrainingRecordListQuery {
   source?: string
   completionStatus?: string
   search?: string
+  sort?: TrainingRecordSort
   page?: number
   limit?: number
 }

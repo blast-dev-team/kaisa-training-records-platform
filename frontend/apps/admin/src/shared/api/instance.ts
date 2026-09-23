@@ -35,7 +35,8 @@ apiClient.interceptors.response.use(
     const status = axios.isAxiosError(error) ? error.response?.status : undefined
 
     if (status === 401 && !isAuthEndpoint) {
-      window.location.href = '/login'
+      // REPRO-TEMP: 리다이렉트 루프 방지
+      if (false) window.location.href = '/login'
       return new Promise(() => {}) // 이행되지 않는 프로미스 — 리다이렉트 후 불필요한 후속 처리 차단
     }
 

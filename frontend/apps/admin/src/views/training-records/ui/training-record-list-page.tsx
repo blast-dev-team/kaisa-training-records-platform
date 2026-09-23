@@ -3,7 +3,7 @@ import { useSearchParams } from "react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import type { ColumnDef } from "@tanstack/react-table";
-import { CalendarPlus, FileDown, Pencil, Plus, Trash2 } from "lucide-react";
+import { Award, CalendarPlus, FileDown, Pencil, Plus, Trash2 } from "lucide-react";
 import { AppTable } from "@/src/shared/ui/app-table";
 import { Button } from "@/src/shared/ui/button";
 import { Dialog } from "@/src/shared/ui/dialog";
@@ -19,15 +19,18 @@ import { formatNumber, todayYMD, yearsAgoYMD } from "@/src/shared/utils/format";
 import {
   deleteTrainingRecord,
   deleteTrainingRecordBulk,
+  postCompletionCertificatesIssue,
   trainingRecordQueries,
   COMPLETION_STATUS_LABELS,
   TRAINING_SOURCE_LABELS,
+  type CompletionCertificate,
   type TrainingRecord,
 } from "@/src/entities/training-record";
 import { traineeQueries } from "@/src/entities/trainee";
 import { TrainingRecordFormDialog } from "./training-record-form-dialog";
 import { TrainingRecordBulkEditDialog } from "./training-record-bulk-edit-dialog";
 import { CertificatePreviewModal } from "./certificate-preview-modal";
+import { CompletionCertificateModal } from "./completion-certificate-modal";
 import { SessionPickerDialog } from "@/src/views/course-sessions/ui/session-picker-dialog";
 import { AttachTraineesDialog } from "@/src/views/course-sessions/ui/attach-trainees-dialog";
 import type { CourseSession } from "@/src/entities/course-session";
@@ -36,6 +39,10 @@ interface Props {
   /** 'external' 이면 외부 수료 전용 뷰 — source 고정, 등록 기본값 external */
   variant?: "all" | "external";
 }
+
+/** 수료증 발급 자격 — 내부 기관의 수료 완료 내역만 */
+const canIssueCompletion = (record: TrainingRecord) =>
+  record.institutionType === "internal" && record.completionStatus === "completed";
 
 /** 조회기간 칩 — 레거시 프로그램(전체·최근 3년·최근 1년) 이식. 'all'이 기본이라 URL 키 생략 */
 const PERIOD_CHIPS = [
@@ -63,6 +70,8 @@ export function TrainingRecordListPage({ variant = "all" }: Props) {
   const to = searchParams.get("to") ?? "";
   // 조회기간 칩 — from/to 직접 지정 시 칩은 해제된다 (web 교육이력과 동일 패턴)
   const period = (searchParams.get("period") as PeriodChip | null) ?? "all";
+  // 정렬 — 수강기간순이 기본. 등록순은 이관 데이터가 등록 시각이 없어 실등록분만 본다
+  const sort = searchParams.get("sort") === "registration" ? "registration" : "period";
   const page = Math.max(1, Number(searchParams.get("page") ?? 1) || 1);
   const limit = Math.max(1, Number(searchParams.get("limit") ?? 10) || 10);
 
@@ -86,6 +95,10 @@ export function TrainingRecordListPage({ variant = "all" }: Props) {
   // 확인서 PDF 발급 — 체크박스 선택(페이지 이동 간 유지) + 모달 미리보기 후 다운로드
   const [selected, setSelected] = useState<Map<string, TrainingRecord>>(new Map());
   const [previewRecords, setPreviewRecords] = useState<TrainingRecord[] | null>(null);
+  // 수료증 발급 — 발급 응답(번호 포함)으로 미리보기 모달
+  const [issuedCertificates, setIssuedCertificates] = useState<
+    CompletionCertificate[] | null
+  >(null);
   // 일괄 수정 모달 — 체크박스 선택분. 저장 성공 시 선택 해제
   const [bulkEditOpen, setBulkEditOpen] = useState(false);
   const [bulkEditRecords, setBulkEditRecords] = useState<TrainingRecord[]>([]);
@@ -100,6 +113,7 @@ export function TrainingRecordListPage({ variant = "all" }: Props) {
       search: q || undefined,
       dateFrom: effFrom || undefined,
       dateTo: effTo || undefined,
+      sort,
       page,
       limit,
     }),
@@ -140,6 +154,19 @@ export function TrainingRecordListPage({ variant = "all" }: Props) {
       setBulkDeleteOpen(false);
       setSelected(new Map());
       queryClient.invalidateQueries({ queryKey: trainingRecordQueries.all() });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  /** 선택 중 수료증 발급 자격 건 — 일괄 발급 버튼 활성·대상 계산에 쓴다 */
+  const eligibleRecords = [...selected.values()].filter(canIssueCompletion);
+
+  // 수료증 발급 — 서버에 문서 생성(번호 채번) → 응답으로 미리보기 모달
+  const issueCompletionMutation = useMutation({
+    mutationFn: (ids: string[]) =>
+      postCompletionCertificatesIssue({ training_record_ids: ids }),
+    onSuccess: (certificates) => {
+      setIssuedCertificates(certificates);
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -260,44 +287,63 @@ export function TrainingRecordListPage({ variant = "all" }: Props) {
       {
         id: "actions",
         header: "",
-        // PDF 아이콘 버튼 ~68px + 수정·삭제 각 48px + gap 12px + 셀 패딩 32px = 208px — 그래서 210.
-        meta: { width: 210, align: "right" },
-        cell: ({ row }) => (
-          <div className="flex items-center justify-end gap-1.5">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                setPreviewRecords([row.original]);
-              }}
-            >
-              <FileDown className="size-3.5" /> PDF
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                setEditTarget(row.original);
-                setFormOpen(true);
-              }}
-            >
-              수정
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-danger hover:text-danger"
-              onClick={(e) => {
-                e.stopPropagation();
-                setDeleteTarget(row.original);
-              }}
-            >
-              삭제
-            </Button>
-          </div>
-        ),
+        // PDF·수료증 아이콘 버튼 각 ~68px + 수정·삭제 각 48px + gap 18px + 셀 패딩 32px = 262px — 그래서 270.
+        meta: { width: 270, align: "right" },
+        cell: ({ row }) => {
+          const eligible = canIssueCompletion(row.original);
+          return (
+            <div className="flex items-center justify-end gap-1.5">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setPreviewRecords([row.original]);
+                }}
+              >
+                <FileDown className="size-3.5" /> PDF
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                disabled={!eligible}
+                title={
+                  eligible
+                    ? undefined
+                    : "내부 기관의 수료 완료 내역만 발급할 수 있어요"
+                }
+                onClick={(e) => {
+                  e.stopPropagation();
+                  issueCompletionMutation.mutate([row.original.id]);
+                }}
+              >
+                <Award className="size-3.5" /> 수료증
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setEditTarget(row.original);
+                  setFormOpen(true);
+                }}
+              >
+                수정
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-danger hover:text-danger"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setDeleteTarget(row.original);
+                }}
+              >
+                삭제
+              </Button>
+            </div>
+          );
+        },
       },
     ],
     // toggleRow 는 useCallback([]) 로 안정적이라 deps 제외
@@ -341,11 +387,16 @@ export function TrainingRecordListPage({ variant = "all" }: Props) {
             value={traineeId || null}
             onChange={(v) => updateParams({ trainee_id: v })}
             fetchPage={traineeOptionsFetcher}
-            placeholder="성명으로 검색 후 선택"
+            placeholder="성명(전체)으로 검색 후 선택"
             clearable
             disableCreate
             queryKeyPrefix={["options", "trainees"]}
-            selectedLabel={selectedTrainee?.name}
+            // 동명이인 구분 — 선택 후에도 어떤 감리원인지 번호로 보이게
+            selectedLabel={
+              selectedTrainee?.traineeNo
+                ? `${selectedTrainee.name} (${selectedTrainee.traineeNo})`
+                : selectedTrainee?.name
+            }
           />
         </FilterRow>
         <FilterRow label="검색">
@@ -358,7 +409,7 @@ export function TrainingRecordListPage({ variant = "all" }: Props) {
           >
             <Input
               className="w-64"
-              placeholder="과정명 · 기관명 · 감리원 성명"
+              placeholder="과정명 · 기관명 · 감리원 성명(전체)"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
             />
@@ -366,6 +417,16 @@ export function TrainingRecordListPage({ variant = "all" }: Props) {
               검색
             </Button>
           </form>
+        </FilterRow>
+        <FilterRow label="정렬">
+          <Select
+            className="w-32"
+            value={sort}
+            onChange={(e) => updateParams({ sort: e.target.value === "registration" ? e.target.value : null })}
+          >
+            <option value="period">수강기간순</option>
+            <option value="registration">등록순</option>
+          </Select>
         </FilterRow>
         <FilterRow label="기간">
           <div className="flex flex-wrap items-center gap-2">
@@ -417,6 +478,18 @@ export function TrainingRecordListPage({ variant = "all" }: Props) {
         </FilterRow>
       </FilterBar>
 
+      {/* 등록순 안내 — 이관(미러링) 데이터는 created_at 이 일괄 반영되어 등록순의 의미가 없다.
+          서버가 2026-09-01 이후 실등록분만 내려주므로 그 사실을 그대로 알려준다 */}
+      {sort === "registration" && (
+        <div className="flex w-full items-start rounded-md border-l-4 border-solid border-accent bg-accent-soft px-4 py-2.5">
+          <p className="flex-1 text-[13px] leading-[1.6] text-ink-2">
+            등록순은 <b className="font-semibold text-ink">2026년 9월 이후 등록된 내역</b>만
+            보여줘요 — 그 이전 데이터는 시스템 이관으로 일괄 등록되어 실제 등록 순서가 없어요.
+            이관 데이터는 수강기간순으로 확인해 주세요.
+          </p>
+        </div>
+      )}
+
       {/* 총 수료시간 — 교육생 필터가 있을 때만. 없으면 전체 교육생 합계라 의미가 없다 (레거시 총계 위치) */}
       {traineeId && (
         <div className="mb-1 flex items-baseline gap-1.5">
@@ -446,6 +519,26 @@ export function TrainingRecordListPage({ variant = "all" }: Props) {
           <Button size="sm" onClick={() => setPreviewRecords([...selected.values()])}>
             <FileDown className="size-4" /> 확인서 미리보기
           </Button>
+          <Button
+            size="sm"
+            disabled={eligibleRecords.length === 0}
+            title={
+              eligibleRecords.length === 0
+                ? "선택 내역 중 내부 기관 수료 완료 건이 없어요"
+                : undefined
+            }
+            onClick={() => {
+              const excluded = selected.size - eligibleRecords.length;
+              if (excluded > 0) {
+                toast.info(
+                  `내부 기관 수료 완료 건만 발급해요 — ${excluded}건은 제외했어요`,
+                );
+              }
+              issueCompletionMutation.mutate(eligibleRecords.map((r) => r.id));
+            }}
+          >
+            <Award className="size-4" /> 수료증 발급
+          </Button>
           <Button variant="destructive" size="sm" onClick={() => setBulkDeleteOpen(true)}>
             <Trash2 className="size-3.5" /> 일괄 삭제
           </Button>
@@ -458,7 +551,11 @@ export function TrainingRecordListPage({ variant = "all" }: Props) {
         isLoading={!data}
         onRowClick={toggleRow}
         emptyMessage={
-          isExternal ? "등록된 외부 수료 내역이 없어요" : "조건에 맞는 교육내역이 없어요"
+          traineeId && selectedTrainee
+            ? `${selectedTrainee.name}(${selectedTrainee.traineeNo ?? "미지정"}) 감리원의 교육내역이 없어요`
+            : isExternal
+              ? "등록된 외부 수료 내역이 없어요"
+              : "조건에 맞는 교육내역이 없어요"
         }
         page={page}
         totalPages={totalPages}
@@ -481,6 +578,12 @@ export function TrainingRecordListPage({ variant = "all" }: Props) {
         isOpen={previewRecords !== null}
         onClose={() => setPreviewRecords(null)}
         records={previewRecords ?? []}
+      />
+
+      <CompletionCertificateModal
+        isOpen={issuedCertificates !== null}
+        onClose={() => setIssuedCertificates(null)}
+        certificates={issuedCertificates}
       />
 
       <TrainingRecordBulkEditDialog

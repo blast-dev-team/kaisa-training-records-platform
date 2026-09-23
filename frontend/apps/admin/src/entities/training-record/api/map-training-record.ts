@@ -13,10 +13,12 @@ export function mapTrainingRecord(dto: TrainingRecordDto): TrainingRecord {
     courseId: dto.course_id,
     sessionId: dto.session_id,
     institutionId: dto.institution_id,
+    institutionType:
+      dto.institution_type === 'internal' || dto.institution_type === 'external'
+        ? dto.institution_type
+        : null,
     courseName: dto.course_name,
     institutionName: dto.institution_name,
-    formNo: dto.form_no,
-    docNo: dto.doc_no,
     supervisorGrade: dto.supervisor_grade,
     supervisorCertNo: dto.supervisor_cert_no,
     totalHours: dto.total_hours != null ? Number(dto.total_hours) : null,

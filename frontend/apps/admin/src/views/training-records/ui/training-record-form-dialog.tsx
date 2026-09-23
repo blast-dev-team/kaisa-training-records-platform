@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { Button } from "@/src/shared/ui/button";
 import { Dialog } from "@/src/shared/ui/dialog";
@@ -69,8 +69,6 @@ export function TrainingRecordFormDialog({
   const [courseId, setCourseId] = useState<string>(MANUAL);
   const [courseName, setCourseName] = useState("");
   const [institutionName, setInstitutionName] = useState("");
-  const [formNo, setFormNo] = useState("");
-  const [docNo, setDocNo] = useState("");
   const [totalHours, setTotalHours] = useState("");
   const [completedHours, setCompletedHours] = useState("");
   const [source, setSource] = useState<TrainingSource>(defaultSource);
@@ -155,8 +153,6 @@ export function TrainingRecordFormDialog({
       setCourseId(record.courseId ?? MANUAL);
       setCourseName(record.courseName);
       setInstitutionName(record.institutionName ?? "");
-      setFormNo(record.formNo ?? "");
-      setDocNo(record.docNo ?? "");
       setTotalHours(record.totalHours !== null ? String(record.totalHours) : "");
       setCompletedHours(record.completedHours !== null ? String(record.completedHours) : "");
       setSource(record.source);
@@ -169,8 +165,6 @@ export function TrainingRecordFormDialog({
       setCourseId(MANUAL);
       setCourseName("");
       setInstitutionName("");
-      setFormNo("");
-      setDocNo("");
       setTotalHours("");
       setCompletedHours("");
       setSource(defaultSource);
@@ -204,8 +198,6 @@ export function TrainingRecordFormDialog({
         course_id: courseId !== MANUAL ? courseId : null,
         course_name: courseName.trim(),
         institution_name: institutionName.trim() || undefined,
-        form_no: formNo.trim() || null,
-        doc_no: docNo.trim() || null,
         total_hours: totalHours === "" ? null : Number(totalHours),
         completed_hours: completedHours === "" ? null : Number(completedHours),
         started_at: startedAt || null,
@@ -272,7 +264,7 @@ export function TrainingRecordFormDialog({
           ) : (
             <div ref={traineeDropdownRef} className="relative">
               <Input
-                placeholder="클릭해서 성명으로 검색 · 선택"
+                placeholder="클릭해서 성명(전체)으로 검색 · 선택"
                 value={traineeSearch}
                 onChange={(e) => {
                   setTraineeSearch(e.target.value);
@@ -400,25 +392,6 @@ export function TrainingRecordFormDialog({
               />
             </div>
           )}
-        </div>
-
-        <div className="grid grid-cols-2 gap-2">
-          <div className="space-y-1.5">
-            <Label>서식번호</Label>
-            <Input
-              placeholder="예: 제○○호 서식"
-              value={formNo}
-              onChange={(e) => setFormNo(e.target.value)}
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Label>문서번호</Label>
-            <Input
-              placeholder="예: 대축-2026-001"
-              value={docNo}
-              onChange={(e) => setDocNo(e.target.value)}
-            />
-          </div>
         </div>
 
         <div className="grid grid-cols-1 gap-2">

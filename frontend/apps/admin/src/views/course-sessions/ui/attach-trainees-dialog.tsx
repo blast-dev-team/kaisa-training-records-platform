@@ -525,7 +525,7 @@ export function AttachTraineesDialog({ isOpen, onClose, session }: Props) {
               type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={matchMutation.isPending}
-              className="flex w-full flex-col items-center gap-1.5 rounded-xl border border-dashed border-line px-4 py-6 text-ink-3 transition-colors hover:border-accent hover:text-accent"
+              className="flex w-full flex-col items-center gap-1.5 rounded-xl border border-dashed border-line px-4 py-6 text-ink-3 transition-colors hover:border-accent hover:text-accent cursor-pointer"
             >
               <FileSpreadsheet className="size-7" />
               <span className="text-[13px]">

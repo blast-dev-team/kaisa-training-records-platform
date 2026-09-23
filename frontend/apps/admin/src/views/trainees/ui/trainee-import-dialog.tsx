@@ -184,7 +184,7 @@ export function TraineeImportDialog({ isOpen, onClose }: Props) {
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            className="flex w-full flex-col items-center gap-2 rounded-xl border border-dashed border-line px-4 py-10 text-ink-3 transition-colors hover:border-accent hover:text-accent"
+            className="flex w-full flex-col items-center gap-2 rounded-xl border border-dashed border-line px-4 py-10 text-ink-3 transition-colors hover:border-accent hover:text-accent cursor-pointer"
           >
             <FileSpreadsheet className="size-8" />
             <span className="text-sm">

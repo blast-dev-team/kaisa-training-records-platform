@@ -1,7 +1,11 @@
+/** 기관 내부/외부 구분 — null 은 미선택. internal 기관의 수료내역만 수료증 발급 가능 */
+export type InstitutionType = 'internal' | 'external' | null
+
 export interface Institution {
   id: string
   name: string
   institutionCode: string | null
+  institutionType?: InstitutionType
   isActive: boolean
   createdAt: string
 }
@@ -9,6 +13,7 @@ export interface Institution {
 export interface InstitutionInput {
   name: string
   institution_code?: string
+  institution_type?: InstitutionType
   is_active?: boolean
 }
 

@@ -35,6 +35,7 @@ export const getTrainingRecordList = async (
       source: query.source || undefined,
       completion_status: query.completionStatus || undefined,
       search: query.search || undefined,
+      sort: query.sort || undefined,
       page: query.page ?? 1,
       limit: query.limit ?? 20,
     },

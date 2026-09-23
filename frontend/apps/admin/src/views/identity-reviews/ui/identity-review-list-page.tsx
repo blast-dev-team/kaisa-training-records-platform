@@ -148,7 +148,7 @@ export function IdentityReviewListPage() {
           >
             <Input
               className="w-64"
-              placeholder="계정명 · 인증 성명"
+              placeholder="계정명 · 인증 성명(전체)"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
             />

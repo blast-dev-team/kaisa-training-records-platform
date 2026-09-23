@@ -107,7 +107,7 @@ export function Dialog({
 
         {/* Content */}
         {children && (
-          <div className="px-6 pb-4 flex-1 overflow-y-auto scrollbar-thin">
+          <div className="min-h-0 flex-1 overflow-y-auto scrollbar-thin px-6 pb-4">
             {children}
           </div>
         )}

@@ -2,6 +2,8 @@ export interface InstitutionDto {
   id: string
   name: string
   institution_code: string | null
+  /** internal | external | null(미선택) — internal 만 수료증 발급 가능 */
+  institution_type?: string | null
   is_active: boolean
   created_at: string
 }

@@ -16,3 +16,4 @@ export type { TrainingRecordBulkUpdateItem } from './api/patch-training-record-b
 export { deleteTrainingRecord } from './api/delete-training-record'
 export { deleteTrainingRecordBulk } from './api/delete-training-record-bulk'
 export type { TrainingRecordListQuery } from './api/query/training-record-list-query'
+export { postCompletionCertificatesIssue } from './api/post-completion-certificates-issue'
