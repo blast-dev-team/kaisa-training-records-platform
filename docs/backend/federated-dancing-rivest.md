@@ -83,7 +83,7 @@ verify: curl 로그인 → Set-Cookie(httponly) → /auth/me → 오류 비번 5
 ## Phase 3 — 관리자 마스터 도메인 (~48파일)
 
 - **institution**: 기관 CRUD + `course_router`(과정 = 기관 하위 마스터, 멀티라우터). 삭제 대신 `is_active` 토글
-- **trainee**: 목록(페이지, search=name/trainee_no — **전화번호 검색 불가, 암호화 저장 특성. 문서 명시**), 상세(phone decrypt→mask), PATCH(grade 변경 시 `trainee_grade_histories` insert + audit), membership-grades CRUD
+- **trainee**: 목록(페이지, search=성명(전체 일치)/trainee_no — **이름·전화번호 부분 검색 불가, 암호화 저장 특성. 문서 명시**), 상세(phone decrypt→mask), PATCH(grade 변경 시 `trainee_grade_histories` insert + audit), membership-grades CRUD
 - **training_record**(외부수료 통합 — v1.1): 어드민 이력 CRUD(스냅샷 컬럼 채움, DELETE=소프트딜리트). 외부 수료도 동일 CRUD로 등록 — `source='external'` + 기관·과정 마스터 연결 + `evidence_file_key`(증빙파일) 첨부
 - **audit**: `GET /api/audit-logs`(entity_type/entity_id/actor 필터)
 

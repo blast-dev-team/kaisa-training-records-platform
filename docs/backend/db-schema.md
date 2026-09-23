@@ -55,7 +55,7 @@
 |------|------|------|
 | id | uuid PK | |
 | ci_hash | varchar(255) NOT NULL UNIQUE | PASS 본인인증 CI 해시. 회원 로그인 식별자 |
-| name | varchar(100) | 본인인증 성공 시점 이름 스냅샷 |
+| name_encrypted / name_hash | text / varchar(64) | 본인인증 성공 시점 이름 스냅샷 — Fernet 암호화 + HMAC blind index (전화번호와 같은 패턴) |
 | last_login_at | timestamptz | |
 | created_at / updated_at | timestamptz NOT NULL | |
 
@@ -71,7 +71,8 @@ PASS 성공 시 CI로 find-or-create. 재가입 절차 없음 — 같은 CI 재�
 | cert_no | varchar(100) | 감리원증번호 (구 시스템 감리원추가 E열) |
 | supervisor_grade | varchar(50) | 감리원 등급 (감리원/수석감리원) — 확인서 표기용, 회원등급과 별개 |
 | cert_issued_date | date | 감리원증 발급일자 — 엑셀 일괄 등록에서 받는 참조 정보 |
-| name | varchar(100) NOT NULL | |
+| name_encrypted | text NOT NULL | Fernet 암호화 — 표시 시 복호화 |
+| name_hash | varchar(64) NOT NULL | HMAC blind index — 이름 검색은 '전체 이름 일치'만 지원 (부분 검색 불가) |
 | birth_date | date | 생년월일 (어드민 수정 항목) |
 | phone_encrypted | text | Fernet 암호화 |
 | email | varchar(255) | |
@@ -157,7 +158,7 @@ CI 는 `users.ci_hash` 단일 소스. CI 없는 이관분은 수동 매칭.
 | provider_verification_id | varchar(255) UNIQUE | |
 | redirect_state_hash | varchar(255) | Redirect CSRF 방지용 state 해시 |
 | status | varchar(30) NOT NULL DEFAULT 'pending' | pending / verified / failed / expired |
-| verified_name | varchar(100) | |
+| verified_name_encrypted / verified_name_hash | text / varchar(64) | 인증 성명 — Fernet 암호화 + HMAC blind index |
 | verified_phone_encrypted | text | |
 | ci_hash / di_hash | varchar(255) | |
 | verified_at / expires_at | timestamptz | |
@@ -200,6 +201,7 @@ CI 는 `users.ci_hash` 단일 소스. CI 없는 이관분은 수동 매칭.
 | business_registration_no | varchar(50) | |
 | contact_name / contact_phone / contact_email | varchar | 담당자 3종 |
 | address | text | |
+| institution_type | varchar(20) | 내부/외부 구분 — `internal` / `external` / NULL(미선택). internal 기관의 수료내역만 수료증 발급 가능 |
 | is_active | boolean NOT NULL DEFAULT true | |
 | created_at / updated_at | timestamptz NOT NULL | |
 
@@ -254,8 +256,6 @@ CI 는 `users.ci_hash` 단일 소스. CI 없는 이관분은 수동 매칭.
 | institution_id | uuid FK→training_institutions SET NULL | |
 | course_name | varchar(255) NOT NULL | 당시 교육명 스냅샷 |
 | institution_name | varchar(255) NOT NULL | 당시 기관명 스냅샷 |
-| form_no | varchar(100) | 서식번호 (확인서 표기용) |
-| doc_no | varchar(100) | 문서번호 (확인서 표기용) |
 | supervisor_grade | varchar(50) | 감리원 등급 (예: 정감리원) |
 | supervisor_cert_no | varchar(100) | 감리원증 발급번호 |
 | total_hours | numeric(8,2) NOT NULL DEFAULT 0 | 교육 시간 |
@@ -300,7 +300,7 @@ CI 는 `users.ci_hash` 단일 소스. CI 없는 이관분은 수동 매칭.
 | trainee_id | uuid NOT NULL FK→trainees | |
 | training_record_id | uuid NOT NULL FK→training_records | |
 | previous_certificate_id | uuid FK→certificates SET NULL | 재발급 시 기존 확인서 |
-| requested_by | uuid NOT NULL FK→users | |
+| requested_by | uuid FK→users | nullable — 어드민 발급은 회원 신청이 아니다 (trainee.user_id 로 채움 → WEB 노출) |
 | issue_type | varchar(30) NOT NULL DEFAULT 'original' | original / reissue |
 | membership_grade_id | uuid NOT NULL FK→membership_grades | 신청 당시 판별 등급 |
 | pricing_rule_id | uuid FK→certificate_pricing_rules SET NULL | 레거시 — 신규 신청은 NULL |
@@ -396,10 +396,11 @@ CI 는 `users.ci_hash` 단일 소스. CI 없는 이관분은 수동 매칭.
 | id | uuid PK | |
 | certificate_no | varchar(100) NOT NULL UNIQUE | 시스템 생성 번호 |
 | bundle_no | varchar(100) | 묶음 확인서 번호 — 한 발급 이벤트가 공유하는 표시 번호(첫 확인서의 certificate_no). 단건 발급은 자기 번호와 같음 |
+| doc_no | varchar(100) | 문서번호 — 발급 이벤트(문서)당 1회 채번 `정감 제{YY}-E{NNNN}호`, 묶음 멤버 전부 동일 값. 재발급도 새 문서라 새 번호. 교육내역(training_records)엔 번호가 없다 — 2026-09-23 이동 |
 | certificate_request_id | uuid NOT NULL UNIQUE FK→certificate_requests | 1:1 |
 | trainee_id / training_record_id | uuid NOT NULL FK | |
 | payment_order_id | uuid FK→payment_orders SET NULL | |
-| issued_name | varchar(100) NOT NULL | 발급 당시 이름 스냅샷 |
+| issued_name_encrypted / issued_name_hash | text NOT NULL / varchar(64) NOT NULL | 발급 당시 이름 스냅샷 — Fernet 암호화 + HMAC blind index |
 | course_name / institution_name | varchar(255) NOT NULL | 스냅샷 |
 | total_hours / completed_hours | numeric(8,2) NOT NULL | 스냅샷 |
 | training_started_at / training_ended_at | date | |
@@ -413,16 +414,44 @@ CI 는 `users.ci_hash` 단일 소스. CI 없는 이관분은 수동 매칭.
 
 인덱스: `(trainee_id, issued_at)`, `(training_record_id, issued_at)`, `(certificate_no, issued_at)`, `(bundle_no)`
 
+### completion_certificates — 수료증
+
+내부 기관 수료내역 1건당 1장. 어드민이 교육내역관리에서 발급하고, 확인서와 같은
+공개 진위확인 엔드포인트에서 번호로 검증된다.
+
+| 컬럼 | 타입 | 설명 |
+|------|------|------|
+| id | uuid PK | |
+| certificate_no | varchar(30) NOT NULL UNIQUE | `YYYY-MM-NNN호` — 월별 리셋 연번(2026-09-001호). 표시 형식 그대로 저장 |
+| training_record_id | uuid NOT NULL UNIQUE FK→training_records | 1 이력 = 1 수료증 — 재발급 요청은 기존 수료증 재사용(멱등) |
+| trainee_id | uuid NOT NULL FK→trainees | |
+| issued_name_encrypted / issued_name_hash | text NOT NULL / varchar(64) NOT NULL | 발급 당시 이름 스냅샷 — 확인서와 동일 방식 |
+| trainee_birth_date | date | 생년월일 스냅샷 |
+| course_name | varchar(255) NOT NULL | 교육과정 스냅샷 |
+| session_name | varchar(255) | 교육과정(회차명) — 발급 시점 연결 과정의 회차명. 미연결이면 NULL. `course_name` 은 교육주제(과정명) |
+| institution_name | varchar(255) NOT NULL | 발급 기관 스냅샷 |
+| completed_hours | numeric(8,2) NOT NULL | |
+| started_at / ended_at | date | 교육기간 |
+| issued_at | timestamptz NOT NULL | |
+| status | varchar(30) NOT NULL DEFAULT 'issued' | issued / revoked |
+| created_at / updated_at | timestamptz NOT NULL | |
+
+인덱스: `(certificate_no, issued_at)`, `(trainee_id, issued_at)`
+
 ---
 
 ## 9. 진위여부 확인
 
 ### certificate_verification_logs — 진위확인 이력
 
+확인서·수료증 공용 — 한 엔드포인트(`POST /public/certificate-verifications`)가
+두 문서를 모두 조회한다.
+
 | 컬럼 | 타입 | 설명 |
 |------|------|------|
 | id | uuid PK | |
 | certificate_id | uuid FK→certificates SET NULL | not_found/mismatch 는 NULL |
+| completion_certificate_id | uuid FK→completion_certificates SET NULL | 수료증 조회 시 기록. not_found 는 NULL |
 | input_certificate_no | varchar(100) NOT NULL | |
 | input_issue_date | date NOT NULL | |
 | result | varchar(30) NOT NULL | valid / expired / revoked / not_found / mismatch |
