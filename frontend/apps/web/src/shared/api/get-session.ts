@@ -16,6 +16,8 @@ export interface SessionStatus {
   trainee_linked?: boolean;
   /** 심사 대기 중인지 */
   review_pending?: boolean;
+  /** 슈퍼 계정 — 전 회원 이력 조회(미리보기) 모드 */
+  is_super?: boolean;
 }
 
 export async function getSession(): Promise<SessionStatus | null> {

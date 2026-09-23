@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { postPassComplete } from "@/src/shared/api/post-pass-complete";
 import { useAuthStore } from "@/src/shared/store/auth-store";
 import { postPassStart } from "@/src/shared/api/post-pass-start";
+import { postPassSuperLogin } from "@/src/shared/api/post-pass-super-login";
 import { postPassTestLogin } from "@/src/shared/api/post-pass-test-login";
 import { requestPassIdentityVerification } from "@/src/shared/lib/portone/request-identity-verification";
 import { Button, TextField } from "@/src/shared/ui";
@@ -19,6 +20,9 @@ import { Button, TextField } from "@/src/shared/ui";
  */
 
 const TEST_LOGIN_NAME = "테스트";
+/** 슈퍼 계정 트리거 — 성명 KAISA + 이 번호면 PASS 인증 없이 전체 조회 모드로 로그인 */
+const SUPER_LOGIN_NAME = "KAISA";
+const SUPER_LOGIN_PHONE = "2018202820";
 
 interface IdentityVerificationModalProps {
   /** PASS 본인인증 성공 — 인증한 성명 전달 */
@@ -30,6 +34,7 @@ const digitsOnly = (value: string) => value.replace(/\D/g, "");
 
 export function IdentityVerificationModal({ onSuccess, onClose }: IdentityVerificationModalProps) {
   const setTraineeLinked = useAuthStore((state) => state.setTraineeLinked);
+  const signIn = useAuthStore((state) => state.signIn);
   const [name, setName] = useState("");
   const [birth, setBirth] = useState("");
   const [phone, setPhone] = useState("");
@@ -38,9 +43,13 @@ export function IdentityVerificationModal({ onSuccess, onClose }: IdentityVerifi
 
   // 성명 '테스트' — PASS 인증 우회. 생년월일·휴대전화 없이 바로 로그인한다
   const isTestLogin = name.trim() === TEST_LOGIN_NAME;
+  // 슈퍼 계정 — KAISA + 지정 번호. 생년월일 없이 로그인하고 미리보기 모드로 돌린다
+  const isSuperLogin =
+    name.trim() === SUPER_LOGIN_NAME && phone === SUPER_LOGIN_PHONE;
 
   const canSubmit =
-    name.trim().length > 0 && (isTestLogin || (birth.length === 8 && phone.length >= 10));
+    name.trim().length > 0 &&
+    (isTestLogin || isSuperLogin || (birth.length === 8 && phone.length >= 10));
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -58,6 +67,13 @@ export function IdentityVerificationModal({ onSuccess, onClose }: IdentityVerifi
       if (isTestLogin) {
         // PASS 인증 생략 — 서버가 세션 쿠키를 바로 내려준다
         const user = await postPassTestLogin(name.trim());
+        onSuccess(user.name ?? name.trim());
+        return;
+      }
+      if (isSuperLogin) {
+        // PASS 인증 생략 — 전체 조회(미리보기) 모드. 서버가 세션 쿠키를 내려준다
+        const user = await postPassSuperLogin(name.trim());
+        signIn(undefined, undefined, true, true);
         onSuccess(user.name ?? name.trim());
         return;
       }
@@ -119,7 +135,11 @@ export function IdentityVerificationModal({ onSuccess, onClose }: IdentityVerifi
             value={name}
             maxLength={30}
             helperText={
-              isTestLogin ? "테스트 계정으로 본인인증 없이 바로 로그인합니다." : undefined
+              isTestLogin
+                ? "테스트 계정으로 본인인증 없이 바로 로그인합니다."
+                : isSuperLogin
+                  ? "슈퍼 계정으로 전체 조회(미리보기) 모드로 로그인합니다."
+                  : undefined
             }
             onChange={(event) => setName(event.target.value)}
           />
@@ -161,7 +181,11 @@ export function IdentityVerificationModal({ onSuccess, onClose }: IdentityVerifi
             disabled={!canSubmit || isPending}
             onClick={handleSubmit}
           >
-            {isPending ? (isTestLogin ? "로그인 중..." : "인증 진행 중...") : "본인인증 시작"}
+            {isPending
+              ? isTestLogin || isSuperLogin
+                ? "로그인 중..."
+                : "인증 진행 중..."
+              : "본인인증 시작"}
           </Button>
         </div>
       </section>

@@ -135,4 +135,29 @@ describe("Pagination", () => {
     render(<Pagination page={1} totalPages={5} className="mt-6" />);
     expect(getNav().className).toContain("mt-6");
   });
+
+  it("5페이지 이하 — 줄임표 없이 전체 노출", () => {
+    render(<Pagination page={1} totalPages={5} />);
+    expect(screen.queryByText("…")).toBeNull();
+  });
+
+  it("6페이지 이상 — 첫·마지막·현재±1만 남기고 줄임표로 묶는다", () => {
+    render(<Pagination page={10} totalPages={20} />);
+    // 현재 ±1 만 노출 — 먼 숫자는 사라진다
+    expect(screen.queryByRole("button", { name: "8" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "12" })).toBeNull();
+    // 양 끝과 현재 ±1, 줄임표 2개
+    ["1", "9", "10", "11", "20"].forEach((n) => {
+      expect(screen.getByRole("button", { name: n })).toBeTruthy();
+    });
+    expect(screen.getAllByText("…").length).toBe(2);
+  });
+
+  it("현재가 앞쪽이면 왼쪽 줄임표 없음", () => {
+    render(<Pagination page={2} totalPages={10} />);
+    expect(screen.queryByText("…")).not.toBeNull();
+    // 왼쪽은 1·2가 붙어 있어 줄임표가 오른쪽 하나뿐
+    expect(screen.getAllByText("…").length).toBe(1);
+    expect(screen.getByRole("button", { name: "3" })).toBeTruthy();
+  });
 });

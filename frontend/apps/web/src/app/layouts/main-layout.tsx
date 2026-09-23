@@ -30,7 +30,12 @@ export function MainLayout() {
     onSuccess: (data) => {
       if (data) {
         // 서버가 알려준 새 만료 시각으로 FE 타이머·카운트다운 재설정
-        signIn(userName, new Date(data.expires_at).getTime());
+        signIn(
+          userName,
+          new Date(data.expires_at).getTime(),
+          undefined,
+          useAuthStore.getState().isSuper,
+        );
       }
     },
   });

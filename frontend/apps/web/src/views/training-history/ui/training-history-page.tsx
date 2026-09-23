@@ -5,6 +5,7 @@ import { useSearchParams } from "react-router";
 import { WarningCircleIcon } from "@/src/shared/icon";
 import { Button, Pagination } from "@/src/shared/ui";
 import { DateField } from "@/src/shared/ui/date-picker/date-field";
+import { useAuthStore } from "@/src/shared/store/auth-store";
 import { cn } from "@/src/shared/utils/cn";
 
 import {
@@ -14,10 +15,14 @@ import {
   type TrainingHistoryItem,
 } from "../api/get-training-history-list";
 import { IssuePaymentModal } from "./issue-payment-modal";
+import { CompletionCertificateModal } from "./completion-certificate-modal";
 import { TrainingHistoryTable } from "./training-history-table";
 
 /** 페이지당 목록 수 — Figma 목업(12건 2페이지) 기준 */
 const PAGE_LIMIT = 10;
+
+/** 선택 잠금 카테고리 — 확인서 발급 상태 + 수료증 전용(3년 지나 internal 수료분) */
+type SelectionCategory = CertificateStatus | "completionOnly";
 
 /** 기간 필터 칩 — Figma node 25:2519~25:2527 */
 type FilterChipKey = "recent3y" | "recent1y" | "all";
@@ -63,16 +68,22 @@ function formatHours(value: number): string {
  */
 export function TrainingHistoryPage() {
   const [searchParams, setSearchParams] = useSearchParams();
+  /** 슈퍼 계정 — 전 회원 이력 조회. 발급 버튼이 미리보기 모드로 바뀐다 */
+  const isSuper = useAuthStore((state) => state.isSuper);
   const [searchInput, setSearchInput] = useState(searchParams.get("q") ?? "");
-  /** 표에서 체크한 행 — 발급 대상. 페이지를 넘겨도 유지된다 */
+  /** 표에서 체크한 행 — 발급·수료증 대상. 페이지를 넘겨도 유지된다 */
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   /** 선택 카테고리 — 첫 체크 행의 상태. 페이지 넘겨도 잠금 유지용 상태 */
-  const [selectedCategory, setSelectedCategory] = useState<CertificateStatus | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<SelectionCategory | null>(null);
+  /** 선택 중 수료증 대상이 아닌 건(외부 기관 등) 수 — 수료증 버튼 활성 판정용 */
+  const [selectedNotCertEligible, setSelectedNotCertEligible] = useState(0);
   /** 발급·재발급 대상 — 설정 시 결제 모달이 열린다 */
   const [issueTarget, setIssueTarget] = useState<{
     ids: string[];
     type: "original" | "reissue";
   } | null>(null);
+  /** 수료증 대상 — 설정 시 무료 발급·미리보기 모달이 열린다 */
+  const [certTarget, setCertTarget] = useState<string[] | null>(null);
 
   const from = searchParams.get("from") ?? "";
   const to = searchParams.get("to") ?? "";
@@ -137,10 +148,22 @@ export function TrainingHistoryPage() {
   const items = data?.items ?? [];
   const totalPages = data?.totalPages ?? 1;
 
-  /** 행 체크 가능 여부 — 발급 불가 제외 + 선택 카테고리 일치 */
-  const isRowCheckable = (item: TrainingHistoryItem): boolean =>
-    item.certificateStatus !== "unavailable" &&
-    (selectedCategory === null || item.certificateStatus === selectedCategory);
+  /**
+   * 행의 선택 카테고리 — 확인서 발급 상태가 기본. 3년이 지나 unavailable 이어도
+   * 내부 기관 수료분이면 수료증(무료) 대상이라 completionOnly 로 분류한다.
+   */
+  const rowCategory = (item: TrainingHistoryItem): SelectionCategory =>
+    item.certificateStatus === "unavailable" && item.completionCertIssuable
+      ? "completionOnly"
+      : item.certificateStatus;
+
+  /** 행 체크 가능 여부 — 발급 불가(외부·미수료) 제외 + 선택 카테고리 일치 */
+  const isRowCheckable = (item: TrainingHistoryItem): boolean => {
+    const category = rowCategory(item);
+    return (
+      category !== "unavailable" && (selectedCategory === null || category === selectedCategory)
+    );
+  };
 
   /** 현재 체크 가능한 행 — 전체선택·토글 대상 */
   const checkableIds = items.filter(isRowCheckable).map((item) => item.id);
@@ -152,21 +175,34 @@ export function TrainingHistoryPage() {
     const exists = selectedIds.includes(item.id);
     const next = exists ? selectedIds.filter((id) => id !== item.id) : [...selectedIds, item.id];
     setSelectedIds(next);
+    // 수료증 버튼 활성 판정용 — 자격 없는 건(외부 기관 등)이 선택에 섞이면 막는다
+    if (!item.completionCertIssuable) {
+      setSelectedNotCertEligible((count) => Math.max(0, count + (exists ? -1 : 1)));
+    }
     // 비면 잠금 해제, 처음 체크하면 그 행의 상태로 범위 고정
-    setSelectedCategory(next.length === 0 ? null : (selectedCategory ?? item.certificateStatus));
+    setSelectedCategory(next.length === 0 ? null : (selectedCategory ?? rowCategory(item)));
+    if (next.length === 0) setSelectedNotCertEligible(0);
   };
 
   const toggleAll = () => {
+    const byId = new Map(items.map((item) => [item.id, item]));
+    const added = allSelected ? [] : checkableIds.filter((id) => !selectedIds.includes(id));
+    const removed = allSelected ? checkableIds.filter((id) => selectedIds.includes(id)) : [];
     const next = allSelected
       ? selectedIds.filter((id) => !checkableIds.includes(id))
       : [...new Set([...selectedIds, ...checkableIds])];
     setSelectedIds(next);
+    const ineligible = (id: string) => byId.get(id)?.completionCertIssuable !== true;
+    setSelectedNotCertEligible((count) =>
+      Math.max(0, count + added.filter(ineligible).length - removed.filter(ineligible).length),
+    );
     if (next.length === 0) {
       setSelectedCategory(null);
+      setSelectedNotCertEligible(0);
     } else if (selectedCategory === null) {
       // checkableIds는 카테고리가 비어 있을 때만 섞여 있을 수 있다 — 첫 행 상태가 그 카테고리
       const first = items.find((item) => item.id === next[0]);
-      setSelectedCategory(first?.certificateStatus ?? null);
+      setSelectedCategory(first ? rowCategory(first) : null);
     }
   };
 
@@ -180,6 +216,19 @@ export function TrainingHistoryPage() {
   const canReissue = selectedCategory === "reissuable" && selectedIds.length > 0;
   const handleReissueClick = () => {
     if (canReissue) setIssueTarget({ ids: selectedIds, type: "reissue" });
+  };
+
+  /** 수료증 — 선택 전체가 내부 기관 수료분이면 활성. 무료라 결제 없이 바로 발급 */
+  const canCompletionCert = selectedIds.length > 0 && selectedNotCertEligible === 0;
+  const handleCompletionCertClick = () => {
+    if (canCompletionCert) setCertTarget(selectedIds);
+  };
+
+  /** 발급 완료·수료증 발급 후 — 선택 상태를 비운다 */
+  const clearSelection = () => {
+    setSelectedIds([]);
+    setSelectedCategory(null);
+    setSelectedNotCertEligible(0);
   };
 
   return (
@@ -305,10 +354,25 @@ export function TrainingHistoryPage() {
         </p>
         <div className="flex items-center gap-3">
           {selectedIds.length === 0 && (
-            <p className="font-sans text-sm leading-normal text-gray-500 mobile:text-[13px] mobile:hidden">
-              여러 교육내역 확인서를 한번에 발급할 수 있습니다. 발급 비용은 단 건, 일괄 건
-              동일합니다.
-            </p>
+            <div className="flex flex-col gap-1">
+              {isSuper ? (
+                <>
+                  <p className="font-sans text-sm leading-normal text-gray-500 mobile:text-[13px] mobile:hidden">
+                    · 슈퍼 계정으로 전 회원 이력을 조회 중이에요. 발급 버튼은 미리보기만 제공해요.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="font-sans text-sm leading-normal text-gray-500 mobile:text-[13px] mobile:hidden">
+                    · 여러 교육내역 확인서를 한번에 발급할 수 있습니다. 발급 비용은 단 건, 일괄 건
+                    동일합니다.
+                  </p>
+                  <p className="font-sans text-sm leading-normal text-gray-500 mobile:text-[13px] mobile:hidden">
+                    · 협회에서 설정한 내부기관에 대한 교육내역만 수료증 발급이 가능합니다.
+                  </p>
+                </>
+              )}
+            </div>
           )}
           <div className="flex items-center justify-end gap-3 mobile:justify-end mobile:gap-2">
             {/* 데스크톱은 안내 문구가 대신 알려주므로 모바일에서만 선택 건수 노출 */}
@@ -334,6 +398,16 @@ export function TrainingHistoryPage() {
               className="rounded-md px-3 py-1.5 text-[13px] font-medium"
             >
               발급
+            </Button>
+            {/* 수료증 — 내부 기관 수료내역 전용. 무료 발급 후 바로 내려받는다 */}
+            <Button
+              color="black"
+              size="s"
+              disabled={!canCompletionCert}
+              onClick={handleCompletionCertClick}
+              className="rounded-md px-3 py-1.5 text-[13px] font-medium"
+            >
+              수료증
             </Button>
           </div>
         </div>
@@ -393,16 +467,25 @@ export function TrainingHistoryPage() {
         />
       )}
 
-      {/* 결제 모달 — 툴바 발급·재발급 클릭 시 노출 (Figma node 78:3911) */}
+      {/* 결제 모달 — 툴바 발급·재발급 클릭 시 노출 (Figma node 78:3911).
+          슈퍼 계정은 미리보기 전용 — 결제·발급 단계가 안내로 바뀐다 */}
       {issueTarget !== null && (
         <IssuePaymentModal
           recordIds={issueTarget.ids}
           issueType={issueTarget.type}
+          previewOnly={isSuper}
           onClose={() => setIssueTarget(null)}
-          onIssued={() => {
-            setSelectedIds([]);
-            setSelectedCategory(null);
-          }}
+        />
+      )}
+
+      {/* 수료증 모달 — 내부 기관 수료분. 무료 발급 후 미리보기에서 바로 내려받는다.
+          슈퍼 계정은 발급 없이 미리보기만 */}
+      {certTarget !== null && (
+        <CompletionCertificateModal
+          recordIds={certTarget}
+          previewOnly={isSuper}
+          onClose={() => setCertTarget(null)}
+          onIssued={clearSelection}
         />
       )}
 

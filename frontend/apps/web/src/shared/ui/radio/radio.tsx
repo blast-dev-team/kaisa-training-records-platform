@@ -13,8 +13,7 @@ import { cn } from "@/src/shared/utils/cn";
  */
 export type RadioSize = "m" | "s";
 
-export interface RadioProps
-  extends Omit<InputHTMLAttributes<HTMLInputElement>, "type" | "size"> {
+export interface RadioProps extends Omit<InputHTMLAttributes<HTMLInputElement>, "type" | "size"> {
   /** 라벨 텍스트 — 생략 시 인디케이터만 렌더링 (Figma text=off) */
   children?: ReactNode;
   /** 카드형 외곽선 변형 (Figma outline=on) */
@@ -59,31 +58,38 @@ export function Radio({
   return (
     <label
       className={cn(
-        "inline-flex items-start font-sans",
+        // group 클래스 추가 (하위 input 상태 감지용)
+        "group inline-flex items-start font-sans",
         GAP[size],
         outline &&
           cn(
             "border border-solid border-gray-300 bg-white",
-            "has-checked:border-primary-400 has-checked:has-disabled:border-gray-600",
+            "group-has-[:checked]:border-primary-400 group-has-[:checked]:group-has-[:disabled]:border-gray-600",
             OUTLINE_SIZE[size],
           ),
         disabled ? "cursor-not-allowed" : "cursor-pointer",
         className,
       )}
     >
-      <input type="radio" disabled={disabled} className="group sr-only" {...props} />
+      <input
+        type="radio"
+        disabled={disabled}
+        className="sr-only" // peer 제거 가능
+        {...props}
+      />
       <span
         className={cn(
           "flex shrink-0 items-center justify-center",
           INDICATOR_SIZE[size],
-          "group-focus-visible:outline-2 group-focus-visible:outline-offset-2 group-focus-visible:outline-primary-400",
+          "group-focus-within:outline-2 group-focus-within:outline-offset-2 group-focus-within:outline-primary-400",
         )}
       >
         <span
           className={cn(
             "rounded-full bg-gray-300",
             DOT_SIZE[size],
-            "group-checked:bg-primary-700 group-checked:group-disabled:bg-gray-500",
+            // group-has-[:checked] 사용
+            "group-has-[:checked]:bg-primary-700 group-has-[:checked]:group-has-[:disabled]:bg-gray-500",
           )}
         />
       </span>
@@ -92,7 +98,7 @@ export function Radio({
           className={cn(
             "leading-[1.5] tracking-[-0.03em] text-gray-800",
             TEXT_SIZE[size],
-            "group-disabled:text-gray-300 group-checked:group-disabled:text-gray-400",
+            "group-has-[:disabled]:text-gray-300 group-has-[:checked]:group-has-[:disabled]:text-gray-400",
           )}
         >
           {children}

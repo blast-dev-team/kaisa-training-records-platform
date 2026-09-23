@@ -9,9 +9,9 @@
 export interface IssuanceResult {
   /** 확인서 id — 다운로드 신고용 */
   certificateId: string;
-  /** 확인서 번호 (예: CERT-20260916-1) */
+  /** 문서번호 (예: 정감 제26-E0001호) — 확인서에 인쇄된 그 번호 */
   certificateNumber: string;
-  /** 진위확인 ID — 확인서 번호를 그대로 쓴다 (진위확인 API 가 certificate_no 로 검증) */
+  /** 진위확인 조회 번호 — 문서번호를 그대로 쓴다 (진위확인 API 가 문서번호로 검증) */
   verificationId: string;
   /** 발급일시 표시문 (예: 2026.09.16 14:22) */
   issuedAtLabel: string;
@@ -31,6 +31,8 @@ export interface IssuanceBundle {
   certificateId: string;
   /** 묶음 확인서 번호 — 문서에 인쇄되고 진위확인 키가 되는 번호 */
   certificateNumber: string;
+  /** 문서번호 — 발급 건(묶음)당 1개. 재발급은 새 번호 (내역마다가 아니다) */
+  docNo: string | null;
   /** 진위확인 ID — 묶음 번호와 같다 */
   verificationId: string;
   /** 발급일시 표시문 (예: 2026.09.16 14:22) */
@@ -49,6 +51,7 @@ interface MyCertificateDto {
   training_record_id: string;
   certificate_no: string;
   bundle_no: string | null;
+  doc_no: string | null;
   issue_type: string;
   issued_at: string;
   expires_at: string | null;
@@ -101,8 +104,9 @@ export async function getIssuanceResult(
   }
   return {
     certificateId: certificate.id,
-    certificateNumber: certificate.bundle_no ?? certificate.certificate_no,
-    verificationId: certificate.bundle_no ?? certificate.certificate_no,
+    // 문서번호가 확인서의 대외 번호다 — 없는 구 데이터만 묶음/개별 번호로 폴백
+    certificateNumber: certificate.doc_no ?? certificate.bundle_no ?? certificate.certificate_no,
+    verificationId: certificate.doc_no ?? certificate.bundle_no ?? certificate.certificate_no,
     issuedAtLabel: formatDateTime(certificate.issued_at),
     issuedAt: certificate.issued_at,
     validityLabel: certificate.expires_at
@@ -157,6 +161,8 @@ export async function getIssuanceBundles(
     bundles.push({
       certificateId: head.id,
       certificateNumber: key,
+      // 문서번호는 묶음 멤버 전부 같은 값 — 아무 멤버에서 읽어도 된다
+      docNo: head.doc_no,
       verificationId: key,
       issuedAtLabel: formatDateTime(head.issued_at),
       issuedAt: head.issued_at,

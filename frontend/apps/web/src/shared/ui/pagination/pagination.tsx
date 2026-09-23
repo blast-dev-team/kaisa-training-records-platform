@@ -25,6 +25,32 @@ const PAGE_ACTIVE = "rounded-lg bg-primary-700 text-white";
 const PAGE_INACTIVE = "text-gray-400";
 const CARET_BUTTON =
   "flex size-6 cursor-pointer items-center justify-center text-gray-700 disabled:cursor-not-allowed disabled:text-gray-300";
+const ELLIPSIS =
+  "flex size-8 items-center justify-center font-sans text-sm leading-[1.4] text-gray-400";
+
+/** 축약 시 항상 보여 줄 숫자 개수 (첫·현재±1·마지막) — 이하면 전체 노출 */
+const MAX_VISIBLE = 5;
+
+/** 페이지 숫자 목록 아이템 — 줄임표 위치는 문자열로 구분 */
+type PageItem = number | "ellipsis-left" | "ellipsis-right";
+
+/**
+ * 노출할 페이지 아이템 — 첫·마지막 페이지와 현재 ±1은 항상 보이고
+ * 그 사이 간격은 줄임표로 묶는다 (1 … 4 5 6 … 20). 5페이지 이하면 전체 노출.
+ */
+function buildPageItems(page: number, total: number): PageItem[] {
+  if (total <= MAX_VISIBLE) {
+    return Array.from({ length: total }, (_, index) => index + 1);
+  }
+  const items: PageItem[] = [1];
+  const start = Math.max(2, page - 1);
+  const end = Math.min(total - 1, page + 1);
+  if (start > 2) items.push("ellipsis-left");
+  for (let number = start; number <= end; number++) items.push(number);
+  if (end < total - 1) items.push("ellipsis-right");
+  items.push(total);
+  return items;
+}
 
 /**
  * 페이지네이션 — 캐럿 4종(첫/이전/다음/마지막) + 숫자 버튼.
@@ -88,20 +114,24 @@ export function Pagination({
         >
           <CaretLeftIcon />
         </button>
-        {Array.from({ length: totalPages }, (_, index) => index + 1).map(
-          (number) => (
+        {buildPageItems(page, totalPages).map((item) =>
+          typeof item === "number" ? (
             <button
-              key={number}
+              key={item}
               type="button"
-              aria-current={number === page ? "page" : undefined}
-              onClick={() => go(number)}
+              aria-current={item === page ? "page" : undefined}
+              onClick={() => go(item)}
               className={cn(
                 PAGE_BUTTON_BASE,
-                number === page ? PAGE_ACTIVE : PAGE_INACTIVE,
+                item === page ? PAGE_ACTIVE : PAGE_INACTIVE,
               )}
             >
-              {number}
+              {item}
             </button>
+          ) : (
+            <span key={item} aria-hidden="true" className={ELLIPSIS}>
+              …
+            </span>
           ),
         )}
         <button

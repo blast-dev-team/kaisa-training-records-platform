@@ -16,6 +16,8 @@ export interface PassCompleteResult {
   matched: boolean;
   /** 교육생 심사 상태 — 교육생 미연결이면 manual_review */
   reviewStatus: string | null;
+  /** 슈퍼 계정 — 전 회원 이력 조회(미리보기) 모드 */
+  isSuper?: boolean;
 }
 
 /** 본인인증 완료 — state 로 서버가 결과를 검증하고 세션을 발급한다 */
@@ -39,5 +41,6 @@ export async function postPassComplete(
     name: data.name ?? null,
     matched: Boolean(data.matched),
     reviewStatus: data.review_status ?? null,
+    isSuper: Boolean(data.is_super),
   };
 }

@@ -4,21 +4,23 @@ import { useSearchParams } from 'react-router';
 
 import {
   getVerificationResult,
+  type VerificationKind,
   type VerificationResult,
 } from '@/src/shared/api/get-verification-result';
-import { Button, TextField } from '@/src/shared/ui';
+import { Button, Radio, TextField } from '@/src/shared/ui';
 import { VerificationFailModal, VerificationResultModal } from '@/src/widget/verification-modal';
 
 /**
  * 확인서 진위확인 (본인인증 불필요) — Figma node 19:25742 기반.
  *
- * 진위확인 ID · 성명 입력. QR 접속 시 ?id= 로 진위확인 ID가
- * 자동 입력된다. 제출 시 조회 API를 호출하고 결과를 모달(node 32:20)로 띄운다.
+ * 문서 종류(확인서·수료증) 선택 + 번호·성명 입력. QR 접속 시 ?id= 로
+ * 번호가 자동 입력된다. 제출 시 조회 API를 호출하고 결과를 모달(node 32:20)로 띄운다.
  */
 export function VerificationNoAuthPage() {
   const [searchParams] = useSearchParams();
   const [verificationId, setVerificationId] = useState(searchParams.get('id') ?? '');
   const [applicantName, setApplicantName] = useState('');
+  const [docType, setDocType] = useState<VerificationKind>('certificate');
   const [result, setResult] = useState<VerificationResult | null>(null);
 
   const lookupMutation = useMutation({
@@ -31,10 +33,11 @@ export function VerificationNoAuthPage() {
     lookupMutation.mutate({
       verificationId: verificationId.trim(),
       applicantName: applicantName.trim(),
+      docType,
     });
   };
 
-  // 두 입력(진위확인 ID · 성명)을 모두 채워야 활성화
+  // 두 입력(번호 · 성명)을 모두 채워야 활성화
   const isSubmittable =
     verificationId.trim() !== '' && applicantName.trim() !== '';
 
@@ -44,10 +47,10 @@ export function VerificationNoAuthPage() {
         {/* 헤더 — 제목(28px Bold) + 안내문(14px gray-600), gap 12px */}
         <div className="flex w-full flex-col gap-3 text-center">
           <h1 className="text-[28px] leading-normal font-bold text-gray-900">
-            계속교육이력확인서 진위확인
+            확인서 · 수료증 진위확인
           </h1>
           <p className="text-sm leading-[1.6] text-gray-600">
-            확인서 하단의 진위확인 ID와 발급 대상자의 성명을 입력하시면 해당 확인서의 유효 여부를
+            문서 종류를 선택하고 번호와 발급 대상자의 성명을 입력하시면 해당 문서의 유효 여부를
             확인할 수 있습니다.
           </p>
         </div>
@@ -58,13 +61,40 @@ export function VerificationNoAuthPage() {
             onSubmit={handleSubmit}
             className="flex w-[400px] flex-col gap-4 rounded-[12px] border border-solid border-gray-200 bg-white p-8"
           >
+            {/* 문서 종류 선택 — 서버가 해당 문서 테이블만 조회한다 */}
+            <div role="radiogroup" aria-label="문서 종류" className="grid grid-cols-2 items-center">
+              <Radio
+                size="s"
+                name="doc-type"
+                checked={docType === 'certificate'}
+                onChange={() => setDocType('certificate')}
+                className="mx-auto"
+              >
+                교육이력확인서
+              </Radio>
+              <Radio
+                size="s"
+                name="doc-type"
+                checked={docType === 'completion_certificate'}
+                onChange={() => setDocType('completion_certificate')}
+                className="mx-auto"
+              >
+                수료증
+              </Radio>
+            </div>
+
             <TextField
               variant="outlined"
-              placeholder="진위확인 ID (예: CERT-20260916-1)"
+              placeholder={
+                docType === 'certificate'
+                  ? '문서번호 (예: 00-E0001)'
+                  : '수료증 번호 (예: 2026-09-001호)'
+              }
               autoComplete="off"
               value={verificationId}
               onChange={(event) => setVerificationId(event.target.value)}
               className="overflow-clip rounded-lg"
+              aria-label={docType === 'certificate' ? '문서번호' : '수료증 번호'}
             />
             <TextField
               variant="outlined"
@@ -94,7 +124,7 @@ export function VerificationNoAuthPage() {
           </form>
 
           <p className="text-[13px] text-gray-500">
-            QR 코드로 접속한 경우 진위확인 ID가 자동 입력됩니다.
+            QR 코드로 접속한 경우 번호가 자동 입력됩니다.
           </p>
         </div>
       </div>

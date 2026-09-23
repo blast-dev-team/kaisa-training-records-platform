@@ -1,8 +1,8 @@
 import { XIcon } from "@/src/shared/icon";
 
-import { useEffect } from 'react';
+import { useEffect } from "react";
 
-import type { VerificationResult } from '@/src/shared/api/get-verification-result';
+import type { VerificationResult } from "@/src/shared/api/get-verification-result";
 
 /**
  * 진위확인 결과 모달 — Figma 노드 32:20 (modal-valid) 기반.
@@ -16,24 +16,36 @@ interface VerificationResultModalProps {
   onClose: () => void;
 }
 
-const INFO_ROWS = [
-  { label: '성명', key: 'applicantName' },
-  { label: '확인서번호', key: 'certificateNumber' },
-  { label: '교육명', key: 'courseName' },
-  { label: '이수시간', key: 'completionSummary' },
-  { label: '발급일', key: 'issuedAt' },
+const CERT_INFO_ROWS = [
+  { label: "성명", key: "applicantName" },
+  { label: "문서번호", key: "certificateNumber" },
+  { label: "교육명", key: "courseName" },
+  { label: "이수시간", key: "completionSummary" },
+  { label: "발급일", key: "issuedAt" },
 ] as const;
 
-export function VerificationResultModal({
-  result,
-  onClose,
-}: VerificationResultModalProps) {
+const COMPLETION_INFO_ROWS = [
+  { label: "성명", key: "applicantName" },
+  { label: "수료증번호", key: "certificateNumber" },
+  { label: "생년월일", key: "birthDate" },
+  { label: "교육과정", key: "sessionName" },
+  { label: "교육주제", key: "courseName" },
+  { label: "교육기간", key: "periodSummary" },
+  { label: "발급일", key: "issuedAt" },
+] as const;
+
+/** 문서 종류별 표기 — 배지 문구·정보 행이 갈린다 */
+function docLabel(kind: "certificate" | "completion_certificate"): string {
+  return kind === "completion_certificate" ? "유효한 수료증" : "유효한 확인서";
+}
+
+export function VerificationResultModal({ result, onClose }: VerificationResultModalProps) {
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
+      if (event.key === "Escape") onClose();
     };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [onClose]);
 
   return (
@@ -57,13 +69,11 @@ export function VerificationResultModal({
         >
           <XIcon className="size-6" />
         </button>
-        <p className="whitespace-pre text-sm text-gray-500 mobile:text-xs">
-          {`결과  ·  유효`}
-        </p>
+        <p className="whitespace-pre text-sm text-gray-500 mobile:text-xs">{`결과  ·  유효`}</p>
 
         <div className="flex items-center gap-4">
           <span className="rounded-[4px] border border-[#393] bg-[#d9f2d9] px-3 py-1.5 text-sm font-semibold text-[#268026] mobile:text-xs">
-            유효한 확인서
+            {docLabel(result.kind)}
           </span>
           <p className="text-sm whitespace-nowrap text-gray-500 mobile:text-xs">
             {result.queriedAt} 조회
@@ -71,15 +81,17 @@ export function VerificationResultModal({
         </div>
 
         <div className="flex w-full flex-col gap-1 rounded-[16px] border border-solid border-gray-200 p-4 text-sm text-gray-700">
-          {INFO_ROWS.map((row) => (
-            <div
-              key={row.key}
-              className="flex w-full items-center gap-6 py-3 mobile:gap-3 mobile:py-2"
-            >
-              <p className="w-20 shrink-0 font-bold">{row.label}</p>
-              <p className="whitespace-nowrap">{result[row.key]}</p>
-            </div>
-          ))}
+          {(result.kind === "completion_certificate" ? COMPLETION_INFO_ROWS : CERT_INFO_ROWS).map(
+            (row) => (
+              <div
+                key={row.key}
+                className="flex w-full items-start gap-6 py-3 mobile:gap-3 mobile:py-2"
+              >
+                <p className="w-20 shrink-0 font-bold">{row.label}</p>
+                <p className="whitespace-pre-line">{result[row.key]}</p>
+              </div>
+            ),
+          )}
           {/* 묶음 확인서 — 교육이력이 여러 건이면 전체 내역을 보여준다.
               단건 확인서의 교육명·이수시간 행이 첫 건 값이라 겹쳐 보이지 않게 목록으로 대체 */}
           {result.records.length > 1 && (
@@ -103,8 +115,8 @@ export function VerificationResultModal({
         </div>
 
         <p className="text-xs text-gray-400">
-          본 결과는 협회 발급 기록과 일치함을 의미하며, 개인정보 보호를 위해 일부
-          정보는 마스킹됩니다.
+          본 결과는 협회 발급 기록과 일치함을 의미하며, 개인정보 보호를 위해 일부 정보는
+          마스킹됩니다.
         </p>
       </section>
     </div>
