@@ -27,12 +27,16 @@ class MeSessionResponse(BaseModel):
     # 교육생 미연결(수동 심사 대기) — WEB에서 심사 대기 화면 분기에 쓴다
     trainee_linked: bool = True
     review_pending: bool = False
+    # 슈퍼 계정 — 새로고침 후에도 미리보기 모드를 유지하기 위한 플래그
+    is_super: bool = False
 
 
 class MyCertificateResponse(BaseModel):
     id: uuid.UUID
     certificate_no: str
     bundle_no: str | None = None
+    # 문서번호 — 발급 건당 1개 (묶음 멤버 전부 동일). 재발급은 새 번호
+    doc_no: str | None = None
     training_record_id: uuid.UUID
     course_name: str
     institution_name: str
@@ -52,6 +56,7 @@ class MyCertificateResponse(BaseModel):
             id=c.id,
             certificate_no=c.certificate_no,
             bundle_no=c.bundle_no,
+            doc_no=c.doc_no,
             training_record_id=c.training_record_id,
             course_name=c.course_name,
             institution_name=c.institution_name,

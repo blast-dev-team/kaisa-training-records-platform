@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, String, Uuid, func
+from sqlalchemy import DateTime, String, Text, Uuid, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database import Base
@@ -14,7 +14,9 @@ class User(Base):
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
     ci_hash: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)
-    name: Mapped[str | None] = mapped_column(String(100))
+    # 이름 — Fernet 가역 저장 + HMAC blind index (인증 시점 스냅샷)
+    name_encrypted: Mapped[str | None] = mapped_column(Text)
+    name_hash: Mapped[str | None] = mapped_column(String(64))
     # PASS 본인인증으로 확정된 생년월일 (YYYYMMDD) — 인증 시점 스냅샷
     birth: Mapped[str | None] = mapped_column(String(8))
     last_login_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

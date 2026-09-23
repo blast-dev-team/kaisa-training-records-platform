@@ -101,6 +101,8 @@ class TestBundleNo:
         assert certs[0].bundle_no == certs[0].certificate_no
         # 묶음 번호는 멤버 중 하나의 확인서 번호 — 별도 채번 아님
         assert certs[0].bundle_no in {cert.certificate_no for cert in certs}
+        # 문서번호도 발급 이벤트당 1개 — 묶음 멤버 전부 같은 값
+        assert len({cert.doc_no for cert in certs}) == 1
 
     async def test_paid_batch_confirm_shares_first_no(self, client, db, monkeypatch):
         from app.integrations import portone
@@ -126,13 +128,13 @@ class TestBundleNo:
 
 
 class TestBundleVerification:
-    async def test_bundle_no_returns_all_rows(self, client, db):
-        """묶음 번호 진위확인 — 이력 N행 + 단건 필드는 첫 행 값."""
+    async def test_doc_no_returns_all_rows(self, client, db):
+        """문서번호 진위확인 — 이력 N행 + 단건 필드는 첫 행 값."""
         _, records, token = await _member(db, record_count=3)
         await _batch_request(client, token, records)
 
         certs = await _issued_certs(db)
-        resp = await _verify(client, certs[0].bundle_no)
+        resp = await _verify(client, certs[0].doc_no)
         assert resp.status_code == 200
         body = resp.json()
         assert body["result"] == "valid"
@@ -142,23 +144,39 @@ class TestBundleVerification:
             cert.course_name for cert in certs
         }
 
-    async def test_member_no_returns_whole_bundle(self, client, db):
-        """묶음 멤버 개별 번호로도 검색 가능 — 같은 묶음이 반환된다."""
+    async def test_reissued_out_member_excluded(self, client, db):
+        """재발급으로 superseded 된 멤버는 문서번호 조회에서 빠진다 — 발급 단위가 문서.
+
+        묶음 전체를 다시 발급하면 이전 문서 번호의 유효 멤버는 0 이 된다.
+        """
         _, records, token = await _member(db, record_count=2)
         await _batch_request(client, token, records)
-
         certs = await _issued_certs(db)
-        member = certs[1]
-        resp = await _verify(client, member.certificate_no)
+        old_doc_no = certs[0].doc_no
+
+        reissue = await client.post(
+            "/api/certificate-requests/batch",
+            json={
+                "items": [
+                    {"training_record_id": str(r.id), "issue_type": "reissue"}
+                    for r in records
+                ]
+            },
+            cookies=member_cookie(token),
+        )
+        assert reissue.status_code == 201, reissue.json()
+
+        resp = await _verify(client, old_doc_no)
         assert resp.status_code == 200
-        assert len(resp.json()["records"]) == 2
+        # 기존 fallback 동작 — 유효 멤버가 없으면 대상 확정서 단건(여기선 superseded)으로 응답
+        assert len(resp.json()["records"]) == 1
 
     async def test_superseded_member_excluded(self, client, db):
         """재발급 supersede — 이전 묶음 조회에서 제외되고 새 묶음이 생긴다."""
         _, records, token = await _member(db, record_count=2)
         await _batch_request(client, token, records)
         certs = await _issued_certs(db)
-        old_bundle_no = certs[0].bundle_no
+        old_doc_no = certs[0].doc_no
 
         reissue = await client.post(
             "/api/certificate-requests",
@@ -170,8 +188,8 @@ class TestBundleVerification:
         )
         assert reissue.status_code == 201, reissue.json()
 
-        # 이전 묶음 번호로 조회 — 재발급된 건은 빠진 나머지 1행
-        old = await _verify(client, old_bundle_no)
+        # 이전 문서 번호로 조회 — 재발급된 건은 빠진 나머지 1행
+        old = await _verify(client, old_doc_no)
         assert old.status_code == 200
         assert old.json()["result"] == "valid"
         assert len(old.json()["records"]) == 1
@@ -180,9 +198,9 @@ class TestBundleVerification:
         (new_cert,) = [
             cert
             for cert in await _issued_certs(db)
-            if cert.bundle_no != old_bundle_no
+            if cert.doc_no != old_doc_no
         ]
-        fresh = await _verify(client, new_cert.bundle_no)
+        fresh = await _verify(client, new_cert.doc_no)
         assert len(fresh.json()["records"]) == 1
 
 
@@ -209,7 +227,7 @@ class TestBundleRevoke:
         )
         assert all(cert.status == "revoked" for cert in all_certs)
 
-        verify = await _verify(client, certs[0].bundle_no)
+        verify = await _verify(client, certs[0].doc_no)
         assert verify.json()["result"] == "revoked"
 
 
@@ -231,7 +249,7 @@ class TestBackfillCompatibility:
         cert.bundle_no = None
         await db.commit()
 
-        resp = await _verify(client, cert.certificate_no)
+        resp = await _verify(client, cert.doc_no)
         assert resp.status_code == 200
         body = resp.json()
         assert body["result"] == "valid"

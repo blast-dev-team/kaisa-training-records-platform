@@ -48,6 +48,11 @@ _ERRORS: dict[str, tuple[int, str]] = {
     ),
     "PRICING_RULE_NOT_FOUND": (409, "적용할 가격 규칙이 없어요"),
     "INVALID_STATUS_TRANSITION": (400, "지금은 처리할 수 없는 상태예요"),
+    # 수료증
+    "COMPLETION_CERTIFICATE_NOT_ALLOWED": (
+        422,
+        "내부 기관의 수료 완료 내역만 발급할 수 있어요",
+    ),
 }
 
 

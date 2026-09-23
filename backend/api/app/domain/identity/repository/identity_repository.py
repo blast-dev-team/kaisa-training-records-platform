@@ -3,6 +3,7 @@ import uuid
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.crypto import name_hash
 from app.domain.identity.model import IdentityReview, IdentityVerification
 from app.domain.trainee.model import Trainee
 from app.domain.user.model import User
@@ -59,12 +60,13 @@ async def list_reviews(
         stmt = stmt.where(IdentityReview.status == status)
         count_stmt = count_stmt.where(IdentityReview.status == status)
     if search:
-        # 계정명(users) · 인증 성명(identity_verifications.verified_name)
-        pattern = f"%{search}%"
+        # 계정명(users) · 인증 성명(identity_verifications) — 둘 다 암호화 저장이라
+        # blind index 로 '전체 이름 일치'만 지원한다
+        h = name_hash(search)
         cond = or_(
-            IdentityReview.user.has(User.name.ilike(pattern)),
+            IdentityReview.user.has(User.name_hash == h),
             IdentityReview.identity_verification.has(
-                IdentityVerification.verified_name.ilike(pattern)
+                IdentityVerification.verified_name_hash == h
             ),
         )
         stmt = stmt.where(cond)

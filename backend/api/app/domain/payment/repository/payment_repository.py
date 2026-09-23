@@ -4,6 +4,7 @@ from datetime import date, timedelta
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.crypto import name_hash
 from app.domain.payment.model import (
     PaymentAttempt,
     PaymentOrder,
@@ -89,7 +90,7 @@ async def list_orders(
         cond = or_(
             PaymentOrder.order_no.ilike(pattern),
             PaymentOrder.trainee_id.in_(
-                select(Trainee.id).where(Trainee.name.ilike(pattern))
+                select(Trainee.id).where(Trainee.name_hash == name_hash(search))
             ),
         )
         stmt = stmt.where(cond)

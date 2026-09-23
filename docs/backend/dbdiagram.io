@@ -50,7 +50,8 @@ Table admin_allowed_emails {
 Table users {
   id uuid [pk]
   ci_hash varchar(255) [not null, unique, note: 'PASS 본인인증 CI 해시. 회원 로그인 식별자']
-  name varchar(100) [note: '본인인증 성공 시점 이름 스냅샷']
+  name_encrypted text [note: '본인인증 성공 시점 이름 스냅샷 — Fernet 암호화']
+  name_hash varchar(64) [note: '이름 HMAC blind index — 전체 이름 일치 검색용']
   last_login_at timestamptz
   created_at timestamptz [not null]
   updated_at timestamptz [not null]
@@ -65,7 +66,8 @@ Table trainees {
   cert_no varchar(100) [note: '감리원증번호 (구 시스템 감리원추가 E열)']
   supervisor_grade varchar(50) [note: '감리원 등급 (감리원/수석감리원) — 확인서 표기용, 회원등급과 별개']
   cert_issued_date date [note: '감리원증 발급일자 — 엑셀 일괄 등록에서 받는 참조 정보']
-  name varchar(100) [not null]
+  name_encrypted text [not null, note: 'Fernet 암호화']
+  name_hash varchar(64) [not null, note: '이름 HMAC blind index — 전체 이름 일치 검색만 지원']
   birth_date date [note: '생년월일 (어드민 수정 항목)']
   phone_encrypted text
   email varchar(255)
@@ -79,7 +81,7 @@ Table trainees {
   updated_at timestamptz [not null]
 
   Indexes {
-    (name)
+    (name_hash)
     (membership_grade_id)
     (review_status)
     (grade_expires_at)
@@ -124,7 +126,8 @@ Table identity_verifications {
   provider_verification_id varchar(255) [unique]
   redirect_state_hash varchar(255) [note: 'Redirect CSRF 방지용 state 해시']
   status varchar(30) [not null, default: 'pending', note: 'pending / verified / failed / expired']
-  verified_name varchar(100)
+  verified_name_encrypted text [note: '인증 성명 — Fernet 암호화']
+  verified_name_hash varchar(64) [note: '이름 HMAC blind index']
   verified_phone_encrypted text
   ci_hash varchar(255)
   di_hash varchar(255)
@@ -278,7 +281,7 @@ Table certificate_requests {
   trainee_id uuid [not null]
   training_record_id uuid [not null]
   previous_certificate_id uuid [note: '재발급 시 기존 확인서 연결']
-  requested_by uuid [not null]
+  requested_by uuid [note: 'nullable — 어드민 발급은 회원 신청이 아니다 (trainee.user_id 로 채움)']
 
   issue_type varchar(30) [not null, default: 'original', note: 'original / reissue']
   membership_grade_id uuid [not null, note: '신청 당시 판별된 회원등급']
@@ -396,12 +399,14 @@ Table certificates {
   id uuid [pk]
   certificate_no varchar(100) [not null, unique, note: '시스템에서 생성하는 확인서 번호']
   bundle_no varchar(100) [note: '묶음 확인서 번호 — 한 발급 이벤트가 공유하는 표시 번호(첫 확인서의 certificate_no). 단건 발급은 자기 번호와 같음']
+  doc_no varchar(100) [note: '문서번호 — 발급 이벤트당 1회 채번 정감 제{YY}-E{NNNN}호, 묶음 멤버 전부 동일. 재발급은 새 번호. 내역(training_records)엔 번호 없음']
   certificate_request_id uuid [not null, unique]
   trainee_id uuid [not null]
   training_record_id uuid [not null]
   payment_order_id uuid
 
-  issued_name varchar(100) [not null, note: '발급 당시 교육생 이름']
+  issued_name_encrypted text [not null, note: '발급 당시 교육생 이름 — Fernet 암호화 스냅샷']
+  issued_name_hash varchar(64) [not null, note: '이름 HMAC blind index']
   course_name varchar(255) [not null]
   institution_name varchar(255) [not null]
   total_hours numeric(8,2) [not null]

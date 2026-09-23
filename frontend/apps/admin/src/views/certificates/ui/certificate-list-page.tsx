@@ -201,7 +201,7 @@ export function CertificateListPage() {
           >
             <Input
               className="w-64"
-              placeholder="확인서 번호 · 성명 · 과정명"
+              placeholder="확인서 번호 · 성명(전체) · 과정명"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
             />

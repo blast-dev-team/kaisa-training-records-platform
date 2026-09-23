@@ -16,9 +16,7 @@ class TrainingRecordCreate(BaseModel):
     # 과정·기관 마스터 미연결 시 스냅샷 직접 입력 (최소 하나는 필수)
     course_name: str | None = None
     institution_name: str | None = None
-    # 확인서 표기용 — 서식번호·문서번호·감리원 등급·감리원증 발급번호
-    form_no: str | None = None
-    doc_no: str | None = None
+    # 확인서 표기용 — 문서번호는 서버 자동 채번(정감 제{YY}-E{NNNN}호)이라 입력받지 않는다
     supervisor_grade: str | None = None
     supervisor_cert_no: str | None = None
     total_hours: Decimal | None = None  # 미지정 시 과정 마스터 값
@@ -32,10 +30,10 @@ class TrainingRecordCreate(BaseModel):
 
 
 class TrainingRecordUpdate(BaseModel):
+    """문서번호는 내역이 아니라 발급 건(certificates.doc_no)에 부여된다 — 수정 대상 아님."""
+
     course_id: uuid.UUID | None = None
     institution_id: uuid.UUID | None = None
-    form_no: str | None = None
-    doc_no: str | None = None
     supervisor_grade: str | None = None
     supervisor_cert_no: str | None = None
     total_hours: Decimal | None = None
@@ -57,13 +55,15 @@ class TrainingRecordResponse(BaseModel):
     trainee_cert_no: str | None = None  # 감리원증번호 — 목록 표시용
     trainee_birth_date: date | None = None
     trainee_phone: str | None = None  # 마스킹 — trainee.phone_encrypted 복호화 후 mask_phone
+    # 회원 포털용 — 공용 데모 이력 플래그. 웹 수료증 발급 대상 제외 판정에 쓴다
+    is_demo: bool = False
     course_id: uuid.UUID | None
     session_id: uuid.UUID | None = None
     institution_id: uuid.UUID | None
+    # 수료증 발급 자격 판정용 — institution 마스터의 내부/외부 구분 (NULL=미선택)
+    institution_type: str | None = None
     course_name: str
     institution_name: str
-    form_no: str | None
-    doc_no: str | None
     supervisor_grade: str | None
     supervisor_cert_no: str | None
     total_hours: Decimal
@@ -97,18 +97,20 @@ class TrainingRecordResponse(BaseModel):
             id=record.id,
             training_record_no=record.training_record_no,
             trainee_id=record.trainee_id,
-            trainee_name=trainee.name if trainee else None,
+            trainee_name=decrypt_field(trainee.name_encrypted) if trainee else None,
             trainee_no=trainee.trainee_no if trainee else None,
             trainee_cert_no=trainee.cert_no if trainee else None,
             trainee_birth_date=trainee.birth_date if trainee else None,
             trainee_phone=phone,
+            is_demo=record.is_demo,
             course_id=record.course_id,
             session_id=record.session_id,
             institution_id=record.institution_id,
+            institution_type=(
+                record.institution.institution_type if record.institution else None
+            ),
             course_name=record.course_name,
             institution_name=record.institution_name,
-            form_no=record.form_no,
-            doc_no=record.doc_no,
             supervisor_grade=record.supervisor_grade,
             supervisor_cert_no=record.supervisor_cert_no,
             total_hours=record.total_hours,
@@ -140,8 +142,6 @@ class TrainingRecordBulkUpdateItem(BaseModel):
 
     id: uuid.UUID
     course_id: uuid.UUID | None = None
-    form_no: str | None = None
-    doc_no: str | None = None
     completion_status: str | None = None
     started_at: date | None = None
     ended_at: date | None = None

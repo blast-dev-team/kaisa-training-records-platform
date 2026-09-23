@@ -20,6 +20,8 @@ class TrainingInstitution(Base):
     contact_phone: Mapped[str | None] = mapped_column(String(50))
     contact_email: Mapped[str | None] = mapped_column(String(255))
     address: Mapped[str | None] = mapped_column(Text)
+    # 내부/외부 구분 — internal 인 기관의 수료내역만 수료증 발급 가능. NULL=미선택
+    institution_type: Mapped[str | None] = mapped_column(String(20))
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False

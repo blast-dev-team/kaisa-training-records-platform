@@ -11,7 +11,7 @@ import logging
 from sqlalchemy import delete, select
 
 from app.core.config import settings
-from app.core.crypto import encrypt_field, sha256_hex
+from app.core.crypto import encrypt_field, name_columns, sha256_hex
 from app.core.database import async_session
 from app.core.security import hash_password
 from app.domain.auth.model import AdminUser
@@ -141,7 +141,12 @@ async def seed() -> None:
                 await db.execute(select(User).where(User.ci_hash == ci_hash))
             ).scalar_one_or_none()
             if not user:
-                user = User(ci_hash=ci_hash, name=name)
+                user_name_encrypted, user_name_hash = name_columns(name)
+                user = User(
+                    ci_hash=ci_hash,
+                    name_encrypted=user_name_encrypted,
+                    name_hash=user_name_hash,
+                )
                 db.add(user)
                 await db.flush()
                 logger.info("이관 user 생성: %s (ci=%s...)", name, ci_hash[:8])
@@ -151,10 +156,12 @@ async def seed() -> None:
                 )
             ).scalar_one_or_none()
             if not trainee:
+                trainee_name_encrypted, trainee_name_hash = name_columns(name)
                 trainee = Trainee(
                     user_id=user.id,
                     trainee_no=trainee_no,
-                    name=name,
+                    name_encrypted=trainee_name_encrypted,
+                    name_hash=trainee_name_hash,
                     phone_encrypted=encrypt_field(phone),
                     membership_grade_id=grade_by_code[grade_code].id,
                     review_status="approved",
@@ -172,7 +179,8 @@ async def seed() -> None:
             db.add(
                 Trainee(
                     trainee_no="TR-2023-0009",
-                    name="이미판",
+                    name_encrypted=name_columns("이미판")[0],
+                    name_hash=name_columns("이미판")[1],
                     phone_encrypted=encrypt_field("01055556666"),
                     membership_grade_id=grade_by_code["general"].id,
                     review_status="unverified",

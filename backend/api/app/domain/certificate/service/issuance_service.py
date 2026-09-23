@@ -39,12 +39,50 @@ async def _next_certificate_no(db: AsyncSession) -> str:
     return f"{prefix}{(last or 0) + 1}"
 
 
+def format_doc_no(seq: int, yy: str | None = None) -> str:
+    """확인서 문서번호 규칙 — `정감 제{YY}-E{NNNN}호`. 연도는 발급 시점 2자리,
+    순서는 연도별 E0001 리셋. 번호의 단위는 발급 이벤트(문서)다."""
+    if yy is None:
+        yy = now_kst().strftime("%y")
+    return f"정감 제{yy}-E{seq:04d}호"
+
+
+async def next_doc_seq(db: AsyncSession, yy: str | None = None) -> int:
+    """해당 연도의 다음 문서번호 순서 — 규칙 형식 확인서의 최대 NNNN + 1.
+
+    seq 는 숫자로 비교한다 — VARCHAR max 는 사전순이라 E9 > E10 이 된다.
+    """
+    if yy is None:
+        yy = now_kst().strftime("%y")
+    prefix = f"정감 제{yy}-E"
+    # split_part('-') 2번째 = 'E0001호' → E·호 떼고 숫자만 캐스트
+    seq_part = cast(
+        func.replace(
+            func.replace(func.split_part(Certificate.doc_no, "-", 2), "E", ""),
+            "호",
+            "",
+        ),
+        Integer,
+    )
+    last = (
+        await db.execute(
+            select(func.max(seq_part)).where(Certificate.doc_no.like(f"{prefix}%"))
+        )
+    ).scalar_one_or_none()
+    return (last or 0) + 1
+
+
 async def issue_certificate(
     db: AsyncSession,
     request: CertificateRequest,
     payment_order_id: uuid.UUID | None = None,
+    doc_no: str | None = None,
 ) -> Certificate:
-    """신청 스냅샷 기반 발급. 재발급이면 기존 cert 를 superseded 처리."""
+    """신청 스냅샷 기반 발급. 재발급이면 기존 cert 를 superseded 처리.
+
+    doc_no(문서번호)는 발급 이벤트당 1회 채번해 호출부가 넣어 준다 — 묶음 멤버가
+    같은 값을 갖는다. 재발급은 문서 구성이 다르므로 새 번호를 받는다.
+    """
     trainee = (
         await db.execute(select(Trainee).where(Trainee.id == request.trainee_id))
     ).scalar_one()
@@ -73,11 +111,14 @@ async def issue_certificate(
             async with db.begin_nested():
                 candidate = Certificate(
                     certificate_no=await _next_certificate_no(db),
+                    doc_no=doc_no,
                     certificate_request_id=request.id,
                     trainee_id=trainee.id,
                     training_record_id=tr.id,
                     payment_order_id=payment_order_id,
-                    issued_name=trainee.name,
+                    # 발급 시점 성명 스냅샷 — 교육생 row 의 암호문·해시를 그대로 복사
+                    issued_name_encrypted=trainee.name_encrypted,
+                    issued_name_hash=trainee.name_hash,
                     course_name=tr.course_name,
                     institution_name=tr.institution_name,
                     total_hours=tr.total_hours,

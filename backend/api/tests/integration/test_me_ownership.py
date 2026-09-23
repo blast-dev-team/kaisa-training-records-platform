@@ -1,6 +1,6 @@
 """통합 — 회원 포털 스코프: 소유권(타인 리소스 404) + 발급 신청 게이트."""
 
-from app.core.crypto import sha256_hex
+from app.core.crypto import name_columns, sha256_hex
 from app.core.session import create_user_session
 from app.domain.user.model import User
 from tests.integration.helpers import (
@@ -68,7 +68,10 @@ class TestOwnership:
         assert resp.status_code == 404
 
     async def test_unlinked_user_profile_403(self, client, db):
-        orphan = User(ci_hash=sha256_hex("ci-orphan"), name="무소속")
+        _o_enc, _o_hash = name_columns("무소속")
+        orphan = User(
+            ci_hash=sha256_hex("ci-orphan"), name_encrypted=_o_enc, name_hash=_o_hash
+        )
         db.add(orphan)
         await db.flush()
         token = await create_user_session(db, orphan.id, "pass")

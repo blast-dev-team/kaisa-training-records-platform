@@ -6,6 +6,8 @@
 """
 
 import hashlib
+import hmac
+import unicodedata
 
 from cryptography.fernet import Fernet, InvalidToken
 
@@ -43,6 +45,40 @@ def decrypt_field(value: str | None) -> str | None:
 def sha256_hex(value: str) -> str:
     """식별자(CI/DI) 해시 — 매칭이 가능해야 하므로 솔트 없이 결정적."""
     return hashlib.sha256(value.encode()).hexdigest()
+
+
+def normalize_name(value: str | None) -> str:
+    """이름 해시 전 정규화 — NFKC + 양끝 공백 제거 (엑셀 입력 노이즈 대응)."""
+    if not value:
+        return ""
+    return unicodedata.normalize("NFKC", value).strip()
+
+
+def _name_key() -> bytes:
+    """이름 blind index 키 — CRYPTO_KEY 파생. 무키 sha256 은 한국 이름 키스페이스가
+    작아 사전공격이 가능하므로 반드시 키 있는 HMAC 을 쓴다."""
+    return hashlib.sha256(("name-blind-index:" + settings.CRYPTO_KEY).encode()).digest()
+
+
+def name_hash(value: str | None) -> str:
+    """이름 blind index — HMAC-SHA256. 결정적이라 `name_hash == name_hash(x)` 검색 가능.
+
+    encrypt_field 와 달리 가역이 아니며, 부분 일치는 원리적으로 불가능하다 —
+    검색은 항상 normalize_name 후의 '전체 이름 일치'만 지원한다.
+    """
+    return hmac.new(_name_key(), normalize_name(value).encode(), hashlib.sha256).hexdigest()
+
+
+def name_columns(value: str | None) -> tuple[str | None, str | None]:
+    """`*_name_encrypted` / `*_name_hash` 컬럼에 넣을 값 한 쌍.
+
+    빈 값이면 (None, None) — nullable 이름 컬럼(users 등)과 NOT NULL 컬럼의
+    사전 검증 모두에서 재사용한다. 정규화(NFKC+strip)된 값을 저장한다.
+    """
+    normalized = normalize_name(value)
+    if not normalized:
+        return None, None
+    return encrypt_field(normalized), name_hash(normalized)
 
 
 def hash_ip(ip: str) -> str:

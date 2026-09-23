@@ -13,10 +13,9 @@ import { getTrainingHistoryDetail, type TrainingHistoryDetail } from "../api/get
 import { postIssuancePayment } from "../api/post-issuance-payment";
 import {
   CertificateDocumentSheet,
-  chunkRows,
-  ROWS_PER_PAGE,
+  paginateRows,
   toSheetRows,
-  type CertificateSheetRow,
+  type CertificateSheetPage,
 } from "./certificate-document-sheet";
 
 export interface IssuePaymentModalProps {
@@ -27,6 +26,8 @@ export interface IssuePaymentModalProps {
   onClose: () => void;
   /** 발급 확정 시 — 페이지가 선택 상태를 비운다 */
   onIssued?: () => void;
+  /** 슈퍼 계정 — 결제·발급 없이 미리보기만 제공한다 */
+  previewOnly?: boolean;
 }
 
 const TOAST_DURATION_MS = 3000;
@@ -52,7 +53,13 @@ function formatHours(value: number): string {
  * 눌러야 포트원 결제창이 열린다. 결제(또는 무료 재발급)가 끝나면 같은 자리에서
  * 신청 내용 요약으로 전환되고, 하단 PDF 다운로드로 확인서를 내려받는다.
  */
-export function IssuePaymentModal({ recordIds, issueType, onClose, onIssued }: IssuePaymentModalProps) {
+export function IssuePaymentModal({
+  recordIds,
+  issueType,
+  onClose,
+  onIssued,
+  previewOnly = false,
+}: IssuePaymentModalProps) {
   const [phase, setPhase] = useState<ModalPhase>("preview");
   const [agreed, setAgreed] = useState(false);
   /** 신청 문서 상세(교육명 목록) 펼침 여부 — 신청 내용 화면에서만 쓴다 */
@@ -221,9 +228,9 @@ export function IssuePaymentModal({ recordIds, issueType, onClose, onIssued }: I
     };
   }, []);
 
-  /** 미리보기 문서 페이지 — 선택한 이력 전체가 한 문서로 합쳐진다 (5행/페이지) */
+  /** 미리보기 문서 페이지 — 선택한 이력 전체가 한 문서로 합쳐진다 (연속 문서 분할) */
   const previewPages = useMemo(
-    () => chunkRows(toSheetRows(details ?? [])),
+    () => paginateRows(toSheetRows(details ?? [])),
     [details],
   );
   /** 문서 머리 표기(서식·문서번호·감리원) — 첫 이력 값 */
@@ -239,14 +246,18 @@ export function IssuePaymentModal({ recordIds, issueType, onClose, onIssued }: I
         .filter((detail): detail is TrainingHistoryDetail => detail !== undefined);
       return {
         bundle,
-        pages: chunkRows(toSheetRows(bundleDetails)),
+        pages: paginateRows(toSheetRows(bundleDetails)),
         head: bundleDetails[0],
+        totalHours: bundleDetails.reduce((sum, detail) => sum + detail.hours, 0),
       };
     });
   }, [issuance.data, details]);
 
-  /** 확인서 성명 — 표시명의 " 님" 접미를 뗀 값 */
-  const memberName = useAuthStore((state) => state.userName).replace(/\s*님$/, "");
+  /** 확인서 성명 — 슈퍼 계정은 이력 소유 교육생명, 일반 회원은 로그인명 */
+  const storeName = useAuthStore((state) => state.userName).replace(/\s*님$/, "");
+  const memberName = previewOnly
+    ? details?.[0]?.traineeName ?? storeName
+    : storeName;
 
   /** 발급 대상 총 이수시간 — 신청 내용 요약 표기 */
   const totalHours = (details ?? []).reduce((sum, detail) => sum + detail.hours, 0);
@@ -322,7 +333,7 @@ export function IssuePaymentModal({ recordIds, issueType, onClose, onIssued }: I
                   ref={previewRef}
                   className="w-full flex-none pointer-events-none"
                 >
-                  {previewPages.map((pageRows, pageIndex) => (
+                  {previewPages.map((page, pageIndex) => (
                     <div
                       key={pageIndex}
                       className="overflow-hidden"
@@ -337,10 +348,10 @@ export function IssuePaymentModal({ recordIds, issueType, onClose, onIssued }: I
                         }}
                       >
                         <PreviewSheet
-                          pageRows={pageRows}
-                          pageIndex={pageIndex}
+                          page={page}
                           headDetail={headDetail}
                           memberName={memberName}
+                          totalHours={totalHours}
                         />
                       </div>
                     </div>
@@ -348,7 +359,12 @@ export function IssuePaymentModal({ recordIds, issueType, onClose, onIssued }: I
                 </div>
               </div>
 
-              {/* 결제 — 유료 건만 합산, 무료 재발급은 0원 표기 */}
+              {/* 슈퍼 계정 — 결제 단계 없음. 미리보기 안내만 */}
+              {previewOnly ? (
+                <p className="shrink-0 rounded-md bg-gray-100 px-4 py-3 text-[13px] leading-normal text-gray-500">
+                  슈퍼 계정 미리보기예요. 발급·결제는 일반 회원 로그인에서만 가능해요.
+                </p>
+              ) : (
               <div className="flex shrink-0 flex-col gap-3">
                 {paidIds.length > 0 && (
                   <div className="flex w-full items-start justify-between text-sm leading-normal mobile:text-xs">
@@ -416,6 +432,7 @@ export function IssuePaymentModal({ recordIds, issueType, onClose, onIssued }: I
                   발급 완료 후에는 환불되지 않습니다.
                 </p>
               </div>
+              )}
             </>
           )
         ) : (
@@ -498,22 +515,25 @@ export function IssuePaymentModal({ recordIds, issueType, onClose, onIssued }: I
                 className="fixed left-[-10000px] top-0"
               >
                 <div ref={sheetRef}>
-                  {issuedSheets.map(({ bundle, pages, head }) =>
-                    pages.map((pageRows, pageIndex) => (
+                  {issuedSheets.map(({ bundle, pages, head, totalHours }) =>
+                    pages.map((page, pageIndex) => (
                       <div
                         key={`${bundle.verificationId}-${pageIndex}`}
                         data-sheet-page
                       >
                         <CertificateDocumentSheet
-                          rows={pageRows}
+                          rows={page.rows}
+                          showHead={page.showHead}
+                          showClosing={page.showClosing}
+                          startNo={page.startNo}
+                          totalHours={totalHours}
                           memberName={memberName}
                           supervisorGrade={head?.supervisorGrade}
                           supervisorCertNo={head?.supervisorCertNo}
-                          formNo={head?.formNo}
-                          docNo={head?.docNo}
-                          startNo={pageIndex * ROWS_PER_PAGE + 1}
+                          formNo="제31호"
+                          docNo={bundle.docNo ?? undefined}
                           issuedOnLabel={formatKoreanDate(bundle.issuedAt)}
-                          certificateNumber={bundle.certificateNumber}
+                          certificateNumber={page.showClosing ? bundle.certificateNumber : undefined}
                         />
                       </div>
                     )),
@@ -558,29 +578,31 @@ function formatKoreanDate(iso: string): string {
 }
 
 /**
- * 미리보기 문서 1페이지 — 결제 전이라 발급일·확인서 번호는 비워 둔다.
+ * 미리보기 문서 — 결제 전이라 발급일·확인서 번호는 비워 둔다.
  * 실제 발급분과 같은 서식이라 내려받은 PDF와 모양이 같다.
  */
 function PreviewSheet({
-  pageRows,
-  pageIndex,
+  page,
   headDetail,
   memberName,
+  totalHours,
 }: {
-  pageRows: CertificateSheetRow[];
-  pageIndex: number;
+  page: CertificateSheetPage;
   headDetail?: TrainingHistoryDetail;
   memberName: string;
+  totalHours: number;
 }) {
   return (
     <CertificateDocumentSheet
-      rows={pageRows}
+      rows={page.rows}
+      showHead={page.showHead}
+      showClosing={page.showClosing}
+      startNo={page.startNo}
+      totalHours={totalHours}
       memberName={memberName}
       supervisorGrade={headDetail?.supervisorGrade}
       supervisorCertNo={headDetail?.supervisorCertNo}
-      formNo={headDetail?.formNo}
-      docNo={headDetail?.docNo}
-      startNo={pageIndex * ROWS_PER_PAGE + 1}
+      formNo="제31호"
     />
   );
 }

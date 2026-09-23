@@ -1,5 +1,6 @@
 from app.domain.certificate.service import (
     certificate_admin_service,
+    completion_certificate_service,
     issuance_service,
     public_verification_service,
     request_service,
@@ -7,6 +8,7 @@ from app.domain.certificate.service import (
 
 __all__ = [
     "certificate_admin_service",
+    "completion_certificate_service",
     "issuance_service",
     "public_verification_service",
     "request_service",

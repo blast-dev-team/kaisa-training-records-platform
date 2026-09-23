@@ -27,8 +27,6 @@ interface EditRow {
   traineeName: string | null;
   courseName: string;
   courseId: string | null;
-  formNo: string;
-  docNo: string;
   completionStatus: string;
   startedAt: string;
   endedAt: string;
@@ -42,8 +40,6 @@ function toRow(record: TrainingRecord): EditRow {
     traineeName: record.traineeName,
     courseName: record.courseName,
     courseId: record.courseId,
-    formNo: record.formNo ?? "",
-    docNo: record.docNo ?? "",
     completionStatus: record.completionStatus,
     startedAt: record.startedAt ?? "",
     endedAt: record.endedAt ?? "",
@@ -64,13 +60,6 @@ function buildUpdates(
     const patch: TrainingRecordBulkUpdateItem = { id: row.id };
     let changed = false;
 
-    const text = (key: "formNo" | "docNo", origKey: "formNo" | "docNo") => {
-      const value = row[key].trim();
-      if (value !== (orig[origKey] ?? "")) {
-        patch[key] = value === "" ? null : value;
-        changed = true;
-      }
-    };
     const date = (key: "startedAt" | "endedAt") => {
       if (row[key] !== (orig[key] ?? "")) {
         patch[key] = row[key] === "" ? null : row[key];
@@ -92,8 +81,6 @@ function buildUpdates(
       }
     };
 
-    text("formNo", "formNo");
-    text("docNo", "docNo");
     if (row.completionStatus !== orig.completionStatus) {
       patch.completionStatus = row.completionStatus;
       changed = true;
@@ -175,8 +162,6 @@ export function TrainingRecordBulkEditDialog({ isOpen, onClose, records, onSaved
           <colgroup>
             <col style={{ width: 110 }} />
             <col style={{ width: 200 }} />
-            <col style={{ width: 110 }} />
-            <col style={{ width: 120 }} />
             <col style={{ width: 96 }} />
             <col style={{ width: 130 }} />
             <col style={{ width: 130 }} />
@@ -187,8 +172,6 @@ export function TrainingRecordBulkEditDialog({ isOpen, onClose, records, onSaved
             <tr>
               <th className={TH}>감리원</th>
               <th className={TH}>과정</th>
-              <th className={TH}>서식번호</th>
-              <th className={TH}>문서번호</th>
               <th className={TH}>시작일</th>
               <th className={TH}>종료일</th>
               <th className={`${TH} text-right`}>총시수</th>
@@ -211,20 +194,6 @@ export function TrainingRecordBulkEditDialog({ isOpen, onClose, records, onSaved
                     disableCreate
                     queryKeyPrefix={["options", "courses"]}
                     selectedLabel={row.courseName}
-                  />
-                </td>
-                <td className={TD}>
-                  <Input
-                    className="h-8 w-full px-2 text-[13px]"
-                    value={row.formNo}
-                    onChange={(e) => setField(row.id, { formNo: e.target.value })}
-                  />
-                </td>
-                <td className={TD}>
-                  <Input
-                    className="h-8 w-full px-2 text-[13px]"
-                    value={row.docNo}
-                    onChange={(e) => setField(row.id, { docNo: e.target.value })}
                   />
                 </td>
                 <td className={TD}>

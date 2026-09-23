@@ -61,8 +61,10 @@ class CertificateRequest(Base):
         ForeignKey("payment_orders.id", ondelete="SET NULL"),
         nullable=True,
     )
-    requested_by: Mapped[uuid.UUID] = mapped_column(
-        Uuid, ForeignKey("users.id"), nullable=False
+    # 신청자 — WEB 발급은 회원, 어드민 발급은 신청 주체가 없어 NULL 허용.
+    # trainee.user_id 가 연결돼 있으면 어드민 발급분도 채워 WEB 에 노출된다
+    requested_by: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid, ForeignKey("users.id"), nullable=True
     )
     issue_type: Mapped[str] = mapped_column(
         String(30), nullable=False, default="original"

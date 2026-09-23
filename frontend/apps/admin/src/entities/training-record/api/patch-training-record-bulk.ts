@@ -8,8 +8,6 @@ import { apiClient } from '@/src/shared/api'
 export interface TrainingRecordBulkUpdateItem {
   id: string
   courseId?: string | null
-  formNo?: string | null
-  docNo?: string | null
   completionStatus?: string
   startedAt?: string | null
   endedAt?: string | null
@@ -24,8 +22,6 @@ export const patchTrainingRecordBulk = async (
     updates: updates.map(u => ({
       id: u.id,
       course_id: u.courseId,
-      form_no: u.formNo,
-      doc_no: u.docNo,
       completion_status: u.completionStatus,
       started_at: u.startedAt,
       ended_at: u.endedAt,

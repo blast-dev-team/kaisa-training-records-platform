@@ -28,11 +28,10 @@ export interface TrainingRecord {
   /** 연결된 교육 일정 — 일정 연결로 생성된 이력만 보유 */
   sessionId: string | null
   institutionId: string | null
+  /** 기관 내부/외부 구분 — institution 조인 값. internal 만 수료증 발급 가능 */
+  institutionType: 'internal' | 'external' | null
   courseName: string
   institutionName: string | null
-  /** 확인서 표기용 */
-  formNo: string | null
-  docNo: string | null
   supervisorGrade: string | null
   supervisorCertNo: string | null
   totalHours: number | null
@@ -54,8 +53,6 @@ export interface TrainingRecordInput {
   /** 미연결 시 직접 입력 (course_id·course_name 중 최소 하나 필수) */
   course_name?: string
   institution_name?: string
-  form_no?: string | null
-  doc_no?: string | null
   supervisor_grade?: string | null
   supervisor_cert_no?: string | null
   total_hours?: number | null
@@ -65,4 +62,27 @@ export interface TrainingRecordInput {
   source: TrainingSource
   completion_status: CompletionStatus
   memo?: string | null
+}
+
+/** 발급된 수료증 — 내부 기관 수료내역 1건당 1장 */
+export interface CompletionCertificate {
+  id: string
+  certificateNo: string
+  trainingRecordId: string
+  traineeId: string
+  traineeName: string | null
+  traineeBirthDate: string | null
+  courseName: string
+  /** 교육과정(회차명) — 연결 과정의 회차명, 미연결이면 null */
+  sessionName: string | null
+  institutionName: string
+  completedHours: number | null
+  startedAt: string | null
+  endedAt: string | null
+  issuedAt: string
+  status: string
+}
+
+export interface CompletionCertificateIssueInput {
+  training_record_ids: string[]
 }

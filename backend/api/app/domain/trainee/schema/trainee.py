@@ -7,7 +7,7 @@ from app.core.crypto import decrypt_field, mask_phone
 
 
 class TraineeResponse(BaseModel):
-    """전화는 복호화 후 마스킹해 내려준다 (원문 미노출)."""
+    """이름·전화는 복호화해 내려준다. 전화는 마스킹, 이름은 어드민 업무용 전체 노출."""
 
     id: uuid.UUID
     trainee_no: str | None
@@ -38,7 +38,7 @@ class TraineeResponse(BaseModel):
             cert_no=t.cert_no,
             supervisor_grade=t.supervisor_grade,
             cert_issued_date=t.cert_issued_date,
-            name=t.name,
+            name=decrypt_field(t.name_encrypted),
             birth_date=t.birth_date,
             phone_masked=phone,
             email=t.email,

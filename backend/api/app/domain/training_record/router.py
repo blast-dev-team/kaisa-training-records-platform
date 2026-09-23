@@ -33,6 +33,11 @@ async def list_records(
     search: str | None = None,
     date_from: date | None = None,
     date_to: date | None = None,
+    sort: str = Query(
+        "period",
+        pattern="^(period|registration)$",
+        description="period=수강기간순(기본) · registration=등록순(2026-09 이후 실등록분만)",
+    ),
     page: int = Query(1, ge=1),
     limit: int = Query(20, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
@@ -50,6 +55,7 @@ async def list_records(
         date_to=date_to,
         page=page,
         limit=limit,
+        sort=sort,
     )
     return PagedResponse(
         items=[TrainingRecordResponse.from_orm(r) for r in records],

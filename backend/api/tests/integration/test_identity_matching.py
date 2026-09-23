@@ -6,6 +6,7 @@ import pytest
 from sqlalchemy import select
 
 from app.core.config import settings
+from app.core.crypto import decrypt_field, name_columns
 from app.domain.identity.model import IdentityReview
 from app.domain.trainee.model import Trainee
 from app.integrations import portone
@@ -136,7 +137,7 @@ class TestAutoMatch:
                 select(Trainee).where(Trainee.user_id == body["id"])
             )
         ).scalar_one()
-        assert trainee.name == "데모사람"
+        assert decrypt_field(trainee.name_encrypted) == "데모사람"
         assert trainee.trainee_no is not None
         assert trainee.membership_grade_id is not None
         assert trainee.review_status == "approved"
@@ -334,7 +335,7 @@ class TestTestModePhoneFallback:
                 select(User).where(User.ci_hash == sha256_hex("test:01012341234"))
             )
         ).scalar_one()
-        assert user.name == "폰사람"
+        assert decrypt_field(user.name_encrypted) == "폰사람"
 
     async def test_production_still_requires_ci(self, client, db, monkeypatch):
         from app.core.config import settings
@@ -377,9 +378,11 @@ class TestLegacyAutoMatch:
     async def test_unique_candidate_linked(self, client, db, monkeypatch):
         """이름+생일이 유일한 이관 교육생 → 자동 연결 + approved."""
         grade = await make_grade(db)
+        n_enc, n_hash = name_columns("고규만")
         trainee = Trainee(
             trainee_no="EDU-9001",
-            name="고규만",
+            name_encrypted=n_enc,
+            name_hash=n_hash,
             birth_date=date(1973, 9, 9),
             supervisor_grade="감리원",
         )  # user_id 없는 이관분
@@ -415,11 +418,13 @@ class TestLegacyAutoMatch:
     async def test_duplicate_candidates_manual_review(self, client, db, monkeypatch):
         """같은 이름+생일이 2명 → 자동 매칭 실패, 수동 심사 대기."""
         grade = await make_grade(db)
+        d_enc, d_hash = name_columns("중복자")
         for no in ("EDU-9002", "EDU-9003"):
             db.add(
                 Trainee(
                     trainee_no=no,
-                    name="중복자",
+                    name_encrypted=d_enc,
+                    name_hash=d_hash,
                     birth_date=date(1980, 5, 5),
                 )
             )

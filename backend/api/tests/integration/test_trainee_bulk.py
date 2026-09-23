@@ -139,7 +139,7 @@ class TestBulkUpdate:
                 .execution_options(populate_existing=True)
             )
         ).scalar_one()
-        assert row1.name == "김이박"
+        assert decrypt_field(row1.name_encrypted) == "김이박"
         assert str(row1.birth_date) == "1990-01-02"
         assert decrypt_field(row1.phone_encrypted) == "01099998888"
         assert row1.cert_no == "2026-1111"
@@ -151,7 +151,7 @@ class TestBulkUpdate:
                 .execution_options(populate_existing=True)
             )
         ).scalar_one()
-        assert row2.name == "최정아"
+        assert decrypt_field(row2.name_encrypted) == "최정아"
         assert row2.phone_encrypted == original_encrypted
         assert row2.cert_no == "2026-0002"  # cert_no 키 생략 → 기존 번호 유지
 

@@ -110,14 +110,19 @@ async def confirm_order(
     order.paid_at = now
 
     requests = await _find_requests(db, order)
+    # 결제 1건으로 발급된 N건 = 묶음 확인서 1건 — 문서번호도 이벤트당 1개
+    doc_no = issuance_service.format_doc_no(
+        await issuance_service.next_doc_seq(db)
+    )
     certificates = []
     for request in requests:
         request.status = "paid"
         request.paid_at = now
         certificates.append(
-            await issuance_service.issue_certificate(db, request, order.id)
+            await issuance_service.issue_certificate(
+                db, request, order.id, doc_no=doc_no
+            )
         )
-    # 결제 1건으로 발급된 N건 = 묶음 확인서 1건 (종이에 인쇄될 번호 하나)
     issuance_service.assign_bundle_no(certificates)
     await db.commit()
 

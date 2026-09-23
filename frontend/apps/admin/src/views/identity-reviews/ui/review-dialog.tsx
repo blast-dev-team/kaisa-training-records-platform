@@ -167,7 +167,7 @@ export function ReviewDialog({ review, onClose }: Props) {
             {mode === "search" && (
               <div className="flex items-center gap-2">
                 <Input
-                  placeholder="감리원 성명"
+                  placeholder="감리원 성명(전체)"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   onKeyDown={(e) => {
@@ -252,7 +252,7 @@ export function ReviewDialog({ review, onClose }: Props) {
                   <div className="space-y-1.5">
                     <Label>성명</Label>
                     <Input
-                      placeholder="감리원 성명 (인증 성명으로 채워짐)"
+                      placeholder="감리원 성명(전체) (인증 성명으로 채워짐)"
                       value={newName}
                       onChange={(e) => setNewName(e.target.value)}
                     />

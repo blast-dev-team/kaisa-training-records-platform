@@ -10,15 +10,21 @@ from app.core.response import PagedResponse
 from app.domain.auth.model import AdminUser
 from app.domain.certificate.schema import (
     CertificateBatchRequestCreate,
+    CertificateIssueGroupResult,
+    CertificateIssueRequest,
+    CertificateIssueResult,
     CertificateRequestCreate,
     CertificateRequestResponse,
     CertificateResponse,
     CertificateRevokeRequest,
+    CompletionCertificateIssueRequest,
+    CompletionCertificateResponse,
     PublicVerificationRequest,
     PublicVerificationResponse,
 )
 from app.domain.certificate.service import (
     certificate_admin_service,
+    completion_certificate_service,
     public_verification_service,
     request_service,
 )
@@ -29,6 +35,9 @@ router = APIRouter(prefix="/certificate-requests", tags=["certificates"])
 
 # 어드민 — 확인서 관리
 admin_router = APIRouter(prefix="/certificates", tags=["certificates"])
+
+# 어드민 — 수료증 발급 (내부 기관 수료내역 전용)
+completion_router = APIRouter(prefix="/completion-certificates", tags=["certificates"])
 
 # 공개 — 진위확인
 public_router = APIRouter(prefix="/public", tags=["public"])
@@ -80,10 +89,28 @@ async def list_certificates(
         limit=limit,
     )
     return PagedResponse(
-        items=[CertificateResponse.model_validate(c) for c in certificates],
+        items=[CertificateResponse.from_orm(c) for c in certificates],
         total=total,
         page=page,
         limit=limit,
+    )
+
+
+@admin_router.post("/issue", response_model=CertificateIssueResult)
+async def issue_certificates(
+    body: CertificateIssueRequest,
+    db: AsyncSession = Depends(get_db),
+    admin: AdminUser = Depends(require_admin),
+):
+    """어드민 발급 저장 — 결제 없이 감리원별 묶음(문서 1건)씩 발급을 확정한다.
+
+    문서번호는 그룹(발급 이벤트)당 1회 채번된다. 이미 유효 발급분이 있는
+    내역은 skipped 로 돌아온다 — 재발급은 WEB 경로로만 한다.
+    """
+    groups = [(g.trainee_id, g.record_ids) for g in body.groups]
+    results = await certificate_admin_service.issue_certificates(db, groups, admin)
+    return CertificateIssueResult(
+        groups=[CertificateIssueGroupResult.model_validate(r) for r in results]
     )
 
 
@@ -97,7 +124,7 @@ async def revoke_certificate(
     certificate = await certificate_admin_service.revoke_certificate(
         db, certificate_id, body.reason, admin
     )
-    return CertificateResponse.model_validate(certificate)
+    return CertificateResponse.from_orm(certificate)
 
 
 @public_router.post(
@@ -109,3 +136,20 @@ async def verify_certificate(
     db: AsyncSession = Depends(get_db),
 ):
     return await public_verification_service.verify_certificate(db, request, body)
+
+
+@completion_router.post(
+    "/issue",
+    response_model=list[CompletionCertificateResponse],
+    status_code=201,
+)
+async def issue_completion_certificates(
+    body: CompletionCertificateIssueRequest,
+    db: AsyncSession = Depends(get_db),
+    admin: AdminUser = Depends(require_admin),
+):
+    """수료증 발급 — 내부 기관 수료내역 1건당 1장. 기발급 건은 기존 수료증 반환."""
+    certificates = await completion_certificate_service.issue_completion_certificates(
+        db, body.training_record_ids, admin
+    )
+    return [CompletionCertificateResponse.from_orm(c) for c in certificates]

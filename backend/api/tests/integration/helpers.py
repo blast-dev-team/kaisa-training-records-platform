@@ -4,7 +4,7 @@ import uuid
 from decimal import Decimal
 
 from app.core.config import settings
-from app.core.crypto import encrypt_field, sha256_hex
+from app.core.crypto import encrypt_field, name_columns, sha256_hex
 from app.core.kst import now_kst
 from app.core.security import hash_password
 from app.core.session import create_admin_session, create_user_session
@@ -55,14 +55,25 @@ async def make_trainee(
     trainee_no: str = "TR-2026-0001",
     review_status: str = "approved",
 ) -> tuple[User, Trainee]:
-    user = User(ci_hash=sha256_hex(ci_raw), name=name) if ci_raw else None
+    user_name_encrypted, user_name_hash = name_columns(name)
+    user = (
+        User(
+            ci_hash=sha256_hex(ci_raw),
+            name_encrypted=user_name_encrypted,
+            name_hash=user_name_hash,
+        )
+        if ci_raw
+        else None
+    )
     if user:
         db.add(user)
         await db.flush()
+    name_encrypted, name_hash_value = name_columns(name)
     trainee = Trainee(
         user_id=user.id if user else None,
         trainee_no=trainee_no,
-        name=name,
+        name_encrypted=name_encrypted,
+        name_hash=name_hash_value,
         phone_encrypted=encrypt_field("01012345678"),
         membership_grade_id=grade_id,
         review_status=review_status,

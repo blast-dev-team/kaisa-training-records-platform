@@ -29,5 +29,6 @@ export async function postPassTestLogin(
     name: data.name ?? null,
     matched: Boolean(data.matched),
     reviewStatus: data.review_status ?? null,
+    isSuper: Boolean(data.is_super),
   };
 }

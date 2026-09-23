@@ -51,8 +51,6 @@ export function InstitutionListPage() {
 
   const q = searchParams.get("q") ?? "";
   const status = searchParams.get("status") ?? "";
-  const category = searchParams.get("category") ?? "";
-  const courseType = searchParams.get("course_type") ?? "";
   const page = Math.max(1, Number(searchParams.get("page") ?? 1) || 1);
   const limit = Math.max(1, Number(searchParams.get("limit") ?? 10) || 10);
   const [searchInput, setSearchInput] = useState(q);
@@ -65,13 +63,10 @@ export function InstitutionListPage() {
     courseQueries.list({
       search: q || undefined,
       isActive,
-      category: category || undefined,
-      isExternal: courseType === "" ? undefined : courseType === "external",
       page,
       limit,
     }),
   );
-  const { data: categories } = useQuery(courseQueries.categories({ search: "" }));
 
   const deleteMutation = useMutation({
     mutationFn: () => {
@@ -120,6 +115,19 @@ export function InstitutionListPage() {
         header: "기관코드",
         meta: { width: 140 },
         cell: ({ row }) => row.original.institutionCode ?? "—",
+      },
+      {
+        accessorKey: "institutionType",
+        header: "구분",
+        meta: { width: 110 },
+        cell: ({ row }) => {
+          const type = row.original.institutionType;
+          return (
+            <Pill tone={type === "internal" ? "ok" : type === "external" ? "info" : "default"}>
+              {type === "internal" ? "내부" : type === "external" ? "외부" : "미선택"}
+            </Pill>
+          );
+        },
       },
       {
         accessorKey: "isActive",
@@ -188,16 +196,6 @@ export function InstitutionListPage() {
         ),
       },
       {
-        accessorKey: "isExternal",
-        header: "구분",
-        meta: { width: 110 },
-        cell: ({ row }) => (
-          <Pill tone={row.original.isExternal ? "info" : "default"}>
-            {row.original.isExternal ? "외부" : "계속교육"}
-          </Pill>
-        ),
-      },
-      {
         accessorKey: "sessionName",
         header: "회차명",
         meta: { width: 300 },
@@ -225,12 +223,6 @@ export function InstitutionListPage() {
         header: "과정코드",
         meta: { width: 120 },
         cell: ({ row }) => row.original.courseCode ?? "—",
-      },
-      {
-        accessorKey: "category",
-        header: "분류",
-        meta: { width: 110 },
-        cell: ({ row }) => row.original.category ?? "—",
       },
       {
         accessorKey: "totalHours",
@@ -363,35 +355,6 @@ export function InstitutionListPage() {
             <option value="inactive">비활성</option>
           </Select>
         </FilterRow>
-        {tab === "course" && (
-          <FilterRow label="구분">
-            <Select
-              className="w-28"
-              value={courseType}
-              onChange={(e) => updateTabParam({ course_type: e.target.value || null })}
-            >
-              <option value="">전체</option>
-              <option value="internal">계속교육</option>
-              <option value="external">외부교육</option>
-            </Select>
-          </FilterRow>
-        )}
-        {tab === "course" && (
-          <FilterRow label="분류">
-            <Select
-              className="w-32"
-              value={category}
-              onChange={(e) => updateTabParam({ category: e.target.value || null })}
-            >
-              <option value="">전체</option>
-              {(categories ?? []).map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </Select>
-          </FilterRow>
-        )}
       </FilterBar>
       {tab === "institution" ? (
         <AppTable
@@ -413,7 +376,7 @@ export function InstitutionListPage() {
           data={courses?.items ?? []}
           isLoading={!courses}
           fixedLayout
-          minWidth={1420}
+          minWidth={1200}
           emptyMessage="등록된 과정이 없어요. 첫 과정을 등록해 보세요"
           page={page}
           totalPages={courses?.totalPages ?? 1}

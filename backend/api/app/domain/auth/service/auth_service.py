@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.audit import record_audit
 from app.core.config import settings
-from app.core.crypto import hash_ip
+from app.core.crypto import decrypt_field, hash_ip
 from app.core.error_codes import api_error
 from app.core.kst import now_kst
 from app.core.rate_limit import clear_attempts, is_rate_limited, register_attempt
@@ -200,7 +200,9 @@ async def me(db: AsyncSession, admin_token: str | None, user_token: str | None) 
     user = await resolve_user_session(db, user_token)
     if user is None:
         raise api_error("SESSION_EXPIRED")
-    return MeResponse(account_type="user", id=user.id, name=user.name)
+    return MeResponse(
+        account_type="user", id=user.id, name=decrypt_field(user.name_encrypted)
+    )
 
 
 # ── 관리자 계정 관리 (super) ───────────────────────────────────────────────────

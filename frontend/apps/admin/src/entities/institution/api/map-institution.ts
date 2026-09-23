@@ -6,6 +6,10 @@ export function mapInstitution(dto: InstitutionDto): Institution {
     id: dto.id,
     name: dto.name,
     institutionCode: dto.institution_code,
+    institutionType:
+      dto.institution_type === 'internal' || dto.institution_type === 'external'
+        ? dto.institution_type
+        : null,
     isActive: dto.is_active,
     createdAt: dto.created_at,
   }

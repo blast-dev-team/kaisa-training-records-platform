@@ -275,7 +275,7 @@ export function TraineeListPage() {
           >
             <Input
               className="w-64"
-              placeholder="성명 · 감리원증번호"
+              placeholder="성명(전체) · 감리원증번호"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
             />

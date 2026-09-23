@@ -4,6 +4,7 @@ from datetime import date, timedelta
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.crypto import name_hash
 from app.domain.certificate.model import Certificate
 
 
@@ -14,9 +15,17 @@ async def find_by_id(db: AsyncSession, certificate_id: uuid.UUID) -> Certificate
     return result.scalar_one_or_none()
 
 
-async def find_by_no(db: AsyncSession, certificate_no: str) -> Certificate | None:
+async def find_by_doc_no(db: AsyncSession, doc_no: str) -> Certificate | None:
+    """문서번호(정감 제{YY}-E{NNNN}호)로 조회 — 묶음 멤버 중 대표 1건.
+
+    멤버가 여러 개여도 bundle_no 가 같아 _verify_certificate 의
+    find_bundle_members 에서 전체가 회수된다. 대표는 연번순 첫 건.
+    """
     result = await db.execute(
-        select(Certificate).where(Certificate.certificate_no == certificate_no)
+        select(Certificate)
+        .where(Certificate.doc_no == doc_no)
+        .order_by(Certificate.issued_at, Certificate.certificate_no)
+        .limit(1)
     )
     return result.scalar_one_or_none()
 
@@ -70,7 +79,8 @@ async def list_certificates(
         pattern = f"%{search}%"
         cond = or_(
             Certificate.certificate_no.ilike(pattern),
-            Certificate.issued_name.ilike(pattern),
+            # 성명은 암호화 저장 — blind index 로 '전체 이름 일치'만 지원
+            Certificate.issued_name_hash == name_hash(search),
             Certificate.course_name.ilike(pattern),
         )
         stmt = stmt.where(cond)

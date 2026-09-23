@@ -57,7 +57,7 @@ describe("Radio", () => {
       </Radio>,
     );
     expect(screen.getByText("월간").className).toContain(
-      "group-disabled:text-gray-300",
+      "peer-disabled:text-gray-300",
     );
   });
 
@@ -70,8 +70,8 @@ describe("Radio", () => {
 
     const { input, dot } = getParts("월간");
     expect(input.checked).toBe(true);
-    expect(dot.className).toContain("group-checked:bg-primary-700");
-    expect(dot.className).toContain("group-checked:group-disabled:bg-gray-500");
+    expect(dot.className).toContain("peer-checked:bg-primary-700");
+    expect(dot.className).toContain("peer-checked:peer-disabled:bg-gray-500");
   });
 
   it("outline 변형은 카드형 외곽선을 가진다", () => {

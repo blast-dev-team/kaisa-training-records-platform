@@ -4,13 +4,8 @@ import { toast } from "react-toastify";
 import { Dialog } from "@/src/shared/ui/dialog";
 import { Input } from "@/src/shared/ui/input";
 import { Label } from "@/src/shared/ui/label";
-import {
-  SearchableSelect,
-  fetchOptions,
-  type SearchableOption,
-} from "@/src/shared/ui/searchable-select";
+import { SearchableSelect, fetchOptions } from "@/src/shared/ui/searchable-select";
 import { Textarea } from "@/src/shared/ui/textarea";
-import { apiClient } from "@/src/shared/api";
 import {
   patchCourse,
   postCourse,
@@ -41,26 +36,6 @@ const courseCodeFetcher = fetchOptions("/courses", {}, (c) => ({
   hint: c.name as string | undefined,
 }));
 
-/** 분류 드롭다운 — distinct category (검색 가능) */
-async function fetchCategoryPage(search: string, page: number) {
-  const { data } = await apiClient.get<string[]>("/courses/categories", {
-    params: { search: search || undefined },
-  });
-  return {
-    items: data.map((v) => ({ value: v, label: v })),
-    total: data.length,
-    page: 1,
-    limit: 100,
-    total_pages: 1,
-  } satisfies {
-    items: SearchableOption[];
-    total: number;
-    page: number;
-    limit: number;
-    total_pages: number;
-  };
-}
-
 /** 과정 등록·수정 — 회차명(마스터)과 과정명을 분리해 관리한다 */
 export function CourseFormDialog({ isOpen, onClose, course }: Props) {
   const queryClient = useQueryClient();
@@ -69,10 +44,8 @@ export function CourseFormDialog({ isOpen, onClose, course }: Props) {
   const [name, setName] = useState("");
   const [code, setCode] = useState("");
   const [totalHours, setTotalHours] = useState("");
-  const [category, setCategory] = useState("");
   const [description, setDescription] = useState("");
   const [isActive, setIsActive] = useState(true);
-  const [isExternal, setIsExternal] = useState(false);
 
   // 검색 결과에 없는 기관·회차명을 그 자리에서 생성한다
   const createInstitution = async (name: string): Promise<string | null> => {
@@ -107,10 +80,8 @@ export function CourseFormDialog({ isOpen, onClose, course }: Props) {
         ? String(course.totalHours)
         : "",
     );
-    setCategory(course?.category ?? "");
     setDescription(course?.description ?? "");
     setIsActive(course?.isActive ?? true);
-    setIsExternal(course?.isExternal ?? false);
   }, [isOpen, course]);
 
   const mutation = useMutation({
@@ -119,10 +90,8 @@ export function CourseFormDialog({ isOpen, onClose, course }: Props) {
         institution_id: institutionId,
         name: name.trim(),
         session_name_id: sessionNameId || null,
-        is_external: isExternal,
         course_code: code.trim() || undefined,
         total_hours: Number(totalHours || 0),
-        category: category.trim() || null,
         description: description.trim() || null,
         is_active: isActive,
       };
@@ -220,17 +189,6 @@ export function CourseFormDialog({ isOpen, onClose, course }: Props) {
               onChange={(e) => setTotalHours(e.target.value)}
             />
           </div>
-          <div className="flex flex-col gap-1.5">
-            <Label>분류</Label>
-            <SearchableSelect
-              value={category || null}
-              onChange={(v) => setCategory(v ?? "")}
-              fetchPage={fetchCategoryPage}
-              queryKeyPrefix={["options", "course-categories"]}
-              placeholder="분류 검색 · 선택 (예: 온라인)"
-              clearable
-            />
-          </div>
         </div>
         <div className="space-y-1.5">
           <Label>설명</Label>
@@ -250,15 +208,6 @@ export function CourseFormDialog({ isOpen, onClose, course }: Props) {
               onChange={(e) => setIsActive(e.target.checked)}
             />
             사용중 (해제하면 이력 등록에서 제외돼요)
-          </label>
-          <label className="flex items-center gap-2 text-[13px] text-ink-2">
-            <input
-              type="checkbox"
-              className="size-4 accent-[--color-accent] cursor-pointer"
-              checked={isExternal}
-              onChange={(e) => setIsExternal(e.target.checked)}
-            />
-            외부 교육과정 (감리원이 개인적으로 수료한 외부 교육)
           </label>
         </div>
       </div>

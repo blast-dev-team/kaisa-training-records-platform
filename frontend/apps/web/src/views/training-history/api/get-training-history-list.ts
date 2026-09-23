@@ -30,6 +30,8 @@ export interface TrainingHistoryItem {
   certificateStatus: CertificateStatus;
   /** 재발급 기한 표기 — reissuable일 때만 (예: 2026.05.14 14:22까지) */
   reissueDeadline?: string;
+  /** 수료증 발급 자격 — 내부 기관 + 수료 완료 + 본인 이력(데모 제외). 결제 없이 무료 */
+  completionCertIssuable: boolean;
 }
 
 export interface TrainingHistoryListParams {
@@ -71,6 +73,10 @@ interface TrainingRecordDto {
   last_issued_at?: string | null;
   /** 7일 무료 재발급 기한 — 기한 지나면 유료 재발급 */
   reissue_free_until?: string | null;
+  institution_type?: string | null; // internal | external | null(미선택)
+  completion_status?: string | null; // in_progress | completed | canceled
+  /** 공용 데모 이력 — 여러 회원이 공유하므로 수료증 대상 제외 */
+  is_demo?: boolean;
 }
 
 /** 무료 재발급 기한 표기 (예: 2026.09.23 14:22) */
@@ -96,6 +102,11 @@ function toItem(dto: TrainingRecordDto): TrainingHistoryItem {
       dto.reissue_free_until != null
         ? formatDeadline(dto.reissue_free_until)
         : undefined,
+    // 수료증 게이트(내부 기관 + 수료)는 서버가 최종 판단 — 여기선 버튼 활성 표기용
+    completionCertIssuable:
+      dto.is_demo !== true &&
+      dto.institution_type === "internal" &&
+      dto.completion_status === "completed",
   };
 }
 
