@@ -19,8 +19,11 @@ function lazyPage<T>(load: () => Promise<T>): () => Promise<T> {
       if (sessionStorage.getItem(CHUNK_RELOAD_KEY)) throw error
       sessionStorage.setItem(CHUNK_RELOAD_KEY, '1')
       window.location.reload()
-      throw error // reload 가 진행되므로 실제로는 도달하지 않는다
+      // reload 진행 동안 라우터를 대기시킨다 — throw 하면 에러 화면이 반쯤 그려졌다
+      // 새로고침으로 갈아엎어지며 에러가 번쩍 보인다. 끝나지 않는 await 로 그걸 막는다
+      await new Promise<never>(() => {})
     }
+    throw new Error('unreachable')
   }
 }
 
