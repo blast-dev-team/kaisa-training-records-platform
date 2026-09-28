@@ -14,6 +14,8 @@ class SessionCreate(BaseModel):
     total_hours: Decimal = Decimal(0)
     recognized_hours: Decimal = Decimal(0)
     is_active: bool = True
+    # 외부 교육 체크 — 연결된 감리원 내역이 source='external' 로 저장된다
+    source: str = "internal"  # internal | external
     memo: str | None = None
 
 
@@ -23,6 +25,7 @@ class SessionUpdate(BaseModel):
     total_hours: Decimal | None = None
     recognized_hours: Decimal | None = None
     is_active: bool | None = None
+    source: str | None = None  # internal | external
     memo: str | None = None
 
 
@@ -65,6 +68,7 @@ class SessionResponse(BaseModel):
     total_hours: Decimal
     recognized_hours: Decimal
     is_active: bool
+    source: str
     memo: str | None
     enrolled_count: int = 0
     created_at: datetime
@@ -85,6 +89,7 @@ class SessionResponse(BaseModel):
             total_hours=s.total_hours,
             recognized_hours=s.recognized_hours,
             is_active=s.is_active,
+            source=s.source,
             memo=s.memo,
             enrolled_count=enrolled_count,
             created_at=s.created_at,

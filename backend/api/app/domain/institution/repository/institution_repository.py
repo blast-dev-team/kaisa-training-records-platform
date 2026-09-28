@@ -28,6 +28,7 @@ async def find_institution_by_code(
 async def list_institutions(
     db: AsyncSession,
     is_active: bool | None = None,
+    institution_type: str | None = None,
     search: str | None = None,
     page: int = 1,
     limit: int = 20,
@@ -37,6 +38,11 @@ async def list_institutions(
     if is_active is not None:
         stmt = stmt.where(TrainingInstitution.is_active == is_active)
         count_stmt = count_stmt.where(TrainingInstitution.is_active == is_active)
+    if institution_type:
+        stmt = stmt.where(TrainingInstitution.institution_type == institution_type)
+        count_stmt = count_stmt.where(
+            TrainingInstitution.institution_type == institution_type
+        )
     if search:
         pattern = f"%{search}%"
         cond = or_(

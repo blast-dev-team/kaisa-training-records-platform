@@ -88,6 +88,8 @@ class CertificateIssueRequest(BaseModel):
 class CertificateIssueGroupResult(BaseModel):
     trainee_id: uuid.UUID
     doc_no: str
+    # 묶음 확인서 번호 — PDF 하단 진위확인 표기용
+    certificate_no: str
     certificate_ids: list[uuid.UUID] = []
 
 

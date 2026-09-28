@@ -278,15 +278,16 @@ class TestAdminIssue:
 
 class TestDocNoVerification:
     async def test_verify_by_doc_no_returns_bundle(self, client, db):
-        """문서번호로 진위확인 — 확인서에 인쇄된 번호가 곧 조회 입력이다.
+        """문서번호로도 진위확인 — 응답 번호는 확인서 번호(묶음 번호)다.
 
-        응답 번호도 문서번호로 돌아온다(사용자가 입력한 그 번호).
+        PDF 하단에 인쇄되는 것이 확인서 번호고 진위확인 입력·응답이 그 값이다.
         """
         _, _, records, token = await _member(db, record_count=2, code="g-verify")
         resp = await _batch_request(client, token, records)
         assert resp.status_code == 201, resp.json()
 
-        (doc_no,) = {c.doc_no for c in await _issued_certs(db)}
+        certs = await _issued_certs(db)
+        (doc_no,) = {c.doc_no for c in certs}
         verify = await client.post(
             "/api/public/certificate-verifications",
             json={"certificate_no": doc_no},
@@ -295,7 +296,7 @@ class TestDocNoVerification:
         body = verify.json()
         assert body["result"] == "valid"
         assert body["kind"] == "certificate"
-        assert body["certificate_no"] == doc_no
+        assert body["certificate_no"] == certs[0].bundle_no
         assert len(body["records"]) == 2
 
     async def test_verify_accepts_bare_seq(self, client, db):
@@ -303,7 +304,8 @@ class TestDocNoVerification:
         _, _, records, token = await _member(db, record_count=1, code="g-bare")
         await _batch_request(client, token, records)
 
-        (doc_no,) = {c.doc_no for c in await _issued_certs(db)}
+        certs = await _issued_certs(db)
+        (doc_no,) = {c.doc_no for c in certs}
         bare = doc_no.removeprefix("정감 제").removesuffix("호")
         verify = await client.post(
             "/api/public/certificate-verifications",
@@ -312,10 +314,10 @@ class TestDocNoVerification:
         assert verify.status_code == 200
         body = verify.json()
         assert body["result"] == "valid"
-        assert body["certificate_no"] == doc_no
+        assert body["certificate_no"] == certs[0].bundle_no
 
-    async def test_certificate_no_no_longer_lookup(self, client, db):
-        """구 확인서 번호(CERT-…)는 조회 입력이 아니다 — 문서번호 형식만 받는다."""
+    async def test_certificate_no_is_primary_lookup(self, client, db):
+        """확인서 번호(CERT-…)로 조회한다 — PDF 하단에 인쇄된 그 번호."""
         _, _, records, token = await _member(db, record_count=2, code="g-legacy")
         await _batch_request(client, token, records)
 
@@ -325,7 +327,10 @@ class TestDocNoVerification:
             json={"certificate_no": certs[0].certificate_no},
         )
         assert verify.status_code == 200
-        assert verify.json()["result"] == "not_found"
+        body = verify.json()
+        assert body["result"] == "valid"
+        assert body["certificate_no"] == certs[0].bundle_no
+        assert len(body["records"]) == 2
 
 
 class TestFormatRule:

@@ -48,11 +48,12 @@ async def _verify(client, no: str):
 class TestVerify:
     async def test_valid_masked(self, client, db):
         cert, _ = await _issued_cert(client, db)
-        resp = await _verify(client, "26-E0001")  # 축약형 — 정규화로 조회된다
+        # 확인서 번호(PDF 하단 표기, 묶음 번호)로 조회한다
+        resp = await _verify(client, cert.bundle_no or cert.certificate_no)
         assert resp.status_code == 200
         body = resp.json()
         assert body["result"] == "valid"
-        assert body["certificate_no"] == cert.doc_no
+        assert body["certificate_no"] == (cert.bundle_no or cert.certificate_no)
         assert body["issued_name_masked"] == "홍**"
         assert body["course_name"] == "안전보건교육"
         assert body["total_hours"] == "16.00"
@@ -78,12 +79,23 @@ class TestVerify:
         assert resp.status_code == 200
         assert resp.json()["result"] == "not_found"
 
-    async def test_cert_no_format_no_longer_lookup(self, client, db):
-        """구 확인서 번호(CERT-…)는 조회 입력이 아니다 — 문서번호 형식만 받는다."""
+    async def test_cert_no_lookup(self, client, db):
+        """확인서 번호(CERT-…)로 조회한다 — PDF 하단에 인쇄된 그 번호."""
         cert, _ = await _issued_cert(client, db)
         resp = await _verify(client, cert.certificate_no)
         assert resp.status_code == 200
-        assert resp.json()["result"] == "not_found"
+        body = resp.json()
+        assert body["result"] == "valid"
+        assert body["certificate_no"] == (cert.bundle_no or cert.certificate_no)
+
+    async def test_doc_no_still_lookup(self, client, db):
+        """문서 상단의 문서번호 입력도 조회된다 — 문서번호 → 확인서 번호 응답."""
+        cert, _ = await _issued_cert(client, db)
+        resp = await _verify(client, "26-E0001")  # 축약형 — 정규화로 조회된다
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["result"] == "valid"
+        assert body["certificate_no"] == (cert.bundle_no or cert.certificate_no)
 
     async def test_tolerant_inputs(self, client, db):
         """띄어쓰기·장식문·대소문자·하이픈 생략 모두 같은 문서번호로 본다."""
@@ -94,7 +106,7 @@ class TestVerify:
             assert resp.status_code == 200
             body = resp.json()
             assert body["result"] == "valid", raw
-            assert body["certificate_no"] == full
+            assert body["certificate_no"] == (cert.bundle_no or cert.certificate_no)
 
     async def test_revoked(self, client, db):
         cert, _ = await _issued_cert(client, db)
