@@ -10,6 +10,7 @@ export const trainingRecordQueries = {
     queryOptions({
       queryKey: [...trainingRecordQueries.lists(), query],
       queryFn: () => getTrainingRecordList(query),
+      placeholderData: (prev) => prev,
     }),
   details: () => [...trainingRecordQueries.all(), 'detail'] as const,
   detail: (recordId: string) =>

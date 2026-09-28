@@ -11,6 +11,7 @@ export const traineeQueries = {
     queryOptions({
       queryKey: [...traineeQueries.lists(), query],
       queryFn: () => getTraineeList(query),
+      placeholderData: (prev) => prev,
     }),
   details: () => [...traineeQueries.all(), 'detail'] as const,
   detail: (traineeId: string) =>

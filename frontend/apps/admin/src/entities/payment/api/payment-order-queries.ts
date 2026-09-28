@@ -9,5 +9,6 @@ export const paymentOrderQueries = {
     queryOptions({
       queryKey: [...paymentOrderQueries.lists(), query],
       queryFn: () => getPaymentOrderList(query),
+      placeholderData: (prev) => prev,
     }),
 }

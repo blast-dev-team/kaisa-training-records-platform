@@ -6,7 +6,7 @@ export interface PaymentOrderDto {
   trainee_name?: string | null
   amount_krw: number
   currency: string
-  status: 'ready' | 'pending' | 'paid' | 'failed' | 'canceled' | 'partial_refunded' | 'refunded'
+  status: 'ready' | 'pending' | 'paid' | 'failed' | 'canceled' | 'refunded'
   paid_at: string | null
   created_at: string
 }

@@ -9,5 +9,6 @@ export const identityReviewQueries = {
     queryOptions({
       queryKey: [...identityReviewQueries.lists(), query],
       queryFn: () => getIdentityReviewList(query),
+      placeholderData: (prev) => prev,
     }),
 }

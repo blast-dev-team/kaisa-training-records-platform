@@ -1,10 +1,11 @@
 import type { CompletionStatus } from "@/src/entities/training-record";
 
-export type CertificateStatus = "issued" | "revoked";
+export type CertificateStatus = "issued" | "revoked" | "superseded";
 
 export const CERTIFICATE_STATUS_LABELS: Record<CertificateStatus, string> = {
   issued: "발급됨",
   revoked: "환불",
+  superseded: "재발급",
 };
 
 export interface Certificate {

@@ -9,5 +9,6 @@ export const auditLogQueries = {
     queryOptions({
       queryKey: [...auditLogQueries.lists(), query],
       queryFn: () => getAuditLogList(query),
+      placeholderData: (prev) => prev,
     }),
 }
