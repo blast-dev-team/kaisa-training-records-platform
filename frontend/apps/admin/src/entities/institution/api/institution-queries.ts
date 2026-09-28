@@ -15,6 +15,7 @@ export const institutionQueries = {
     queryOptions({
       queryKey: [...institutionQueries.lists(), query],
       queryFn: () => getInstitutionList(query),
+      placeholderData: (prev) => prev,
       staleTime: 5 * 60 * 1000,
     }),
 }
@@ -26,6 +27,7 @@ export const courseQueries = {
     queryOptions({
       queryKey: [...courseQueries.lists(), query],
       queryFn: () => getCourseList(query),
+      placeholderData: (prev) => prev,
     }),
   categories: (query: { search?: string }) =>
     queryOptions({
@@ -41,5 +43,6 @@ export const sessionNameQueries = {
     queryOptions({
       queryKey: [...sessionNameQueries.lists(), query],
       queryFn: () => getSessionNameList(query),
+      placeholderData: (prev) => prev,
     }),
 }

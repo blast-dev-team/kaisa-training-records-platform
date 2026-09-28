@@ -9,6 +9,7 @@ export const certificateQueries = {
     queryOptions({
       queryKey: [...certificateQueries.lists(), query],
       queryFn: () => getCertificateList(query),
+      placeholderData: (prev) => prev,
     }),
 }
 

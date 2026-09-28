@@ -9,5 +9,6 @@ export const courseSessionQueries = {
     queryOptions({
       queryKey: [...courseSessionQueries.lists(), query],
       queryFn: () => getCourseSessionList(query),
+      placeholderData: (prev) => prev,
     }),
 }

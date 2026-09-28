@@ -10,7 +10,6 @@ import { Dialog } from "@/src/shared/ui/dialog";
 import { FilterBar, FilterRow } from "@/src/shared/ui/filter-bar";
 import { PageContainer } from "@/src/shared/ui/page-container";
 import { PageHead } from "@/src/shared/ui/page-head";
-import { Pill, statusTone } from "@/src/shared/ui/pill";
 import { SearchableSelect, fetchOptions } from "@/src/shared/ui/searchable-select";
 import { Input } from "@/src/shared/ui/input";
 import { Select } from "@/src/shared/ui/select";
@@ -219,13 +218,16 @@ export function TrainingRecordListPage() {
         header: "과정명",
         meta: { width: 320 },
         cell: ({ row }) => (
-          <span className="flex items-center gap-1.5">
-            <span className="truncate font-medium text-ink" title={row.original.courseName}>
-              {row.original.courseName}
-            </span>
-            {row.original.source === "external" && <Pill tone="accent">외부</Pill>}
+          <span className="block truncate font-medium text-ink" title={row.original.courseName}>
+            {row.original.courseName}
           </span>
         ),
+      },
+      {
+        accessorKey: "source",
+        header: "구분",
+        meta: { width: 70 },
+        cell: ({ row }) => TRAINING_SOURCE_LABELS[row.original.source],
       },
       {
         accessorKey: "institutionName",
