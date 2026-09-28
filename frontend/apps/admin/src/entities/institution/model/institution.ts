@@ -21,6 +21,8 @@ export interface Course {
   id: string
   institutionId: string
   institutionName: string | null
+  /** 기관 내부/외부 — 일정 등록 '외부 교육' 체크박스 기본값 판단용 */
+  institutionType: 'internal' | 'external' | null
   sessionNameId: string | null
   sessionName: string | null
   /** 외부 교육과정 — 감리원 개인 수료 외부 교육 */

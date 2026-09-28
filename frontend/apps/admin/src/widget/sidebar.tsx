@@ -43,7 +43,6 @@ const NAV_GROUPS: { title: string; items: NavItem[] }[] = [
     items: [
       { to: "/course-sessions", label: "교육 일정", icon: CalendarDays },
       { to: "/training-records", label: "교육 내역", icon: GraduationCap },
-      { to: "/external-completions", label: "외부 내역", icon: FileBadge },
       { to: "/institutions", label: "기관 · 과정", icon: Building2 },
       { to: "/session-names", label: "회차명 관리", icon: ListOrdered },
     ],

@@ -20,6 +20,10 @@ export function mapCourse(dto: CourseDto): Course {
     id: dto.id,
     institutionId: dto.institution_id,
     institutionName: dto.institution_name,
+    institutionType:
+      dto.institution_type === 'internal' || dto.institution_type === 'external'
+        ? dto.institution_type
+        : null,
     sessionNameId: dto.session_name_id,
     sessionName: dto.session_name,
     isExternal: dto.is_external,

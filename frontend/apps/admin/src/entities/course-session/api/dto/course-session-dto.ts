@@ -4,6 +4,7 @@ export interface CourseSessionDto {
   course_name: string
   institution_id: string
   institution_name: string
+  source: string
   schedule_no: number | null
   started_at: string | null
   ended_at: string | null

@@ -6,12 +6,12 @@ import { Input } from "@/src/shared/ui/input";
 import { Label } from "@/src/shared/ui/label";
 import { Textarea } from "@/src/shared/ui/textarea";
 import { SearchableSelect, fetchOptions } from "@/src/shared/ui/searchable-select";
-import type { Course } from "@/src/entities/institution";
 import {
   courseSessionQueries,
   patchCourseSession,
   postCourseSession,
   type CourseSession,
+  type CourseSessionSource,
 } from "@/src/entities/course-session";
 
 interface Props {
@@ -22,32 +22,45 @@ interface Props {
   onCreated?: (session: CourseSession) => void;
 }
 
-const fetchCourses = fetchOptions("/courses", {}, (c) => ({
-  value: c.id as string,
-  label: c.name as string,
-  hint: c.institution_name as string | undefined,
-}));
+/** 과정 id → 소속 기관 타입. 옵션을 그릴 때 채운다 — 선택 후 상세 재호출 없이 자동 체크 판단 */
+const courseTypeById = new Map<string, CourseSessionSource>();
+
+const fetchCourses = fetchOptions("/courses", {}, (c) => {
+  const id = c.id as string;
+  courseTypeById.set(id, c.institution_type === "external" ? "external" : "internal");
+  return {
+    value: id,
+    label: c.name as string,
+    hint: c.institution_name as string | undefined,
+  };
+});
 
 /** 교육 일정 등록·수정 — 과정 선택(검색 드롭다운) + 기간·시간·메모 */
 export function CourseSessionFormDialog({ isOpen, onClose, session, onCreated }: Props) {
   const queryClient = useQueryClient();
   const [courseId, setCourseId] = useState("");
+  /** 선택된 과정 라벨 — 검색으로 골라 목록 리셋 후에도 트리거에 이름이 남는다 (••• 방지) */
+  const [courseLabel, setCourseLabel] = useState<string | null>(null);
   const [startedAt, setStartedAt] = useState("");
   const [endedAt, setEndedAt] = useState("");
   const [totalHours, setTotalHours] = useState("");
   const [recognizedHours, setRecognizedHours] = useState("");
   const [memo, setMemo] = useState("");
   const [isActive, setIsActive] = useState(true);
+  // 외부 교육 — 연결된 감리원 내역의 source. 외부 기관 과정 선택 시 자동 체크
+  const [source, setSource] = useState<CourseSessionSource>("internal");
 
   useEffect(() => {
     if (!isOpen) return;
     setCourseId(session?.courseId ?? "");
+    setCourseLabel(session?.courseName ?? null);
     setStartedAt(session?.startedAt ?? "");
     setEndedAt(session?.endedAt ?? "");
     setTotalHours(session?.totalHours != null ? String(session.totalHours) : "");
     setRecognizedHours(session?.recognizedHours != null ? String(session.recognizedHours) : "");
     setMemo(session?.memo ?? "");
     setIsActive(session?.isActive ?? true);
+    setSource(session?.source ?? "internal");
   }, [isOpen, session]);
 
   const mutation = useMutation({
@@ -59,6 +72,7 @@ export function CourseSessionFormDialog({ isOpen, onClose, session, onCreated }:
           total_hours: totalHours === "" ? null : Number(totalHours),
           recognized_hours: recognizedHours === "" ? null : Number(recognizedHours),
           is_active: isActive,
+          source,
           memo: memo.trim() || null,
         });
       }
@@ -69,6 +83,7 @@ export function CourseSessionFormDialog({ isOpen, onClose, session, onCreated }:
         total_hours: totalHours === "" ? 0 : Number(totalHours),
         recognized_hours: recognizedHours === "" ? 0 : Number(recognizedHours),
         is_active: isActive,
+        source,
         memo: memo.trim() || null,
       });
     },
@@ -107,10 +122,16 @@ export function CourseSessionFormDialog({ isOpen, onClose, session, onCreated }:
             <Label>과정</Label>
             <SearchableSelect
               value={courseId || null}
-              onChange={(v) => setCourseId(v ?? "")}
+              onChange={(v, option) => {
+                setCourseId(v ?? "");
+                setCourseLabel(option?.label ?? null);
+                // 외부 기관 과정이면 '외부 교육' 자동 체크 — 목록에서 받은 기관 타입으로 판단
+                if (v) setSource(courseTypeById.get(v) ?? "internal");
+              }}
               fetchPage={fetchCourses}
               queryKeyPrefix={["options", "courses"]}
               placeholder="과정 검색 · 선택"
+              selectedLabel={courseLabel ?? undefined}
             />
           </div>
         )}
@@ -155,6 +176,20 @@ export function CourseSessionFormDialog({ isOpen, onClose, session, onCreated }:
             />
           </div>
         </div>
+        <label className="flex flex-col text-[13px] text-ink-2">
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              className="size-4 accent-[--color-accent]"
+              checked={source === "external"}
+              onChange={(e) => setSource(e.target.checked ? "external" : "internal")}
+            />
+            외부 교육
+          </div>
+          <span className="text-[11px] text-ink-3">
+            (외부 기관 과정이면 자동 체크 — 연결된 감리원 내역이 외부로 구분돼요)
+          </span>
+        </label>
         <label className="flex items-center gap-2 text-[13px] text-ink-2">
           <input
             type="checkbox"
@@ -162,7 +197,8 @@ export function CourseSessionFormDialog({ isOpen, onClose, session, onCreated }:
             checked={isActive}
             onChange={(e) => setIsActive(e.target.checked)}
           />
-          운영중 (해제하면 '종료' 상태로 표시돼요)
+          운영중
+          <span className="text-[11px] text-ink-3">(해제하면 '종료' 상태로 표시돼요)</span>
         </label>
         <div className="space-y-1.5">
           <Label>메모</Label>

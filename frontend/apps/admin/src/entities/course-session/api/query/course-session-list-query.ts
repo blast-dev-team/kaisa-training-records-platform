@@ -7,6 +7,8 @@ export interface CourseSessionListQuery {
   /** 교육 기간 겹침 필터 (from ~ to) */
   dateFrom?: string
   dateTo?: string
+  /** 목록 정렬 — period=일정순(시작일 최신, 기본) · registration=등록순 */
+  sort?: 'period' | 'registration'
   page?: number
   limit?: number
 }

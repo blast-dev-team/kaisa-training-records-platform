@@ -1,9 +1,14 @@
+/** 일정 구분 — 감리원 연결로 생성되는 교육이력의 source (이관은 일정으로 만들지 않음) */
+export type CourseSessionSource = 'internal' | 'external'
+
 export interface CourseSession {
   id: string
   courseId: string
   courseName: string
   institutionId: string
   institutionName: string
+  /** 내역 구분 — 외부 교육이면 연결된 감리원 내역도 external 로 저장 */
+  source: CourseSessionSource
   /** 구 시스템 EDC_SCHDL_SN — 이관분만 보유 */
   scheduleNo: number | null
   startedAt: string | null
@@ -25,6 +30,7 @@ export interface CourseSessionInput {
   total_hours?: number | null
   recognized_hours?: number | null
   is_active?: boolean
+  source?: CourseSessionSource
   memo?: string | null
 }
 
@@ -34,6 +40,7 @@ export interface CourseSessionUpdateInput {
   total_hours?: number | null
   recognized_hours?: number | null
   is_active?: boolean | null
+  source?: CourseSessionSource | null
   memo?: string | null
 }
 

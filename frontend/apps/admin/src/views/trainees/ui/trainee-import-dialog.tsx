@@ -189,7 +189,7 @@ export function TraineeImportDialog({ isOpen, onClose }: Props) {
             <FileSpreadsheet className="size-8" />
             <span className="text-sm">
               {files.length === 0
-                ? "클릭해서 엑셀 파일 선택 (여러 개 선택 가능)"
+                ? "클릭해서 엑셀 파일 선택"
                 : files.length === 1
                   ? files[0]?.name
                   : `${files[0]?.name} 외 ${files.length - 1}개`}

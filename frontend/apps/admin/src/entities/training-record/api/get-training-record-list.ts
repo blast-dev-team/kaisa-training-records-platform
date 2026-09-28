@@ -15,7 +15,6 @@ export const getTrainingRecordList = async (
       r =>
         (!query.traineeId || r.traineeId === query.traineeId) &&
         (!query.sessionId || r.sessionId === query.sessionId) &&
-        (!query.excludeSource || r.source !== query.excludeSource) &&
         (!query.source || r.source === query.source) &&
         (!query.completionStatus || r.completionStatus === query.completionStatus) &&
         (!query.search ||
@@ -29,7 +28,6 @@ export const getTrainingRecordList = async (
     params: {
       trainee_id: query.traineeId || undefined,
       session_id: query.sessionId || undefined,
-      exclude_source: query.excludeSource || undefined,
       date_from: query.dateFrom || undefined,
       date_to: query.dateTo || undefined,
       source: query.source || undefined,

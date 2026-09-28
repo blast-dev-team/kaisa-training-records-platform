@@ -11,6 +11,7 @@ export const getInstitutionList = async (
     params: {
       search: query.q || undefined,
       is_active: query.isActive,
+      institution_type: query.institutionType || undefined,
       page: query.page ?? 1,
       limit: query.limit ?? 20,
     },

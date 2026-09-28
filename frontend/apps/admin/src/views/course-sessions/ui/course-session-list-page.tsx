@@ -55,6 +55,8 @@ export function CourseSessionListPage() {
   const from = searchParams.get("from") ?? "";
   const to = searchParams.get("to") ?? "";
   const status = searchParams.get("status") ?? "";
+  // 정렬 — 일정순(시작일 최신)이 기본. 등록순은 이관 데이터가 created_at 일괄 반영이라 실등록분만 의미
+  const sort = searchParams.get("sort") === "registration" ? "registration" : "period";
   const page = Math.max(1, Number(searchParams.get("page") ?? 1) || 1);
   const limit = Math.max(1, Number(searchParams.get("limit") ?? 10) || 10);
 
@@ -70,7 +72,7 @@ export function CourseSessionListPage() {
   // 페이지·필터가 바뀌면 선택은 초기화 — 다른 페이지 행과 뒤섞이지 않는다
   useEffect(() => {
     setSelectedIds(new Set());
-  }, [q, from, to, status, page]);
+  }, [q, from, to, status, sort, page]);
 
   const { data } = useQuery(
     courseSessionQueries.list({
@@ -78,6 +80,7 @@ export function CourseSessionListPage() {
       status: status === "" ? undefined : (status as "active" | "ended"),
       dateFrom: from || undefined,
       dateTo: to || undefined,
+      sort,
       page,
       limit,
     }),
@@ -323,6 +326,18 @@ export function CourseSessionListPage() {
             <option value="">전체</option>
             <option value="active">운영중</option>
             <option value="ended">종료</option>
+          </Select>
+        </FilterRow>
+        <FilterRow label="정렬">
+          <Select
+            className="w-32"
+            value={sort}
+            onChange={(e) =>
+              updateParams({ sort: e.target.value === "registration" ? e.target.value : null })
+            }
+          >
+            <option value="period">일정순</option>
+            <option value="registration">등록순</option>
           </Select>
         </FilterRow>
       </FilterBar>

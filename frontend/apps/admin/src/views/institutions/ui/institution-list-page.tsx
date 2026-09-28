@@ -51,13 +51,15 @@ export function InstitutionListPage() {
 
   const q = searchParams.get("q") ?? "";
   const status = searchParams.get("status") ?? "";
+  /** 기관 구분(내부/외부) — 기관 탭 전용 필터. 과정 탭에선 무시 */
+  const type = searchParams.get("type") ?? "";
   const page = Math.max(1, Number(searchParams.get("page") ?? 1) || 1);
   const limit = Math.max(1, Number(searchParams.get("limit") ?? 10) || 10);
   const [searchInput, setSearchInput] = useState(q);
 
   const isActive = status === "" ? undefined : status === "active";
   const { data: institutions } = useQuery(
-    institutionQueries.list({ q: q || undefined, isActive, page, limit }),
+    institutionQueries.list({ q: q || undefined, isActive, institutionType: type || undefined, page, limit }),
   );
   const { data: courses } = useQuery(
     courseQueries.list({
@@ -88,6 +90,8 @@ export function InstitutionListPage() {
     const next = new URLSearchParams(searchParams);
     if (key === "institution") next.delete("tab");
     else next.set("tab", key);
+    // 구분 필터는 기관 탭 전용 — 탭 전환 시 함께 해제
+    if (key === "institution") next.delete("type");
     next.delete("page");
     setSearchParams(next, { replace: false });
   };
@@ -124,7 +128,7 @@ export function InstitutionListPage() {
           const type = row.original.institutionType;
           return (
             <Pill tone={type === "internal" ? "ok" : type === "external" ? "info" : "default"}>
-              {type === "internal" ? "내부" : type === "external" ? "외부" : "미선택"}
+              {type === "internal" ? "사내" : type === "external" ? "외부" : "미선택"}
             </Pill>
           );
         },
@@ -355,6 +359,19 @@ export function InstitutionListPage() {
             <option value="inactive">비활성</option>
           </Select>
         </FilterRow>
+        {tab === "institution" && (
+          <FilterRow label="구분">
+            <Select
+              className="w-28"
+              value={type}
+              onChange={(e) => updateTabParam({ type: e.target.value || null })}
+            >
+              <option value="">전체</option>
+              <option value="internal">사내</option>
+              <option value="external">외부</option>
+            </Select>
+          </FilterRow>
+        )}
       </FilterBar>
       {tab === "institution" ? (
         <AppTable

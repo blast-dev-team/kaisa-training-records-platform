@@ -2,10 +2,8 @@ import "@tanstack/react-table";
 import {
   flexRender,
   getCoreRowModel,
-  getSortedRowModel,
   useReactTable,
   type ColumnDef,
-  type SortingState,
   type RowData,
 } from "@tanstack/react-table";
 import { useEffect, useRef, useState } from "react";
@@ -50,15 +48,6 @@ interface AppTableProps<TData extends RowData> {
   limit?: number;
   onLimitChange?: (limit: number) => void;
   paginationInfo?: string;
-  /**
-   * 정렬을 **서버가** 한다 — 부모가 상태를 들고 있을 때만 준다.
-   *
-   * 주지 않으면 테이블이 스스로 정렬한다(클라이언트 정렬).
-   * 서버 페이지네이션과 클라이언트 정렬을 같이 쓰면 보고 있는 페이지 안에서만
-   * 줄이 서서, 사용자는 전체가 정렬된 줄 알고 본다.
-   */
-  sorting?: SortingState;
-  onSortingChange?: (next: SortingState) => void;
 }
 
 const LIMIT_OPTIONS = [10, 20, 50];
@@ -118,27 +107,13 @@ export function AppTable<TData extends RowData>({
   limit,
   onLimitChange,
   paginationInfo,
-  sorting,
-  onSortingChange,
 }: AppTableProps<TData>) {
   const cellPad = dense ? "px-2.5 py-2" : "px-4 py-3";
-  const [localSorting, setLocalSorting] = useState<SortingState>([]);
-  // 부모가 정렬을 들고 있으면 서버 정렬 — 테이블이 행을 다시 줄 세우지 않는다
-  const serverSorted = sorting !== undefined;
-  const sortingState = sorting ?? localSorting;
 
   const table = useReactTable({
     data,
     columns,
-    state: { sorting: sortingState },
-    onSortingChange: (updater) => {
-      const next = typeof updater === "function" ? updater(sortingState) : updater;
-      if (serverSorted) onSortingChange?.(next);
-      else setLocalSorting(next);
-    },
-    manualSorting: serverSorted,
     getCoreRowModel: getCoreRowModel(),
-    ...(serverSorted ? {} : { getSortedRowModel: getSortedRowModel() }),
   });
 
   const hasPagination =
@@ -222,8 +197,6 @@ export function AppTable<TData extends RowData>({
             {table.getHeaderGroups().map((hg) => (
               <tr key={hg.id} className="border-b border-line bg-panel-2">
                 {hg.headers.map((header, idx) => {
-                  const canSort = header.column.getCanSort();
-                  const sorted = header.column.getIsSorted();
                   const align = header.column.columnDef.meta?.align;
                   const sticky = header.column.columnDef.meta?.sticky === "right";
                   const nextSticky = hg.headers[idx + 1]?.column.columnDef.meta?.sticky === "right";
@@ -239,7 +212,7 @@ export function AppTable<TData extends RowData>({
                           : align === "center"
                             ? "text-center"
                             : "text-left"
-                      } ${canSort ? "cursor-pointer hover:text-ink" : ""} ${divider ? COL_DIVIDER : ""} ${
+                      } ${divider ? COL_DIVIDER : ""} ${
                         sticky ? "sticky z-[2] bg-panel-2 border-l border-line" : ""
                       }`}
                       style={{
@@ -248,15 +221,9 @@ export function AppTable<TData extends RowData>({
                           : {}),
                         ...(sticky ? { right: stickyRightOffset[header.column.id] ?? 0 } : {}),
                       }}
-                      onClick={canSort ? header.column.getToggleSortingHandler() : undefined}
                     >
                       <span className="inline-flex items-center gap-1">
                         {flexRender(header.column.columnDef.header, header.getContext())}
-                        {canSort && (
-                          <span className="text-[10px]">
-                            {sorted === "asc" ? "↑" : sorted === "desc" ? "↓" : "↕"}
-                          </span>
-                        )}
                       </span>
                     </th>
                   );
