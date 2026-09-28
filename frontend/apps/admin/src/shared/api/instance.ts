@@ -35,9 +35,15 @@ apiClient.interceptors.response.use(
     const status = axios.isAxiosError(error) ? error.response?.status : undefined
 
     if (status === 401 && !isAuthEndpoint) {
-      // REPRO-TEMP: 리다이렉트 루프 방지
-      if (false) window.location.href = '/login'
-      return new Promise(() => {}) // 이행되지 않는 프로미스 — 리다이렉트 후 불필요한 후속 처리 차단
+      // 세션 만료 — 이미 로그인 화면이면 무시(루프 방지), 아니면 로그인으로 보낸다.
+      // replace — 뒤로가기로 만료 페이지로 되돌아오지 않게
+      if (window.location.pathname !== '/login') {
+        window.location.replace('/login')
+      }
+      // hanging promise 대신 reject — 쿼리·뮤테이션이 끝나야 UI가 멈추지 않는다
+      return Promise.reject(
+        new ApiError({ code: 'UNAUTHORIZED', message: '로그인이 필요해요' }, 401),
+      )
     }
 
     const body = axios.isAxiosError(error)

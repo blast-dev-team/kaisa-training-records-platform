@@ -232,12 +232,13 @@ CI 는 `users.ci_hash` 단일 소스. CI 없는 이관분은 수동 매칭.
 | total_hours | numeric(8,2) NOT NULL DEFAULT 0 | 교육 시간 |
 | recognized_hours | numeric(8,2) NOT NULL DEFAULT 0 | 인정 시수 — 이력 생성 시 기본 이수 시수 |
 | is_active | boolean NOT NULL DEFAULT true | 운영중 / 종료 |
+| source | varchar(20) NOT NULL DEFAULT 'internal' | 일정 구분(사내/외부) — 감리원 연결로 생성되는 이력의 source. 외부 기관 과정이면 'external' |
 | memo | text | 일정 등록 시 운영 메모 |
 | created_at / updated_at | timestamptz NOT NULL | |
 
 인덱스: `(course_id)`, `(started_at)`, `(schedule_no)`
 
-- 과정 마스터에 없던 "개설 일정" 레벨. 일정에 교육생을 연결하면 `training_records` 이력이 생성된다
+- 과정 마스터에 없던 "개설 일정" 레벨. 일정에 교육생을 연결하면 `training_records` 이력이 생성된다 — 이때 이력의 `source` 는 일정의 `source` 를 따른다
 - 일정 삭제 시 연결 이력은 보존되고 `session_id` 만 끊긴다 (FK SET NULL)
 
 ---

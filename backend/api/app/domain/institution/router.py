@@ -40,15 +40,21 @@ session_name_router = APIRouter(prefix="/session-names", tags=["courses"])
 @router.get("", response_model=PagedResponse[InstitutionResponse])
 async def list_institutions(
     is_active: bool | None = None,
+    institution_type: str | None = None,
     search: str | None = None,
     page: int = Query(1, ge=1),
     limit: int = Query(20, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
     _: AdminUser = Depends(require_admin),
 ):
-    """기관명·기관코드 검색."""
+    """기관명·기관코드 검색. institution_type=internal|external."""
     institutions, total = await institution_service.list_institutions(
-        db, is_active=is_active, search=search, page=page, limit=limit
+        db,
+        is_active=is_active,
+        institution_type=institution_type,
+        search=search,
+        page=page,
+        limit=limit,
     )
     return PagedResponse(
         items=[InstitutionResponse.model_validate(i) for i in institutions],
@@ -190,12 +196,13 @@ async def list_sessions(
     status: str | None = None,
     date_from: date | None = None,
     date_to: date | None = None,
+    sort: str | None = None,
     page: int = Query(1, ge=1),
     limit: int = Query(20, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
     _: AdminUser = Depends(require_admin),
 ):
-    """일정 목록 — 기간(from~to 교육 기간 겹침)·상태 필터."""
+    """일정 목록 — 기간(from~to 교육 기간 겹침)·상태 필터. sort=period(일정순)·registration(등록순)."""
     sessions, total, counts = await course_session_service.list_sessions(
         db,
         course_id=course_id,
@@ -203,6 +210,7 @@ async def list_sessions(
         status=status,
         date_from=date_from,
         date_to=date_to,
+        sort=sort or "period",
         page=page,
         limit=limit,
     )

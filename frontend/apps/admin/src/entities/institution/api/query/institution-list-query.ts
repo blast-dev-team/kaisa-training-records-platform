@@ -1,6 +1,8 @@
 export interface InstitutionListQuery {
   q?: string
   isActive?: boolean
+  /** internal | external — 기관 구분 필터 */
+  institutionType?: string
   page?: number
   limit?: number
 }

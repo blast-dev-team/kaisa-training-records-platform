@@ -8,18 +8,13 @@ import { cn } from "@/src/shared/utils/cn";
 import { postCompletionCertificates } from "../api/post-completion-certificates";
 import type { CompletionCertificate } from "../api/post-completion-certificates";
 import { getCompletionCertificatePreview } from "../api/get-completion-certificate-preview";
-import { generateCertificatePdf } from "../api/generate-certificate-pdf";
+import {
+  certificatePdfFileName,
+  generateCertificatePdf,
+} from "../api/generate-certificate-pdf";
 import { CompletionCertificateSheet } from "./completion-certificate-sheet";
 
 const TOAST_DURATION_MS = 3000;
-
-/** 로컬(브라우저 = KST) 기준 YYYY-MM-DD — toISOString()은 UTC라 새벽에 하루 어긋난다 */
-function todayYMD(): string {
-  const date = new Date();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${date.getFullYear()}-${month}-${day}`;
-}
 
 export interface CompletionCertificateModalProps {
   /** 수료증 발급 대상 교육이력 ID 목록 — 열리는 순간 서버에 발급 요청(무료·멱등) */
@@ -152,7 +147,7 @@ export function CompletionCertificateModal({
         if (!el) continue;
         await generateCertificatePdf(
           [el],
-          `수료증_${certificate.traineeName || certificate.traineeId}_${todayYMD()}.pdf`,
+          certificatePdfFileName([certificate.courseName], "수료증"),
         );
       }
       showToast(
@@ -226,7 +221,7 @@ export function CompletionCertificateModal({
             <p className="text-sm leading-normal text-gray-500 mobile:text-[13px]">
               {previewOnly
                 ? `수료증 미리보기 ${certificates.length}건 — 발급되지 않은 미리보기예요`
-                : `내부 기관 수료내역 ${certificates.length}건 — 결제 없이 바로 내려받을 수 있어요`}
+                : `사내 기관 수료내역 ${certificates.length}건 — 결제 없이 바로 내려받을 수 있어요`}
             </p>
 
             {/* 미리보기 — 모달 본문 폭에 맞춘 등비 축소, 시트 원본은 A4 794px */}

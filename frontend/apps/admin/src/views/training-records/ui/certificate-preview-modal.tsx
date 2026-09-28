@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import { Dialog } from "@/src/shared/ui/dialog";
-import { generateCertificatePdf } from "@/src/shared/utils/generate-certificate-pdf";
-import { todayYMD } from "@/src/shared/utils/format";
+import {
+  certificatePdfFileName,
+  generateCertificatePdf,
+} from "@/src/shared/utils/generate-certificate-pdf";
 import type { TrainingRecord } from "@/src/entities/training-record";
 import { postIssueCertificates } from "@/src/entities/certificate";
 import {
@@ -32,6 +34,8 @@ export interface CertificateDownloadGroup {
   formNo: string;
   /** 이 묶음에 들어갈 내역 id — 발급 저장(POST /certificates/issue) 요청 본문 */
   recordIds: string[];
+  /** 묶음에 포함된 교육명 목록 — PDF 파일명(교육명 기반)에 쓴다 */
+  courseNames: string[];
   pages: CertificateSheetPage[];
   /** 문서 전체 총 이수시간 — 마지막 페이지 합계 표기 */
   totalHours: number;
@@ -57,11 +61,13 @@ export function buildDownloadGroups(records: TrainingRecord[]): CertificateDownl
         supervisorCertNo: record.supervisorCertNo,
         formNo: CERT_FORM_NO,
         recordIds: [],
+        courseNames: [],
         rows: [],
         issuedOnLabel,
       };
     }
     group.recordIds.push(record.id);
+    group.courseNames.push(record.courseName);
     group.rows.push(...toSheetRows([record]));
     rowsByTrainee.set(record.traineeId, group);
   }
@@ -94,15 +100,19 @@ interface Props {
 export function CertificatePreviewModal({ isOpen, onClose, records }: Props) {
   const captureRef = useRef<HTMLDivElement>(null);
   const [isDownloading, setIsDownloading] = useState(false);
-  // traineeId → 발급 저장으로 부여된 문서번호. 미리보기(발급 전)엔 비어 있다
+  // traineeId → 발급 저장으로 부여된 문서번호·묶음 확인서 번호. 미리보기(발급 전)엔 비어 있다
   const [docNosByTrainee, setDocNosByTrainee] = useState<Record<string, string>>({});
   const docNosRef = useRef<Record<string, string>>({});
+  const [certNosByTrainee, setCertNosByTrainee] = useState<Record<string, string>>({});
+  const certNosRef = useRef<Record<string, string>>({});
 
   // 모달이 닫히면 발급 상태를 비운다 — 다음 열림은 새 발급 건
   useEffect(() => {
     if (!isOpen) {
       docNosRef.current = {};
       setDocNosByTrainee({});
+      certNosRef.current = {};
+      setCertNosByTrainee({});
     }
   }, [isOpen]);
 
@@ -126,8 +136,10 @@ export function CertificatePreviewModal({ isOpen, onClose, records }: Props) {
         });
         for (const result of results) {
           docNosRef.current[result.traineeId] = result.docNo;
+          certNosRef.current[result.traineeId] = result.certificateNo;
         }
         setDocNosByTrainee({ ...docNosRef.current });
+        setCertNosByTrainee({ ...certNosRef.current });
         // 부여된 번호가 찍힌 시트로 재렌더된 뒤 캡처한다
         await new Promise((resolve) => setTimeout(resolve, 100));
       }
@@ -140,7 +152,7 @@ export function CertificatePreviewModal({ isOpen, onClose, records }: Props) {
         if (els.length === 0) continue;
         await generateCertificatePdf(
           els,
-          `계속교육내역확인서_${group.traineeName || group.key}_${todayYMD()}.pdf`,
+          certificatePdfFileName(group.courseNames, "교육 확인서"),
         );
         savedCount += 1;
       }
@@ -229,6 +241,7 @@ export function CertificatePreviewModal({ isOpen, onClose, records }: Props) {
                         supervisorCertNo={group.supervisorCertNo}
                         formNo={group.formNo}
                         docNo={docNosByTrainee[group.key] ?? null}
+                        certificateNumber={certNosByTrainee[group.key] ?? null}
                         rows={page.rows}
                         showHead={page.showHead}
                         showClosing={page.showClosing}
@@ -258,6 +271,7 @@ export function CertificatePreviewModal({ isOpen, onClose, records }: Props) {
                     supervisorCertNo={group.supervisorCertNo}
                     formNo={group.formNo}
                     docNo={docNosByTrainee[group.key] ?? null}
+                    certificateNumber={certNosByTrainee[group.key] ?? null}
                     rows={page.rows}
                     showHead={page.showHead}
                     showClosing={page.showClosing}

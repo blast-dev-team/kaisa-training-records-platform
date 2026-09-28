@@ -121,6 +121,8 @@ export interface CertificateDocumentSheetProps {
   docNo?: string | null;
   /** 발급일 표시문 (예: 2026년 7월 23일) */
   issuedOnLabel?: string;
+  /** 확인서 번호 — 하단 진위확인용 표기 (묶음 확인서 번호) */
+  certificateNumber?: string | null;
   /** 이 페이지 첫 행의 연번 (2페이지부터 이어지는 번호) */
   startNo?: number;
 }
@@ -192,6 +194,7 @@ export function CertificateDocumentSheet({
   formNo,
   docNo,
   issuedOnLabel,
+  certificateNumber,
   startNo = 1,
 }: CertificateDocumentSheetProps) {
   // 마감 합계는 문서 전체 합계 — 페이지 합이 아니다. prop이 없으면(단일 페이지) rows 합
@@ -403,8 +406,11 @@ export function CertificateDocumentSheet({
         </tbody>
       </table>
 
-      {/* 표를 페이지 세로 중앙에 둔다 */}
+      {/* 표를 페이지 세로 중앙에 둔다 — 확인서 번호만 하단에 고정 */}
       <div style={{ flex: 1 }} />
+      {certificateNumber && (
+        <div style={{ textAlign: "center", fontSize: 12 }}>확인서 번호: {certificateNumber}</div>
+      )}
     </div>
   );
 }

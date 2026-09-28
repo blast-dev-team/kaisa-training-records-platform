@@ -645,6 +645,21 @@ export function AttachTraineesDialog({ isOpen, onClose, session }: Props) {
         </div>
 
         <div className="flex flex-col gap-1.5">
+          {/* 외부 구분 — 일정 source 그대로 저장됨을 저장 전에 확인 */}
+          <label className="flex items-center gap-2 text-[13px] text-ink-2">
+            <input
+              type="checkbox"
+              className="size-4 accent-[--color-accent]"
+              checked={session?.source === "external"}
+              disabled
+            />
+            외부 교육으로 저장
+            <span className="text-[11px] text-ink-3">
+              {session?.source === "external"
+                ? "— 일정이 외부 교육이라 연결되는 내역이 외부로 기록돼요"
+                : "— 일정의 구분을 따라 사내로 기록돼요"}
+            </span>
+          </label>
           <div className="flex flex-col gap-1.5">
             <Label>이수 시수</Label>
             <Input type="number" min={0} value={hours} onChange={(e) => setHours(e.target.value)} />

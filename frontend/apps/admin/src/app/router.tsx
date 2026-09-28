@@ -73,13 +73,6 @@ export const router = createBrowserRouter([
         }),
       },
       {
-        path: 'external-completions',
-        lazy: lazyPage(async () => {
-          const { ExternalCompletionListPage } = await import('@/src/views/external-completions')
-          return { Component: ExternalCompletionListPage }
-        }),
-      },
-      {
         path: 'session-names',
         lazy: lazyPage(async () => {
           const { SessionNameListPage } = await import('@/src/views/session-names')

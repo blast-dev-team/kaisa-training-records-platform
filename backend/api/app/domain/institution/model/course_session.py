@@ -9,6 +9,7 @@ from sqlalchemy import (
     ForeignKey,
     Index,
     Numeric,
+    String,
     Text,
     Uuid,
     func,
@@ -48,6 +49,10 @@ class CourseSession(Base):
         Numeric(8, 2), nullable=False, default=Decimal(0)
     )
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    # 내역 구분 기본값 — 감리원 연결로 생성되는 교육이력의 source 가 된다 (internal | external)
+    source: Mapped[str] = mapped_column(
+        String(20), nullable=False, default="internal", server_default="internal"
+    )
     memo: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False

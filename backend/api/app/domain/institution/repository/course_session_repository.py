@@ -40,6 +40,7 @@ async def list_sessions(
     date_to: date | None = None,
     page: int = 1,
     limit: int = 20,
+    sort: str = "period",
 ) -> tuple[list[CourseSession], int]:
     """일정 목록 — 과정명·기관명 검색 + 상태(active/ended)·기간(겹침) 필터."""
     stmt = select(CourseSession)
@@ -90,14 +91,16 @@ async def list_sessions(
         stmt = stmt.where(cond)
         count_stmt = count_stmt.where(cond)
     total = (await db.execute(count_stmt)).scalar_one()
-    stmt = (
-        stmt.order_by(
+    if sort == "registration":
+        # 등록순 — 이관 데이터는 created_at 이 일괄 반영되어 실등록분만 의미가 있다
+        stmt = stmt.order_by(CourseSession.created_at.desc())
+    else:
+        # 일정순(기본) — 시작일 최신 우선, 시작일 없으면 등록 시각
+        stmt = stmt.order_by(
             CourseSession.started_at.desc().nullslast(),
             CourseSession.created_at.desc(),
         )
-        .offset((page - 1) * limit)
-        .limit(limit)
-    )
+    stmt = stmt.offset((page - 1) * limit).limit(limit)
     rows = (await db.execute(stmt)).scalars().all()
     return list(rows), total
 

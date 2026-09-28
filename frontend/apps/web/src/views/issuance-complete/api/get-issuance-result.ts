@@ -104,9 +104,9 @@ export async function getIssuanceResult(
   }
   return {
     certificateId: certificate.id,
-    // 문서번호가 확인서의 대외 번호다 — 없는 구 데이터만 묶음/개별 번호로 폴백
-    certificateNumber: certificate.doc_no ?? certificate.bundle_no ?? certificate.certificate_no,
-    verificationId: certificate.doc_no ?? certificate.bundle_no ?? certificate.certificate_no,
+    // 확인서 번호(묶음 번호)가 대외 번호다 — PDF 하단 표기·진위확인 조회가 이 값
+    certificateNumber: certificate.bundle_no ?? certificate.certificate_no,
+    verificationId: certificate.bundle_no ?? certificate.certificate_no,
     issuedAtLabel: formatDateTime(certificate.issued_at),
     issuedAt: certificate.issued_at,
     validityLabel: certificate.expires_at

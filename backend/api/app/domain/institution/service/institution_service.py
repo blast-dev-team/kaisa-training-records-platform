@@ -28,12 +28,18 @@ async def get_institution(
 async def list_institutions(
     db: AsyncSession,
     is_active: bool | None = None,
+    institution_type: str | None = None,
     search: str | None = None,
     page: int = 1,
     limit: int = 20,
 ) -> tuple[list[TrainingInstitution], int]:
     return await repo.list_institutions(
-        db, is_active=is_active, search=search, page=page, limit=limit
+        db,
+        is_active=is_active,
+        institution_type=institution_type,
+        search=search,
+        page=page,
+        limit=limit,
     )
 
 

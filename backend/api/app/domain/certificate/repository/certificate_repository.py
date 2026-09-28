@@ -15,6 +15,13 @@ async def find_by_id(db: AsyncSession, certificate_id: uuid.UUID) -> Certificate
     return result.scalar_one_or_none()
 
 
+async def find_by_no(db: AsyncSession, certificate_no: str) -> Certificate | None:
+    result = await db.execute(
+        select(Certificate).where(Certificate.certificate_no == certificate_no)
+    )
+    return result.scalar_one_or_none()
+
+
 async def find_by_doc_no(db: AsyncSession, doc_no: str) -> Certificate | None:
     """문서번호(정감 제{YY}-E{NNNN}호)로 조회 — 묶음 멤버 중 대표 1건.
 

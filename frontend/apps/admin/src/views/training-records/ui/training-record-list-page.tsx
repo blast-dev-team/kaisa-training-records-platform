@@ -35,11 +35,6 @@ import { SessionPickerDialog } from "@/src/views/course-sessions/ui/session-pick
 import { AttachTraineesDialog } from "@/src/views/course-sessions/ui/attach-trainees-dialog";
 import type { CourseSession } from "@/src/entities/course-session";
 
-interface Props {
-  /** 'external' 이면 외부 수료 전용 뷰 — source 고정, 등록 기본값 external */
-  variant?: "all" | "external";
-}
-
 /** 수료증 발급 자격 — 내부 기관의 수료 완료 내역만 */
 const canIssueCompletion = (record: TrainingRecord) =>
   record.institutionType === "internal" && record.completionStatus === "completed";
@@ -59,11 +54,10 @@ const traineeOptionsFetcher = fetchOptions("/trainees", {}, (t) => ({
   hint: (t.trainee_no as string | null) ?? undefined,
 }));
 
-export function TrainingRecordListPage({ variant = "all" }: Props) {
-  const isExternal = variant === "external";
+export function TrainingRecordListPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const traineeId = searchParams.get("trainee_id") ?? "";
-  const source = isExternal ? "external" : (searchParams.get("source") ?? "");
+  const source = searchParams.get("source") ?? "";
   const status = searchParams.get("status") ?? "";
   const q = searchParams.get("q") ?? "";
   const from = searchParams.get("from") ?? "";
@@ -108,7 +102,6 @@ export function TrainingRecordListPage({ variant = "all" }: Props) {
     trainingRecordQueries.list({
       traineeId: traineeId || undefined,
       source: source || undefined,
-      excludeSource: !isExternal ? "external" : undefined,
       completionStatus: status || undefined,
       search: q || undefined,
       dateFrom: effFrom || undefined,
@@ -226,8 +219,11 @@ export function TrainingRecordListPage({ variant = "all" }: Props) {
         header: "과정명",
         meta: { width: 320 },
         cell: ({ row }) => (
-          <span className="font-medium text-ink" title={row.original.courseName}>
-            {row.original.courseName}
+          <span className="flex items-center gap-1.5">
+            <span className="truncate font-medium text-ink" title={row.original.courseName}>
+              {row.original.courseName}
+            </span>
+            {row.original.source === "external" && <Pill tone="accent">외부</Pill>}
           </span>
         ),
       },
@@ -310,7 +306,7 @@ export function TrainingRecordListPage({ variant = "all" }: Props) {
                 title={
                   eligible
                     ? undefined
-                    : "내부 기관의 수료 완료 내역만 발급할 수 있어요"
+                    : "사내 기관의 수료 완료 내역만 발급할 수 있어요"
                 }
                 onClick={(e) => {
                   e.stopPropagation();
@@ -347,7 +343,7 @@ export function TrainingRecordListPage({ variant = "all" }: Props) {
       },
     ],
     // toggleRow 는 useCallback([]) 로 안정적이라 deps 제외
-    [isExternal, selected],
+    [selected],
   );
 
   const items = data?.items ?? [];
@@ -359,15 +355,13 @@ export function TrainingRecordListPage({ variant = "all" }: Props) {
   return (
     <PageContainer>
       <PageHead
-        title={isExternal ? "외부 이력 관리" : "교육 내역 관리"}
+        title="교육 내역 관리"
         subtitle={`총 ${total.toLocaleString()}건`}
         actions={
           <div className="flex items-center gap-2">
-            {!isExternal && (
-              <Button variant="outline" onClick={() => setPickerOpen(true)}>
-                <CalendarPlus className="size-4" /> 일정으로 등록
-              </Button>
-            )}
+            <Button variant="outline" onClick={() => setPickerOpen(true)}>
+              <CalendarPlus className="size-4" /> 일정으로 등록
+            </Button>
             <Button
               onClick={() => {
                 setEditTarget(null);
@@ -417,6 +411,20 @@ export function TrainingRecordListPage({ variant = "all" }: Props) {
               검색
             </Button>
           </form>
+        </FilterRow>
+        <FilterRow label="구분">
+          <Select
+            className="w-32"
+            value={source}
+            onChange={(e) => updateParams({ source: e.target.value || null })}
+          >
+            <option value="">전체</option>
+            {Object.entries(TRAINING_SOURCE_LABELS).map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </Select>
         </FilterRow>
         <FilterRow label="정렬">
           <Select
@@ -524,14 +532,14 @@ export function TrainingRecordListPage({ variant = "all" }: Props) {
             disabled={eligibleRecords.length === 0}
             title={
               eligibleRecords.length === 0
-                ? "선택 내역 중 내부 기관 수료 완료 건이 없어요"
+                ? "선택 내역 중 사내 기관 수료 완료 건이 없어요"
                 : undefined
             }
             onClick={() => {
               const excluded = selected.size - eligibleRecords.length;
               if (excluded > 0) {
                 toast.info(
-                  `내부 기관 수료 완료 건만 발급해요 — ${excluded}건은 제외했어요`,
+                  `사내 기관 수료 완료 건만 발급해요 — ${excluded}건은 제외했어요`,
                 );
               }
               issueCompletionMutation.mutate(eligibleRecords.map((r) => r.id));
@@ -553,9 +561,7 @@ export function TrainingRecordListPage({ variant = "all" }: Props) {
         emptyMessage={
           traineeId && selectedTrainee
             ? `${selectedTrainee.name}(${selectedTrainee.traineeNo ?? "미지정"}) 감리원의 교육내역이 없어요`
-            : isExternal
-              ? "등록된 외부 수료 내역이 없어요"
-              : "조건에 맞는 교육내역이 없어요"
+            : "조건에 맞는 교육내역이 없어요"
         }
         page={page}
         totalPages={totalPages}
@@ -571,7 +577,7 @@ export function TrainingRecordListPage({ variant = "all" }: Props) {
         isOpen={formOpen}
         onClose={() => setFormOpen(false)}
         record={editTarget}
-        defaultSource={isExternal ? "external" : "internal"}
+        defaultSource="internal"
       />
 
       <CertificatePreviewModal

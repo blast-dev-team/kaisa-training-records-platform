@@ -153,6 +153,8 @@ async def issue_certificates(
             {
                 "trainee_id": trainee_id,
                 "doc_no": doc_no,
+                # 묶음 확인서 번호 — PDF 하단 진위확인 표기용 (bundle_no 와 같은 값)
+                "certificate_no": certificates[0].certificate_no,
                 "certificate_ids": [c.id for c in certificates],
             }
         )

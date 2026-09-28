@@ -5,6 +5,8 @@ export interface CertificateIssueGroupResult {
   traineeId: string
   /** 발급 이벤트당 채번된 문서번호 — 모든 내역이 발급되므로 항상 있다 */
   docNo: string
+  /** 묶음 확인서 번호 — PDF 하단 진위확인 표기용 */
+  certificateNo: string
   certificateIds: string[]
 }
 
@@ -23,6 +25,7 @@ export const postIssueCertificates = async (
     groups: {
       trainee_id: string
       doc_no: string
+      certificate_no: string
       certificate_ids: string[]
     }[]
   }>('/certificates/issue', {
@@ -35,6 +38,7 @@ export const postIssueCertificates = async (
     groups: data.groups.map((g) => ({
       traineeId: g.trainee_id,
       docNo: g.doc_no,
+      certificateNo: g.certificate_no,
       certificateIds: g.certificate_ids,
     })),
   }

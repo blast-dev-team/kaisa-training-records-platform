@@ -40,6 +40,7 @@ async def list_sessions(
     date_to: date | None = None,
     page: int = 1,
     limit: int = 20,
+    sort: str = "period",
 ) -> tuple[list[CourseSession], int, dict[uuid.UUID, int]]:
     sessions, total = await session_repo.list_sessions(
         db,
@@ -49,6 +50,7 @@ async def list_sessions(
         today=today_kst(),
         date_from=date_from,
         date_to=date_to,
+        sort=sort,
         page=page,
         limit=limit,
     )
@@ -252,7 +254,7 @@ async def create_records_for_session(
                 completed_hours=hours,
                 started_at=session.started_at,
                 ended_at=session.ended_at,
-                source="internal",
+                source=session.source,
                 completion_status=completion_status,
                 completed_at=now_kst() if completion_status == "completed" else None,
                 memo=memo,

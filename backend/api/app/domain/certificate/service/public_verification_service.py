@@ -1,9 +1,9 @@
 """공개 진위확인 — 인증 없음. 마스킹 응답 + 모든 시도 로그(IP 해시).
 
-확인서(문서번호 정감 제{YY}-E{NNNN}호)와 수료증(YYYY-MM-NNN호)을 한
-엔드포인트에서 확인한다 — WEB 진위확인 화면이 입력창 하나라 번호 형태로
-갈리지 않고 둘 다 조회한다. 확인서는 문서번호로만 조회한다 — 확인서에
-문서번호만 인쇄되고 구 확인서 번호(CERT-…)는 더 이상 노출하지 않는다.
+확인서(CERT-… 번호)와 수료증(YYYY-MM-NNN호)을 한 엔드포인트에서 확인한다 —
+WEB 진위확인 화면이 입력창 하나라 번호 형태로 갈리지 않고 둘 다 조회한다.
+확인서는 PDF 하단에 인쇄된 확인서 번호(묶음 번호)로 조회하고, 문서 상단의
+문서번호(정감 제{YY}-E{NNNN}호) 입력도 받는다.
 """
 
 import re
@@ -82,12 +82,14 @@ async def verify_certificate(
         )
 
     # 문서 종류가 지정되면 해당 테이블만 조회 (WEB 라디오 선택)
-    # 확인서는 문서번호로만 조회 — 정규화 실패(형식 불일치)면 조회 없이 not_found
+    # 확인서는 PDF 하단에 인쇄된 확인서 번호(묶음 번호)로 조회 — 문서번호 입력도 받는다
     certificate = None
     if data.doc_type in (None, "certificate"):
-        doc_no = canonical_doc_no(input_no)
-        if doc_no is not None:
-            certificate = await repo.find_by_doc_no(db, doc_no)
+        certificate = await repo.find_by_no(db, input_no)
+        if certificate is None:
+            doc_no = canonical_doc_no(input_no)
+            if doc_no is not None:
+                certificate = await repo.find_by_doc_no(db, doc_no)
 
     if certificate is not None:
         return await _verify_certificate(db, certificate, _log, now)
@@ -117,8 +119,8 @@ async def _find_completion(db: AsyncSession, input_no: str):
 
 
 async def _verify_certificate(db, certificate, _log, now) -> PublicVerificationResponse:
-    # 응답 번호는 문서번호 — 확인서에 인쇄된 그 번호다 (구 확인서 번호 미노출)
-    display_no = certificate.doc_no or certificate.certificate_no
+    # 응답 번호는 확인서에 인쇄된 확인서 번호(묶음 번호) — 진위확인 입력과 같은 값
+    display_no = certificate.bundle_no or certificate.certificate_no
 
     # 묶음 확인서 — 같은 묶음 번호의 유효 멤버가 진위확인 대상. 개별 번호로
     # 조회해도 번호가 속한 묶음 전체가 반환된다 (paper 에 찍힌 번호가 묶음 번호)

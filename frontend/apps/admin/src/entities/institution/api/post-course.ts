@@ -15,6 +15,7 @@ export const postCourse = async (input: CourseInput): Promise<Course> => {
       sessionNameId: input.session_name_id ?? null,
       sessionName: null,
       isExternal: input.is_external ?? false,
+      institutionType: institution?.institutionType ?? null,
       institutionName: institution?.name ?? null,
       name: input.name,
       courseCode: input.course_code ?? null,

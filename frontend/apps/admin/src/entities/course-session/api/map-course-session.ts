@@ -1,5 +1,5 @@
 import type { CourseSessionDto } from './dto/course-session-dto'
-import type { CourseSession } from '../model/course-session'
+import type { CourseSession, CourseSessionSource } from '../model/course-session'
 
 export function mapCourseSession(dto: CourseSessionDto): CourseSession {
   return {
@@ -8,6 +8,7 @@ export function mapCourseSession(dto: CourseSessionDto): CourseSession {
     courseName: dto.course_name,
     institutionId: dto.institution_id,
     institutionName: dto.institution_name,
+    source: dto.source === 'external' ? 'external' : 'internal',
     scheduleNo: dto.schedule_no,
     startedAt: dto.started_at,
     endedAt: dto.ended_at,

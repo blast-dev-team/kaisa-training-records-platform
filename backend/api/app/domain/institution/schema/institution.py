@@ -83,6 +83,8 @@ class CourseResponse(BaseModel):
     total_hours: Decimal
     category: str | None
     is_active: bool
+    # 기관 내부/외부 — 일정 등록 시 '외부 교육' 체크박스 기본값 판단용
+    institution_type: str | None = None
     created_at: datetime
 
     @classmethod
@@ -91,6 +93,9 @@ class CourseResponse(BaseModel):
             id=c.id,
             institution_id=c.institution_id,
             institution_name=c.institution.name if c.institution else "",
+            institution_type=(
+                c.institution.institution_type if c.institution else None
+            ),
             session_name_id=c.session_name_id,
             session_name=c.session_name.name if c.session_name else None,
             is_external=c.is_external,

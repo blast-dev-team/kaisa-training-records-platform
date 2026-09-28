@@ -14,6 +14,7 @@ export const getCourseSessionList = async (
       status: query.status || undefined,
       date_from: query.dateFrom || undefined,
       date_to: query.dateTo || undefined,
+      sort: query.sort || undefined,
       page: query.page ?? 1,
       limit: query.limit ?? 20,
     },

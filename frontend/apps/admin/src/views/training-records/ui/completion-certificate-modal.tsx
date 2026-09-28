@@ -1,8 +1,10 @@
 import { useRef, useState } from "react";
 import { toast } from "react-toastify";
 import { Dialog } from "@/src/shared/ui/dialog";
-import { generateCertificatePdf } from "@/src/shared/utils/generate-certificate-pdf";
-import { todayYMD } from "@/src/shared/utils/format";
+import {
+  certificatePdfFileName,
+  generateCertificatePdf,
+} from "@/src/shared/utils/generate-certificate-pdf";
 import type { CompletionCertificate } from "@/src/entities/training-record";
 import { CompletionCertificateSheet } from "./completion-certificate-sheet";
 
@@ -40,7 +42,7 @@ export function CompletionCertificateModal({ isOpen, onClose, certificates }: Pr
         if (!el) continue;
         await generateCertificatePdf(
           [el],
-          `수료증_${certificate.traineeName || certificate.traineeId}_${todayYMD()}.pdf`,
+          certificatePdfFileName([certificate.courseName], "수료증"),
         );
       }
       toast.success(

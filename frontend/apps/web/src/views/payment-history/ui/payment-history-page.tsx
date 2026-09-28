@@ -36,25 +36,18 @@ export function PaymentHistoryPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [actionError, setActionError] = useState<string | null>(null);
   /** 영수증 모달 대상 행 — null이면 닫힘 */
-  const [receiptItem, setReceiptItem] = useState<PaymentHistoryItem | null>(
-    null,
-  );
+  const [receiptItem, setReceiptItem] = useState<PaymentHistoryItem | null>(null);
 
   const from = searchParams.get("from") ?? "";
   const to = searchParams.get("to") ?? "";
   const status: PaymentStatusFilter =
-    searchParams.get("status") === "paid" ||
-    searchParams.get("status") === "refunded"
+    searchParams.get("status") === "paid" || searchParams.get("status") === "refunded"
       ? (searchParams.get("status") as PaymentStatusFilter)
       : "all";
   const page = Math.max(1, Number(searchParams.get("page") ?? 1) || 1);
 
   const { data, isLoading, isError, error, refetch } = useQuery({
-    queryKey: [
-      "payment-history",
-      "list",
-      { from, to, status, page, limit: PAGE_LIMIT },
-    ],
+    queryKey: ["payment-history", "list", { from, to, status, page, limit: PAGE_LIMIT }],
     queryFn: () =>
       getPaymentHistoryList({
         page,
@@ -67,10 +60,7 @@ export function PaymentHistoryPage() {
   });
 
   /** URL 업데이트 헬퍼 — 빈값은 키 삭제, 필터 변경 시 page 리셋 */
-  const updateParams = (
-    patch: Record<string, string | null>,
-    resetPage = true,
-  ) => {
+  const updateParams = (patch: Record<string, string | null>, resetPage = true) => {
     const next = new URLSearchParams(searchParams);
     for (const [key, value] of Object.entries(patch)) {
       if (value === null || value === "") next.delete(key);
@@ -82,6 +72,8 @@ export function PaymentHistoryPage() {
 
   const items = data?.items ?? [];
   const totalPages = data?.totalPages ?? 1;
+  /** 환불된 내역이 있을 때만 폐기 안내 문구 노출 */
+  const hasRefunded = items.some((item) => item.status === "refunded");
 
   const handleStatementClick = async (item: PaymentHistoryItem) => {
     setActionError(null);
@@ -89,9 +81,7 @@ export function PaymentHistoryPage() {
       await downloadPaymentStatement(item);
     } catch (downloadError) {
       console.error(downloadError);
-      setActionError(
-        "명세서를 내려받지 못했어요. 잠시 후 다시 시도해 주세요",
-      );
+      setActionError("명세서를 내려받지 못했어요. 잠시 후 다시 시도해 주세요");
     }
   };
 
@@ -187,15 +177,21 @@ export function PaymentHistoryPage() {
       {/* 목록 하단 — 안내 문구(+다운로드 실패 피드백) + 페이지네이션 (node 19:25266).
           모바일은 문구 아래 페이지네이션 중앙 정렬 (node 131:10535) */}
       <div className="flex w-full items-center justify-between mobile:flex-col mobile:items-stretch mobile:gap-3">
-        <p
-          className={cn(
-            "font-sans text-sm leading-normal mobile:text-xs",
-            actionError ? "text-red-500" : "text-gray-500",
+        <div className="flex flex-col gpa-1">
+          <p
+            className={cn(
+              "font-sans text-sm leading-normal mobile:text-xs",
+              actionError ? "text-red-500" : "text-gray-500",
+            )}
+          >
+            {actionError ?? "· 영수증(현금영수증·카드전표)은 결제수단 클릭 시 확인"}
+          </p>
+          {hasRefunded && (
+            <p className="font-sans text-sm leading-normal text-gray-500 mobile:text-xs">
+              · 환불처리된 확인서는 즉시 폐기
+            </p>
           )}
-        >
-          {actionError ??
-            "영수증(현금영수증·카드전표)은 결제수단 클릭 시 확인"}
-        </p>
+        </div>
         <Pagination
           page={data?.page ?? page}
           totalPages={totalPages}
@@ -206,10 +202,7 @@ export function PaymentHistoryPage() {
 
       {/* 영수증 모달 — 결제수단 클릭 시. 연동 전엔 플레이스홀더 문구 노출 */}
       {receiptItem && (
-        <ReceiptModal
-          imageUrl={receiptItem.receiptUrl}
-          onClose={() => setReceiptItem(null)}
-        />
+        <ReceiptModal imageUrl={receiptItem.receiptUrl} onClose={() => setReceiptItem(null)} />
       )}
     </section>
   );
