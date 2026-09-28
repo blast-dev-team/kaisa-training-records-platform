@@ -9,6 +9,27 @@
 /** A4 세로 1페이지 분량의 DOM을 PDF 페이지로 추가한다 */
 export type PdfPageElement = HTMLElement;
 
+/** 파일명에 쓸 수 없는 문자 — 교육명이 임의 텍스트라 방어한다 */
+function sanitizeFileName(name: string): string {
+  return name.replace(/[/\\:*?"<>|]/g, "-").trim();
+}
+
+/**
+ * 문서 파일명 — 1건이면 "{교육명} - {문서명}.pdf", 여러 건이면
+ * "{첫 교육명} 외 N건 - {문서명}.pdf" (N = 첫 건을 뺀 나머지 건수)
+ */
+export function certificatePdfFileName(
+  courseNames: string[],
+  docLabel: string,
+): string {
+  const firstName = sanitizeFileName(courseNames[0] ?? "");
+  const head =
+    courseNames.length > 1
+      ? `${firstName} 외 ${courseNames.length - 1}건`
+      : firstName || docLabel;
+  return `${head} - ${docLabel}.pdf`;
+}
+
 export async function generateCertificatePdf(
   elements: PdfPageElement[],
   fileName: string,
@@ -30,7 +51,9 @@ export async function generateCertificatePdf(
       backgroundColor: "#ffffff",
       logging: false,
     });
-    pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, 0, 210, 297);
+    // PNG는 무압축이라 페이지당 수 MB — 흰 배경 텍스트 문서는 JPEG q0.9로도
+    // 육안 차이 없이 10분의 1 수준으로 줄어든다
+    pdf.addImage(canvas.toDataURL("image/jpeg", 0.9), "JPEG", 0, 0, 210, 297);
   }
 
   pdf.save(fileName);

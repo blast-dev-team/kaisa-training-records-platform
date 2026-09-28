@@ -7,7 +7,10 @@ import { cn } from "@/src/shared/utils/cn";
 
 import { getIssuanceBundles } from "../../issuance-complete/api/get-issuance-result";
 import { useAuthStore } from "@/src/shared/store/auth-store";
-import { generateCertificatePdf } from "../api/generate-certificate-pdf";
+import {
+  certificatePdfFileName,
+  generateCertificatePdf,
+} from "../api/generate-certificate-pdf";
 import { getCertificatePrice } from "../api/get-certificate-price";
 import { getTrainingHistoryDetail, type TrainingHistoryDetail } from "../api/get-training-history-detail";
 import { postIssuancePayment } from "../api/post-issuance-payment";
@@ -182,7 +185,13 @@ export function IssuePaymentModal({
         container.querySelectorAll<HTMLElement>("[data-sheet-page]"),
       );
       if (elements.length === 0) return;
-      await generateCertificatePdf(elements, "교육이력확인서.pdf");
+      await generateCertificatePdf(
+        elements,
+        certificatePdfFileName(
+          (details ?? []).map((detail) => detail.courseName),
+          "교육 확인서",
+        ),
+      );
       showToast("다운로드했어요");
     } catch (err) {
       showToast(

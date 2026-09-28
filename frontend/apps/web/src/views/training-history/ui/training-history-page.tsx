@@ -368,7 +368,7 @@ export function TrainingHistoryPage() {
                     동일합니다.
                   </p>
                   <p className="font-sans text-sm leading-normal text-gray-500 mobile:text-[13px] mobile:hidden">
-                    · 협회에서 설정한 내부기관에 대한 교육내역만 수료증 발급이 가능합니다.
+                    · 협회에서 설정한 사내기관에 대한 교육내역만 수료증 발급이 가능합니다.
                   </p>
                 </>
               )}

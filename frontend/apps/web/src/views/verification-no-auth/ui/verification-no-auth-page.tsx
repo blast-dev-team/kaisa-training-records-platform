@@ -87,14 +87,14 @@ export function VerificationNoAuthPage() {
               variant="outlined"
               placeholder={
                 docType === 'certificate'
-                  ? '문서번호 (예: 00-E0001)'
+                  ? '확인서 번호 (예: CERT-20260928-1)'
                   : '수료증 번호 (예: 2026-09-001호)'
               }
               autoComplete="off"
               value={verificationId}
               onChange={(event) => setVerificationId(event.target.value)}
               className="overflow-clip rounded-lg"
-              aria-label={docType === 'certificate' ? '문서번호' : '수료증 번호'}
+              aria-label={docType === 'certificate' ? '확인서 번호' : '수료증 번호'}
             />
             <TextField
               variant="outlined"

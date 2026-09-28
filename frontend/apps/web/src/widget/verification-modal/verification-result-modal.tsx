@@ -18,7 +18,7 @@ interface VerificationResultModalProps {
 
 const CERT_INFO_ROWS = [
   { label: "성명", key: "applicantName" },
-  { label: "문서번호", key: "certificateNumber" },
+  { label: "확인서 번호", key: "certificateNumber" },
   { label: "교육명", key: "courseName" },
   { label: "이수시간", key: "completionSummary" },
   { label: "발급일", key: "issuedAt" },
