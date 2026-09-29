@@ -125,8 +125,8 @@ class TestIssuanceEventNumbering:
 
 
 class TestReissueNumbering:
-    async def test_reissue_gets_new_number_and_old_keeps_its_own(self, client, db):
-        """재발급은 새 문서라 새 번호 — 이전 발급분은 구번호를 이력으로 유지한다."""
+    async def test_reissue_gets_new_number_and_revokes_old(self, client, db):
+        """재발급은 새 문서라 새 번호 — 이전 발급분은 폐기된다."""
         _, _, records, token = await _member(db, record_count=2, code="g-reissue")
         resp = await _batch_request(client, token, records)
         assert resp.status_code == 201, resp.json()
@@ -145,15 +145,10 @@ class TestReissueNumbering:
             .all()
         )
         assert len(certs) == 3
-        # 재발급 시 이전 발급분은 superseded — 유효 건은 2 (남은 원본 1 + 재발급 1)
-        superseded = [c for c in certs if c.status == "superseded"]
-        assert len(superseded) == 1
-        assert superseded[0].doc_no == original_doc  # 구번호는 이력으로 유지
-        reissued = next(
-            c
-            for c in certs
-            if c.status == "issued" and c.doc_no != original_doc
-        )
+        # 재발급은 이전 발급분을 폐기한다 — 유효 2 (원본 1 + 재발급 1), 폐기 1
+        assert sum(c.status == "issued" for c in certs) == 2
+        assert sum(c.status == "revoked" for c in certs) == 1
+        reissued = next(c for c in certs if c.doc_no != original_doc)
         assert _seq(reissued.doc_no) == _seq(original_doc) + 1
 
 
@@ -198,11 +193,11 @@ class TestAdminIssue:
         assert len(rows) == 2
         assert {row["doc_no"] for row in rows} == {group["doc_no"]}
 
-    async def test_admin_reissue_supersedes_previous(self, client, db):
-        """기발급 내역도 새 문서에 그대로 발급된다 — 기존 확인서는 superseded.
+    async def test_admin_reissue_revokes_previous(self, client, db):
+        """기발급 내역 재발급 — 새 문서는 풀구성, 이전 문서는 폐기된다.
 
         첫 발급 A(문서 1) → 두 번째 A~Z 선택이면 새 문서는 풀구성이고
-        구 확인서는 구번호를 이력으로 유지한다.
+        첫 문서는 폐기된다(한 이력의 유효 확인서는 최신 1개).
         """
         _, admin_token = await make_admin(db, email="doc-admin2@example.com")
         _, trainee, records, token = await _member(
@@ -236,9 +231,10 @@ class TestAdminIssue:
             .all()
         )
         assert len(certs) == 4
-        superseded = [c for c in certs if c.status == "superseded"]
-        assert {c.doc_no for c in superseded} == {first_doc}
-        assert {c.doc_no for c in await _issued_certs(db)} == {group["doc_no"]}
+        # 첫 문서(2건)는 폐기 — 새 문서(2건)만 유효
+        assert sum(c.status == "issued" for c in certs) == 2
+        assert sum(c.status == "revoked" for c in certs) == 2
+        assert {c.doc_no for c in certs} == {first_doc, group["doc_no"]}
         assert _seq(group["doc_no"]) == _seq(first_doc) + 1
 
         # WEB 발급내역엔 이력 포함 전체가 보인다 — 구번호도 유지

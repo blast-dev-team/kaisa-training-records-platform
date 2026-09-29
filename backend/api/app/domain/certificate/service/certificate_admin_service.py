@@ -77,14 +77,22 @@ async def revoke_certificate(
 async def _find_active_certificate_by_record(
     db: AsyncSession, record_id: uuid.UUID
 ) -> Certificate | None:
+    """이 record 의 최근 발급본 — reissue 판정·경로 기록용.
+
+    재발급이 이전본을 폐기하므로 정상 흐름에선 issued 가 1개뿐이지만, 규칙
+    변경 이전 데이터·경합을 고려해 최신 1건을 택한다.
+    """
     return (
         await db.execute(
-            select(Certificate).where(
+            select(Certificate)
+            .where(
                 Certificate.training_record_id == record_id,
                 Certificate.status == "issued",
             )
+            .order_by(Certificate.issued_at.desc(), Certificate.id.desc())
+            .limit(1)
         )
-    ).scalar_one_or_none()
+    ).scalars().first()
 
 
 async def issue_certificates(
@@ -97,9 +105,9 @@ async def issue_certificates(
     WEB 발급과 동일한 request→certificate 파이프라인을 쓰되 결제가 없다
     (amount 0, requested_by 는 trainee.user_id — 없으면 NULL).
     문서번호는 그룹(발급 이벤트)당 1회 채번해 멤버 전부에 동일 부여한다.
-    이미 유효 확인서가 있는 내역도 새 문서에 그대로 들어간다 — 기존 확인서는
-    superseded 로 바뀌고 새 번호를 받는다(WEB 재발급과 같은 규칙). 발급 단위가
-    문서이므로 A만 발급했다가 A~Z를 다시 발급하면 두 번째 문서는 A~Z 풀구성이다.
+    이미 발급된 내역도 새 문서로 다시 발급된다 — 이전 유효본은 폐기되고 새 문서만
+    유효하다(issuance_service.issue_certificate 참고). 발급 단위가 문서이므로
+    A만 발급했다가 A~Z를 다시 발급하면 두 번째 문서는 A~Z 풀구성이다.
     """
     now = now_kst()
     results: list[dict] = []

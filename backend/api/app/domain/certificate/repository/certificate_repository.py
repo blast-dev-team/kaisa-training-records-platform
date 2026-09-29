@@ -5,7 +5,7 @@ from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.crypto import name_hash
-from app.domain.certificate.model import Certificate
+from app.domain.certificate.model import Certificate, CertificateRequest
 
 
 async def find_by_id(db: AsyncSession, certificate_id: uuid.UUID) -> Certificate | None:
@@ -37,11 +37,39 @@ async def find_by_doc_no(db: AsyncSession, doc_no: str) -> Certificate | None:
     return result.scalar_one_or_none()
 
 
+async def find_latest_bundle_no(db: AsyncSession, certificate: Certificate) -> str | None:
+    """재발급 체인을 따라 최종 문서(묶음) 번호 — superseded 조회 안내용.
+
+    previous_certificate_id(신청 FK)로 다음 발급을 찾아 끝까지 간다. 현행
+    규칙은 재발급 시 이전본을 revoked 로 폐기하고, superseded 상태는 규칙이
+    오가며 만들어진 레거시 row 에만 있다 — 그 번호로 조회할 때만 쓴다.
+    """
+    current = certificate
+    for _ in range(10):
+        result = await db.execute(
+            select(Certificate)
+            .join(
+                CertificateRequest,
+                Certificate.certificate_request_id == CertificateRequest.id,
+            )
+            .where(CertificateRequest.previous_certificate_id == current.id)
+            .order_by(Certificate.issued_at)
+            .limit(1)
+        )
+        nxt = result.scalar_one_or_none()
+        if nxt is None:
+            if current is certificate:
+                return None
+            return current.bundle_no or current.certificate_no
+        current = nxt
+    return current.bundle_no or current.certificate_no
+
+
 async def find_bundle_members(db: AsyncSession, certificate: Certificate) -> list[Certificate]:
     """묶음 확인서의 유효 멤버 — 같은 묶음 번호의 issued 건. 연번 순서 유지.
 
     유효 멤버가 없으면(전 멤버 superseded·revoked) 빈 리스트 — 호출부가
-    단건 fallback 을 한다.
+    분기한다.
     """
     if certificate.bundle_no is None:
         return [certificate] if certificate.status == "issued" else []

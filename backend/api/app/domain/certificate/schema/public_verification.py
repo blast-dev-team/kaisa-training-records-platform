@@ -30,7 +30,8 @@ class PublicVerificationResponse(BaseModel):
     수료증은 생년월일·교육주제·교육기간을 추가로 노출한다(문서에 인쇄된 정보).
 
     묶음 확인서는 records 에 전체 이력 행을 담는다. course_name 등 단건 필드는
-    첫 행 값으로 유지 — 기존 소비자(구 FE)와의 호환용.
+    첫 행 값으로 유지 — 기존 소비자(구 FE)와의 호환용. total_hours 만 예외로
+    묶음 전체 합계다(PDF 합계와 같은 값).
     """
 
     result: str

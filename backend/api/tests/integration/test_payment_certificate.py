@@ -304,15 +304,14 @@ class TestReissue:
             .scalars()
             .all()
         )
+        # 재발급은 이전 발급분을 폐기한다 — 유효한 건은 최신 1개
         statuses = sorted(c.status for c in certs)
-        assert statuses == ["issued", "superseded"]
-        # 재발급 cert 가 issued
-        issued = next(c for c in certs if c.status == "issued")
-        assert issued.certificate_no != certs[0].certificate_no
+        assert statuses == ["issued", "revoked"]
+        assert certs[0].certificate_no != certs[1].certificate_no
 
         mine = await client.get("/api/me/certificates", cookies=member_cookie(token))
         issue_types = {c["issue_type"]: c["status"] for c in mine.json()}
-        assert issue_types["original"] == "superseded"
+        assert issue_types["original"] == "revoked"
         assert issue_types["reissue"] == "issued"
 
 

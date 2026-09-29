@@ -144,11 +144,8 @@ class TestBundleVerification:
             cert.course_name for cert in certs
         }
 
-    async def test_reissued_out_member_excluded(self, client, db):
-        """재발급으로 superseded 된 멤버는 문서번호 조회에서 빠진다 — 발급 단위가 문서.
-
-        묶음 전체를 다시 발급하면 이전 문서 번호의 유효 멤버는 0 이 된다.
-        """
+    async def test_full_reissue_revokes_old_document(self, client, db):
+        """묶음 전체 재발급 — 원 문서는 폐기되고 새 문서(풀구성)만 유효하다."""
         _, records, token = await _member(db, record_count=2)
         await _batch_request(client, token, records)
         certs = await _issued_certs(db)
@@ -166,13 +163,20 @@ class TestBundleVerification:
         )
         assert reissue.status_code == 201, reissue.json()
 
-        resp = await _verify(client, old_doc_no)
-        assert resp.status_code == 200
-        # 기존 fallback 동작 — 유효 멤버가 없으면 대상 확정서 단건(여기선 superseded)으로 응답
-        assert len(resp.json()["records"]) == 1
+        # 원 문서 번호로 조회 — 멤버 전부 폐기됨
+        old = await _verify(client, old_doc_no)
+        assert old.status_code == 200
+        assert old.json()["result"] == "revoked"
 
-    async def test_superseded_member_excluded(self, client, db):
-        """재발급 supersede — 이전 묶음 조회에서 제외되고 새 묶음이 생긴다."""
+        # 새 문서 번호로 조회 — 풀구성 2행
+        new_certs = await _issued_certs(db)
+        new_doc_no = next(c.doc_no for c in new_certs if c.doc_no != old_doc_no)
+        new = await _verify(client, new_doc_no)
+        assert new.json()["result"] == "valid"
+        assert len(new.json()["records"]) == 2
+
+    async def test_partial_reissue_revokes_member_in_old_document(self, client, db):
+        """부분 재발급 — 원 문서에선 해당 멤버만 폐기되고 나머지는 유효하다."""
         _, records, token = await _member(db, record_count=2)
         await _batch_request(client, token, records)
         certs = await _issued_certs(db)
@@ -188,11 +192,18 @@ class TestBundleVerification:
         )
         assert reissue.status_code == 201, reissue.json()
 
-        # 이전 문서 번호로 조회 — 재발급된 건은 빠진 나머지 1행
+        # 이전 문서 번호로 조회 — 재발급된 멤버만 빠진 1행
         old = await _verify(client, old_doc_no)
         assert old.status_code == 200
         assert old.json()["result"] == "valid"
         assert len(old.json()["records"]) == 1
+
+        # 새 문서 번호로 조회 — 재발급 건 1행
+        new_certs = await _issued_certs(db)
+        new_doc_no = next(c.doc_no for c in new_certs if c.doc_no != old_doc_no)
+        new = await _verify(client, new_doc_no)
+        assert new.json()["result"] == "valid"
+        assert len(new.json()["records"]) == 1
 
         # 새 묶음 — 1건짜리
         (new_cert,) = [
