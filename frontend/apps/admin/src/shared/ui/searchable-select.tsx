@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { ChevronDown, Search } from "lucide-react";
+import { ChevronDown, Search, X } from "lucide-react";
 import { apiClient, type PagedResponse } from "@/src/shared/api";
 import { useDebouncedValue } from "@/src/shared/hooks/use-debounced-value";
 
@@ -124,6 +124,16 @@ export function SearchableSelect({
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
+            {search !== "" && (
+              <button
+                type="button"
+                aria-label="검색어 지우기"
+                className="shrink-0 rounded-full p-0.5 text-ink-3 hover:bg-bg-2 hover:text-ink"
+                onClick={() => setSearch("")}
+              >
+                <X className="size-3" />
+              </button>
+            )}
           </div>
           <div ref={listRef} className="max-h-56 overflow-y-auto" onScroll={onScroll}>
             {clearable && (

@@ -4,6 +4,7 @@ import { toast } from "react-toastify";
 import { Button } from "@/src/shared/ui/button";
 import { Dialog } from "@/src/shared/ui/dialog";
 import { Input } from "@/src/shared/ui/input";
+import { SearchInput } from "@/src/shared/ui/search-input";
 import { Label } from "@/src/shared/ui/label";
 import { Select } from "@/src/shared/ui/select";
 import {
@@ -263,7 +264,7 @@ export function TrainingRecordFormDialog({
             </div>
           ) : (
             <div ref={traineeDropdownRef} className="relative">
-              <Input
+              <SearchInput
                 placeholder="클릭해서 성명(전체)으로 검색 · 선택"
                 value={traineeSearch}
                 onChange={(e) => {

@@ -7,7 +7,7 @@ import { Plus } from "lucide-react";
 import { AppTable } from "@/src/shared/ui/app-table";
 import { Button } from "@/src/shared/ui/button";
 import { FilterBar, FilterRow } from "@/src/shared/ui/filter-bar";
-import { Input } from "@/src/shared/ui/input";
+import { SearchInput } from "@/src/shared/ui/search-input";
 import { Dialog } from "@/src/shared/ui/dialog";
 import { PageContainer } from "@/src/shared/ui/page-container";
 import { PageHead } from "@/src/shared/ui/page-head";
@@ -335,13 +335,14 @@ export function InstitutionListPage() {
               updateTabParam({ q: searchInput.trim() || null });
             }}
           >
-            <Input
+            <SearchInput
               className="w-64"
               placeholder={
                 tab === "institution" ? "기관명 · 기관코드" : "과정명 · 코드 · 회차명 · 기관명"
               }
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
+              onClear={() => updateTabParam({ q: null })}
             />
             <Button type="submit" variant="secondary" size="sm">
               검색

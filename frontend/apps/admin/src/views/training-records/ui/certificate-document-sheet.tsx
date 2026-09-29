@@ -38,13 +38,20 @@ export function formatIssuedOnLabel(date: Date): string {
 }
 
 /** 서식 행 용량 — 실측: 고정부(제목 96+신청인 48×2+섹션 48+헤더 48)=288px.
- * 1페이지(머리만, 마감 없음): (1123 − 72 − 288) / 64 = 11.9 → 11행 */
-export const ROWS_PER_FIRST_PAGE = 11;
-/** 계속 페이지(행만): (1051) / 64 = 16, 4줄 이름 여유로 15 */
+ * 모든 페이지 하단에 확인서 번호가 들어가므로 각 용량은 번호 줄(~17px)을 뺀 값.
+ * 1페이지(머리만, 마감 없음): (1051 − 17 − 288) / 64 = 11.6 → 10행.
+ * 11행도 계산상 들어오지만 하단이 빠듯해 여유를 둔다 */
+export const ROWS_PER_FIRST_PAGE = 10;
+/** 계속 페이지(행만): 번호 줄 빼면 (1051 − 17) / 64 = 16 → 4줄 이름 여유로 15 */
 export const ROWS_PER_CONT_PAGE = 15;
-/** 마지막 페이지(합계 52 + 증명 210 포함): (1051 − 52 − 211) / 64 = 7.8 → 7행.
- * 11행으로 잡으면 페이지가 204px 넘쳐 미리보기·PDF 하단이 잘린다 */
-export const ROWS_PER_LAST_PAGE = 7;
+/** 마지막 페이지 — 마감 블록 실측 263px(합계 52 + 증명 211) + 번호 줄(~17px). 머리 없음.
+ * (1051 − 263 − 17) / 64 = 12.05 → 12행도 계산상 들어오지만 하단 3px 여백은
+ * 레스터화 오차에 잘리고, 11행으로 두면 67px 여유가 남는다 */
+export const ROWS_PER_LAST_PAGE = 11;
+/** 단일 페이지(7행 이하 문서) — 머리 288px + 마감 263px 이 같은 장에 들어간다.
+ * (1051 − 288 − 263 − 17) / 64 = 7.55 → 7행. LAST_PAGE(머리 없음)와 다른 용량이라
+ * 분리하지 않으면 빈 행 채움이 11행까지 가서 증명·도장이 페이지 밖으로 잘린다 */
+export const ROWS_PER_SINGLE_PAGE = 7;
 
 /** 확인서 1페이지 — 행 묶음과 머리(제목·신청인)·마감(합계·증명) 표시 여부 */
 export interface CertificateSheetPage {
@@ -60,17 +67,19 @@ export interface CertificateSheetPage {
 /**
  * 서식 행을 문서 페이지로 나눈다 — 협회 발급 문서와 같은 연속 문서.
  *
- * 7행 이하는 한 장(머리+마감), 넘으면 1페이지에 머리+행만 담고 행은 계속
- * 페이지로 이어지며 합계·증명·인감은 마지막 페이지에만 온다. 계속 페이지를
- * 채울 때 마지막 페이지 용량을 남겨 둔다 — 마지막 페이지가 용량(7행)을
- * 넘지 않게 take = min(계속 용량, rest − 마지막 용량).
+ * 7행 이하는 한 장(머리+마감), 넘으면 1페이지에 머리+행만 최대 12행 담고 행은
+ * 계속 페이지로 이어진다. 계속 페이지는 데이터 행을 용량(15행)까지 채우고 남는
+ * 칸은 빈 행으로 마무리한다(공백 서식과 같은 모양). 마지막 페이지 용량(7행)을
+ * 넘는 몫을 마지막 페이지에 억지로 맞추지 않는다 — 넘치면 마감(합계·증명·인감)만
+ * 있는 장으로 간다. 20행 문서가 11/2/7 처럼 계속 페이지에 2행만 남던 사례의 교정.
  */
 export function paginateRows(rows: CertificateSheetRow[]): CertificateSheetPage[] {
-  if (rows.length <= ROWS_PER_LAST_PAGE) {
-    // 단일 문서는 1장을 가득 채운다 — 남는 칸은 빈 행(공백 서식과 같은 모양)
+  if (rows.length <= ROWS_PER_SINGLE_PAGE) {
+    // 단일 문서는 1장을 가득 채운다 — 남는 칸은 빈 행(공백 서식과 같은 모양).
+    // 머리+마감이 같은 장이라 용량은 SINGLE_PAGE(7행)를 쓴다
     return [
       {
-        rows: [...rows, ...Array.from({ length: ROWS_PER_LAST_PAGE - rows.length }, () => null)],
+        rows: [...rows, ...Array.from({ length: ROWS_PER_SINGLE_PAGE - rows.length }, () => null)],
         startNo: 1,
         showHead: true,
         showClosing: true,
@@ -78,25 +87,33 @@ export function paginateRows(rows: CertificateSheetRow[]): CertificateSheetPage[
     ];
   }
 
-  // 마지막 페이지(마감 포함)에 최소 1행을 남긴다 — 8행 문서도 7+1로 나뉜다
-  const firstCount = Math.min(ROWS_PER_FIRST_PAGE, rows.length - 1);
+  // 남은 행이 없으면 마감만 있는 장이 마무리한다 — 1행을 억지로 남기지 않는다
+  const firstCount = Math.min(ROWS_PER_FIRST_PAGE, rows.length);
   const pages: CertificateSheetPage[] = [
     { rows: rows.slice(0, firstCount), startNo: 1, showHead: true, showClosing: false },
   ];
 
   let startNo = 1 + firstCount;
   let rest = rows.slice(firstCount);
-  while (rest.length > 0) {
-    if (rest.length <= ROWS_PER_LAST_PAGE) {
-      pages.push({ rows: rest, startNo, showHead: false, showClosing: true });
-      rest = [];
-    } else {
-      const take = Math.min(ROWS_PER_CONT_PAGE, rest.length - ROWS_PER_LAST_PAGE);
-      pages.push({ rows: rest.slice(0, take), startNo, showHead: false, showClosing: false });
-      startNo += take;
-      rest = rest.slice(take);
-    }
+
+  // 계속 페이지 — 마지막 페이지 용량(7행)을 넘는 몫을 전부 가져가고 빈 행으로 채운다
+  while (rest.length > ROWS_PER_LAST_PAGE) {
+    const take = Math.min(ROWS_PER_CONT_PAGE, rest.length);
+    pages.push({
+      rows: [
+        ...rest.slice(0, take),
+        ...Array.from({ length: ROWS_PER_CONT_PAGE - take }, () => null),
+      ],
+      startNo,
+      showHead: false,
+      showClosing: false,
+    });
+    startNo += take;
+    rest = rest.slice(take);
   }
+
+  // 마지막 페이지 — 남은 행(최대 7행)과 마감. 남은 행이 없으면 마감만 있는 장
+  pages.push({ rows: rest, startNo, showHead: false, showClosing: true });
   return pages;
 }
 
@@ -125,6 +142,16 @@ export interface CertificateDocumentSheetProps {
   certificateNumber?: string | null;
   /** 이 페이지 첫 행의 연번 (2페이지부터 이어지는 번호) */
   startNo?: number;
+  /** 현재 페이지 번호 — 하단 우측 "현재 / 총쪽" 표기. 미리보기 연속 렌더는 생략 */
+  pageNo?: number;
+  /** 문서 총 페이지 수 — pageNo 와 함께 전달 */
+  pageCount?: number;
+  /**
+   * 연속 렌더 — A4 한 장 높이에 묶지 않고 행을 모두 보여준다(세로 중앙 정렬·
+   * 페이지 여백 스페이서 없음, 높이 자동). 미리보기에서 같은 문서의 여러 페이지를
+   * 여백 없이 이어 보여줄 때 쓴다. PDF는 페이지 분할이 필요해서 이 모드를 쓰지 않는다.
+   */
+  continuous?: boolean;
 }
 
 const LINE = "1px solid #000";
@@ -196,6 +223,9 @@ export function CertificateDocumentSheet({
   issuedOnLabel,
   certificateNumber,
   startNo = 1,
+  pageNo,
+  pageCount,
+  continuous = false,
 }: CertificateDocumentSheetProps) {
   // 마감 합계는 문서 전체 합계 — 페이지 합이 아니다. prop이 없으면(단일 페이지) rows 합
   const closingHours = documentTotalHours ?? rows.reduce((sum, row) => sum + (row?.hours ?? 0), 0);
@@ -204,8 +234,10 @@ export function CertificateDocumentSheet({
     <div
       style={{
         width: PAGE_WIDTH,
-        height: PAGE_HEIGHT,
+        // 연속 렌더는 내용 높이를 따른다 — A4 한 장에 묶지 않는다
+        height: continuous ? "auto" : PAGE_HEIGHT,
         boxSizing: "border-box",
+        position: "relative",
         padding: "36px 47px",
         display: "flex",
         flexDirection: "column",
@@ -214,8 +246,9 @@ export function CertificateDocumentSheet({
         fontFamily: DOC_FONT,
       }}
     >
-      {/* 표를 페이지 세로 중앙에 배치 — 위아래 스페이서 대칭. 계속 페이지는 상단 정렬 */}
-      {showHead && <div style={{ flex: 1 }} />}
+      {/* 표를 페이지 세로 중앙에 배치 — 위아래 스페이서 대칭. 계속 페이지는 상단 정렬.
+          연속 렌더는 중앙 정렬 없이 머리부터 바로 시작한다 */}
+      {showHead && !continuous && <div style={{ flex: 1 }} />}
 
       {/* 서식·문서번호 — 표 바깥 상단. 표와 함께 세로 중앙에 배치된다 */}
       {showHead && (
@@ -319,13 +352,24 @@ export function CertificateDocumentSheet({
               </tr>
             </>
           )}
+          {/* 표 최상단 외곽선 — html2canvas-pro 가 여러 셀로 된 첫 행의 borderTop 을
+              래스터에서 빠뜨린다(단일 셀 colSpan=20 은 정상 렌더 — 1페이지 제목칸 확인).
+              머리 없는 페이지(계속·마감 장)는 1px 선 행으로 최상단을 그린다 */}
+          {!showHead && (
+            <tr>
+              <td
+                colSpan={COLS}
+                style={{ height: 0, padding: 0, fontSize: 0, lineHeight: 0, borderTop: LINE }}
+              />
+            </tr>
+          )}
           {rows.map((row, index) => (
             <tr key={index}>
               <td
                 colSpan={2}
                 style={{
                   height: 64,
-                  ...lineStyle({ left: true, top: index === 0 && !showHead }),
+                  ...lineStyle({ left: true }),
                   ...cell,
                 }}
               >
@@ -348,6 +392,7 @@ export function CertificateDocumentSheet({
           {showClosing && (
             <>
               <tr>
+                {/* 마감만 있는 장도 위의 1px 선 행이 최상단을 그린다 */}
                 <td colSpan={17} style={{ height: 52, ...lineStyle({ left: true }), ...cell }}>
                   합계
                 </td>
@@ -406,10 +451,29 @@ export function CertificateDocumentSheet({
         </tbody>
       </table>
 
-      {/* 표를 페이지 세로 중앙에 둔다 — 확인서 번호만 하단에 고정 */}
-      <div style={{ flex: 1 }} />
-      {certificateNumber && (
-        <div style={{ textAlign: "center", fontSize: 12 }}>확인서 번호: {certificateNumber}</div>
+      {/* 표를 페이지 세로 중앙에 둔다 — 확인서 번호·페이지 번호·간인천공은 하단 여백에 고정.
+          연속 렌더는 고정 높이가 없어 스페이서 대신 여백 하나로 마무리한다 */}
+      {!continuous && <div style={{ flex: 1 }} />}
+      {certificateNumber && pageNo == null && (
+        <div style={{ textAlign: "center", fontSize: 12, marginTop: continuous ? 24 : 0 }}>
+          확인서 번호: {certificateNumber}
+        </div>
+      )}
+      {pageNo != null && (
+        // 확인서 번호(좌) · 페이지 번호(우) 한 줄 — 기존 한 줄 높이 그대로라 페이지 배치가 밀리지 않는다
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            fontSize: 12,
+            marginTop: continuous ? 24 : 0,
+          }}
+        >
+          <span>{certificateNumber ? `확인서 번호: ${certificateNumber}` : " "}</span>
+          <span>
+            {pageNo} / {pageCount}
+          </span>
+        </div>
       )}
     </div>
   );

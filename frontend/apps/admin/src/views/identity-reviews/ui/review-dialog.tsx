@@ -4,6 +4,7 @@ import { toast } from "react-toastify";
 import { Button } from "@/src/shared/ui/button";
 import { Dialog } from "@/src/shared/ui/dialog";
 import { Input } from "@/src/shared/ui/input";
+import { SearchInput } from "@/src/shared/ui/search-input";
 import { Label } from "@/src/shared/ui/label";
 import { Select } from "@/src/shared/ui/select";
 import { Textarea } from "@/src/shared/ui/textarea";
@@ -166,7 +167,7 @@ export function ReviewDialog({ review, onClose }: Props) {
 
             {mode === "search" && (
               <div className="flex items-center gap-2">
-                <Input
+                <SearchInput
                   placeholder="감리원 성명(전체)"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
@@ -176,6 +177,7 @@ export function ReviewDialog({ review, onClose }: Props) {
                       runSearch(search);
                     }
                   }}
+                  onClear={() => runSearch('')}
                 />
                 <Button variant="secondary" size="sm" onClick={() => runSearch(search)}>
                   검색

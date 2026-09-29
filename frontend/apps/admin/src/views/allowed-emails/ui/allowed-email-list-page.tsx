@@ -8,6 +8,7 @@ import { FilterBar, FilterRow } from '@/src/shared/ui/filter-bar'
 import { Button } from '@/src/shared/ui/button'
 import { Dialog } from '@/src/shared/ui/dialog'
 import { Input } from '@/src/shared/ui/input'
+import { SearchInput } from '@/src/shared/ui/search-input'
 import { Label } from '@/src/shared/ui/label'
 import { PageContainer } from '@/src/shared/ui/page-container'
 import { PageHead } from '@/src/shared/ui/page-head'
@@ -142,11 +143,16 @@ export function AllowedEmailListPage() {
               setSearchParams(next, { replace: false })
             }}
           >
-            <Input
+            <SearchInput
               className="w-64"
               placeholder="이메일 주소"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
+              onClear={() => {
+                const next = new URLSearchParams(searchParams)
+                next.delete('q')
+                setSearchParams(next, { replace: false })
+              }}
             />
             <Button type="submit" variant="secondary" size="sm">
               검색

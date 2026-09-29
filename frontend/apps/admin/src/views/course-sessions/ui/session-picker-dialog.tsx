@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/src/shared/ui/button";
 import { Dialog } from "@/src/shared/ui/dialog";
-import { Input } from "@/src/shared/ui/input";
+import { SearchInput } from "@/src/shared/ui/search-input";
 import { courseSessionQueries, type CourseSession } from "@/src/entities/course-session";
 
 interface Props {
@@ -45,11 +45,12 @@ export function SessionPickerDialog({ isOpen, onClose, onSelect }: Props) {
             setSearch(searchInput.trim());
           }}
         >
-          <Input
+          <SearchInput
             className="flex-1"
             placeholder="과정명 · 기관명 검색"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
+            onClear={() => setSearch('')}
           />
           <Button type="submit" variant="secondary" size="sm">
             검색

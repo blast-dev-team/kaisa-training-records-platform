@@ -1,11 +1,11 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
 import type { ColumnDef } from '@tanstack/react-table';
 import { AppTable } from '@/src/shared/ui/app-table';
 import { Dialog } from '@/src/shared/ui/dialog';
 import { FilterBar, FilterRow } from '@/src/shared/ui/filter-bar';
-import { Input } from '@/src/shared/ui/input';
+import { SearchInput } from '@/src/shared/ui/search-input';
 import { PageContainer } from '@/src/shared/ui/page-container';
 import { PageHead } from '@/src/shared/ui/page-head';
 import { formatDateTime } from '@/src/shared/utils/format';
@@ -27,6 +27,7 @@ export function AuditLogListPage() {
   const limit = Math.max(1, Number(searchParams.get('limit') ?? 10) || 10);
 
   const [detail, setDetail] = useState<AuditLog | null>(null);
+  const formRef = useRef<HTMLFormElement>(null);
 
   const { data } = useQuery(
     auditLogQueries.list({
@@ -119,6 +120,7 @@ export function AuditLogListPage() {
       <FilterBar>
         <FilterRow label="필터">
           <form
+            ref={formRef}
             className="flex items-center gap-2"
             onSubmit={(e) => {
               e.preventDefault();
@@ -130,24 +132,27 @@ export function AuditLogListPage() {
               });
             }}
           >
-            <Input
+            <SearchInput
               name="q"
               className="w-56"
               placeholder="액션·관리자·변경 내용 검색"
               defaultValue={q}
+              onClear={() => formRef.current?.requestSubmit()}
             />
-            <Input
+            <SearchInput
               name="entity"
               className="w-44"
               placeholder="엔티티 타입 (예: trainee)"
               defaultValue={entityType}
+              onClear={() => formRef.current?.requestSubmit()}
             />
-            <Input
+            <SearchInput
               name="id"
               type="number"
               className="w-28"
               placeholder="엔티티 ID"
               defaultValue={entityId}
+              onClear={() => formRef.current?.requestSubmit()}
             />
             <button
               type="submit"

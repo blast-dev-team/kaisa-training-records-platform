@@ -7,7 +7,7 @@ import { AppTable } from "@/src/shared/ui/app-table";
 import { Button } from "@/src/shared/ui/button";
 import { Dialog } from "@/src/shared/ui/dialog";
 import { FilterBar, FilterRow } from "@/src/shared/ui/filter-bar";
-import { Input } from "@/src/shared/ui/input";
+import { SearchInput } from "@/src/shared/ui/search-input";
 import { PageHead } from "@/src/shared/ui/page-head";
 import { PageContainer } from "@/src/shared/ui/page-container";
 import { Pill, statusTone } from "@/src/shared/ui/pill";
@@ -273,11 +273,12 @@ export function TraineeListPage() {
               updateParams({ q: searchInput.trim() || null });
             }}
           >
-            <Input
+            <SearchInput
               className="w-64"
-              placeholder="성명(전체) · 감리원증번호"
+              placeholder="성명(전체·부분검색 불가) · 감리원증번호"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
+              onClear={() => updateParams({ q: null })}
             />
             <Button type="submit" variant="secondary" size="sm">
               검색

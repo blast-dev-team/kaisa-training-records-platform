@@ -5,6 +5,7 @@ import { toast } from "react-toastify";
 import { Check, ChevronDown, ChevronUp, FileSpreadsheet, X } from "lucide-react";
 import { Dialog } from "@/src/shared/ui/dialog";
 import { Input } from "@/src/shared/ui/input";
+import { SearchInput } from "@/src/shared/ui/search-input";
 import { Label } from "@/src/shared/ui/label";
 import { Textarea } from "@/src/shared/ui/textarea";
 import { getTraineeList, postTrainee, traineeQueries } from "@/src/entities/trainee";
@@ -552,7 +553,7 @@ export function AttachTraineesDialog({ isOpen, onClose, session }: Props) {
         <div className="space-y-1.5">
           <Label>감리원 추가</Label>
           <div ref={comboRef} className="relative">
-            <Input
+            <SearchInput
               placeholder="클릭해서 감리원 검색 · 선택"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
