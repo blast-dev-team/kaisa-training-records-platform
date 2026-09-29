@@ -136,7 +136,13 @@ async def create_admin_session(
 
 
 async def resolve_admin_session(db: AsyncSession, token: str) -> uuid.UUID | None:
-    """해시 조회 → 만료 검증. 만료된 세션은 행을 지우고 None."""
+    """해시 조회 → 만료 검증. 만료된 세션은 행을 지우고 None.
+
+    슬라이딩 갱신 — 잔여가 TTL 절반 이하로 떨어지면 expires_at 을 now+TTL 로 리셋.
+    쿠키 수명(ADMIN_COOKIE_TTL_HOURS) 안에서 꾸준히 쓰면 재로그인 없이 유지되고,
+    TTL 동안 미활동이면 만료된다. 개인회원(extend 엔드포인트)과 달리 요청 경로에서
+    처리하므로 FE 변경이 없다.
+    """
     row = (
         await db.execute(
             select(AdminSession).where(AdminSession.token_hash == hash_token(token))
@@ -148,6 +154,9 @@ async def resolve_admin_session(db: AsyncSession, token: str) -> uuid.UUID | Non
         await db.delete(row)
         await db.commit()
         return None
+    if row.expires_at - now_kst() <= timedelta(hours=settings.SESSION_TTL_HOURS / 2):
+        row.expires_at = _expiry()
+        await db.commit()
     return row.admin_id
 
 
@@ -165,7 +174,15 @@ def session_cookie_params(token: str, cookie_name: str | None = None) -> dict:
     """Set-Cookie 공통 파라미터 — httponly, samesite=lax, local 외 secure.
 
     cookie_name 미지정 시 개인회원(web) 쿠키. 관리자는 ADMIN_SESSION_COOKIE_NAME.
+    개인회원 쿠키 max_age 는 DB 슬라이딩 TTL(10분)보다 길면 충분 — 24h.
+    관리자 쿠키는 DB 슬라이딩(24h)과 함께 살아야 하므로 더 길게 — 쿠키가 먼저
+    죽으면 DB 세션이 살아 있어도 재로그인이 강제된다.
     """
+    ttl_hours = (
+        settings.ADMIN_COOKIE_TTL_HOURS
+        if cookie_name == settings.ADMIN_SESSION_COOKIE_NAME
+        else settings.SESSION_TTL_HOURS
+    )
     return {
         "key": cookie_name or settings.SESSION_COOKIE_NAME,
         "value": token,
@@ -173,7 +190,7 @@ def session_cookie_params(token: str, cookie_name: str | None = None) -> dict:
         "samesite": "lax",
         "secure": settings.ENVIRONMENT != "local",
         "path": "/",
-        "max_age": settings.SESSION_TTL_HOURS * 3600,
+        "max_age": ttl_hours * 3600,
     }
 
 

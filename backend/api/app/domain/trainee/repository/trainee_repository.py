@@ -69,8 +69,13 @@ async def list_trainees(
     total = (
         await db.execute(select(func.count()).select_from(stmt.subquery()))
     ).scalar_one()
+    # id 까지 정렬해야 페이지가 흔들리지 않는다 — 이관 데이터는 created_at 이
+    # 일괄 반영이라 같은 값이 수천 건이다. tiebreaker 없으면 LIMIT/OFFSET 사이에
+    # 같은 행이 페이지를 넘어 중복·누락된다(다중선택 유지와 조합하면 유령 선택 버그).
     stmt = (
-        stmt.order_by(Trainee.created_at.desc()).offset((page - 1) * limit).limit(limit)
+        stmt.order_by(Trainee.created_at.desc(), Trainee.id.desc())
+        .offset((page - 1) * limit)
+        .limit(limit)
     )
     result = await db.execute(stmt)
     return list(result.scalars().all()), int(total)

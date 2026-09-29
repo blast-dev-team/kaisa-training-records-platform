@@ -78,6 +78,9 @@ class Settings(BaseSettings):
     SESSION_TTL_HOURS: int = 24
     # 개인회원(PASS 본인인증) 세션 유효시간 — 관리자(24h)와 분리. 지나면 재인증 필요
     USER_SESSION_TTL_MINUTES: int = 10
+    # 관리자 세션 쿠키 수명 — 관리자 DB 세션은 요청마다 슬라이딩 연장되므로
+    # 쿠키가 더 길어야 한다 (쿠키가 먼저 죽으면 연장이 무의미해짐)
+    ADMIN_COOKIE_TTL_HOURS: int = 24 * 7
 
     # 개인정보 암호화 (Fernet) — 없으면 부팅 시 ValueError (core/crypto.py)
     CRYPTO_KEY: str = ""

@@ -92,13 +92,16 @@ async def list_records(
         )
     ).scalar_one()
 
+    # id tiebreaker 필수 — 이관 데이터는 started_at·created_at 이 같은 값이 수천 건이라,
+    # 이게 없으면 LIMIT/OFFSET 페이지 사이에 같은 행이 중복·누락된다
     stmt = (
         stmt.order_by(
             TrainingRecord.started_at.desc().nullslast(),
             TrainingRecord.created_at.desc(),
+            TrainingRecord.id.desc(),
         )
         if sort == "period"
-        else stmt.order_by(TrainingRecord.created_at.desc())
+        else stmt.order_by(TrainingRecord.created_at.desc(), TrainingRecord.id.desc())
     )
     stmt = stmt.offset((page - 1) * limit).limit(limit)
     rows = (await db.execute(stmt)).scalars().all()
