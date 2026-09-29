@@ -1,8 +1,8 @@
 import { XIcon } from "@/src/shared/icon";
 
-import { useEffect } from 'react';
+import { useEffect } from "react";
 
-import { Button } from '@/src/shared/ui';
+import { Button } from "@/src/shared/ui";
 
 /**
  * 진위확인 실패 모달 — Figma 노드 32:2283 (modal-invalid) 기반.
@@ -15,24 +15,34 @@ import { Button } from '@/src/shared/ui';
 interface VerificationFailModalProps {
   /** 「다시 입력」— 모달 닫고 입력 폼으로 복귀 */
   onRetry: () => void;
+  /** 서버 사유 메시지 — 재발급(superseded) 안내 등 */
+  message?: string;
+  /** 재발급된 문서의 최신 확인서 번호 — 있으면 재발급 안내 화면 */
+  successorNo?: string | null;
 }
 
 const TIPS = [
-  '· ID의 하이픈 포함 여부를 확인하여 주십시오.',
-  '· 발급 취소·환불된 확인서는 조회되지 않습니다.',
-  '· 5회 이상 실패 시 일정 시간 조회가 제한됩니다.',
+  "· ID의 하이픈 포함 여부를 확인하여 주십시오.",
+  "· 발급 취소·환불된 확인서는 조회되지 않습니다.",
+  "· 5회 이상 실패 시 일정 시간 조회가 제한됩니다.",
 ] as const;
 
 /** 협회 문의 전화번호 — Figma 플레이스홀더 값 */
-const CONTACT_PHONE = '02-000-0000';
+const CONTACT_PHONE = "02-558-9140, 9150";
 
-export function VerificationFailModal({ onRetry }: VerificationFailModalProps) {
+export function VerificationFailModal({
+  onRetry,
+  message,
+  successorNo,
+}: VerificationFailModalProps) {
+  const isSuperseded = successorNo != null && successorNo !== "";
+  const heading = isSuperseded ? "결과  ·  재발급" : "결과  ·  무효 / 에러";
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onRetry();
+      if (event.key === "Escape") onRetry();
     };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [onRetry]);
 
   return (
@@ -56,24 +66,49 @@ export function VerificationFailModal({ onRetry }: VerificationFailModalProps) {
         >
           <XIcon className="size-6" />
         </button>
-        <p className="whitespace-pre text-sm text-gray-500 mobile:text-xs">{`결과  ·  무효 / 에러`}</p>
+        <p className="whitespace-pre text-sm text-gray-500 mobile:text-xs">{heading}</p>
 
-        <span className="w-fit rounded-[4px] border border-[#d93333] bg-[#fae5e5] px-3 py-1.5 text-sm font-semibold text-[#bf2626] mobile:text-xs">
-          확인 불가
-        </span>
+        {isSuperseded ? (
+          <>
+            <span className="w-fit rounded-[4px] border border-[#f09744] bg-[#fdf3e7] px-3 py-1.5 text-sm font-semibold text-[#b06a1f] mobile:text-xs">
+              재발급됨
+            </span>
 
-        <p className="text-[15px] font-medium text-gray-700 mobile:text-sm">
-          입력하신 진위확인 ID와 성명이 일치하는 확인서가 없습니다.
-        </p>
+            <p className="text-[15px] font-medium text-gray-700 mobile:text-sm">
+              입력하신 번호의 확인서는 재발급되어 무효처리된 확인서입니다.
+            </p>
 
-        <div className="flex w-full flex-col gap-2 rounded-[8px] border border-solid border-[rgba(229,77,77,0.3)] bg-[#fcf2f2] px-5 py-4 text-[13px] leading-normal text-[#b23333] mobile:px-4 mobile:py-3 mobile:text-xs">
-          {TIPS.map((tip) => (
-            <p key={tip}>{tip}</p>
-          ))}
-        </div>
+            <div className="flex w-full flex-col gap-1 rounded-[8px] border border-solid border-[rgba(240,151,68,0.4)] bg-[#fdf8f0] px-5 py-4 text-[13px] leading-normal text-[#8a5a1d] mobile:px-4 mobile:py-3 mobile:text-xs">
+              <p>최신 확인서 번호</p>
+              <p className="text-[15px] font-semibold text-[#b06a1f] mobile:text-sm">
+                {successorNo}
+              </p>
+              <p>새 번호로 다시 조회하시면 유효 여부를 확인할 수 있습니다.</p>
+            </div>
+          </>
+        ) : (
+          <>
+            <span className="w-fit rounded-[4px] border border-[#d93333] bg-[#fae5e5] px-3 py-1.5 text-sm font-semibold text-[#bf2626] mobile:text-xs">
+              확인 불가
+            </span>
+
+            <p className="text-[15px] font-medium text-gray-700 mobile:text-sm">
+              {message || "입력하신 진위확인 ID와 성명이 일치하는 확인서가 없습니다."}
+            </p>
+
+            <div className="flex w-full flex-col gap-2 rounded-[8px] border border-solid border-[rgba(229,77,77,0.3)] bg-[#fcf2f2] px-5 py-4 text-[13px] leading-normal text-[#b23333] mobile:px-4 mobile:py-3 mobile:text-xs">
+              {TIPS.map((tip) => (
+                <p key={tip}>{tip}</p>
+              ))}
+            </div>
+          </>
+        )}
 
         <div className="flex items-center gap-3 mobile:flex-col mobile:gap-2">
-          <Button onClick={onRetry} className="flex-1 rounded-lg px-8 py-3.5 text-[15px] mobile:px-4 mobile:py-3 mobile:text-sm">
+          <Button
+            onClick={onRetry}
+            className="flex-1 rounded-lg px-8 py-3.5 text-[15px] mobile:px-4 mobile:py-3 mobile:text-sm"
+          >
             다시 입력
           </Button>
           <Button
@@ -81,7 +116,7 @@ export function VerificationFailModal({ onRetry }: VerificationFailModalProps) {
             color="black"
             className="rounded-lg border-gray-700 px-8 py-3.5 text-[15px] text-gray-700 mobile:px-4 mobile:py-3 mobile:text-sm"
             onClick={() => {
-              window.location.href = `tel:${CONTACT_PHONE.replace(/-/g, '')}`;
+              window.location.href = `tel:${CONTACT_PHONE.replace(/-/g, "")}`;
             }}
           >
             협회 문의 ({CONTACT_PHONE})

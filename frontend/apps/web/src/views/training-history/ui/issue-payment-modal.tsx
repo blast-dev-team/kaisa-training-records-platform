@@ -242,6 +242,8 @@ export function IssuePaymentModal({
     () => paginateRows(toSheetRows(details ?? [])),
     [details],
   );
+  /** 빈 행으로 채우지 않은 원본 행 — 여러 페이지를 한 문서로 이어 보여줄 때 쓴다 */
+  const sheetRows = useMemo(() => toSheetRows(details ?? []), [details]);
   /** 문서 머리 표기(서식·문서번호·감리원) — 첫 이력 값 */
   const headDetail = details?.[0];
 
@@ -342,29 +344,52 @@ export function IssuePaymentModal({
                   ref={previewRef}
                   className="w-full flex-none pointer-events-none"
                 >
-                  {previewPages.map((page, pageIndex) => (
+                  {/* 여러 페이지 — 미리보기에서는 한 문서로 이어 보여준다. 페이지 경계마다
+                      생기던 여백 띠(앞 페이지 하단 슬랙+다음 페이지 상단 패딩)를 없애고
+                      연속 문서처럼 보이게. 페이지 분할은 내려받는 PDF(밑의 캡처 컨테이너)가 담당.
+                      zoom 은 transform 과 달리 레이아웃 높이에 반영돼 다음 요소와 간격이 유지된다 */}
+                  {previewPages.length > 1 ? (
                     <div
-                      key={pageIndex}
-                      className="overflow-hidden"
-                      style={{ aspectRatio: "794 / 1123" }}
+                      className="overflow-hidden mx-auto"
+                      style={{ width: 794 * previewScale }}
                     >
-                      {/* 모달 본문 폭에 맞춘 등비 축소 — 시트 원본은 A4 794px */}
-                      <div
-                        style={{
-                          width: 794,
-                          transform: `scale(${previewScale})`,
-                          transformOrigin: "top left",
-                        }}
-                      >
-                        <PreviewSheet
-                          page={page}
-                          headDetail={headDetail}
+                      <div style={{ zoom: previewScale }}>
+                        <CertificateDocumentSheet
+                          continuous
+                          rows={sheetRows}
                           memberName={memberName}
+                          supervisorGrade={headDetail?.supervisorGrade}
+                          supervisorCertNo={headDetail?.supervisorCertNo}
+                          formNo="제31호"
                           totalHours={totalHours}
                         />
                       </div>
                     </div>
-                  ))}
+                  ) : (
+                    previewPages.map((page, pageIndex) => (
+                      <div
+                        key={pageIndex}
+                        className="overflow-hidden"
+                        style={{ aspectRatio: "794 / 1123" }}
+                      >
+                        {/* 모달 본문 폭에 맞춘 등비 축소 — 시트 원본은 A4 794px */}
+                        <div
+                          style={{
+                            width: 794,
+                            transform: `scale(${previewScale})`,
+                            transformOrigin: "top left",
+                          }}
+                        >
+                          <PreviewSheet
+                            page={page}
+                            headDetail={headDetail}
+                            memberName={memberName}
+                            totalHours={totalHours}
+                          />
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
 
@@ -528,13 +553,15 @@ export function IssuePaymentModal({
                     pages.map((page, pageIndex) => (
                       <div
                         key={`${bundle.verificationId}-${pageIndex}`}
-                        data-sheet-page
-                      >
+                        data-sheet-page>
+                        {/* 확인서 번호는 모든 페이지 하단에 같은 번호로 들어간다(협회 발급 방식) */}
                         <CertificateDocumentSheet
                           rows={page.rows}
                           showHead={page.showHead}
                           showClosing={page.showClosing}
                           startNo={page.startNo}
+                          pageNo={pageIndex + 1}
+                          pageCount={pages.length}
                           totalHours={totalHours}
                           memberName={memberName}
                           supervisorGrade={head?.supervisorGrade}
@@ -542,7 +569,7 @@ export function IssuePaymentModal({
                           formNo="제31호"
                           docNo={bundle.docNo ?? undefined}
                           issuedOnLabel={formatKoreanDate(bundle.issuedAt)}
-                          certificateNumber={page.showClosing ? bundle.certificateNumber : undefined}
+                          certificateNumber={bundle.certificateNumber ?? undefined}
                         />
                       </div>
                     )),

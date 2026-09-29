@@ -131,7 +131,13 @@ export function VerificationPage() {
       {result && result.isValid && (
         <VerificationResultModal result={result} onClose={() => setResult(null)} />
       )}
-      {result && !result.isValid && <VerificationFailModal onRetry={() => setResult(null)} />}
+      {result && !result.isValid && (
+        <VerificationFailModal
+          message={result.message}
+          successorNo={result.successorNo}
+          onRetry={() => setResult(null)}
+        />
+      )}
     </section>
   );
 }

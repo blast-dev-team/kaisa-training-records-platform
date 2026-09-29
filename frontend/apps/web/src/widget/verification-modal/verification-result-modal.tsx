@@ -40,6 +40,15 @@ function docLabel(kind: "certificate" | "completion_certificate"): string {
 }
 
 export function VerificationResultModal({ result, onClose }: VerificationResultModalProps) {
+  // 묶음 확인서 — 교육명은 "첫 교육명 외 N건" 요약(전체는 교육내역 목록에 있다)
+  const isBundle = result.records.length > 1;
+  const display: VerificationResult = isBundle
+    ? {
+        ...result,
+        courseName: `${result.courseName} 외 ${result.records.length - 1}건`,
+      }
+    : result;
+
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") onClose();
@@ -58,7 +67,7 @@ export function VerificationResultModal({ result, onClose }: VerificationResultM
         aria-modal="true"
         aria-label="진위확인 결과"
         onClick={(event) => event.stopPropagation()}
-        className="relative flex w-[480px] max-w-full flex-col gap-6 rounded-[12px] bg-white px-10 py-8 shadow-[0px_4px_24px_0px_rgba(0,0,0,0.15)] font-sans mobile:w-full mobile:p-5"
+        className="relative flex max-h-[calc(100dvh-40px)] w-[480px] max-w-full flex-col gap-6 rounded-[12px] bg-white px-10 py-8 shadow-[0px_4px_24px_0px_rgba(0,0,0,0.15)] font-sans mobile:w-full mobile:p-5"
       >
         {/* 모바일·데스크톱 공통 — X 로 닫는다 */}
         <button
@@ -80,7 +89,9 @@ export function VerificationResultModal({ result, onClose }: VerificationResultM
           </p>
         </div>
 
-        <div className="flex w-full flex-col gap-1 rounded-[16px] border border-solid border-gray-200 p-4 text-sm text-gray-700">
+        {/* 내역이 많으면 이 카드만 스크롤 — 헤더(배지·조회일)와 안내 문구는 고정.
+            flex 자식이 줄어들려면 min-h-0 이 필요하다 */}
+        <div className="flex min-h-0 w-full overflow-y-auto flex-col gap-1 rounded-[16px] border border-solid border-gray-200 p-4 text-sm text-gray-700">
           {(result.kind === "completion_certificate" ? COMPLETION_INFO_ROWS : CERT_INFO_ROWS).map(
             (row) => (
               <div
@@ -88,7 +99,7 @@ export function VerificationResultModal({ result, onClose }: VerificationResultM
                 className="flex w-full items-start gap-6 py-3 mobile:gap-3 mobile:py-2"
               >
                 <p className="w-20 shrink-0 font-bold">{row.label}</p>
-                <p className="whitespace-pre-line">{result[row.key]}</p>
+                <p className="whitespace-pre-line">{display[row.key]}</p>
               </div>
             ),
           )}

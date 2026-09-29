@@ -451,10 +451,10 @@ export function TrainingHistoryPage() {
             ‘전체 기간’으로 재조회하거나 협회로 문의하여 주십시오.
           </p>
           <a
-            href="tel:0200000000"
+            href="tel:025589140"
             className="flex justify-center rounded-lg border border-solid border-gray-700 bg-white px-8 py-[14px] font-sans text-[15px] font-semibold leading-normal text-gray-700 mobile:w-full mobile:text-sm"
           >
-            이력 누락 문의 (02-000-0000)
+            이력 누락 문의 (02-558-9140, 9150)
           </a>
         </div>
       ) : (
