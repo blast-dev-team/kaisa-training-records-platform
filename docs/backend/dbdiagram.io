@@ -417,6 +417,7 @@ Table certificates {
   issued_at timestamptz [not null]
   expires_at timestamptz
   status varchar(30) [not null, default: 'issued', note: 'issued / revoked / superseded']
+  issue_source varchar(10) [not null, default: 'member', note: '발급 경로 — member(WEB 신청·결제) / admin(어드민 발급 저장). 어드민 발급은 회원 유효본과 무관한 독립 문서(폐기·권리 판정에서 서로 간섭 없음)']
   revoked_at timestamptz
   revoked_reason text
 
