@@ -41,13 +41,17 @@ class CertificateResponse(BaseModel):
     issued_at: datetime
     expires_at: datetime | None
     status: str
+    # 발급 경로 — 'member'(WEB 신청·결제) | 'admin'(어드민 발급 저장)
+    issue_source: str = "member"
     revoked_at: datetime | None
     revoked_reason: str | None
     downloaded_at: datetime | None = None
     download_count: int = 0
+    # 이 발급(묶음)에 담긴 교육내역 수 — 단건은 1
+    record_count: int = 1
 
     @classmethod
-    def from_orm(cls, c) -> "CertificateResponse":
+    def from_orm(cls, c, record_count: int = 1) -> "CertificateResponse":
         return cls(
             id=c.id,
             certificate_no=c.certificate_no,
@@ -67,10 +71,12 @@ class CertificateResponse(BaseModel):
             issued_at=c.issued_at,
             expires_at=c.expires_at,
             status=c.status,
+            issue_source=c.issue_source,
             revoked_at=c.revoked_at,
             revoked_reason=c.revoked_reason,
             downloaded_at=c.downloaded_at,
             download_count=c.download_count,
+            record_count=record_count,
         )
 
 

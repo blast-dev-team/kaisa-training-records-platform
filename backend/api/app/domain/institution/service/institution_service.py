@@ -61,7 +61,10 @@ async def create_institution(
         action="institution.created",
         entity_type="training_institution",
         entity_id=institution.id,
-        after={"name": institution.name},
+        after={
+            "name": institution.name,
+            "institution_type": institution.institution_type,
+        },
     )
     await db.commit()
     await db.refresh(institution)
@@ -75,8 +78,10 @@ async def update_institution(
     actor: AdminUser,
 ) -> TrainingInstitution:
     institution = await get_institution(db, institution_id)
-    before = {"name": institution.name, "is_active": institution.is_active}
-    for field, value in data.model_dump(exclude_unset=True).items():
+    # 바뀐 필드만 before/after 에 남긴다 — 내부·외부 지정(institution_type) 포함
+    updates = data.model_dump(exclude_unset=True)
+    before = {k: getattr(institution, k) for k in updates}
+    for field, value in updates.items():
         setattr(institution, field, value)
     record_audit(
         db,
@@ -85,7 +90,7 @@ async def update_institution(
         entity_type="training_institution",
         entity_id=institution.id,
         before=before,
-        after={"name": institution.name, "is_active": institution.is_active},
+        after={k: getattr(institution, k) for k in updates},
     )
     await db.commit()
     await db.refresh(institution)

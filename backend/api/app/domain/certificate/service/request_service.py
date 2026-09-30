@@ -13,7 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import settings
 from app.core.error_codes import api_error
 from app.core.kst import now_kst, today_kst
-from app.domain.certificate.model import Certificate, CertificateRequest
+from app.domain.certificate.model import CertificateRequest
 from app.domain.certificate.schema import (
     CertificateBatchRequestCreate,
     CertificateRequestCreate,
@@ -40,31 +40,12 @@ def _order_no() -> str:
     return f"ORD-{now_kst().strftime('%Y%m%d')}-{secrets.token_hex(6)}"
 
 
-async def _find_active_certificate(
-    db: AsyncSession, trainee_id: uuid.UUID, training_record_id: uuid.UUID
-) -> Certificate | None:
-    """회원별 유효 확인서 — 데모 이력은 여러 회원이 공유하므로 trainee 스코프 필수."""
-    result = await db.execute(
-        select(Certificate)
-        .where(
-            Certificate.trainee_id == trainee_id,
-            Certificate.training_record_id == training_record_id,
-            Certificate.status == "issued",
-        )
-        .order_by(Certificate.issued_at.desc())
-    )
-    return result.scalars().first()
-
-
 async def _validate_item(
-    db: AsyncSession,
-    trainee: Trainee,
-    training_record_id: uuid.UUID,
-    issue_type: str,
-) -> tuple[TrainingRecord, Certificate | None]:
-    """건별 게이트 — (이력, 유효 확인서) 반환. 위반 시 raise.
+    db: AsyncSession, trainee: Trainee, training_record_id: uuid.UUID
+) -> TrainingRecord:
+    """건별 게이트 — 검증을 통과한 이력 반환. 위반 시 raise.
 
-    유효 확인서는 재발급 previous 지정과 무료 재발급(7일 내) 판정에 쓰인다.
+    재발급 개념이 없다 — 이미 발급된 이력도 새 문서로 결제 발급할 수 있다.
     """
     # 소유·존재 — 타인 이력은 404. 공용 데모 이력(is_demo)은 모든 회원 발급 대상
     record = (
@@ -99,33 +80,7 @@ async def _validate_item(
             "VALIDATION_ERROR", message="수료 완료된 이력만 발급 신청할 수 있어요"
         )
 
-    # 발급 유형
-    if issue_type not in ("original", "reissue"):
-        raise api_error(
-            "VALIDATION_ERROR", message="발급 유형은 original 또는 reissue 이에요"
-        )
-
-    # 기존 발급 여부 — original 이면 유효 확인서 있으면 차단, reissue 면 previous 로 지정
-    active_cert = await _find_active_certificate(db, trainee.id, record.id)
-    if issue_type == "original" and active_cert is not None:
-        raise api_error(
-            "CERTIFICATE_ALREADY_ISSUED",
-            status_code=409,
-            message="이미 발급된 확인서가 있어요. 재발급으로 신청해 주세요",
-        )
-
-    return record, active_cert
-
-
-def _reissue_price_krw(price_krw: int, active_cert: Certificate | None, now) -> int:
-    """재발급 가격 — 직전 발급일이 무료 기간(7일) 이내면 0원, 아니면 등급 단가."""
-    if active_cert is None or active_cert.issued_at is None:
-        return price_krw
-    if now - active_cert.issued_at <= timedelta(
-        days=settings.CERTIFICATE_REISSUE_FREE_DAYS
-    ):
-        return 0
-    return price_krw
+    return record
 
 
 def _require_determined_grade(trainee: Trainee) -> uuid.UUID:
@@ -144,22 +99,17 @@ def _grade_price_krw(trainee: Trainee) -> int:
 def _build_request(
     trainee: Trainee,
     record: TrainingRecord,
-    active_cert: Certificate | None,
     data: CertificateRequestCreate,
     amount_krw: int,
     now,
 ) -> CertificateRequest:
-    """신청 스냅샷 생성 — 재발급이면 previous 지정, 무료 재발급이면 0원."""
-    previous_certificate_id = (
-        active_cert.id if data.issue_type == "reissue" and active_cert else None
-    )
+    """신청 스냅샷 생성 — 문서 발급은 전부 original이다(재발급 폐지)."""
     return CertificateRequest(
         request_no=_request_no(),
         trainee_id=trainee.id,
         training_record_id=record.id,
-        previous_certificate_id=previous_certificate_id,
         requested_by=trainee.user_id,
-        issue_type=data.issue_type,
+        issue_type="original",
         membership_grade_id=trainee.membership_grade_id,
         amount_krw=amount_krw,
         currency="KRW",
@@ -178,22 +128,13 @@ async def create_request(
     await _expire_then_reload(db, trainee)
     _require_determined_grade(trainee)
 
-    record, active_cert = await _validate_item(
-        db, trainee, data.training_record_id, data.issue_type
-    )
+    record = await _validate_item(db, trainee, data.training_record_id)
 
-    # 가격 스냅샷 — 등급 단가. 재발급은 직전 발급일이 7일 이내면 무료
+    # 가격 스냅샷 — 항상 등급 단가 (무료 재발급 폐지)
     now = now_kst()
-    price_krw = _grade_price_krw(trainee)
-    amount_krw = (
-        _reissue_price_krw(price_krw, active_cert, now)
-        if data.issue_type == "reissue"
-        else price_krw
-    )
+    amount_krw = _grade_price_krw(trainee)
 
-    request = _build_request(
-        trainee, record, active_cert, data, amount_krw, now
-    )
+    request = _build_request(trainee, record, data, amount_krw, now)
     db.add(request)
     await db.flush()
 
@@ -249,7 +190,7 @@ async def create_requests_batch(
 
     한 건이라도 위반하면 전부 거절(원자성). 발급 비용은 단 건·일괄 건 동일이라
     유료 건이 하나라도 있으면 단가 1회만 청구하는 주문을 만들고 confirm 시
-    전건 발급한다. 유료 합계가 0원이면(전 건 0원 가격·무료 재발급) 즉시 발급.
+    전건 발급한다. 유료 합계가 0원이면(0원 등급) 즉시 발급.
     """
     await _expire_then_reload(db, trainee)
     _require_determined_grade(trainee)
@@ -260,28 +201,21 @@ async def create_requests_batch(
 
     # 전 건 검증·가격 확정을 먼저 끝낸 뒤 쓴다 — 절반만 반영되지 않게
     now = now_kst()
-    price_krw = _grade_price_krw(trainee)
+    amount_krw = _grade_price_krw(trainee)
     validated = []
     for item in data.items:
-        record, active_cert = await _validate_item(
-            db, trainee, item.training_record_id, item.issue_type
-        )
-        amount_krw = (
-            _reissue_price_krw(price_krw, active_cert, now)
-            if item.issue_type == "reissue"
-            else price_krw
-        )
-        validated.append((record, active_cert, item, amount_krw))
+        record = await _validate_item(db, trainee, item.training_record_id)
+        validated.append((record, item, amount_krw))
 
     requests = [
-        _build_request(trainee, record, active_cert, item, amount_krw, now)
-        for record, active_cert, item, amount_krw in validated
+        _build_request(trainee, record, item, amount_krw, now)
+        for record, item, amount_krw in validated
     ]
     db.add_all(requests)
     await db.flush()
 
-    # 단 건·일괄 건 동일 요금 — 유료 건 중 최고 단가 1회만 청구 (FE는 카테고리 혼합을 막음)
-    paid_amounts = [amount for _, _, _, amount in validated if amount > 0]
+    # 단 건·일괄 건 동일 요금 — 유료 건 중 최고 단가 1회만 청구
+    paid_amounts = [amount for _, _, amount in validated if amount > 0]
     total_krw = max(paid_amounts) if paid_amounts else 0
     if total_krw == 0:
         # 한 이벤트에 발급된 N건 = 묶음 확인서 1건 — 문서번호도 1개

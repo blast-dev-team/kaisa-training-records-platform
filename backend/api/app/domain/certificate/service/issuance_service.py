@@ -77,16 +77,16 @@ async def issue_certificate(
     request: CertificateRequest,
     payment_order_id: uuid.UUID | None = None,
     doc_no: str | None = None,
+    issue_source: str = "member",
 ) -> Certificate:
-    """신청 스냅샷 기반 발급 — 재발급이면 이전 확인서를 폐기한다.
+    """신청 스냅샷 기반 발급 — 환불 전까지 발급된 문서는 모두 유효하다.
 
-    한 교육이력의 유효 확인서는 항상 최신 1개다. 재발급 대상 record 가 묶음
-    문서(예: 10건)의 멤버면 그 멤버 1건만 폐기되고 묶음의 나머지는 유효하다 —
-    묶음 문서 전체가 무효가 되지는 않는다. previous_certificate_id 는 폐기
-    대상이자 발급 경로 기록이다.
+    재발급 개념이 없다(2026-09-30 기획 변경) — 같은 이력을 다시 발급해도
+    새 문서가 추가될 뿐 기존 문서는 폐기하지 않는다. previous_certificate_id
+    는 레거시 기록용 컬럼이며 새 발급은 세우지 않는다.
 
     doc_no(문서번호)는 발급 이벤트당 1회 채번해 호출부가 넣어 준다 — 묶음 멤버가
-    같은 값을 갖는다. 재발급은 문서 구성이 다르므로 새 번호를 받는다.
+    같은 값을 갖는다.
     """
     trainee = (
         await db.execute(select(Trainee).where(Trainee.id == request.trainee_id))
@@ -121,6 +121,8 @@ async def issue_certificate(
                     trainee_id=trainee.id,
                     training_record_id=tr.id,
                     payment_order_id=payment_order_id,
+                    # 발급 경로 — WEB 신청('member') | 어드민 발급('admin')
+                    issue_source=issue_source,
                     # 발급 시점 성명 스냅샷 — 교육생 row 의 암호문·해시를 그대로 복사
                     issued_name_encrypted=trainee.name_encrypted,
                     issued_name_hash=trainee.name_hash,
@@ -158,15 +160,6 @@ async def issue_certificate(
             status_code=500,
             message="확인서 번호 발급에 실패했어요. 잠시 후 다시 시도해 주세요",
         )
-
-    # 재발급이면 이전 확인서를 폐기 — 한 교육이력당 유효 확인서는 최신 1개.
-    # 이미 폐기돼 있으면(동일 요청 재confirm 등) 건드리지 않는다
-    if request.previous_certificate_id:
-        previous = await db.get(Certificate, request.previous_certificate_id)
-        if previous is not None and previous.status == "issued":
-            previous.status = "revoked"
-            previous.revoked_at = issued_at
-            previous.revoked_reason = "재발급으로 대체됨"
 
     request.status = "issued"
     request.issued_at = issued_at

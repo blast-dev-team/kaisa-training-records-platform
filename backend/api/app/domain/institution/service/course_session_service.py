@@ -1,6 +1,5 @@
 import uuid
 from datetime import date
-from decimal import Decimal
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -76,7 +75,10 @@ async def create_session(
         raise api_error(
             "VALIDATION_ERROR", message="종료일이 시작일보다 앞설 수 없어요"
         )
-    session = await session_repo.save(db, CourseSession(**data.model_dump()))
+    dump = data.model_dump()
+    # 시수는 총 시수 하나로 관리 — 인정 시수는 총 시수를 그대로 인정한다
+    dump["recognized_hours"] = dump["total_hours"]
+    session = await session_repo.save(db, CourseSession(**dump))
     record_audit(
         db,
         actor_admin_id=actor.id,
@@ -97,18 +99,29 @@ async def update_session(
     actor: AdminUser,
 ) -> CourseSession:
     session = await get_session(db, session_id)
-    for field, value in data.model_dump(exclude_unset=True).items():
+    # 바뀐 필드만 before/after 에 기록 — Decimal·date 는 str 로 직렬화(bulk_updated 와 같은 형태)
+    updates = data.model_dump(exclude_unset=True)
+    before = {field: getattr(session, field) for field in updates}
+    for field, value in updates.items():
         setattr(session, field, value)
+    # 인정 시수는 총 시수를 따라간다 — 입력 통로는 총 시수 하나뿐
+    if "total_hours" in updates:
+        session.recognized_hours = session.total_hours
     if session.started_at and session.ended_at and session.ended_at < session.started_at:
         raise api_error(
             "VALIDATION_ERROR", message="종료일이 시작일보다 앞설 수 없어요"
         )
+    after = {k: str(getattr(session, k)) for k in updates}
+    if "total_hours" in updates:
+        after["recognized_hours"] = str(session.recognized_hours)
     record_audit(
         db,
         actor_admin_id=actor.id,
         action="course_session.updated",
         entity_type="course_session",
         entity_id=session.id,
+        before={k: str(v) for k, v in before.items()},
+        after=after,
     )
     return await session_repo.commit_refresh(db, session)
 
@@ -144,8 +157,12 @@ async def bulk_update_sessions(
     by_id = {s.id: s for s in sessions}
     for item in data.items:
         session = by_id[item.id]
-        for field, value in item.model_dump(exclude_unset=True, exclude={"id"}).items():
+        applied = item.model_dump(exclude_unset=True, exclude={"id"})
+        for field, value in applied.items():
             setattr(session, field, value)
+        # 인정 시수는 총 시수를 따라간다 — 입력 통로는 총 시수 하나뿐
+        if "total_hours" in applied:
+            session.recognized_hours = session.total_hours
         if (
             session.started_at
             and session.ended_at
@@ -154,6 +171,9 @@ async def bulk_update_sessions(
             raise api_error(
                 "VALIDATION_ERROR", message="종료일이 시작일보다 앞설 수 없어요"
             )
+        after = {k: str(v) for k, v in applied.items()}
+        if "total_hours" in applied:
+            after["recognized_hours"] = str(session.recognized_hours)
         record_audit(
             db,
             actor_admin_id=actor.id,
@@ -161,10 +181,7 @@ async def bulk_update_sessions(
             entity_type="course_session",
             entity_id=session.id,
             # Decimal·date 직렬화
-            after={
-                k: str(v)
-                for k, v in item.model_dump(exclude_unset=True, exclude={"id"}).items()
-            },
+            after=after,
         )
     await db.commit()
     return len(data.items)
@@ -198,12 +215,14 @@ async def create_records_for_session(
     db: AsyncSession,
     session_id: uuid.UUID,
     trainee_ids: list[uuid.UUID],
-    completed_hours: Decimal | None,
     completion_status: str,
     memo: str | None,
     actor: AdminUser,
 ) -> tuple[list[TrainingRecord], int]:
-    """일정에 교육생 일괄 연결 — 연결 즉시 교육이력 생성. 중복 연결은 건너뛴다."""
+    """일정에 교육생 일괄 연결 — 연결 즉시 교육이력 생성. 중복 연결은 건너뛴다.
+
+    이력의 총·이수 시수는 일정의 총 시수를 그대로 인정한다.
+    """
     if not trainee_ids:
         raise api_error("VALIDATION_ERROR", message="연결할 교육생을 선택해 주세요")
     if completion_status not in {"in_progress", "completed", "canceled"}:
@@ -226,7 +245,6 @@ async def create_records_for_session(
 
     # 요청 기본값이 completed(스키마 기본)라 연결 즉시 수료 완료로 생성된다.
     # 종료일이 미래여도 강등하지 않는다 — 현장에서는 교육 시작 전에도 선수료 처리를 한다.
-    hours = completed_hours if completed_hours is not None else session.recognized_hours
     records: list[TrainingRecord] = []
     skipped = 0
     for trainee_id in dict.fromkeys(trainee_ids):  # 요청 내 중복 제거
@@ -247,11 +265,9 @@ async def create_records_for_session(
                 institution_name=(
                     course.institution.name if course.institution else ""
                 ),
-                # 확인서 표기용 — 교육생 마스터 스냅샷
-                supervisor_grade=trainee.supervisor_grade,
-                supervisor_cert_no=trainee.cert_no,
-                total_hours=session.recognized_hours,
-                completed_hours=hours,
+                # 이력 시수 = 일정 총 시수 (이수 시수도 같은 값)
+                total_hours=session.total_hours,
+                completed_hours=session.total_hours,
                 started_at=session.started_at,
                 ended_at=session.ended_at,
                 source=session.source,

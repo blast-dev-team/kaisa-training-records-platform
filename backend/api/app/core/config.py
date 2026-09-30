@@ -118,9 +118,6 @@ class Settings(BaseSettings):
     # 확인서 발급 가능 기간 (일) — 수강 시작일 기준. 초과 이력은 발급 신청 불가
     CERTIFICATE_ISSUE_WINDOW_DAYS: int = 3 * 365
 
-    # 무료 재발급 기간 (일) — 직전 발급일 기준. 이내면 재발급 0원, 초과면 유료
-    CERTIFICATE_REISSUE_FREE_DAYS: int = 7
-
     # 시드용 마스터 admin 계정 (make seed)
     ADMIN_EMAIL: str = "admin@example.com"
     ADMIN_PASSWORD: str = ""

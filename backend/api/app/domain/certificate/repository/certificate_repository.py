@@ -93,39 +93,69 @@ async def list_certificates(
     date_to: date | None = None,
     page: int = 1,
     limit: int = 20,
-) -> tuple[list[Certificate], int]:
-    stmt = select(Certificate)
-    count_stmt = select(func.count()).select_from(Certificate)
-    if trainee_id:
-        stmt = stmt.where(Certificate.trainee_id == trainee_id)
-        count_stmt = count_stmt.where(Certificate.trainee_id == trainee_id)
-    if status:
-        stmt = stmt.where(Certificate.status == status)
-        count_stmt = count_stmt.where(Certificate.status == status)
-    if date_from is not None:
-        cond = Certificate.issued_at >= date_from
-        stmt = stmt.where(cond)
-        count_stmt = count_stmt.where(cond)
-    if date_to is not None:
-        cond = Certificate.issued_at < date_to + timedelta(days=1)
-        stmt = stmt.where(cond)
-        count_stmt = count_stmt.where(cond)
-    if search:
-        pattern = f"%{search}%"
-        cond = or_(
-            Certificate.certificate_no.ilike(pattern),
-            # 성명은 암호화 저장 — blind index 로 '전체 이름 일치'만 지원
-            Certificate.issued_name_hash == name_hash(search),
-            Certificate.course_name.ilike(pattern),
-        )
-        stmt = stmt.where(cond)
-        count_stmt = count_stmt.where(cond)
+) -> tuple[list[tuple[Certificate, int]], int]:
+    """발급(묶음) 단위 목록 — 한 발급 이벤트를 묶음번호 하나로 그룹핑한다.
 
-    total = (await db.execute(count_stmt)).scalar_one()
-    stmt = (
-        stmt.order_by(Certificate.issued_at.desc())
-        .offset((page - 1) * limit)
-        .limit(limit)
+    묶음 멤버 중 대표(연번순 첫 건)와 그룹 크기(포함된 교육내역 수)를 짝지어
+    돌려준다. 필터는 멤버 아무나 걸리면 그룹이 노출되고, total 도 행 수가
+    아니라 발급건 수다.
+    """
+    gkey = func.coalesce(Certificate.bundle_no, Certificate.certificate_no)
+
+    def _filtered(stmt):
+        if trainee_id:
+            stmt = stmt.where(Certificate.trainee_id == trainee_id)
+        if status:
+            stmt = stmt.where(Certificate.status == status)
+        if date_from is not None:
+            stmt = stmt.where(Certificate.issued_at >= date_from)
+        if date_to is not None:
+            stmt = stmt.where(Certificate.issued_at < date_to + timedelta(days=1))
+        if search:
+            pattern = f"%{search}%"
+            stmt = stmt.where(
+                or_(
+                    Certificate.certificate_no.ilike(pattern),
+                    # 성명은 암호화 저장 — blind index 로 '전체 이름 일치'만 지원
+                    Certificate.issued_name_hash == name_hash(search),
+                    Certificate.course_name.ilike(pattern),
+                )
+            )
+        return stmt
+
+    grouped = _filtered(
+        select(gkey.label("gkey"), func.count().label("cnt")).group_by(gkey)
+    ).subquery()
+    total = (await db.execute(select(func.count()).select_from(grouped))).scalar_one()
+
+    keys = (
+        await db.execute(
+            _filtered(select(gkey))
+            .group_by(gkey)
+            .order_by(func.max(Certificate.issued_at).desc(), gkey)
+            .offset((page - 1) * limit)
+            .limit(limit)
+        )
     )
-    rows = (await db.execute(stmt)).scalars().all()
-    return list(rows), total
+    keys = keys.scalars().all()
+    if not keys:
+        return [], total
+
+    rows = (
+        await db.execute(
+            _filtered(select(Certificate))
+            .where(gkey.in_(keys))
+            .order_by(Certificate.issued_at, Certificate.certificate_no)
+        )
+    ).scalars().all()
+
+    by_key: dict[str, list[Certificate]] = {}
+    for row in rows:
+        by_key.setdefault(row.bundle_no or row.certificate_no, []).append(row)
+
+    # 대표 = 연번순 첫 건 (find_by_doc_no 와 같은 순서 규칙)
+    return [
+        (members[0], len(members))
+        for key in keys
+        if (members := by_key.get(key))
+    ], total

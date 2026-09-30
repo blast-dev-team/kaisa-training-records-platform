@@ -29,6 +29,8 @@ class CompletionCertificateResponse(BaseModel):
     ended_at: date | None
     issued_at: datetime
     status: str
+    # 발급 경로 — 'member'(WEB 신청) | 'admin'(어드민 발급)
+    issue_source: str = "member"
 
     @classmethod
     def from_orm(cls, cert) -> "CompletionCertificateResponse":
@@ -47,4 +49,5 @@ class CompletionCertificateResponse(BaseModel):
             ended_at=cert.ended_at,
             issued_at=cert.issued_at,
             status=cert.status,
+            issue_source=cert.issue_source,
         )

@@ -2,7 +2,6 @@
 
 import uuid
 
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.audit import record_audit
@@ -26,7 +25,7 @@ async def list_certificates(
     date_to=None,
     page: int = 1,
     limit: int = 20,
-) -> tuple[list[Certificate], int]:
+) -> tuple[list[tuple[Certificate, int]], int]:
     return await repo.list_certificates(
         db,
         trainee_id=trainee_id,
@@ -74,27 +73,6 @@ async def revoke_certificate(
     return certificate
 
 
-async def _find_active_certificate_by_record(
-    db: AsyncSession, record_id: uuid.UUID
-) -> Certificate | None:
-    """이 record 의 최근 발급본 — reissue 판정·경로 기록용.
-
-    재발급이 이전본을 폐기하므로 정상 흐름에선 issued 가 1개뿐이지만, 규칙
-    변경 이전 데이터·경합을 고려해 최신 1건을 택한다.
-    """
-    return (
-        await db.execute(
-            select(Certificate)
-            .where(
-                Certificate.training_record_id == record_id,
-                Certificate.status == "issued",
-            )
-            .order_by(Certificate.issued_at.desc(), Certificate.id.desc())
-            .limit(1)
-        )
-    ).scalars().first()
-
-
 async def issue_certificates(
     db: AsyncSession,
     groups: list[tuple[uuid.UUID, list[uuid.UUID]]],
@@ -105,9 +83,10 @@ async def issue_certificates(
     WEB 발급과 동일한 request→certificate 파이프라인을 쓰되 결제가 없다
     (amount 0, requested_by 는 trainee.user_id — 없으면 NULL).
     문서번호는 그룹(발급 이벤트)당 1회 채번해 멤버 전부에 동일 부여한다.
-    이미 발급된 내역도 새 문서로 다시 발급된다 — 이전 유효본은 폐기되고 새 문서만
-    유효하다(issuance_service.issue_certificate 참고). 발급 단위가 문서이므로
-    A만 발급했다가 A~Z를 다시 발급하면 두 번째 문서는 A~Z 풀구성이다.
+    회원이 이미 발급한 이력도 폐기하지 않고 독립 문서로 새로 발급된다 —
+    issue_source='admin' 로 기록돼 회원의 권리 판정(신청 차단·재발급)에서
+    무시된다. 발급 단위가 문서이므로 A만 발급했다가 A~Z를 다시 발급하면
+    두 번째 문서는 A~Z 풀구성이다.
     """
     now = now_kst()
     results: list[dict] = []
@@ -134,14 +113,16 @@ async def issue_certificates(
                     "VALIDATION_ERROR",
                     message="선택한 이력이 해당 교육생의 것이 아니에요",
                 )
-            previous = await _find_active_certificate_by_record(db, record_id)
+            # 어드민 발급은 회원 유효본과 무관한 독립 문서다 — previous 를
+            # 연결하면 issue_certificate 가 회원본을 폐기하므로 링크하지 않는다.
+            # issue_type 도 항상 original — '재발급'은 WEB 경로 전용 개념
             request = CertificateRequest(
                 request_no=_request_no(),
                 trainee_id=trainee.id,
                 training_record_id=record.id,
                 requested_by=trainee.user_id,  # 연결 없는 이관분은 NULL
-                issue_type="reissue" if previous else "original",
-                previous_certificate_id=previous.id if previous else None,
+                issue_type="original",
+                previous_certificate_id=None,
                 membership_grade_id=trainee.membership_grade_id,
                 amount_krw=0,
                 currency="KRW",
@@ -153,7 +134,7 @@ async def issue_certificates(
             await db.flush()  # request.id 확정 — issue_certificate 가 참조
             certificates.append(
                 await issuance_service.issue_certificate(
-                    db, request, doc_no=doc_no
+                    db, request, doc_no=doc_no, issue_source="admin"
                 )
             )
         issuance_service.assign_bundle_no(certificates)

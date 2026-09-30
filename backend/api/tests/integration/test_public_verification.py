@@ -2,7 +2,11 @@
 
 from sqlalchemy import select
 
-from app.domain.certificate.model import Certificate, CertificateVerificationLog
+from app.domain.certificate.model import (
+    Certificate,
+    CertificateRequest,
+    CertificateVerificationLog,
+)
 from tests.integration.helpers import (
     admin_cookie,
     make_admin,
@@ -133,10 +137,7 @@ class TestVerify:
         cert, token = await _issued_cert(client, db)
         resp = await client.post(
             "/api/certificate-requests",
-            json={
-                "training_record_id": str(cert.training_record_id),
-                "issue_type": "reissue",
-            },
+            json={"training_record_id": str(cert.training_record_id)},
             cookies=member_cookie(token),
         )
         assert resp.status_code == 201, resp.json()
@@ -148,6 +149,14 @@ class TestVerify:
                 )
             )
         ).scalar_one()
+
+        # 재발급 체인은 레거시 전용 — 현행 API 는 previous 를 세우지 않는다.
+        # 레거시 데이터의 체인을 시뮬레이션한다
+        successor_request = await db.get(
+            CertificateRequest, successor.certificate_request_id
+        )
+        successor_request.previous_certificate_id = cert.id
+        await db.commit()
 
         # 레거시 데이터 시뮬레이션 — 이전 확인서를 superseded 로 만든다
         cert.status = "superseded"

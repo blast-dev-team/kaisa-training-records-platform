@@ -64,6 +64,11 @@ class Certificate(Base):
     issued_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     status: Mapped[str] = mapped_column(String(30), nullable=False, default="issued")
+    # 발급 경로 — 'member'(WEB 신청·결제) | 'admin'(어드민 발급 저장).
+    # 어드민 발급은 회원 유효본과 무관한 독립 문서다(폐기·권리 판정에서 서로 간섭 없음)
+    issue_source: Mapped[str] = mapped_column(
+        String(10), nullable=False, default="member", server_default="member"
+    )
     # WEB에서 PDF 저장한 기록 — 다운로드는 브라우저에서 일어나 로그 호출로만 인지
     downloaded_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     download_count: Mapped[int] = mapped_column(nullable=False, default=0)

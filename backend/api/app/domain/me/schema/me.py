@@ -117,8 +117,8 @@ class MyPaymentHistoryItem(BaseModel):
 class CertificatePriceResponse(BaseModel):
     training_record_id: uuid.UUID
     course_name: str
-    issue_type: str
     grade_name: str | None
+    # 가격은 항상 등급 단가 — 재발급 무료 규칙 폐지로 issue_type 입력 없음
     price_krw: int
     currency: str
 

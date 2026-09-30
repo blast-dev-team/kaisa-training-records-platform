@@ -139,14 +139,20 @@ class TestSuperPreview:
         ).scalar_one()
         assert count == 0
 
-    async def test_preview_forbidden_for_normal_member(self, client, db):
+    async def test_preview_other_record_not_found_for_normal_member(self, client, db):
+        """미리보기는 본인 이력만 — 남의(없는) 이력은 404 로 존재 여부를 숨긴다.
+
+        슈퍼 계정 전용이던 시절엔 일반 회원이면 무조건 403 이었지만, 미리보기가
+        웹 발급 플로우(열릴 때 미리보기 → 저장 시 발급)에 편입되며 본인 이력은
+        허용하고 타인 이력은 404 로 응답한다(발급 엔드포인트와 같은 컨벤션).
+        """
         grade = await make_grade(db, code="g-sup4", name="슈퍼대조군4")
         _, member = await make_trainee(db, grade.id, ci_raw="ci-sup4", trainee_no="TR-SUP-4")
         await db.commit()
         token = await _member_token_for(db, member)
 
         resp = await _preview(client, token, uuid.uuid4())
-        assert resp.status_code == 403
+        assert resp.status_code == 404
 
     async def test_preview_401_without_auth(self, client, db):
         resp = await client.get(

@@ -40,14 +40,11 @@ async def _member(db, *, record_count=1, price=0, code="g-doc", seq=1):
     return user, trainee, records, token
 
 
-async def _batch_request(client, token, records, issue_type="original"):
+async def _batch_request(client, token, records):
     return await client.post(
         "/api/certificate-requests/batch",
         json={
-            "items": [
-                {"training_record_id": str(record.id), "issue_type": issue_type}
-                for record in records
-            ]
+            "items": [{"training_record_id": str(record.id)} for record in records]
         },
         cookies=member_cookie(token),
     )
@@ -113,7 +110,6 @@ class TestIssuanceEventNumbering:
                 "course_name": "직업안전보건교육",
                 "institution_name": "카이사안전교육원",
                 "total_hours": 8,
-                "completed_hours": 8,
                 "started_at": "2026-09-01",
                 "ended_at": "2026-09-01",
             },
@@ -125,18 +121,16 @@ class TestIssuanceEventNumbering:
 
 
 class TestReissueNumbering:
-    async def test_reissue_gets_new_number_and_revokes_old(self, client, db):
-        """재발급은 새 문서라 새 번호 — 이전 발급분은 폐기된다."""
+    async def test_repeat_issue_gets_new_number_keeps_old(self, client, db):
+        """다시 발급하면 새 문서 번호 — 이전 문서는 환불 전까지 유효하다."""
         _, _, records, token = await _member(db, record_count=2, code="g-reissue")
         resp = await _batch_request(client, token, records)
         assert resp.status_code == 201, resp.json()
         original_docs = {cert.doc_no for cert in await _issued_certs(db)}
         (original_doc,) = original_docs
 
-        # 7일 내 재발급은 무료 — 내역 1개만 다시 발급 (발급 이벤트 1건 추가)
-        resp = await _batch_request(
-            client, token, records[:1], issue_type="reissue"
-        )
+        # 내역 1개만 다시 발급 — 새 발급 이벤트(새 문서)
+        resp = await _batch_request(client, token, records[:1])
         assert resp.status_code == 201, resp.json()
 
         certs = (
@@ -145,11 +139,11 @@ class TestReissueNumbering:
             .all()
         )
         assert len(certs) == 3
-        # 재발급은 이전 발급분을 폐기한다 — 유효 2 (원본 1 + 재발급 1), 폐기 1
-        assert sum(c.status == "issued" for c in certs) == 2
-        assert sum(c.status == "revoked" for c in certs) == 1
-        reissued = next(c for c in certs if c.doc_no != original_doc)
-        assert _seq(reissued.doc_no) == _seq(original_doc) + 1
+        # 이전 문서를 폐기하지 않는다 — 전부 유효
+        assert sum(c.status == "issued" for c in certs) == 3
+        assert sum(c.status == "revoked" for c in certs) == 0
+        new_doc = next(c for c in certs if c.doc_no != original_doc).doc_no
+        assert _seq(new_doc) == _seq(original_doc) + 1
 
 
 class TestAdminIssue:
@@ -189,15 +183,15 @@ class TestAdminIssue:
         assert {req.requested_by for req in requests_} == {user.id}
 
         mine = await client.get("/api/me/certificates", cookies=member_cookie(token))
-        rows = mine.json()
-        assert len(rows) == 2
-        assert {row["doc_no"] for row in rows} == {group["doc_no"]}
+        # 전부 어드민 발급분 — 회원 발급내역엔 보이지 않는다
+        assert mine.json() == []
 
-    async def test_admin_reissue_revokes_previous(self, client, db):
-        """기발급 내역 재발급 — 새 문서는 풀구성, 이전 문서는 폐기된다.
+    async def test_admin_reissue_creates_independent_document(self, client, db):
+        """기발급 내역 재발급 — 어드민 발급은 독립 문서, 이전 문서도 유효.
 
-        첫 발급 A(문서 1) → 두 번째 A~Z 선택이면 새 문서는 풀구성이고
-        첫 문서는 폐기된다(한 이력의 유효 확인서는 최신 1개).
+        어드민 발급은 previous 를 연결하지 않는다 — 첫 발급 A(문서 1) 후
+        A~Z 재발급해도 새 문서는 풀구성이고 첫 문서는 유효한 채 유지된다.
+        회원 유효본을 폐기하던 구 규칙은 issue_source 분리로 폐지됐다.
         """
         _, admin_token = await make_admin(db, email="doc-admin2@example.com")
         _, trainee, records, token = await _member(
@@ -231,15 +225,16 @@ class TestAdminIssue:
             .all()
         )
         assert len(certs) == 4
-        # 첫 문서(2건)는 폐기 — 새 문서(2건)만 유효
-        assert sum(c.status == "issued" for c in certs) == 2
-        assert sum(c.status == "revoked" for c in certs) == 2
+        # 두 문서 모두 유효 — 어드민 발급이 서로를 폐기하지 않는다
+        assert sum(c.status == "issued" for c in certs) == 4
+        assert sum(c.status == "revoked" for c in certs) == 0
         assert {c.doc_no for c in certs} == {first_doc, group["doc_no"]}
+        assert {c.issue_source for c in certs} == {"admin"}
         assert _seq(group["doc_no"]) == _seq(first_doc) + 1
 
-        # WEB 발급내역엔 이력 포함 전체가 보인다 — 구번호도 유지
+        # WEB 발급내역엔 어드민 발급분이 보이지 않는다 — 회원이 신청하지 않은 문서
         mine = await client.get("/api/me/certificates", cookies=member_cookie(token))
-        assert {row["doc_no"] for row in mine.json()} == {first_doc, group["doc_no"]}
+        assert mine.json() == []
 
     async def test_admin_issue_continues_web_numbering(self, client, db):
         """어드민 발급과 WEB 발급이 같은 채번열을 쓴다."""

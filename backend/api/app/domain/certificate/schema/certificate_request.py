@@ -7,8 +7,9 @@ from app.domain.certificate.schema.certificate import MyCertificateBrief
 
 
 class CertificateRequestCreate(BaseModel):
+    """발급 신청 — 재발급 개념 없음. 같은 이력도 매번 새 문서로 결제 발급한다."""
+
     training_record_id: uuid.UUID
-    issue_type: str = "original"
 
 
 class CertificateBatchRequestCreate(BaseModel):

@@ -302,6 +302,31 @@ class TestWebIssue:
         user = await db.get(User, trainee.user_id)
         return await member_token(db, user)
 
+    async def test_preview_own_record_without_issuing(self, client, db):
+        """미리보기는 그저 미리보기 — 본인 이력 조회되고 발급(INSERT)은 없다.
+
+        모달이 열릴 때 이 조회로 연다. 번호는 미부여("")로 돌고
+        실제 발급은 PDF 저장 시점에 일어난다.
+        """
+        record, _, _ = await _internal_record(db)
+        token = await self._owner_token(db, record)
+        await db.commit()
+
+        resp = await client.get(
+            "/api/me/completion-certificates/preview",
+            params={"training_record_id": str(record.id)},
+            cookies=member_cookie(token),
+        )
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["certificate_no"] == ""
+        assert body["trainee_name"] == "홍길동"
+
+        certs = (
+            (await db.execute(select(CompletionCertificate))).scalars().all()
+        )
+        assert len(certs) == 0
+
     async def test_issue_own_internal_completed(self, client, db):
         record, _, _ = await _internal_record(db)
         token = await self._owner_token(db, record)
@@ -357,7 +382,8 @@ class TestWebIssue:
         )
         assert len(certs) == 1
 
-    async def test_audit_records_web_actor(self, client, db):
+    async def test_web_issue_not_audited(self, client, db):
+        """웹 회원 발급은 감사로그에 남지 않는다 — 감사로그는 관리자 행동만 기록."""
         record, trainee, _ = await _internal_record(db)
         token = await self._owner_token(db, record)
         await db.commit()
@@ -370,10 +396,7 @@ class TestWebIssue:
                 )
             )
         ).scalars()
-        log = list(logs)[0]
-        assert log.actor_admin_id is None
-        assert log.after_data["actor"] == "web"
-        assert log.after_data["trainee_id"] == str(trainee.id)
+        assert list(logs) == []
 
     async def test_requires_member(self, client, db):
         record, _, _ = await _internal_record(db)
