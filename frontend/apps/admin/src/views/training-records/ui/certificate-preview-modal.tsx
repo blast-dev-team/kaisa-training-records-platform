@@ -173,7 +173,7 @@ export function CertificatePreviewModal({ isOpen, onClose, records, onDownloaded
     setIsDownloading(true);
     try {
       // 아직 발급 저장이 안 된 묶음을 먼저 확정 — 문서번호는 이 호출로 부여된다.
-      // 이미 발급된 내역이 섞여 있어도 그대로 새 문서에 발급된다(기존 유효본은 폐기됨)
+      // 이미 발급된 내역이 섞여 있어도 독립 문서로 새로 발급된다(회원 유효본은 폐기되지 않음)
       const pending = groups.filter((group) => !docNosRef.current[group.key]);
       if (pending.length > 0) {
         const { groups: results } = await postIssueCertificates({

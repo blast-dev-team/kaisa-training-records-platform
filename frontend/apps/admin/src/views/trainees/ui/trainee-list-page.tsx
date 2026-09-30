@@ -10,7 +10,6 @@ import { FilterBar, FilterRow } from "@/src/shared/ui/filter-bar";
 import { SearchInput } from "@/src/shared/ui/search-input";
 import { PageHead } from "@/src/shared/ui/page-head";
 import { PageContainer } from "@/src/shared/ui/page-container";
-import { Pill, statusTone } from "@/src/shared/ui/pill";
 import { Select } from "@/src/shared/ui/select";
 import { toYMD } from "@/src/shared/utils/format";
 import { Check, FileSpreadsheet, Minus, Plus } from "lucide-react";
@@ -19,7 +18,6 @@ import {
   deleteTrainee,
   membershipGradeQueries,
   traineeQueries,
-  TRAINEE_REVIEW_STATUS_LABELS,
   type Trainee,
 } from "@/src/entities/trainee";
 import { BulkEditDialog } from "./bulk-edit-dialog";
@@ -33,7 +31,6 @@ export function TraineeListPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const queryClient = useQueryClient();
   const q = searchParams.get("q") ?? "";
-  const status = searchParams.get("status") ?? "";
   const gradeId = searchParams.get("grade") ?? "";
   const page = Math.max(1, Number(searchParams.get("page") ?? 1) || 1);
   const limit = Math.max(1, Number(searchParams.get("limit") ?? 10) || 10);
@@ -50,13 +47,13 @@ export function TraineeListPage() {
   /** id → Trainee — 페이지를 넘어 선택해도 일괄 모달에서 프리필할 수 있게 객체를 저장 */
   const [selected, setSelected] = useState<Record<string, Trainee>>({});
 
-  const { data } = useQuery(traineeQueries.list({ q, reviewStatus: status, gradeId, page, limit }));
+  const { data } = useQuery(traineeQueries.list({ q, gradeId, page, limit }));
   const { data: grades } = useQuery(membershipGradeQueries.list(true));
 
   // 검색·필터가 바뀌면 행 집합의 의미가 달라진다 — 안 보이는 교육생이 남지 않게 선택 해제
   useEffect(() => {
     setSelected({});
-  }, [q, status, gradeId]);
+  }, [q, gradeId]);
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteTrainee(id),
@@ -173,16 +170,6 @@ export function TraineeListPage() {
           ),
       },
       {
-        accessorKey: "reviewStatus",
-        header: "인증상태",
-        meta: { width: 100 },
-        cell: ({ row }) => (
-          <Pill tone={statusTone(row.original.reviewStatus)}>
-            {TRAINEE_REVIEW_STATUS_LABELS[row.original.reviewStatus]}
-          </Pill>
-        ),
-      },
-      {
         accessorKey: "createdAt",
         header: "등록일",
         meta: { width: 110 },
@@ -275,7 +262,7 @@ export function TraineeListPage() {
           >
             <SearchInput
               className="w-64"
-              placeholder="성명(전체·부분검색 불가) · 감리원증번호"
+              placeholder="성명 (부분검색 불가) · 감리원증번호"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               onClear={() => updateParams({ q: null })}
@@ -294,18 +281,6 @@ export function TraineeListPage() {
           </form>
         </FilterRow>
         <FilterRow label="필터">
-          <Select
-            className="w-36"
-            value={status}
-            onChange={(e) => updateParams({ status: e.target.value || null })}
-          >
-            <option value="">인증상태 전체</option>
-            {Object.entries(TRAINEE_REVIEW_STATUS_LABELS).map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
-          </Select>
           <Select
             className="w-36"
             value={gradeId}

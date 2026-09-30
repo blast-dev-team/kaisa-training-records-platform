@@ -7,7 +7,8 @@ import { AppTable } from "@/src/shared/ui/app-table";
 import { Button } from "@/src/shared/ui/button";
 import { Dialog } from "@/src/shared/ui/dialog";
 import { FilterBar, FilterRow } from "@/src/shared/ui/filter-bar";
-import { Input } from "@/src/shared/ui/input";
+import { DateField } from "@/src/shared/ui/date-picker/date-field";
+import { adjustDateRange } from "@/src/shared/utils/date-range";
 import { SearchInput } from "@/src/shared/ui/search-input";
 import { Label } from "@/src/shared/ui/label";
 import { PageContainer } from "@/src/shared/ui/page-container";
@@ -165,19 +166,26 @@ export function PaymentOrderListPage() {
         </FilterRow>
         <FilterRow label="기간">
           <div className="flex items-center gap-1.5">
-            <Input
-              type="date"
+            <DateField
+              ariaLabel="시작일"
               className="w-36"
               value={from}
-              onChange={(e) => updateParams({ from: e.target.value || null })}
+              onChange={(v) => {
+                const r = adjustDateRange({ from, to }, "from", v);
+                updateParams({ from: r.from || null, to: r.to || null });
+              }}
+              maxDate={to || undefined}
             />
             <span className="text-ink-3">~</span>
-            <Input
-              type="date"
+            <DateField
+              ariaLabel="종료일"
               className="w-36"
               value={to}
-              min={from || undefined}
-              onChange={(e) => updateParams({ to: e.target.value || null })}
+              onChange={(v) => {
+                const r = adjustDateRange({ from, to }, "to", v);
+                updateParams({ from: r.from || null, to: r.to || null });
+              }}
+              minDate={from || undefined}
             />
           </div>
         </FilterRow>

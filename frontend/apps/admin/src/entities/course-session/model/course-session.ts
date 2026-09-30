@@ -27,8 +27,8 @@ export interface CourseSessionInput {
   course_id: string
   started_at?: string | null
   ended_at?: string | null
+  /** 시수는 총 시수 하나로 관리 — 인정 시수는 서버가 total_hours 로 채운다 */
   total_hours?: number | null
-  recognized_hours?: number | null
   is_active?: boolean
   source?: CourseSessionSource
   memo?: string | null
@@ -38,7 +38,6 @@ export interface CourseSessionUpdateInput {
   started_at?: string | null
   ended_at?: string | null
   total_hours?: number | null
-  recognized_hours?: number | null
   is_active?: boolean | null
   source?: CourseSessionSource | null
   memo?: string | null
@@ -50,7 +49,6 @@ export interface CourseSessionBulkUpdateItemInput {
   started_at?: string | null
   ended_at?: string | null
   total_hours?: number | null
-  recognized_hours?: number | null
   is_active?: boolean | null
   memo?: string | null
 }

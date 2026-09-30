@@ -162,7 +162,8 @@ export function SearchableSelect({
                     const created = await onCreate(search.trim());
                     setCreating(false);
                     if (created === null) return;
-                    onChange(created);
+                    // 생성값도 option 으로 넘긴다 — 소비자가 트리거 라벨을 만들 수 있게 (없으면 ••• 로 보임)
+                    onChange(created, { value: created, label: search.trim() });
                   } else {
                     // 자유 입력 값 — 분류·과정코드처럼 마스터 없이 텍스트로 쓰는 속성
                     onChange(search.trim(), {

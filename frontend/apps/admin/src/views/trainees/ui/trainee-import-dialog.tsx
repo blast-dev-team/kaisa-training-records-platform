@@ -4,6 +4,7 @@ import { toast } from "react-toastify";
 import { FileSpreadsheet, Upload } from "lucide-react";
 import { Dialog } from "@/src/shared/ui/dialog";
 import { Input } from "@/src/shared/ui/input";
+import { DateField } from "@/src/shared/ui/date-picker/date-field";
 import { Label } from "@/src/shared/ui/label";
 import { Pill } from "@/src/shared/ui/pill";
 import { Button } from "@/src/shared/ui/button";
@@ -297,12 +298,13 @@ export function TraineeImportDialog({ isOpen, onClose }: Props) {
                         value={d.phone}
                         onChange={(e) => setDraft(d.key, { phone: e.target.value })}
                       />
-                      <Input
-                        disabled={!d.include}
-                        type="date"
-                        value={d.birthDate}
-                        onChange={(e) => setDraft(d.key, { birthDate: e.target.value })}
-                      />
+                      <div className={d.include ? undefined : "pointer-events-none opacity-50"}>
+                        <DateField
+                          ariaLabel={`생년월일 ${d.key}`}
+                          value={d.birthDate}
+                          onChange={(v) => setDraft(d.key, { birthDate: v })}
+                        />
+                      </div>
                       <Input
                         disabled={!d.include}
                         value={d.certNo}
@@ -317,16 +319,13 @@ export function TraineeImportDialog({ isOpen, onClose }: Props) {
                           })
                         }
                       />
-                      <Input
-                        disabled={!d.include}
-                        type="date"
-                        value={d.certIssuedDate}
-                        onChange={(e) =>
-                          setDraft(d.key, {
-                            certIssuedDate: e.target.value,
-                          })
-                        }
-                      />
+                      <div className={d.include ? undefined : "pointer-events-none opacity-50"}>
+                        <DateField
+                          ariaLabel={`자격 발급일 ${d.key}`}
+                          value={d.certIssuedDate}
+                          onChange={(v) => setDraft(d.key, { certIssuedDate: v })}
+                        />
+                      </div>
                       {d.isDuplicate ? (
                         <Pill tone="warn">중복</Pill>
                       ) : d.errors.length > 0 ? (

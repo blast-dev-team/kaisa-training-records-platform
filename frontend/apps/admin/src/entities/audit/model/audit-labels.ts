@@ -12,7 +12,9 @@ export const ACTION_LABELS: Record<string, string> = {
   "admin_user.password_reset": "비밀번호 재설정",
   "allowed_email.created": "허용 이메일 추가",
   "allowed_email.deleted": "허용 이메일 삭제",
+  "certificate.issued": "확인서 발급",
   "certificate.revoked": "자격증 발급 취소",
+  "completion_certificate.issued": "수료증 발급",
   "pricing_rule.created": "발급 가격 규칙 등록",
   "pricing_rule.updated": "발급 가격 규칙 수정",
   "identity_review.approved": "본인인증 승인",
@@ -25,6 +27,7 @@ export const ACTION_LABELS: Record<string, string> = {
   "course.deleted": "교육과정 삭제",
   "course_session.created": "교육 일정 등록",
   "course_session.updated": "교육 일정 수정",
+  "course_session.bulk_updated": "교육 일정 일괄 수정",
   "course_session.deleted": "교육 일정 삭제",
   "session_name.created": "회차명 등록",
   "session_name.updated": "회차명 수정",
@@ -47,6 +50,7 @@ export const ENTITY_TYPE_LABELS: Record<string, string> = {
   admin_user: "관리자 계정",
   admin_allowed_email: "허용 이메일",
   certificate: "자격증",
+  completion_certificate: "수료증",
   certificate_pricing_rule: "발급 가격 규칙",
   identity_review: "본인인증 검토",
   training_institution: "훈련기관",
@@ -84,6 +88,43 @@ export const FIELD_LABELS: Record<string, string> = {
   code: "등급 코드",
   institution_id: "훈련기관",
   training_record_no: "교육 내역 번호",
+  // 확인서·수료증 발급 (certificate.issued / completion_certificate.issued after)
+  doc_no: "문서번호",
+  certificate_no: "수료증 번호",
+  record_count: "발급 내역 수",
+  source: "발급 경로",
+  actor: "발급 주체",
+  // 감리원 (trainee.created / trainee.grade_changed / trainee.deleted)
+  trainee_no: "감리원 번호",
+  grade_expires_at: "등급 만료일",
+  deleted_at: "삭제일",
+  // 환불 (payment_order.refunded)
+  revoked_certificates: "회수된 확인서 수",
+  // 교육 내역·일정 (training_record.updated / course_session.updated·bulk_updated after)
+  form_no: "서식 번호", // 폐지됨(migration d2f3a4b5c6d7) — 구 로그에만 남음
+  completion_status: "수료 상태",
+  supervisor_grade: "감리원 등급",
+  supervisor_cert_no: "감리원증 번호",
+  total_hours: "총 시수",
+  completed_hours: "이수 시간",
+  recognized_hours: "인정 시수",
+  ended_at: "종료일",
+  evidence_file_key: "증빙 파일",
+  // 감리원 (trainee.updated after)
+  cert_no: "감리원증 번호",
+  cert_issued_date: "감리원증 발급일",
+  birth_date: "생년월일",
+  // 훈련기관 (institution.created / institution.updated)
+  institution_type: "기관 구분",
+  institution_code: "기관 코드",
+  business_registration_no: "사업자등록번호",
+  contact_name: "담당자",
+  contact_phone: "담당자 연락처",
+  contact_email: "담당자 이메일",
+  address: "주소",
+  // 회원등급 (membership_grade.updated after)
+  description: "설명",
+  sort_order: "정렬 순서",
 };
 
 /** 필드 값 중 enum 성격인 것들 (컨텍스트 무관 공용) */
@@ -102,6 +143,24 @@ export const VALUE_LABELS: Record<string, string> = {
   staff: "실무자",
   true: "활성",
   false: "비활성",
+  // 수료 상태 (training_record.completion_status)
+  in_progress: "진행 중",
+  completed: "수료",
+  canceled: "취소",
+  // 내부·외부 구분 (training_record.source / course_session.source / institution_type)
+  // 사내·외부 — 각 화면(TRAINING_SOURCE_LABELS·기관 탭) 용어와 맞춤
+  internal: "사내",
+  external: "외부",
+  legacy_import: "이관",
+  // 관리자 계정 상태 (admin_user.status)
+  active: "활성",
+  disabled: "비활성",
+  // 허용 이메일 (admin_allowed_email.status)
+  joined: "가입",
+  // 등록 경로 (trainee.created source / certificate.issued source / 구 completion_certificate actor)
+  excel_import: "엑셀 일괄 등록",
+  admin: "어드민",
+  web: "웹 회원",
 };
 
 export const formatActionLabel = (action: string): string => ACTION_LABELS[action] ?? action;

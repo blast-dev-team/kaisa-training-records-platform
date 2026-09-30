@@ -11,7 +11,8 @@ import { FilterBar, FilterRow } from "@/src/shared/ui/filter-bar";
 import { PageContainer } from "@/src/shared/ui/page-container";
 import { PageHead } from "@/src/shared/ui/page-head";
 import { SearchableSelect, fetchOptions } from "@/src/shared/ui/searchable-select";
-import { Input } from "@/src/shared/ui/input";
+import { DateField } from "@/src/shared/ui/date-picker/date-field";
+import { adjustDateRange } from "@/src/shared/utils/date-range";
 import { SearchInput } from "@/src/shared/ui/search-input";
 import { Select } from "@/src/shared/ui/select";
 import { cn } from "@/src/shared/utils/cn";
@@ -262,10 +263,11 @@ export function TrainingRecordListPage() {
         ),
       },
       {
-        id: "supervisorCertNo",
+        // 감리원증 번호 — trainee 조인 값(현재 값). record 스냅샷 컬럼은 레거시
+        id: "traineeCertNo",
         header: "자격증번호",
         meta: { width: 200 },
-        cell: ({ row }) => row.original.supervisorCertNo ?? "—",
+        cell: ({ row }) => row.original.traineeCertNo ?? "—",
       },
       {
         accessorKey: "traineeBirthDate",
@@ -378,7 +380,7 @@ export function TrainingRecordListPage() {
                 setFormOpen(true);
               }}
             >
-              <Plus className="size-4" /> 이력 등록
+              <Plus className="size-4" /> 내역 등록
             </Button>
           </div>
         }
@@ -452,19 +454,26 @@ export function TrainingRecordListPage() {
         <FilterRow label="기간">
           <div className="flex flex-wrap items-center gap-2">
             <div className="flex items-center gap-1.5">
-              <Input
-                type="date"
+              <DateField
+                ariaLabel="시작일"
                 className="w-36"
                 value={effFrom}
-                onChange={(e) => updateParams({ from: e.target.value || null, period: null })}
+                onChange={(v) => {
+                  const r = adjustDateRange({ from: effFrom, to: effTo }, "from", v);
+                  updateParams({ from: r.from || null, to: r.to || null, period: null });
+                }}
+                maxDate={effTo || undefined}
               />
               <span className="text-ink-3">~</span>
-              <Input
-                type="date"
+              <DateField
+                ariaLabel="종료일"
                 className="w-36"
                 value={effTo}
-                min={effFrom || undefined}
-                onChange={(e) => updateParams({ to: e.target.value || null, period: null })}
+                onChange={(v) => {
+                  const r = adjustDateRange({ from: effFrom, to: effTo }, "to", v);
+                  updateParams({ from: r.from || null, to: r.to || null, period: null });
+                }}
+                minDate={effFrom || undefined}
               />
             </div>
             {/* 조회기간 칩 — 직접 지정 시 칩은 해제 (web 교육이력과 동일) */}

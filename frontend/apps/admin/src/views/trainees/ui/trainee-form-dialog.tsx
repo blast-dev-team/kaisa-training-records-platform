@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { Dialog } from "@/src/shared/ui/dialog";
 import { Input } from "@/src/shared/ui/input";
+import { DateField } from "@/src/shared/ui/date-picker/date-field";
 import { Label } from "@/src/shared/ui/label";
 import { Select } from "@/src/shared/ui/select";
 import {
@@ -136,7 +137,7 @@ export function TraineeFormDialog({ isOpen, onClose, trainee }: Props) {
           </div>
           <div className="flex flex-col gap-1.5">
             <Label>생년월일</Label>
-            <Input type="date" value={birthDate} onChange={(e) => setBirthDate(e.target.value)} />
+            <DateField ariaLabel="생년월일" value={birthDate} onChange={setBirthDate} />
           </div>
         </div>
         <div className="grid grid-cols-2 gap-3">
@@ -171,10 +172,10 @@ export function TraineeFormDialog({ isOpen, onClose, trainee }: Props) {
             {isAnnual && (
               <div className="flex flex-col gap-1.5">
                 <Label>만료일</Label>
-                <Input
-                  type="date"
+                <DateField
+                  ariaLabel="만료일"
                   value={expiresAt}
-                  onChange={(e) => setExpiresAt(e.target.value)}
+                  onChange={setExpiresAt}
                 />
                 <p className="text-[11px] text-ink-3">
                   만료일이 지나면 자동으로 일반 등급으로 바뀌어요

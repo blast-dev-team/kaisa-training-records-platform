@@ -16,9 +16,13 @@ export interface CertificateDto {
   issued_at: string | null
   expires_at: string | null
   status: 'issued' | 'revoked' | 'superseded'
+  /** 발급 경로 — 'member'(WEB 신청·결제) | 'admin'(어드민 발급 저장) */
+  issue_source: 'member' | 'admin'
   downloaded_at: string | null
   download_count: string | number | null
   revoked_at: string | null
   revoked_reason: string | null
+  /** 이 발급(묶음)에 담긴 교육내역 수 — 단건 1 */
+  member_count: string | number
 }
 

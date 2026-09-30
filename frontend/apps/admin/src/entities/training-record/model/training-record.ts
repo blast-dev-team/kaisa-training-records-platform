@@ -32,6 +32,7 @@ export interface TrainingRecord {
   institutionType: "internal" | "external" | null;
   courseName: string;
   institutionName: string | null;
+  /** 감리원 표기 — trainee 조인 값(현재 값). record 스냅샷 컬럼은 레거시 */
   supervisorGrade: string | null;
   supervisorCertNo: string | null;
   totalHours: number | null;
@@ -47,16 +48,13 @@ export interface TrainingRecord {
 
 export interface TrainingRecordInput {
   trainee_id: string;
-  /** 과정 마스터 연결 시 과정명·기관명·total_hours는 마스터에서 스냅샷 */
-  course_id?: string | null;
-  institution_id?: string | null;
-  /** 미연결 시 직접 입력 (course_id·course_name 중 최소 하나 필수) */
+  /** 과정·기관 마스터 연결 — 과정명·기관명·시수는 마스터에서 스냅샷 */
+  course_id: string | null;
+  institution_id: string | null;
   course_name?: string;
   institution_name?: string;
-  supervisor_grade?: string | null;
-  supervisor_cert_no?: string | null;
+  /** 시수는 총 시수 하나로 관리 — 이수 시수는 서버가 total_hours 로 채운다 */
   total_hours?: number | null;
-  completed_hours?: number | null;
   started_at?: string | null;
   ended_at?: string | null;
   source: TrainingSource;

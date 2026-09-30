@@ -1,11 +1,5 @@
+/** 승인 여부는 발급 게이트용 — 감리원 관리 목록에선 표기하지 않는다 (실데이터 전부 approved) */
 export type TraineeReviewStatus = 'unverified' | 'pending' | 'approved' | 'rejected'
-
-export const TRAINEE_REVIEW_STATUS_LABELS: Record<TraineeReviewStatus, string> = {
-  unverified: '미인증',
-  pending: '심사중',
-  approved: '승인',
-  rejected: '거절',
-}
 
 export interface Trainee {
   id: string

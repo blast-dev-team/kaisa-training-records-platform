@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { Dialog } from "@/src/shared/ui/dialog";
 import { Input } from "@/src/shared/ui/input";
+import { DateField } from "@/src/shared/ui/date-picker/date-field";
 import { Label } from "@/src/shared/ui/label";
 import {
   courseSessionQueries,
@@ -24,7 +25,6 @@ interface RowDraft {
   startedAt: string;
   endedAt: string;
   totalHours: string;
-  recognizedHours: string;
   isActive: boolean;
   memo: string;
 }
@@ -33,7 +33,6 @@ const seedRow = (s: CourseSession): RowDraft => ({
   startedAt: s.startedAt ?? "",
   endedAt: s.endedAt ?? "",
   totalHours: s.totalHours != null ? String(s.totalHours) : "",
-  recognizedHours: s.recognizedHours != null ? String(s.recognizedHours) : "",
   isActive: s.isActive,
   memo: s.memo ?? "",
 });
@@ -46,8 +45,6 @@ const diffItem = (s: CourseSession, d: RowDraft): CourseSessionBulkUpdateItemInp
   if (d.endedAt !== (s.endedAt ?? "")) item.ended_at = d.endedAt === "" ? null : d.endedAt;
   if (d.totalHours !== (s.totalHours != null ? String(s.totalHours) : ""))
     item.total_hours = d.totalHours === "" ? null : Number(d.totalHours);
-  if (d.recognizedHours !== (s.recognizedHours != null ? String(s.recognizedHours) : ""))
-    item.recognized_hours = d.recognizedHours === "" ? null : Number(d.recognizedHours);
   if (d.isActive !== s.isActive) item.is_active = d.isActive;
   if (d.memo !== (s.memo ?? "")) item.memo = d.memo === "" ? null : d.memo;
   return Object.keys(item).length > 1 ? item : null;
@@ -73,7 +70,6 @@ export function CourseSessionBulkEditDialog({ isOpen, onClose, sessions, onDone 
         startedAt: "",
         endedAt: "",
         totalHours: "",
-        recognizedHours: "",
         isActive: true,
         memo: "",
         ...prev[id],
@@ -146,22 +142,29 @@ export function CourseSessionBulkEditDialog({ isOpen, onClose, sessions, onDone 
                 <span className="text-[13px] font-semibold text-ink">{s.courseName}</span>
                 <span className="text-[11px] text-ink-3">{s.institutionName}</span>
               </div>
-              <div className="grid grid-cols-4 gap-2">
+              <div className="grid grid-cols-3 gap-2">
                 <div className="space-y-1">
                   <Label>시작일</Label>
-                  <Input
-                    type="date"
+                  <DateField
+                    ariaLabel={`시작일 ${s.id}`}
                     value={d.startedAt}
-                    onChange={(e) => setRow(s.id, { startedAt: e.target.value })}
+                    onChange={(v) => {
+                      setRow(s.id, { startedAt: v });
+                      if (v && d.endedAt && v > d.endedAt) setRow(s.id, { endedAt: v });
+                    }}
+                    maxDate={d.endedAt || undefined}
                   />
                 </div>
                 <div className="space-y-1">
                   <Label>종료일</Label>
-                  <Input
-                    type="date"
+                  <DateField
+                    ariaLabel={`종료일 ${s.id}`}
                     value={d.endedAt}
-                    min={d.startedAt || undefined}
-                    onChange={(e) => setRow(s.id, { endedAt: e.target.value })}
+                    onChange={(v) => {
+                      setRow(s.id, { endedAt: v });
+                      if (v && d.startedAt && v < d.startedAt) setRow(s.id, { startedAt: v });
+                    }}
+                    minDate={d.startedAt || undefined}
                   />
                 </div>
                 <div className="space-y-1">
@@ -171,15 +174,6 @@ export function CourseSessionBulkEditDialog({ isOpen, onClose, sessions, onDone 
                     min={0}
                     value={d.totalHours}
                     onChange={(e) => setRow(s.id, { totalHours: e.target.value })}
-                  />
-                </div>
-                <div className="space-y-1">
-                  <Label>인정 시수</Label>
-                  <Input
-                    type="number"
-                    min={0}
-                    value={d.recognizedHours}
-                    onChange={(e) => setRow(s.id, { recognizedHours: e.target.value })}
                   />
                 </div>
               </div>

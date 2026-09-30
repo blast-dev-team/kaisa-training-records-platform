@@ -22,8 +22,10 @@ export function mapCertificate(dto: CertificateDto): Certificate {
     downloadCount: dto.download_count != null ? Number(dto.download_count) : 0,
     expiresAt: dto.expires_at,
     status: dto.status,
+    issueSource: dto.issue_source ?? 'member',
     revokedAt: dto.revoked_at,
     revokedReason: dto.revoked_reason,
+    memberCount: dto.member_count != null ? Number(dto.member_count) : 1,
   }
 }
 

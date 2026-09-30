@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { Dialog } from "@/src/shared/ui/dialog";
 import { Input } from "@/src/shared/ui/input";
+import { DateField } from "@/src/shared/ui/date-picker/date-field";
 import { Label } from "@/src/shared/ui/label";
 import {
   postTraineeBulkUpdate,
@@ -113,10 +114,10 @@ export function BulkEditDialog({ isOpen, onClose, trainees, onDone }: Props) {
                 className="grid grid-cols-[110px_1fr_150px_170px] items-center gap-2 rounded-lg border border-line px-2.5 py-2"
               >
                 <Input value={row.name} onChange={(e) => setRow(t.id, { name: e.target.value })} />
-                <Input
-                  type="date"
+                <DateField
+                  ariaLabel={`생년월일 ${t.id}`}
                   value={row.birthDate}
-                  onChange={(e) => setRow(t.id, { birthDate: e.target.value })}
+                  onChange={(v) => setRow(t.id, { birthDate: v })}
                 />
                 <Input
                   value={row.phone}

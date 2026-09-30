@@ -4,7 +4,7 @@ import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-q
 import { toast } from "react-toastify";
 import { Check, ChevronDown, ChevronUp, FileSpreadsheet, X } from "lucide-react";
 import { Dialog } from "@/src/shared/ui/dialog";
-import { Input } from "@/src/shared/ui/input";
+import { DateField } from "@/src/shared/ui/date-picker/date-field";
 import { SearchInput } from "@/src/shared/ui/search-input";
 import { Label } from "@/src/shared/ui/label";
 import { Textarea } from "@/src/shared/ui/textarea";
@@ -62,7 +62,6 @@ export function AttachTraineesDialog({ isOpen, onClose, session }: Props) {
   const [searchInput, setSearchInput] = useState("");
   const [selected, setSelected] = useState<Record<string, string>>({});
   const search = useDebouncedValue(searchInput.trim(), 300);
-  const [hours, setHours] = useState("");
   const [memo, setMemo] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [uploads, setUploads] = useState<MatchUpload[]>([]);
@@ -128,7 +127,6 @@ export function AttachTraineesDialog({ isOpen, onClose, session }: Props) {
     }
     setSearchInput("");
     setSelected({});
-    setHours(session?.recognizedHours != null ? String(session.recognizedHours) : "");
     setMemo("");
     setUploads([]);
     setDraftNames({});
@@ -221,7 +219,6 @@ export function AttachTraineesDialog({ isOpen, onClose, session }: Props) {
       postTrainingRecordBulk({
         session_id: session!.id,
         trainee_ids: Object.keys(selected),
-        completed_hours: hours === "" ? null : Number(hours),
         memo: memo.trim() || null,
       }),
     onSuccess: ({ created, skipped }) => {
@@ -480,17 +477,16 @@ export function AttachTraineesDialog({ isOpen, onClose, session }: Props) {
                                   }))
                                 }
                               />
-                              <input
-                                className="h-6 min-w-0 rounded border border-line bg-white px-1.5 text-[12px]"
-                                type="date"
-                                placeholder="생년월일"
+                              <DateField
+                                ariaLabel={`생년월일 ${u.key}`}
+                                triggerClassName="h-6 rounded px-1.5 text-[12px]"
                                 value={draftDetails[u.key]?.birthDate ?? ""}
-                                onChange={(e) =>
+                                onChange={(v) =>
                                   setDraftDetails((prev) => ({
                                     ...prev,
                                     [u.key]: {
                                       phone: draftDetails[u.key]?.phone ?? "",
-                                      birthDate: e.target.value,
+                                      birthDate: v,
                                       certNo: draftDetails[u.key]?.certNo ?? "",
                                     },
                                   }))
@@ -661,11 +657,9 @@ export function AttachTraineesDialog({ isOpen, onClose, session }: Props) {
                 : "— 일정의 구분을 따라 사내로 기록돼요"}
             </span>
           </label>
-          <div className="flex flex-col gap-1.5">
-            <Label>이수 시수</Label>
-            <Input type="number" min={0} value={hours} onChange={(e) => setHours(e.target.value)} />
-            <p className="text-[11px] text-ink-3">기본값: 일정 인정 시수</p>
-          </div>
+          <p className="text-[11px] text-ink-3">
+            이수 시수는 일정의 총 시수로 기록돼요
+          </p>
           <div className="flex flex-col gap-1.5">
             <Label>메모</Label>
             <Textarea

@@ -6,6 +6,7 @@ import { Dialog } from "@/src/shared/ui/dialog";
 import { Input } from "@/src/shared/ui/input";
 import { SearchInput } from "@/src/shared/ui/search-input";
 import { Label } from "@/src/shared/ui/label";
+import { DateField } from "@/src/shared/ui/date-picker/date-field";
 import { Select } from "@/src/shared/ui/select";
 import {
   SearchableSelect,
@@ -14,7 +15,12 @@ import {
 } from "@/src/shared/ui/searchable-select";
 import { Textarea } from "@/src/shared/ui/textarea";
 import { useDebouncedValue } from "@/src/shared/hooks/use-debounced-value";
-import { getCourseDetail, type Course } from "@/src/entities/institution";
+import {
+  getCourseDetail,
+  patchCourse,
+  postCourse,
+  postInstitution,
+} from "@/src/entities/institution";
 import {
   patchTrainingRecord,
   postTrainingRecord,
@@ -43,12 +49,9 @@ interface Props {
   presetTrainee?: TraineeEntity | null;
 }
 
-const MANUAL = "__manual__";
-
-const courseOptionsFetcher = fetchOptions("/courses", {}, (c) => ({
-  value: c.id as string,
-  label: c.name as string,
-  hint: c.institution_name as string | undefined,
+const institutionFetcher = fetchOptions("/institutions", {}, (i) => ({
+  value: i.id as string,
+  label: i.name as string,
 }));
 
 export function TrainingRecordFormDialog({
@@ -67,11 +70,13 @@ export function TrainingRecordFormDialog({
   const [creatingTrainee, setCreatingTrainee] = useState(false);
   const [newTraineeBirth, setNewTraineeBirth] = useState("");
   const [newTraineePhone, setNewTraineePhone] = useState("");
-  const [courseId, setCourseId] = useState<string>(MANUAL);
-  const [courseName, setCourseName] = useState("");
-  const [institutionName, setInstitutionName] = useState("");
+  const [institutionId, setInstitutionId] = useState("");
+  const [institutionLabel, setInstitutionLabel] = useState<string | null>(null);
+  const [courseId, setCourseId] = useState("");
+  const [courseLabel, setCourseLabel] = useState<string | null>(null);
+  /** 이 세션에서 그 자리 생성한 과정 — 저장 시 최종 총 시수를 마스터에 반영한다 */
+  const [createdCourseId, setCreatedCourseId] = useState<string | null>(null);
   const [totalHours, setTotalHours] = useState("");
-  const [completedHours, setCompletedHours] = useState("");
   const [source, setSource] = useState<TrainingSource>(defaultSource);
   const [completionStatus, setCompletionStatus] = useState<CompletionStatus>("completed");
   const [startedAt, setStartedAt] = useState("");
@@ -120,6 +125,42 @@ export function TrainingRecordFormDialog({
     onError: (e: Error) => toast.error(e.message),
   });
 
+  // 검색 결과에 없는 기관·과정을 그 자리에서 만든다 — 기관·과정 마스터와 연동
+  const createInstitution = async (name: string): Promise<string | null> => {
+    try {
+      const created = await postInstitution({ name });
+      queryClient.invalidateQueries({ queryKey: ["institutions"] });
+      setInstitutionLabel(name);
+      return created.id;
+    } catch (e) {
+      toast.error((e as Error).message);
+      return null;
+    }
+  };
+
+  const createCourse = async (name: string): Promise<string | null> => {
+    if (!institutionId) {
+      toast.error("기관을 먼저 선택해 주세요");
+      return null;
+    }
+    try {
+      const created = await postCourse({
+        institution_id: institutionId,
+        name,
+        session_name_id: null,
+        total_hours: totalHours === "" ? 0 : Number(totalHours),
+        is_external: source === "external",
+      });
+      queryClient.invalidateQueries({ queryKey: ["courses"] });
+      setCourseLabel(name);
+      setCreatedCourseId(created.id);
+      return created.id;
+    } catch (e) {
+      toast.error((e as Error).message);
+      return null;
+    }
+  };
+
   // 열릴 때마다 폼 초기화 — record 있으면 수정값, 없으면 신규 기본값
   useEffect(() => {
     if (!isOpen) return;
@@ -128,6 +169,7 @@ export function TrainingRecordFormDialog({
     setCreatingTrainee(false);
     setNewTraineeBirth("");
     setNewTraineePhone("");
+    setCreatedCourseId(null);
     if (record) {
       setTrainee(
         record.traineeId
@@ -151,23 +193,30 @@ export function TrainingRecordFormDialog({
             }
           : null,
       );
-      setCourseId(record.courseId ?? MANUAL);
-      setCourseName(record.courseName);
-      setInstitutionName(record.institutionName ?? "");
+      setInstitutionId(record.institutionId ?? "");
+      setInstitutionLabel(record.institutionName ?? "");
+      setCourseId(record.courseId ?? "");
+      setCourseLabel(record.courseName);
       setTotalHours(record.totalHours !== null ? String(record.totalHours) : "");
-      setCompletedHours(record.completedHours !== null ? String(record.completedHours) : "");
       setSource(record.source);
       setCompletionStatus(record.completionStatus);
       setStartedAt(record.startedAt ?? "");
       setEndedAt(record.endedAt ?? "");
       setMemo(record.memo ?? "");
+      if (record.courseId && !record.institutionId) {
+        // courseId 만 있고 기관 연결이 없는 레거시 이력 — 과정 상세에서 기관을 채운다
+        getCourseDetail(record.courseId).then((course) => {
+          setInstitutionId(course.institutionId);
+          setInstitutionLabel(course.institutionName);
+        });
+      }
     } else {
       setTrainee(presetTrainee ?? null);
-      setCourseId(MANUAL);
-      setCourseName("");
-      setInstitutionName("");
+      setInstitutionId("");
+      setInstitutionLabel(null);
+      setCourseId("");
+      setCourseLabel(null);
       setTotalHours("");
-      setCompletedHours("");
       setSource(defaultSource);
       setCompletionStatus("completed");
       setStartedAt("");
@@ -176,31 +225,60 @@ export function TrainingRecordFormDialog({
     }
   }, [isOpen, record, presetTrainee, defaultSource]);
 
-  // 과정 마스터 선택 → 과정명·기관명·총시수 스냅샷 자동 채움
+  // 기관 변경 — 과정은 기관 소속이라 선택을 무효로 한다
+  const handleInstitutionChange = (value: string | null, option?: SearchableOption) => {
+    setInstitutionId(value ?? "");
+    setInstitutionLabel(option?.label ?? null);
+    setCourseId("");
+    setCourseLabel(null);
+  };
+
+  // 과정 마스터 선택 → 총 시수 스냅샷 자동 채움
   const handleCourseChange = (value: string | null, option?: SearchableOption) => {
-    setCourseId(value ?? MANUAL);
+    setCourseId(value ?? "");
+    setCourseLabel(option?.label ?? null);
+    // 생성한 과정에서 다른 과정으로 바꾸면 마스터 반영 대상에서 뺀다
+    if (createdCourseId !== null && value !== createdCourseId) setCreatedCourseId(null);
     if (!value) return;
     // 스냅샷 채움은 과정 상세 조회 후 — 라벨만으로는 시수를 모른다
-    void option;
     getCourseDetail(value).then((course) => {
-      setCourseName(course.name);
-      setInstitutionName(course.institutionName ?? "");
-      setTotalHours(course.totalHours !== null ? String(course.totalHours) : "");
-      setCompletedHours((prev) =>
-        prev === "" && course.totalHours !== null ? String(course.totalHours) : prev,
-      );
+      setCourseLabel(course.name);
+      // 방금 그 자리에서 만든 과정은 시수를 덮지 않는다 — 저장 시 최종 입력값으로 마스터를 맞춘다
+      if (value !== createdCourseId) {
+        setTotalHours(course.totalHours !== null ? String(course.totalHours) : "");
+      }
     });
   };
 
+  // 기관별 과정 검색 — 기관이 바뀌면 과정 목록도 새로 불러온다
+  const courseFetcher = useMemo(
+    () =>
+      fetchOptions("/courses", institutionId ? { institution_id: institutionId } : {}, (c) => ({
+        value: c.id as string,
+        label: c.name as string,
+      })),
+    [institutionId],
+  );
+
   const mutation = useMutation({
     mutationFn: async () => {
+      // 그 자리에서 만든 과정은 저장 시 최종 총 시수를 마스터에 반영 — 생성 시점엔 시수가 비어 있을 수 있다
+      if (createdCourseId) {
+        await patchCourse(createdCourseId, {
+          institution_id: institutionId,
+          name: courseLabel?.trim() || "과정",
+          session_name_id: null,
+          total_hours: totalHours === "" ? 0 : Number(totalHours),
+          is_external: source === "external",
+          is_active: true,
+        });
+        queryClient.invalidateQueries({ queryKey: ["courses"] });
+      }
       const input = {
         trainee_id: trainee!.id,
-        course_id: courseId !== MANUAL ? courseId : null,
-        course_name: courseName.trim(),
-        institution_name: institutionName.trim() || undefined,
+        course_id: courseId || null,
+        institution_id: institutionId || null,
         total_hours: totalHours === "" ? null : Number(totalHours),
-        completed_hours: completedHours === "" ? null : Number(completedHours),
         started_at: startedAt || null,
         ended_at: endedAt || null,
         source,
@@ -219,8 +297,8 @@ export function TrainingRecordFormDialog({
   });
 
   const canSubmit = useMemo(
-    () => !!trainee && courseName.trim().length > 0 && !mutation.isPending,
-    [trainee, courseName, mutation.isPending],
+    () => !!trainee && !!institutionId && !!courseId && !mutation.isPending,
+    [trainee, institutionId, courseId, mutation.isPending],
   );
 
   return (
@@ -232,7 +310,7 @@ export function TrainingRecordFormDialog({
       description={
         record
           ? `${record.traineeCertNo ?? ""} ${record.traineeName ?? ""}`
-          : "과정을 선택하면 과정명·기관·시수가 자동으로 채워져요"
+          : "기관·과정을 선택하면 시수가 자동으로 채워져요. 없는 값은 검색어로 바로 추가돼요"
       }
       actions={[
         { label: "취소", onClick: onClose },
@@ -332,11 +410,10 @@ export function TrainingRecordFormDialog({
                     <div className="space-y-2 border-t border-line px-3 py-2">
                       <div className="grid grid-cols-3 gap-2">
                         <Input value={traineeSearch.trim()} disabled aria-label="성명" />
-                        <Input
-                          type="date"
+                        <DateField
+                          ariaLabel="생년월일"
                           value={newTraineeBirth}
-                          onChange={(e) => setNewTraineeBirth(e.target.value)}
-                          aria-label="생년월일"
+                          onChange={setNewTraineeBirth}
                         />
                         <Input
                           placeholder="전화번호 (선택)"
@@ -364,35 +441,38 @@ export function TrainingRecordFormDialog({
           )}
         </div>
 
-        {/* 과정 — 마스터 연결 or 직접 입력 */}
+        {/* 기관·과정 — 마스터 드롭다운, 없는 값은 그 자리에서 생성해 마스터와 연동 */}
+        <div className="space-y-1.5">
+          <Label>기관</Label>
+          <SearchableSelect
+            value={institutionId || null}
+            onChange={handleInstitutionChange}
+            fetchPage={institutionFetcher}
+            queryKeyPrefix={["options", "record-institutions"]}
+            placeholder="기관 검색 · 선택"
+            selectedLabel={institutionLabel ?? undefined}
+            clearable
+            onCreate={createInstitution}
+            createLabel={(q) => `'${q}' 새 기관으로 추가`}
+          />
+        </div>
         <div className="space-y-1.5">
           <Label>과정</Label>
           <SearchableSelect
-            value={courseId === MANUAL ? null : courseId}
+            value={courseId || null}
             onChange={handleCourseChange}
-            fetchPage={courseOptionsFetcher}
-            queryKeyPrefix={["options", "record-courses"]}
-            placeholder="과정 검색 · 선택 (직접 입력은 아래)"
-            selectedLabel={record?.courseName ?? undefined}
+            fetchPage={courseFetcher}
+            queryKeyPrefix={["options", "record-courses", institutionId || "all"]}
+            placeholder={institutionId ? "과정 검색 · 선택" : "기관을 먼저 선택하세요"}
+            selectedLabel={courseLabel ?? undefined}
+            disabled={!institutionId}
             clearable
+            onCreate={createCourse}
+            createLabel={(q) => `'${q}' 새 과정으로 추가`}
           />
           <p className="text-[11px] text-ink-3">
-            선택 해제 시 직접 입력 — 목록에 없는 교육은 직접 입력을 사용하세요
+            과정을 선택하면 총 시수가 자동으로 채워져요. 없는 기관·과정은 검색어로 바로 추가할 수 있어요
           </p>
-          {courseId === MANUAL && (
-            <div className="grid grid-cols-2 gap-2 pt-1">
-              <Input
-                placeholder="과정명"
-                value={courseName}
-                onChange={(e) => setCourseName(e.target.value)}
-              />
-              <Input
-                placeholder="기관명"
-                value={institutionName}
-                onChange={(e) => setInstitutionName(e.target.value)}
-              />
-            </div>
-          )}
         </div>
 
         <div className="grid grid-cols-1 gap-2">
@@ -411,40 +491,40 @@ export function TrainingRecordFormDialog({
         <div className="grid grid-cols-2 gap-2">
           <div className="space-y-1.5">
             <Label>시작일</Label>
-            <Input type="date" value={startedAt} onChange={(e) => setStartedAt(e.target.value)} />
+            <DateField
+              ariaLabel="시작일"
+              value={startedAt}
+              onChange={(v) => {
+                setStartedAt(v);
+                if (v && endedAt && v > endedAt) setEndedAt(v);
+              }}
+              maxDate={endedAt || undefined}
+            />
           </div>
           <div className="space-y-1.5">
             <Label>종료일</Label>
-            <Input
-              type="date"
+            <DateField
+              ariaLabel="종료일"
               value={endedAt}
-              min={startedAt || undefined}
-              onChange={(e) => setEndedAt(e.target.value)}
+              onChange={(v) => {
+                setEndedAt(v);
+                if (v && startedAt && v < startedAt) setStartedAt(v);
+              }}
+              minDate={startedAt || undefined}
             />
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-2">
-          <div className="space-y-1.5">
-            <Label>총 시수</Label>
-            <Input
-              type="number"
-              min={0}
-              placeholder="예: 8"
-              value={totalHours}
-              onChange={(e) => setTotalHours(e.target.value)}
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Label>이수 시수</Label>
-            <Input
-              type="number"
-              min={0}
-              placeholder="예: 8"
-              value={completedHours}
-              onChange={(e) => setCompletedHours(e.target.value)}
-            />
-          </div>
+        <div className="space-y-1.5">
+          <Label>총 시수</Label>
+          <Input
+            type="number"
+            min={0}
+            placeholder="예: 8"
+            value={totalHours}
+            onChange={(e) => setTotalHours(e.target.value)}
+          />
+          <p className="text-[11px] text-ink-3">입력한 총 시수가 이수 시수로 인정돼요</p>
         </div>
 
         <div className="space-y-1.5">
