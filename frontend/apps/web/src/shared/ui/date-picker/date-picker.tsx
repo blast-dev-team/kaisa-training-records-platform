@@ -1,6 +1,11 @@
 import { useMemo, useState } from "react";
 
-import { CaretLeftIcon, CaretRightIcon } from "@/src/shared/icon";
+import {
+  CaretDoubleLeftIcon,
+  CaretDoubleRightIcon,
+  CaretLeftIcon,
+  CaretRightIcon,
+} from "@/src/shared/icon";
 import { cn } from "@/src/shared/utils/cn";
 
 const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"] as const;
@@ -82,28 +87,48 @@ export function DatePicker({
         className,
       )}
     >
-      {/* 헤더 — 이전/다음 월 이동 + 연도·월 표시 */}
+      {/* 헤더 — 이전/다음 연도·월 이동 + 연도·월 표시 */}
       <div className="flex w-full items-center justify-between px-1">
-        <button
-          type="button"
-          aria-label="이전 달"
-          onClick={() => navigateMonth(-1)}
-          className="size-6 shrink-0 cursor-pointer text-gray-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
-        >
-          <CaretLeftIcon />
-        </button>
+        <div className="flex items-center">
+          <button
+            type="button"
+            aria-label="이전 해"
+            onClick={() => navigateMonth(-12)}
+            className="size-6 shrink-0 cursor-pointer text-gray-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
+          >
+            <CaretDoubleLeftIcon />
+          </button>
+          <button
+            type="button"
+            aria-label="이전 달"
+            onClick={() => navigateMonth(-1)}
+            className="size-6 shrink-0 cursor-pointer text-gray-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
+          >
+            <CaretLeftIcon />
+          </button>
+        </div>
         <div className="flex flex-col items-center leading-normal tracking-[-0.03em]">
           <p className="text-xs font-semibold text-gray-400">{viewYear}</p>
           <p className="text-xl font-semibold text-black">{viewMonth + 1}월</p>
         </div>
-        <button
-          type="button"
-          aria-label="다음 달"
-          onClick={() => navigateMonth(1)}
-          className="size-6 shrink-0 cursor-pointer text-gray-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
-        >
-          <CaretRightIcon />
-        </button>
+        <div className="flex items-center">
+          <button
+            type="button"
+            aria-label="다음 달"
+            onClick={() => navigateMonth(1)}
+            className="size-6 shrink-0 cursor-pointer text-gray-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
+          >
+            <CaretRightIcon />
+          </button>
+          <button
+            type="button"
+            aria-label="다음 해"
+            onClick={() => navigateMonth(12)}
+            className="size-6 shrink-0 cursor-pointer text-gray-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
+          >
+            <CaretDoubleRightIcon />
+          </button>
+        </div>
       </div>
 
       {/* 요일 헤더 */}

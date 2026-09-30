@@ -24,8 +24,6 @@ import {
 export interface IssuePaymentModalProps {
   /** 발급 대상 교육이력 ID 목록 — 1건이면 단건과 동일, N건이면 일괄 결제 */
   recordIds: string[];
-  /** original: 결제 후 발급 / reissue: 직전 발급 7일 이내면 무료, 초과면 유료 */
-  issueType: "original" | "reissue";
   onClose: () => void;
   /** 발급 확정 시 — 페이지가 선택 상태를 비운다 */
   onIssued?: () => void;
@@ -37,12 +35,6 @@ const TOAST_DURATION_MS = 3000;
 
 /** 모달 단계 — 발급될 PDF 미리보기·결제 → 신청 내용(발급 완료) */
 type ModalPhase = "preview" | "issued";
-
-/** 무료 재발급 기한이 남아 있는지 — 서버가 산출한 기한(reissueFreeUntil) 기준 */
-function isFreeReissue(detail: TrainingHistoryDetail): boolean {
-  if (detail.reissueFreeUntil === undefined) return false;
-  return new Date(detail.reissueFreeUntil).getTime() > Date.now();
-}
 
 /** 32 → "32", 8.5 → "8.5" — 합계 시간의 소수점 꼬리 정리 */
 function formatHours(value: number): string {
@@ -58,7 +50,6 @@ function formatHours(value: number): string {
  */
 export function IssuePaymentModal({
   recordIds,
-  issueType,
   onClose,
   onIssued,
   previewOnly = false,
@@ -92,12 +83,12 @@ export function IssuePaymentModal({
 
   /**
    * 발급 단가 — 회원등급이 가진 가격으로 서버가 정한다
-   * (기본: 일반 3,000원 · 평생·연간 1,800원, 어드민 등급 화면에서 수정). 표기용이며
-   * 최종 청구·무료 재발급 판정은 신청 시점에 서버가 한다.
+   * (기본: 일반 3,000원 · 평생·연간 1,800원, 어드민 등급 화면에서 수정).
+   * 표기용이며 매 발급마다 이 단가로 결제한다(무료 재발급 폐지).
    */
   const prices = useQuery({
-    queryKey: ["certificate-price", issueType, ...recordIds],
-    queryFn: () => Promise.all(recordIds.map((id) => getCertificatePrice(id, issueType))),
+    queryKey: ["certificate-price", ...recordIds],
+    queryFn: () => Promise.all(recordIds.map((id) => getCertificatePrice(id))),
     enabled: details !== undefined,
   });
 
@@ -109,21 +100,8 @@ export function IssuePaymentModal({
     enabled: phase === "issued",
   });
 
-  /** 유료 결제 대상 — 신규 발급 전체 + 7일 초과 재발급 (표기용 — 실제 판정은 서버) */
-  const paidIds =
-    details === undefined
-      ? []
-      : issueType === "original"
-        ? recordIds
-        : recordIds.filter(
-            (id) =>
-              !details.some(
-                (detail) => detail.id === id && isFreeReissue(detail),
-              ),
-          );
-  /** 무료 재발급 건수 — 결제 금액에서 제외 */
-  const freeReissueCount =
-    issueType === "reissue" ? recordIds.length - paidIds.length : 0;
+  /** 결제 대상 — 전 건. 무료 재발급이 폐지돼 예외 없다 */
+  const paidIds = recordIds;
 
   /** 건별 단가 — 서버 규칙값. 아직 로드 전이면 undefined */
   const priceById = new Map(
@@ -140,7 +118,7 @@ export function IssuePaymentModal({
   const payment = useMutation({
     mutationFn: () =>
       postIssuancePayment({
-        items: recordIds.map((id) => ({ recordId: id, issueType })),
+        items: recordIds.map((id) => ({ recordId: id })),
       }),
     onSuccess: () => {
       // 발급 가능 상태로 목록을 갱신하고 같은 모달에서 신청 내용으로 전환한다
@@ -279,8 +257,8 @@ export function IssuePaymentModal({
   const unitFeeLabel = pricesLoaded
     ? (headDetail ? priceById.get(headDetail.id) ?? 0 : 0).toLocaleString("ko-KR")
     : "—";
-  /** 전 건 무료 재발급 — 결제창 없이 서버 신청만으로 발급된다 */
-  const isFree = paidIds.length === 0;
+  /** 0원 등급 — 결제창 없이 서버 신청만으로 발급된다 */
+  const isFree = totalAmount === 0;
   const canPay = agreed && !payment.isPending && pricesLoaded && (totalAmount > 0 || isFree);
 
   return (
@@ -406,13 +384,6 @@ export function IssuePaymentModal({
                       확인서 {paidIds.length}건 ({unitFeeLabel}원)
                     </p>
                     <p className="text-gray-700">{feeLabel}원</p>
-                  </div>
-                )}
-
-                {freeReissueCount > 0 && (
-                  <div className="flex w-full items-start justify-between text-sm leading-normal mobile:text-xs">
-                    <p className="text-gray-600">무료 재발급 {freeReissueCount}건</p>
-                    <p className="text-gray-700">0원</p>
                   </div>
                 )}
 

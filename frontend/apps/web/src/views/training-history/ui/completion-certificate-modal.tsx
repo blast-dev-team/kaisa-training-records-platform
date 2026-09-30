@@ -17,21 +17,22 @@ import { CompletionCertificateSheet } from "./completion-certificate-sheet";
 const TOAST_DURATION_MS = 3000;
 
 export interface CompletionCertificateModalProps {
-  /** 수료증 발급 대상 교육이력 ID 목록 — 열리는 순간 서버에 발급 요청(무료·멱등) */
+  /** 수료증 발급 대상 교육이력 ID 목록 — 열리면 미리보기 조회, PDF 저장 시 발급(무료·멱등) */
   recordIds: string[];
   onClose: () => void;
   /** 발급 성공 시 — 페이지가 선택 상태를 비운다 */
   onIssued?: () => void;
-  /** 슈퍼 계정 — 발급 없이 미리보기만 (미부여 번호, 실제 교육생 데이터) */
+  /** 슈퍼 계정 — 발급 없이 미리보기·저장만 (미부여 번호, 실제 교육생 데이터) */
   previewOnly?: boolean;
 }
 
 /**
  * 수료증 미리보기·다운로드 모달 — 결제 없는 무료 발급.
  *
- * 열리는 순간 서버에 발급을 요청하고, 응답(수료증 번호 포함)으로 미리보기를
- * 보여 준다. PDF 다운로드를 누르면 건별 파일로 저장한다 (1 이력 = 1 수료증).
- * previewOnly(슈퍼 계정)면 발급 API 대신 미리보기 API로 조회만 한다.
+ * 미리보기는 그저 미리보기 — 열릴 때 발급 없이 스냅샷으로 조립해 보여 준다(번호 미부여).
+ * PDF 다운로드를 누르는 시점에 서버에 발급을 요청하고(멱등 — 기발급 건은 기존 수료증
+ * 반환), 응답(수료증 번호 포함)으로 시트를 갈아끼운 뒤 건별 파일로 저장한다
+ * (1 이력 = 1 수료증). previewOnly(슈퍼 계정)면 발급 없이 현재 미리보기를 그대로 저장한다.
  */
 export function CompletionCertificateModal({
   recordIds,
@@ -57,31 +58,21 @@ export function CompletionCertificateModal({
 
   const issue = useMutation({
     mutationFn: () => postCompletionCertificates(recordIds),
-    onSuccess: (result) => {
-      setCertificates(result);
-      onIssued?.();
-    },
   });
 
-  /** 슈퍼 계정 미리보기 — 발급 없이 조회만. previewOnly일 때만 쿼리한다 */
+  /** 미리보기 — 발급 없이 조회. 모달을 열 때 항상 이 조회로 연다 */
   const preview = useQuery({
     queryKey: ["completion-certificate", "preview", ...recordIds],
     queryFn: () => Promise.all(recordIds.map((id) => getCompletionCertificatePreview(id))),
-    enabled: previewOnly && certificates === null,
+    enabled: certificates === null,
   });
-
-  // 모달이 열리면 한 번만 발급 요청 — 무료라 결제 단계 없이 바로 발급된다
-  useEffect(() => {
-    if (!previewOnly) issue.mutate();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   // 미리보기 데이터 도착 — 같은 화면을 그대로 재사용한다
   useEffect(() => {
-    if (previewOnly && preview.data && certificates === null) {
+    if (preview.data && certificates === null) {
       setCertificates(preview.data);
     }
-  }, [previewOnly, preview.data, certificates]);
+  }, [preview.data, certificates]);
 
   useEffect(() => {
     const el = previewRef.current;
@@ -132,15 +123,26 @@ export function CompletionCertificateModal({
   };
 
   /**
-   * PDF 다운로드 — 화면 밖에 렌더해 둔 수료증 시트를 건별 캡처해
-   * A4 PDF 파일로 저장한다. 여러 건이면 인원별 파일이 된다.
+   * PDF 다운로드 — 저장 시점에 발급을 확정한다(미리보기는 발급 없이 열린다).
+   * 멱등이라 기발급 건은 기존 수료증을 돌려주므로 재다운로드도 안전. 응답(실제
+   * 번호 포함)으로 시트를 갈아끼우고 두 프레임 뒤 캡처해 A4 PDF 파일로 저장한다.
+   * previewOnly(슈퍼 계정)면 발급 없이 현재 미리보기를 그대로 저장한다.
    */
   const handleDownloadPdf = async () => {
-    const container = captureRef.current;
-    if (!container || !certificates) return;
     setIsPdfGenerating(true);
     try {
-      for (const certificate of certificates) {
+      let data = certificates;
+      if (!previewOnly) {
+        data = await issue.mutateAsync();
+        setCertificates(data);
+        // 시트가 실제 번호로 다시 그려진 뒤 캡처해야 한다 — 렌더 커밋 대기(두 프레임)
+        await new Promise((resolve) =>
+          requestAnimationFrame(() => requestAnimationFrame(resolve)),
+        );
+      }
+      const container = captureRef.current;
+      if (!container || !data) return;
+      for (const certificate of data) {
         const el = container.querySelector<HTMLElement>(
           `[data-cert="${certificate.id}"]`,
         );
@@ -151,10 +153,11 @@ export function CompletionCertificateModal({
         );
       }
       showToast(
-        certificates.length > 1
-          ? `수료증 ${certificates.length}개 파일을 저장했어요`
+        data.length > 1
+          ? `수료증 ${data.length}개 파일을 저장했어요`
           : "다운로드했어요",
       );
+      if (!previewOnly) onIssued?.();
     } catch (err) {
       showToast(
         err instanceof Error
@@ -166,7 +169,7 @@ export function CompletionCertificateModal({
     }
   };
 
-  const isError = previewOnly ? preview.isError : issue.isError;
+  const isError = preview.isError;
 
   return (
     <div
@@ -192,15 +195,15 @@ export function CompletionCertificateModal({
         {isError ? (
           <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
             <p className="text-sm text-gray-700">
-              {issue.error instanceof Error
-                ? issue.error.message
+              {preview.error instanceof Error
+                ? preview.error.message
                 : "문제가 생겼어요. 잠시 후 다시 시도해 주세요"}
             </p>
             <div className="flex gap-2">
               <Button
                 variant="outlined"
                 color="gray"
-                onClick={() => issue.mutate()}
+                onClick={() => preview.refetch()}
               >
                 다시 시도
               </Button>
@@ -209,9 +212,9 @@ export function CompletionCertificateModal({
               </Button>
             </div>
           </div>
-        ) : issue.isPending || certificates === null ? (
+        ) : preview.isPending || certificates === null ? (
           <p className="py-20 text-center text-sm text-gray-500">
-            {previewOnly ? "미리보기를 불러오고 있어요" : "수료증을 발급하고 있어요"}
+            미리보기를 불러오고 있어요
           </p>
         ) : (
           <>
@@ -221,7 +224,7 @@ export function CompletionCertificateModal({
             <p className="text-sm leading-normal text-gray-500 mobile:text-[13px]">
               {previewOnly
                 ? `수료증 미리보기 ${certificates.length}건 — 발급되지 않은 미리보기예요`
-                : `사내 기관 수료내역 ${certificates.length}건 — 결제 없이 바로 내려받을 수 있어요`}
+                : `사내 기관 수료내역 ${certificates.length}건 — PDF로 저장하면 발급돼요`}
             </p>
 
             {/* 미리보기 — 모달 본문 폭에 맞춘 등비 축소, 시트 원본은 A4 794px */}

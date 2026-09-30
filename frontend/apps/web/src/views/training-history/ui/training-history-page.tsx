@@ -7,6 +7,7 @@ import { Button, Pagination } from "@/src/shared/ui";
 import { DateField } from "@/src/shared/ui/date-picker/date-field";
 import { useAuthStore } from "@/src/shared/store/auth-store";
 import { cn } from "@/src/shared/utils/cn";
+import { adjustDateRange } from "@/src/shared/utils/date-range";
 
 import {
   getTrainingHistoryList,
@@ -77,11 +78,8 @@ export function TrainingHistoryPage() {
   const [selectedCategory, setSelectedCategory] = useState<SelectionCategory | null>(null);
   /** 선택 중 수료증 대상이 아닌 건(외부 기관 등) 수 — 수료증 버튼 활성 판정용 */
   const [selectedNotCertEligible, setSelectedNotCertEligible] = useState(0);
-  /** 발급·재발급 대상 — 설정 시 결제 모달이 열린다 */
-  const [issueTarget, setIssueTarget] = useState<{
-    ids: string[];
-    type: "original" | "reissue";
-  } | null>(null);
+  /** 발급 대상 — 설정 시 결제 모달이 열린다 */
+  const [issueTarget, setIssueTarget] = useState<string[] | null>(null);
   /** 수료증 대상 — 설정 시 무료 발급·미리보기 모달이 열린다 */
   const [certTarget, setCertTarget] = useState<string[] | null>(null);
 
@@ -206,16 +204,11 @@ export function TrainingHistoryPage() {
     }
   };
 
-  /** 발급 — 선택 전체가 issuable일 때만 활성 (node 104:5378) */
+  /** 발급 — 선택 전체가 issuable일 때만 활성 (node 104:5378).
+      기발급 이력도 issuable — 재발급 개념 없이 매번 결제 발급한다 */
   const canIssue = selectedCategory === "issuable" && selectedIds.length > 0;
   const handleIssueClick = () => {
-    if (canIssue) setIssueTarget({ ids: selectedIds, type: "original" });
-  };
-
-  /** 재발급 — 선택 전체가 reissuable이면 활성 (node 99:5092) */
-  const canReissue = selectedCategory === "reissuable" && selectedIds.length > 0;
-  const handleReissueClick = () => {
-    if (canReissue) setIssueTarget({ ids: selectedIds, type: "reissue" });
+    if (canIssue) setIssueTarget(selectedIds);
   };
 
   /** 수료증 — 선택 전체가 내부 기관 수료분이면 활성. 무료라 결제 없이 바로 발급 */
@@ -250,7 +243,10 @@ export function TrainingHistoryPage() {
               <DateField
                 ariaLabel="조회 시작일"
                 value={effFrom}
-                onChange={(dateYMD) => updateParams({ from: dateYMD || null, period: null })}
+                onChange={(dateYMD) => {
+                  const r = adjustDateRange({ from: effFrom, to: effTo }, "from", dateYMD);
+                  updateParams({ from: r.from || null, to: r.to || null, period: null });
+                }}
                 className="w-[150px] mobile:w-auto mobile:flex-1"
               />
               <p className="font-sans text-sm leading-normal text-gray-700">~</p>
@@ -258,7 +254,10 @@ export function TrainingHistoryPage() {
               <DateField
                 ariaLabel="조회 종료일"
                 value={effTo}
-                onChange={(dateYMD) => updateParams({ to: dateYMD || null, period: null })}
+                onChange={(dateYMD) => {
+                  const r = adjustDateRange({ from: effFrom, to: effTo }, "to", dateYMD);
+                  updateParams({ from: r.from || null, to: r.to || null, period: null });
+                }}
                 popoverAlign="right"
                 className="w-[150px] mobile:w-auto mobile:flex-1"
               />
@@ -336,7 +335,7 @@ export function TrainingHistoryPage() {
         </Button>
       </form>
 
-      {/* 발급 툴바 — node 99:5098. 체크한 건을 일괄 발급·재발급한다 */}
+      {/* 발급 툴바 — node 99:5098. 체크한 건을 일괄 발급한다 */}
       <div className="flex items-center justify-between gap-3 mobile:flex-col mobile:items-stretch mobile:gap-3">
         <p className="font-sans text-sm leading-normal text-gray-500 mobile:text-[13px]">
           <span className="font-semibold">
@@ -381,15 +380,6 @@ export function TrainingHistoryPage() {
                 {selectedIds.length}개 선택
               </p>
             )}
-            <Button
-              color="black"
-              size="s"
-              disabled={!canReissue}
-              onClick={handleReissueClick}
-              className="rounded-md px-3 py-1.5 text-[13px] font-medium"
-            >
-              재발급
-            </Button>
             <Button
               color="black"
               size="s"
@@ -467,18 +457,17 @@ export function TrainingHistoryPage() {
         />
       )}
 
-      {/* 결제 모달 — 툴바 발급·재발급 클릭 시 노출 (Figma node 78:3911).
+      {/* 결제 모달 — 툴바 발급 클릭 시 노출 (Figma node 78:3911).
           슈퍼 계정은 미리보기 전용 — 결제·발급 단계가 안내로 바뀐다 */}
       {issueTarget !== null && (
         <IssuePaymentModal
-          recordIds={issueTarget.ids}
-          issueType={issueTarget.type}
+          recordIds={issueTarget}
           previewOnly={isSuper}
           onClose={() => setIssueTarget(null)}
         />
       )}
 
-      {/* 수료증 모달 — 내부 기관 수료분. 무료 발급 후 미리보기에서 바로 내려받는다.
+      {/* 수료증 모달 — 내부 기관 수료분. 미리보기는 발급 없이 열고 PDF 저장 시 발급한다.
           슈퍼 계정은 발급 없이 미리보기만 */}
       {certTarget !== null && (
         <CompletionCertificateModal

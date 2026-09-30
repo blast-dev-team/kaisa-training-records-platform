@@ -4,6 +4,7 @@ import { useSearchParams } from "react-router";
 
 import { Button, DateField, Dropdown, Pagination } from "@/src/shared/ui";
 import { cn } from "@/src/shared/utils/cn";
+import { adjustDateRange } from "@/src/shared/utils/date-range";
 
 import {
   getPaymentHistoryList,
@@ -120,14 +121,20 @@ export function PaymentHistoryPage() {
             <DateField
               ariaLabel="조회 시작일"
               value={from}
-              onChange={(dateYMD) => updateParams({ from: dateYMD || null })}
+              onChange={(dateYMD) => {
+                const r = adjustDateRange({ from, to }, "from", dateYMD);
+                updateParams({ from: r.from || null, to: r.to || null });
+              }}
               className="w-[150px] mobile:w-auto mobile:flex-1"
             />
             <p className="font-sans text-sm leading-normal text-gray-700">~</p>
             <DateField
               ariaLabel="조회 종료일"
               value={to}
-              onChange={(dateYMD) => updateParams({ to: dateYMD || null })}
+              onChange={(dateYMD) => {
+                const r = adjustDateRange({ from, to }, "to", dateYMD);
+                updateParams({ from: r.from || null, to: r.to || null });
+              }}
               popoverAlign="right"
               className="w-[150px] mobile:w-auto mobile:flex-1"
             />

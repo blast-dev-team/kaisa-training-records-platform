@@ -1,9 +1,9 @@
 /**
  * 확인서 발급 가격 미리보기 API — 실제 백엔드 연동.
  *
- * 가격은 회원등급 × 발급 유형 규칙으로 서버가 정한다 (일반 3,000원·평생·연간 1,800원
- * 기본, 어드민에서 수정). 결제 모달 표기 금액은 이 값을 쓴다 — 7일 이내 무료 재발급은
- * 모달 쪽에서 0원으로 계산한다 (서버 재발급 무료 판정은 신청 시점).
+ * 가격은 회원등급 단가로 서버가 정한다 (일반 3,000원·평생·연간 1,800원
+ * 기본, 어드민에서 수정). 결제 모달 표기 금액은 이 값을 쓴다 —
+ * 무료 재발급 규칙은 폐지됐고 매 발급마다 결제한다.
  */
 
 const API_BASE = import.meta.env.VITE_API_URL ?? "";
@@ -11,7 +11,6 @@ const API_BASE = import.meta.env.VITE_API_URL ?? "";
 export interface CertificatePrice {
   training_record_id: string;
   course_name: string;
-  issue_type: string;
   grade_name: string | null;
   price_krw: number;
   currency: string;
@@ -19,11 +18,9 @@ export interface CertificatePrice {
 
 export async function getCertificatePrice(
   trainingRecordId: string,
-  issueType: "original" | "reissue",
 ): Promise<CertificatePrice> {
   const params = new URLSearchParams({
     training_record_id: trainingRecordId,
-    issue_type: issueType,
   });
   const response = await fetch(`${API_BASE}/api/me/certificate-price?${params}`, {
     credentials: "include",
