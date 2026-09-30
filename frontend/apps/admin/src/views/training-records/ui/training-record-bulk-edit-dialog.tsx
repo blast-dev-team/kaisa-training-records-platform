@@ -156,15 +156,13 @@ export function TrainingRecordBulkEditDialog({ isOpen, onClose, records, onSaved
       ]}
     >
       <div className="max-h-[60vh] overflow-auto rounded-lg border border-line">
-        <table className="w-full min-w-[1060px] text-[13px]" style={{ tableLayout: "fixed" }}>
+        <table className="w-full min-w-[760px] text-[13px]" style={{ tableLayout: "fixed" }}>
           <colgroup>
             <col style={{ width: 110 }} />
-            <col style={{ width: 200 }} />
-            <col style={{ width: 96 }} />
-            <col style={{ width: 130 }} />
-            <col style={{ width: 130 }} />
+            <col className="flex-1" />
+            <col style={{ width: 150 }} />
+            <col style={{ width: 150 }} />
             <col style={{ width: 80 }} />
-            <col style={{ width: 86 }} />
           </colgroup>
           <thead>
             <tr>
@@ -172,7 +170,7 @@ export function TrainingRecordBulkEditDialog({ isOpen, onClose, records, onSaved
               <th className={TH}>과정</th>
               <th className={TH}>시작일</th>
               <th className={TH}>종료일</th>
-              <th className={`${TH} text-right`}>총시수</th>
+              <th className={`${TH}`}>총시수</th>
             </tr>
           </thead>
           <tbody>
@@ -194,19 +192,6 @@ export function TrainingRecordBulkEditDialog({ isOpen, onClose, records, onSaved
                   />
                 </td>
                 <td className={TD}>
-                  <Select
-                    className="h-8 w-full py-0 text-[13px]"
-                    value={row.completionStatus}
-                    onChange={(e) => setField(row.id, { completionStatus: e.target.value })}
-                  >
-                    {Object.entries(COMPLETION_STATUS_LABELS).map(([value, label]) => (
-                      <option key={value} value={value}>
-                        {label}
-                      </option>
-                    ))}
-                  </Select>
-                </td>
-                <td className={TD}>
                   <DateField
                     ariaLabel={`교육 시작일 ${row.id}`}
                     className="text-[13px]"
@@ -224,7 +209,8 @@ export function TrainingRecordBulkEditDialog({ isOpen, onClose, records, onSaved
                     value={row.endedAt}
                     onChange={(v) => {
                       setField(row.id, { endedAt: v });
-                      if (v && row.startedAt && v < row.startedAt) setField(row.id, { startedAt: v });
+                      if (v && row.startedAt && v < row.startedAt)
+                        setField(row.id, { startedAt: v });
                     }}
                   />
                 </td>
