@@ -69,8 +69,10 @@ PASS 성공 시 CI로 find-or-create. 재가입 절차 없음 — 같은 CI 재�
 | user_id | uuid UNIQUE FK→users SET NULL | 회원가입 전 NULL 허용 |
 | trainee_no | varchar(100) UNIQUE | 협회 관리 교육생 고유번호 |
 | cert_no | varchar(100) | 감리원증번호 (구 시스템 감리원추가 E열) |
-| supervisor_grade | varchar(50) | 감리원 등급 (감리원/수석감리원) — 확인서 표기용, 회원등급과 별개 |
+| supervisor_grade | varchar(50) | 감리원 등급 (감리원/수석감리원) — 확인서 표기용, 회원등급과 별개. 저장 시 번호 유무에서 파생 |
+| senior_cert_no | varchar(100) | 수석감리원증번호 — 승격 시 새로 부여. cert_no 와 동시 보유 |
 | cert_issued_date | date | 감리원증 발급일자 — 엑셀 일괄 등록에서 받는 참조 정보 |
+| senior_cert_issued_date | date | 수석감리원증 발급일자 — 승격 시 참조 정보 |
 | name_encrypted | text NOT NULL | Fernet 암호화 — 표시 시 복호화 |
 | name_hash | varchar(64) NOT NULL | HMAC blind index — 이름 검색은 '전체 이름 일치'만 지원 (부분 검색 불가) |
 | birth_date | date | 생년월일 (어드민 수정 항목) |
