@@ -17,7 +17,12 @@ from app.core.kst import now_kst, today_kst
 from app.domain.auth.model import AdminUser
 from app.domain.certificate.model import CertificateRequest
 from app.domain.payment.model import PaymentOrder
-from app.domain.trainee.model import MembershipGrade, Trainee, TraineeGradeHistory
+from app.domain.trainee.model import (
+    MembershipGrade,
+    SupervisorGrade,
+    Trainee,
+    TraineeGradeHistory,
+)
 from app.domain.trainee.repository import trainee_repository as repo
 from app.domain.trainee.schema import (
     MembershipGradeCreate,
@@ -39,6 +44,35 @@ _BLOCKING_ORDER_STATUSES = ("ready", "pending")
 GENERAL_GRADE_CODE = "general"
 PERIOD_GRADE_CODE = "annual"
 AUTO_DOWNGRADE_REASON = "연간 회원 기간 만료 — 자동 전환"
+
+
+_UNSET = object()
+
+
+def _derive_supervisor_grade(
+    cert_no: str | None,
+    senior_cert_no: str | None,
+    previous: str | None,
+    requested: str | None | object = _UNSET,
+) -> str | None:
+    """감리원 등급 결정 — 수석감리원증번호 유무가 상한, 없으면 선택값을 따른다.
+
+    수석감리원증번호가 있으면 무조건 수석감리원. 없으면 요청 선택값을 저장하는데
+    번호 없는 수석감리원 요청은 감리원으로 방어한다. 선택값이 없으면(벌크 등)
+    기존 규칙 — 수석이던 사람이 수석번호를 지우면 감리원, 감리원증번호만 있으면
+    감리원, 둘 다 없으면 기존 값 유지.
+    """
+    if senior_cert_no and senior_cert_no.strip():
+        return SupervisorGrade.senior.value
+    if requested is not _UNSET:
+        if requested == SupervisorGrade.senior.value:
+            return SupervisorGrade.supervisor.value
+        return requested
+    if previous == SupervisorGrade.senior.value:
+        return SupervisorGrade.supervisor.value
+    if previous is None and cert_no and cert_no.strip():
+        return SupervisorGrade.supervisor.value
+    return previous
 
 
 async def get_trainee(db: AsyncSession, trainee_id: uuid.UUID) -> Trainee:
@@ -107,10 +141,25 @@ async def create_trainee(
             raise api_error("NOT_FOUND", message="회원등급을 찾을 수 없어요")
         grade_expires_at = _resolve_grade_expiry(grade, data.grade_expires_at)
 
+    cert_no = data.cert_no.strip() if data.cert_no else None
+    senior_cert_no = data.senior_cert_no.strip() if data.senior_cert_no else None
     trainee = Trainee(
         trainee_no=f"TR-{now_kst().strftime('%Y%m%d')}-{secrets.token_hex(2).upper()}",
-        cert_no=data.cert_no,
-        supervisor_grade=data.supervisor_grade,
+        cert_no=cert_no,
+        senior_cert_no=senior_cert_no,
+        supervisor_grade=_derive_supervisor_grade(
+            cert_no,
+            senior_cert_no,
+            None,
+            # 요청에 키가 없으면(기존 클라·벌크) 기존 파생 규칙, 명시적 선택(미지정
+            # 포함)은 그 값을 존중한다
+            requested=(
+                data.supervisor_grade
+                if "supervisor_grade" in data.model_fields_set
+                else _UNSET
+            ),
+        ),
+        senior_cert_issued_date=data.senior_cert_issued_date,
         name_encrypted=encrypt_field(data.name.strip()),
         name_hash=name_hash(data.name),
         birth_date=data.birth_date,
@@ -227,8 +276,24 @@ async def _apply_update(
         trainee.name_encrypted = encrypt_field(str(new_name).strip())
         trainee.name_hash = name_hash(str(new_name))
 
+    previous_grade = trainee.supervisor_grade
+    # 감리원 등급은 선택값 — 직접 setattr 하지 않고 파생에서 쓴다
+    requested_grade = updates.pop("supervisor_grade", _UNSET)
     for field, value in updates.items():
         setattr(trainee, field, value)
+    # 감리원 등급 재계산 — 번호 필드나 등급 선택값이 실제로 보내진 경우만
+    # (이름만 고치는 수정에서 등급이 바뀌면 안 된다)
+    if (
+        "cert_no" in updates
+        or "senior_cert_no" in updates
+        or requested_grade is not _UNSET
+    ):
+        trainee.supervisor_grade = _derive_supervisor_grade(
+            trainee.cert_no,
+            trainee.senior_cert_no,
+            previous_grade,
+            requested=requested_grade,
+        )
     audit_updates = dict(updates)
     if name_sent:
         # 감사로그 JSONB 에 평문 이름을 남기지 않는다
@@ -336,6 +401,10 @@ async def update_trainees_bulk(
             patch["phone"] = item.phone  # 빈 문자열 = 기존 유지
         if item.cert_no and item.cert_no.strip():
             patch["cert_no"] = item.cert_no.strip()  # 빈 문자열 = 기존 유지
+        if item.senior_cert_no and item.senior_cert_no.strip():
+            # 수석감리원증번호 입력 → 파생 규칙으로 수석감리원 승격.
+            # 빈 문자열 = 기존 유지라 벌크로는 강등이 불가하다(개별 수정에서만)
+            patch["senior_cert_no"] = item.senior_cert_no.strip()
         trainee = by_id.get(item.id)
         if trainee is None or not patch:
             skipped += 1
@@ -550,38 +619,60 @@ def parse_import_file(content: bytes) -> list[TraineeImportRow]:
 async def preview_import(
     db: AsyncSession, content: bytes
 ) -> TraineeImportPreviewResponse:
-    """엑셀 파싱 + 기존 교육생 중복 판별 — 확정 전 프리뷰용."""
+    """엑셀 파싱 + 기존 교육생 중복 판별 — 확정 전 프리뷰용.
+
+    감리원증번호가 이미 있으면 중복. 번호는 새로운데 (이름, 생년월일)로 기존 감리원이
+    매칭되고 엑셀 등급이 수석감리원이면 승격 — 등록 대신 기존 감리원의 수석번호를 채운다.
+    """
     parsed = parse_import_file(content)
     cert_nos = [r.cert_no for r in parsed if r.cert_no]
     pairs = [(r.name, r.birth_date) for r in parsed if r.name and r.birth_date]
     existing = await repo.find_duplicates_for_import(db, cert_nos, pairs)
-    by_cert = {t.cert_no: t for t in existing if t.cert_no}
+    # 감리원증·수석감리원증 양쪽 번호를 키로 — 엑셀 번호가 기존 수석번호와 일치해도 중복
+    by_cert = {
+        no: t for t in existing for no in (t.cert_no, t.senior_cert_no) if no
+    }
     by_pair = {(t.name_hash, t.birth_date): t for t in existing if t.birth_date}
     for row in parsed:
-        hit = by_cert.get(row.cert_no) if row.cert_no else None
+        hit_by_cert = by_cert.get(row.cert_no) if row.cert_no else None
+        hit = hit_by_cert
         if hit is None and row.name and row.birth_date:
             hit = by_pair.get((name_hash(row.name), row.birth_date))
-        if hit is not None:
+        if hit is None:
+            continue
+        will_promote = (
+            hit_by_cert is None
+            and row.supervisor_grade == SupervisorGrade.senior.value
+            and not hit.senior_cert_no
+        )
+        if will_promote:
+            row.is_promotion = True
+        else:
             row.is_duplicate = True
-            row.duplicate_of_name = decrypt_field(hit.name_encrypted)
+        row.duplicate_of_name = decrypt_field(hit.name_encrypted)
     return TraineeImportPreviewResponse(rows=parsed, total=len(parsed))
 
 
 async def confirm_import(
     db: AsyncSession, data: TraineeImportConfirmRequest, actor: AdminUser
-) -> tuple[int, int, list[tuple[int, str]]]:
+) -> tuple[int, int, int, list[tuple[int, str]]]:
     """프리뷰에서 편집된 행을 일괄 등록 — create_trainee 와 같은 규칙(approved, 암호화).
 
     중복은 확정 시점에 다시 판별해 skipped 로 돌린다(프리뷰 이후 DB 가 변할 수 있음).
+    (이름, 생년월일)로 기존 감리원이 매칭되고 엑셀 등급이 수석감리원이면 신규 등록 대신
+    기존 감리원의 수석번호를 채우고 수석감리원으로 승격한다(promoted).
     생성은 flush 1회 + commit 1회.
     """
     cert_nos = [i.cert_no for i in data.items if i.cert_no]
     pairs = [(i.name.strip(), i.birth_date) for i in data.items if i.birth_date]
     existing = await repo.find_duplicates_for_import(db, cert_nos, pairs)
-    taken_certs = {t.cert_no for t in existing if t.cert_no}
-    taken_pairs = {(t.name_hash, t.birth_date) for t in existing if t.birth_date}
+    by_cert = {
+        no: t for t in existing for no in (t.cert_no, t.senior_cert_no) if no
+    }
+    by_pair = {(t.name_hash, t.birth_date): t for t in existing if t.birth_date}
 
     created: list[Trainee] = []
+    promoted: list[Trainee] = []
     skipped = 0
     failed: list[tuple[int, str]] = []
     for item in data.items:
@@ -589,11 +680,26 @@ async def confirm_import(
         if not name:
             failed.append((item.row_number, "감리원명이 비어 있어요"))
             continue
-        if item.cert_no and item.cert_no in taken_certs:
+        if item.cert_no and item.cert_no in by_cert:
             skipped += 1  # 감리원증번호 중복
             continue
-        if item.birth_date and (name_hash(name), item.birth_date) in taken_pairs:
-            skipped += 1  # 이름+생년월일 중복
+        hit_pair = (
+            by_pair.get((name_hash(name), item.birth_date))
+            if item.birth_date
+            else None
+        )
+        if hit_pair is not None:
+            if (
+                item.supervisor_grade == SupervisorGrade.senior.value
+                and not hit_pair.senior_cert_no
+            ):
+                # 승격 — 엑셀의 새 증번호가 수석감리원증번호가 된다
+                hit_pair.senior_cert_no = item.cert_no
+                hit_pair.senior_cert_issued_date = item.cert_issued_date
+                hit_pair.supervisor_grade = SupervisorGrade.senior.value
+                promoted.append(hit_pair)
+            else:
+                skipped += 1  # 이름+생년월일 중복(이미 수석이거나 등급이 감리원)
             continue
         trainee = Trainee(
             trainee_no=f"TR-{now_kst().strftime('%Y%m%d')}-{secrets.token_hex(2).upper()}",
@@ -625,8 +731,22 @@ async def confirm_import(
                     "source": "excel_import",
                 },
             )
+    for trainee in promoted:
+        record_audit(
+            db,
+            actor_admin_id=actor.id,
+            action="trainee.updated",
+            entity_type="trainee",
+            entity_id=trainee.id,
+            after={
+                "trainee_no": trainee.trainee_no,
+                "senior_cert_no": trainee.senior_cert_no,
+                "supervisor_grade": trainee.supervisor_grade,
+                "source": "excel_import_promotion",
+            },
+        )
     await db.commit()
-    return len(created), skipped, failed
+    return len(created), len(promoted), skipped, failed
 
 
 # ── 등급 마스터 ────────────────────────────────────────────────────────────────

@@ -67,6 +67,7 @@ async def list_trainees(
                 Trainee.name_hash == name_hash(search),
                 Trainee.trainee_no.ilike(pattern),
                 Trainee.cert_no.ilike(pattern),  # 감리원증번호
+                Trainee.senior_cert_no.ilike(pattern),  # 수석감리원증번호
                 Trainee.email.ilike(pattern),
             )
         )
@@ -124,16 +125,31 @@ async def list_supervisor_grades(db: AsyncSession) -> list[str]:
 async def list_cert_no_duplicates(
     db: AsyncSession,
 ) -> list[Trainee]:
-    """감리원증번호가 중복인 교육생 — 번호 개명 등으로 발생. 관리자 수동 정리 대상."""
-    dup_nos = select(Trainee.cert_no).where(
-        Trainee.deleted_at.is_(None),
-        Trainee.cert_no.is_not(None),
-    ).group_by(Trainee.cert_no).having(func.count() > 1)
+    """감리원증번호·수석감리원증번호가 중복인 교육생 — 관리자 수동 정리 대상.
+
+    두 번호는 자격번호라 각각 고유여야 한다. 교육생 하나가 양쪽 번호를 다 가지는
+    것은 정상(승격)이라, UNION 으로 두 번호 축을 각각 검사한다.
+    """
+    cert_dup = (
+        select(Trainee.cert_no.label("no"))
+        .where(Trainee.deleted_at.is_(None), Trainee.cert_no.is_not(None))
+        .group_by(Trainee.cert_no)
+        .having(func.count() > 1)
+    )
+    senior_dup = (
+        select(Trainee.senior_cert_no.label("no"))
+        .where(Trainee.deleted_at.is_(None), Trainee.senior_cert_no.is_not(None))
+        .group_by(Trainee.senior_cert_no)
+        .having(func.count() > 1)
+    )
     stmt = (
         select(Trainee)
         .where(
             Trainee.deleted_at.is_(None),
-            Trainee.cert_no.in_(dup_nos),
+            or_(
+                Trainee.cert_no.in_(cert_dup.scalar_subquery()),
+                Trainee.senior_cert_no.in_(senior_dup.scalar_subquery()),
+            ),
         )
         .order_by(Trainee.cert_no.asc(), Trainee.created_at.asc())
     )
@@ -148,11 +164,14 @@ async def find_duplicates_for_import(
 ) -> list[Trainee]:
     """엑셀 일괄 등록 중복 판별용 — 감리원증번호 일치 or (이름, 생년월일) 일치.
 
+    번호는 감리원증·수석감리원증 양쪽과 비교한다 — 자격번호는 축과 무관하게 고유.
     생년월일 NULL 쌍은 매치될 수 없어(tuple 비교에서 제외) cert_no 로만 잡힌다.
     """
     conditions = []
     if cert_nos:
-        conditions.append(Trainee.cert_no.in_(cert_nos))
+        conditions.append(
+            or_(Trainee.cert_no.in_(cert_nos), Trainee.senior_cert_no.in_(cert_nos))
+        )
     if name_birth_pairs:
         conditions.append(
             tuple_(Trainee.name_hash, Trainee.birth_date).in_(
@@ -183,6 +202,22 @@ async def find_by_identifiers(
     if not conditions:
         return []
     stmt = select(Trainee).where(Trainee.deleted_at.is_(None), or_(*conditions))
+    result = await db.execute(stmt)
+    return list(result.scalars().all())
+
+
+async def find_by_birth_dates(
+    db: AsyncSession, birth_dates: list[date]
+) -> list[Trainee]:
+    """등급 일괄 적용 매칭용 — 생년월일만 일치하는 교육생.
+
+    이름이 오타인 행(전치·1글자 차이)을 생년월일로 후보를 찾아 제안하기 위해 쓴다.
+    """
+    if not birth_dates:
+        return []
+    stmt = select(Trainee).where(
+        Trainee.deleted_at.is_(None), Trainee.birth_date.in_(birth_dates)
+    )
     result = await db.execute(stmt)
     return list(result.scalars().all())
 

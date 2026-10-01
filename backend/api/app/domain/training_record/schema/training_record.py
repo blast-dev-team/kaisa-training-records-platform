@@ -106,7 +106,8 @@ class TrainingRecordResponse(BaseModel):
             course_name=record.course_name,
             institution_name=record.institution_name,
             supervisor_grade=trainee.supervisor_grade if trainee else None,
-            supervisor_cert_no=trainee.cert_no if trainee else None,
+            # 확인서 표기 번호 — 현재 등급의 번호(수석감리원이면 수석감리원증번호)
+            supervisor_cert_no=trainee.current_supervisor_cert_no if trainee else None,
             total_hours=record.total_hours,
             completed_hours=record.completed_hours,
             started_at=record.started_at,

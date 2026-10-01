@@ -13,7 +13,9 @@ class TraineeResponse(BaseModel):
     trainee_no: str | None
     cert_no: str | None
     supervisor_grade: str | None
+    senior_cert_no: str | None
     cert_issued_date: date | None
+    senior_cert_issued_date: date | None
     name: str
     birth_date: date | None
     phone_masked: str | None
@@ -37,7 +39,9 @@ class TraineeResponse(BaseModel):
             trainee_no=t.trainee_no,
             cert_no=t.cert_no,
             supervisor_grade=t.supervisor_grade,
+            senior_cert_no=t.senior_cert_no,
             cert_issued_date=t.cert_issued_date,
+            senior_cert_issued_date=t.senior_cert_issued_date,
             name=decrypt_field(t.name_encrypted),
             birth_date=t.birth_date,
             phone_masked=phone,
@@ -54,12 +58,18 @@ class TraineeResponse(BaseModel):
 
 
 class TraineeCreate(BaseModel):
-    """어드민 수기 등록 — 신원을 어드민이 직접 확인했음을 전제로 approved 로 들어간다."""
+    """어드민 수기 등록 — 신원을 어드민이 직접 확인했음을 전제로 approved 로 들어간다.
+
+    감리원 등급(supervisor_grade)은 선택값을 받되, 수석감리원증번호가 있으면
+    서버가 수석감리원으로 강제한다(번호 유무가 등급의 상한).
+    """
 
     name: str
     cert_no: str | None = None  # 감리원증번호
-    supervisor_grade: str | None = None  # 감리원 등급 (감리원/수석감리원)
+    senior_cert_no: str | None = None  # 수석감리원증번호 — 있으면 수석감리원 강제
+    supervisor_grade: str | None = None  # 감리원 등급 (감리원/수석감리원/NULL=미지정)
     cert_issued_date: date | None = None  # 감리원증 발급일자
+    senior_cert_issued_date: date | None = None  # 수석감리원증 발급일자
     birth_date: date | None = None
     phone: str | None = None  # 평문 수신 → 암호화 저장
     email: EmailStr | None = None
@@ -70,12 +80,19 @@ class TraineeCreate(BaseModel):
 
 
 class TraineeUpdate(BaseModel):
-    """review_status 는 본인인증 심사(identity) 플로우에서만 변경 — 여기서 다루지 않는다."""
+    """review_status 는 본인인증 심사(identity) 플로우에서만 변경 — 여기서 다루지 않는다.
+
+    감리원 등급은 선택값을 받는다. 수석감리원증번호가 있으면 수석감리원 강제,
+    없으면 선택값을 저장한다(번호 없는 수석감리원 요청은 감리원으로 방어).
+    senior_cert_no 를 NULL 로 보내면 제거 — 등급은 요청 선택값을 따른다.
+    """
 
     name: str | None = None
     cert_no: str | None = None  # 감리원증번호
-    supervisor_grade: str | None = None  # 감리원 등급
+    senior_cert_no: str | None = None  # 수석감리원증번호 — 빈 문자열/NULL = 제거
+    supervisor_grade: str | None = None  # 감리원 등급 (감리원/수석감리원/NULL=미지정)
     cert_issued_date: date | None = None  # 감리원증 발급일자
+    senior_cert_issued_date: date | None = None  # 수석감리원증 발급일자
     birth_date: date | None = None
     phone: str | None = None  # 평문 수신 → 암호화 저장
     email: EmailStr | None = None
@@ -87,13 +104,18 @@ class TraineeUpdate(BaseModel):
 
 
 class TraineeBulkUpdateItem(BaseModel):
-    """일괄 수정 1건. 키를 보내지 않으면 그 필드는 변경 없음."""
+    """일괄 수정 1건. 키를 보내지 않으면 그 필드는 변경 없음.
+
+    senior_cert_no 는 빈 문자열 = 변경 없음(기존 cert_no 규칙 동일)이라
+    벌크로는 강등이 불가하다 — 강등은 개별 수정 모달을 쓴다.
+    """
 
     id: uuid.UUID
     name: str | None = None
     birth_date: date | None = None
     phone: str | None = None  # 평문 수신 → 암호화 저장. 빈 문자열 = 변경 없음
     cert_no: str | None = None  # 감리원증번호. 빈 문자열 = 변경 없음
+    senior_cert_no: str | None = None  # 수석감리원증번호. 입력 시 수석감리원으로 파생
 
 
 class TraineeBulkGradeCreate(BaseModel):
@@ -130,6 +152,9 @@ class TraineeImportRow(BaseModel):
     supervisor_grade: str | None = None
     cert_issued_date: date | None = None
     is_duplicate: bool = False
+    # 기존 감리원 승격 — 감리원증번호는 새 번호인데 (이름, 생년월일)로 기존 감리원이
+    # 매칭되고 엑셀 등급이 수석감리원인 행. 등록 대신 기존 감리원의 수석번호를 채운다
+    is_promotion: bool = False
     duplicate_of_name: str | None = None
     errors: list[str] = []
 
@@ -164,5 +189,6 @@ class TraineeImportResult(BaseModel):
     """skipped = 확정 시점 재판정에서 중복으로 걸러진 행."""
 
     created: int = 0
+    promoted: int = 0
     skipped: int = 0
     failed: list[TraineeImportFailure] = []

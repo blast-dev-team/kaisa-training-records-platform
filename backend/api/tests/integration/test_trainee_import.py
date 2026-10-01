@@ -167,7 +167,7 @@ class TestImportConfirm:
             cookies=admin_cookie(admin_token),
         )
         assert resp.status_code == 200
-        assert resp.json() == {"created": 2, "skipped": 0, "failed": []}
+        assert resp.json() == {"created": 2, "promoted": 0, "skipped": 0, "failed": []}
 
         rows = (
             (await db.execute(select(Trainee).where(Trainee.name_hash == name_hash("엑셀사람"))))
@@ -208,7 +208,7 @@ class TestImportConfirm:
             cookies=admin_cookie(admin_token),
         )
         assert resp.status_code == 200
-        assert resp.json() == {"created": 1, "skipped": 1, "failed": []}
+        assert resp.json() == {"created": 1, "promoted": 0, "skipped": 1, "failed": []}
 
         dup = (
             (await db.execute(select(Trainee).where(Trainee.name_hash == name_hash("중복사람"))))
@@ -224,3 +224,100 @@ class TestImportConfirm:
             json={"items": [{"row_number": 2, "name": "x"}]},
         )
         assert resp.status_code == 401
+
+
+class TestImportPromotion:
+    """수석 승격 — 엑셀 번호는 새 번호인데 (이름, 생년)로 기존 감리원이 매칭되고
+    엑셀 등급이 수석감리원이면 등록 대신 기존 감리원의 수석번호를 채운다."""
+
+    async def _seed_existing(self, db) -> None:
+        grade = await make_grade(db, code="g-promo", name="일반")
+        _, existing = await make_trainee(
+            db, grade.id, ci_raw="ci-promo", trainee_no="TR-I-PROMO", name="승격대상"
+        )
+        existing.birth_date = date(1985, 3, 15)
+        existing.cert_no = "협회 제100호"  # 기존 감리원증번호 — 엑셀 행과 다름
+        await db.commit()
+
+    async def test_preview_flags_promotion(self, client, db):
+        await self._seed_existing(db)
+        _, admin_token = await make_admin(db)
+        await db.commit()
+        content = make_xlsx(
+            [
+                # 같은 이름+생년, 새 증번호, 수석감리원 → 승격
+                ["승격대상", "01011112222", "1985.03.15", "협회 수석 제900호", "수석감리원", ""],
+                # 같은 이름+생년, 등급이 감리원 → 기존처럼 중복
+                ["승격대상", "", "1985.03.15", "", "감리원", ""],
+            ]
+        )
+        resp = await preview(client, admin_token, content)
+        assert resp.status_code == 200
+        rows = resp.json()["rows"]
+        assert rows[0]["is_promotion"] is True
+        assert rows[0]["is_duplicate"] is False
+        assert rows[0]["duplicate_of_name"] == "승격대상"
+        assert rows[1]["is_duplicate"] is True
+
+    async def test_preview_skips_already_senior(self, client, db):
+        await self._seed_existing(db)
+        # 기존 감리원이 이미 수석(수석번호 보유) — 승격이 아니라 중복
+        existing = (
+            (await db.execute(select(Trainee).where(Trainee.name_hash == name_hash("승격대상"))))
+            .scalars()
+            .one()
+        )
+        existing.senior_cert_no = "협회 수석 제500호"
+        await db.commit()
+
+        _, admin_token = await make_admin(db)
+        await db.commit()
+        content = make_xlsx(
+            [["승격대상", "", "1985.03.15", "협회 수석 제900호", "수석감리원", ""]]
+        )
+        resp = await preview(client, admin_token, content)
+        assert resp.status_code == 200
+        row = resp.json()["rows"][0]
+        assert row["is_promotion"] is False
+        assert row["is_duplicate"] is True
+
+    async def test_confirm_promotes_existing_trainee(self, client, db):
+        await self._seed_existing(db)
+        _, admin_token = await make_admin(db)
+        await db.commit()
+
+        resp = await client.post(
+            "/api/trainees/import-confirm",
+            json={
+                "items": [
+                    {
+                        "row_number": 2,
+                        "name": "승격대상",
+                        "birth_date": "1985-03-15",
+                        "cert_no": "협회 수석 제900호",
+                        "supervisor_grade": "수석감리원",
+                        "cert_issued_date": "2024-02-01",
+                    }
+                ]
+            },
+            cookies=admin_cookie(admin_token),
+        )
+        assert resp.status_code == 200
+        assert resp.json() == {
+            "created": 0,
+            "promoted": 1,
+            "skipped": 0,
+            "failed": [],
+        }
+
+        row = (
+            (await db.execute(select(Trainee).where(Trainee.name_hash == name_hash("승격대상"))))
+            .scalars()
+            .one()
+        )
+        # 기존 감리원증번호는 유지되고 수석번호가 채워진다 — 신규 row 생성 아님
+        assert row.trainee_no == "TR-I-PROMO"
+        assert row.cert_no == "협회 제100호"
+        assert row.senior_cert_no == "협회 수석 제900호"
+        assert str(row.senior_cert_issued_date) == "2024-02-01"
+        assert row.supervisor_grade == "수석감리원"
