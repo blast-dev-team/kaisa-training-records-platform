@@ -89,7 +89,8 @@ class MyCertificateRequestResponse(BaseModel):
 class MyPaymentOrderResponse(BaseModel):
     id: uuid.UUID
     order_no: str
-    certificate_request_id: uuid.UUID
+    # 레거시 단건 주문 — payment_order_id 로 묶인 신규 주문은 NULL
+    certificate_request_id: uuid.UUID | None
     amount_krw: int
     status: str
     paid_at: datetime | None

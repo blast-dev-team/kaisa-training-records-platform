@@ -78,7 +78,7 @@ class TestCertificateDownloadLog:
         assert target["download_count"] == 1
 
     async def test_other_member_certificate_ignored(self, client, db, portone_mock):
-        _actor, admin_token = await make_admin(db)
+        _actor, _admin_token = await make_admin(db)
         _user, _trainee, cert = await _issue_certificate(client, db)
 
         # 다른 교육생

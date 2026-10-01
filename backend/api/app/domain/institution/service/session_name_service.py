@@ -26,11 +26,13 @@ async def list_session_names(
     db: AsyncSession,
     search: str | None = None,
     is_active: bool | None = None,
+    sort: str | None = None,
+    order: str = "desc",
     page: int = 1,
     limit: int = 20,
 ) -> tuple[list[SessionName], int]:
     return await session_name_repo.list_session_names(
-        db, search=search, is_active=is_active, page=page, limit=limit
+        db, search=search, is_active=is_active, sort=sort, order=order, page=page, limit=limit
     )
 
 

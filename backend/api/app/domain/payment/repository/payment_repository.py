@@ -5,6 +5,7 @@ from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.crypto import name_hash
+from app.domain.certificate.model import Certificate
 from app.domain.payment.model import (
     PaymentAttempt,
     PaymentOrder,
@@ -67,7 +68,8 @@ async def list_orders(
     date_to: date | None = None,
     page: int = 1,
     limit: int = 20,
-) -> tuple[list[PaymentOrder], int]:
+) -> tuple[list[PaymentOrder], int, dict[uuid.UUID, int], dict[uuid.UUID, str]]:
+    """주문 목록 + 주문별 발급 문서 수·대표 과정명."""
     stmt = select(PaymentOrder)
     count_stmt = select(func.count()).select_from(PaymentOrder)
     if trainee_id:
@@ -103,4 +105,18 @@ async def list_orders(
         .limit(limit)
     )
     rows = (await db.execute(stmt)).scalars().all()
-    return list(rows), total
+
+    # 주문별 발급 문서 — 목록 화면에서 결제 과정·건수를 보여 주는 데 쓴다
+    doc_counts: dict[uuid.UUID, int] = {}
+    first_course_names: dict[uuid.UUID, str] = {}
+    if rows:
+        cert_rows = await db.execute(
+            select(Certificate.payment_order_id, Certificate.course_name)
+            .where(Certificate.payment_order_id.in_([o.id for o in rows]))
+            .order_by(Certificate.certificate_no)
+        )
+        for order_id, course_name in cert_rows.all():
+            doc_counts[order_id] = doc_counts.get(order_id, 0) + 1
+            first_course_names.setdefault(order_id, course_name)
+
+    return list(rows), total, doc_counts, first_course_names

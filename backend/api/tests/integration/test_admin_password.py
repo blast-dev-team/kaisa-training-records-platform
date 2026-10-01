@@ -90,7 +90,7 @@ class TestChangeOwnPassword:
 
 class TestSuperResetPassword:
     async def test_reset_success_and_relogin(self, client, db):
-        actor, actor_token = await make_admin(db)
+        _actor, actor_token = await make_admin(db)
         target, _ = await make_admin(db, email="staff@example.com", role="staff")
         await db.commit()
 

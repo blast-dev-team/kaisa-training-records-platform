@@ -285,6 +285,86 @@ class TestManualReview:
         assert reject.status_code == 200
         assert reject.json()["status"] == "rejected"
 
+    async def test_admin_list_sorting(self, client, db, monkeypatch):
+        """목록 정렬 — 신청일시(created_at)/처리일시(reviewed_at), nulls_last, 화이트리스트 폴백."""
+        grade = await make_grade(db, code="g-sort", name="정렬등급")
+        _, admin_token = await make_admin(db)
+        # CI 없는 이관 교육생 — 수동 심사에서 연결 대상
+        _, trainee = await make_trainee(
+            db,
+            grade.id,
+            ci_raw=None,
+            name="정렬교육",
+            trainee_no="TR-2026-0100",
+            review_status="unverified",
+        )
+        await db.commit()  # API 가 자체 세션으로 admin 조회 — 커밋 필요
+
+        # 심사 건 2건 생성 (production → manual_review)
+        payloads = [
+            ("vid-sort-1", "정렬자일", "ci-sort1"),
+            ("vid-sort-2", "정렬자이", "ci-sort2"),
+        ]
+        for vid, name, ci in payloads:
+            await _pass_flow(
+                client,
+                monkeypatch,
+                vid,
+                {
+                    "status": "VERIFIED",
+                    "verifiedCustomer": {"ci": ci, "name": name, "phoneNumber": "01000000000"},
+                },
+            )
+        reviews = (
+            (
+                await db.execute(
+                    select(IdentityReview)
+                    .where(IdentityReview.status == "manual_review")
+                    .order_by(IdentityReview.created_at.asc())
+                )
+            )
+            .scalars()
+            .all()
+        )
+        assert len(reviews) == 2
+        earlier, later = reviews
+
+        # 앞서 만든 건 승인 → reviewed_at 생김
+        approve = await client.post(
+            f"/api/identity-reviews/{earlier.id}/approve",
+            json={"trainee_id": str(trainee.id), "determined_grade_id": str(grade.id)},
+            cookies=admin_cookie(admin_token),
+        )
+        assert approve.status_code == 200
+
+        def statuses(items: list[dict]) -> list[str]:
+            return [i["status"] for i in items]
+
+        # 처리일시 asc/desc — 승인(처리됨) 먼저, 미처리(null) 맨 뒤
+        for o in ("asc", "desc"):
+            resp = await client.get(
+                f"/api/identity-reviews?sort=reviewed_at&order={o}",
+                cookies=admin_cookie(admin_token),
+            )
+            assert resp.status_code == 200
+            assert statuses(resp.json()["items"]) == ["approved", "manual_review"]
+
+        # 신청일시 asc — 먼저 신청한(승인된) 건이 먼저
+        resp = await client.get(
+            "/api/identity-reviews?sort=created_at&order=asc",
+            cookies=admin_cookie(admin_token),
+        )
+        assert resp.status_code == 200
+        assert statuses(resp.json()["items"]) == ["approved", "manual_review"]
+
+        # 허용 밖 sort 값 → created_at desc 폴백 — 나중 신청 건이 먼저
+        resp = await client.get(
+            "/api/identity-reviews?sort=bogus",
+            cookies=admin_cookie(admin_token),
+        )
+        assert resp.status_code == 200
+        assert statuses(resp.json()["items"]) == ["manual_review", "approved"]
+
 
 class TestPassFailures:
     async def test_replayed_state_rejected(self, client, db, monkeypatch):
@@ -377,7 +457,7 @@ class TestLegacyAutoMatch:
 
     async def test_unique_candidate_linked(self, client, db, monkeypatch):
         """이름+생일이 유일한 이관 교육생 → 자동 연결 + approved."""
-        grade = await make_grade(db)
+        await make_grade(db)
         n_enc, n_hash = name_columns("고규만")
         trainee = Trainee(
             trainee_no="EDU-9001",
@@ -417,7 +497,7 @@ class TestLegacyAutoMatch:
 
     async def test_duplicate_candidates_manual_review(self, client, db, monkeypatch):
         """같은 이름+생일이 2명 → 자동 매칭 실패, 수동 심사 대기."""
-        grade = await make_grade(db)
+        await make_grade(db)
         d_enc, d_hash = name_columns("중복자")
         for no in ("EDU-9002", "EDU-9003"):
             db.add(

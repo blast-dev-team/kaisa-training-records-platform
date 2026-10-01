@@ -45,12 +45,19 @@ async def list_trainees(
     search: str | None = None,
     review_status: str | None = None,
     grade_id: uuid.UUID | None = None,
+    supervisor_grade: str | None = None,
+    birth_date: date | None = None,
+    sort_key: str | None = None,
+    sort_order: str | None = None,
     page: int = 1,
     limit: int = 20,
 ) -> tuple[list[Trainee], int]:
-    """이름/교육번 검색 — 이름·전화번호는 암호화 저장이라 부분 검색 불가 (문서 명시).
+    """이름/교육번/이메일 검색 — 이름·전화번호는 암호화 저장이라 부분 검색 불가 (문서 명시).
 
-    이름은 blind index 로 '전체 이름 일치'만, 번호류는 부분 검색을 지원한다.
+    이름은 blind index 로 '전체 이름 일치'만, 번호·이메일은 부분 검색을 지원한다.
+    supervisor_grade 는 'none' sentinel 로 미정(NULL) 필터를 지원한다.
+    sort_key 는 'grade_expires_at' | 'created_at' | 'updated_at' — service 에서
+    화이트리스트 검증된다. grade_expires_at 정렬 시 NULL 은 마지막.
     """
     stmt = select(Trainee).where(Trainee.deleted_at.is_(None))
     if search:
@@ -60,25 +67,58 @@ async def list_trainees(
                 Trainee.name_hash == name_hash(search),
                 Trainee.trainee_no.ilike(pattern),
                 Trainee.cert_no.ilike(pattern),  # 감리원증번호
+                Trainee.email.ilike(pattern),
             )
         )
     if review_status:
         stmt = stmt.where(Trainee.review_status == review_status)
     if grade_id is not None:
         stmt = stmt.where(Trainee.membership_grade_id == grade_id)
+    if supervisor_grade == "none":
+        stmt = stmt.where(Trainee.supervisor_grade.is_(None))
+    elif supervisor_grade:
+        stmt = stmt.where(Trainee.supervisor_grade == supervisor_grade)
+    if birth_date is not None:
+        stmt = stmt.where(Trainee.birth_date == birth_date)
     total = (
         await db.execute(select(func.count()).select_from(stmt.subquery()))
     ).scalar_one()
     # id 까지 정렬해야 페이지가 흔들리지 않는다 — 이관 데이터는 created_at 이
     # 일괄 반영이라 같은 값이 수천 건이다. tiebreaker 없으면 LIMIT/OFFSET 사이에
     # 같은 행이 페이지를 넘어 중복·누락된다(다중선택 유지와 조합하면 유령 선택 버그).
+    order_by = [Trainee.created_at.desc(), Trainee.id.desc()]
+    if sort_order in ("asc", "desc"):
+        if sort_key == "grade_expires_at":
+            primary = (
+                Trainee.grade_expires_at.asc().nulls_last()
+                if sort_order == "asc"
+                else Trainee.grade_expires_at.desc().nulls_last()
+            )
+            order_by = [primary, *order_by]
+        elif sort_key in ("created_at", "updated_at"):
+            col = Trainee.created_at if sort_key == "created_at" else Trainee.updated_at
+            order_by = [col.asc() if sort_order == "asc" else col.desc(), Trainee.id.desc()]
     stmt = (
-        stmt.order_by(Trainee.created_at.desc(), Trainee.id.desc())
+        stmt.order_by(*order_by)
         .offset((page - 1) * limit)
         .limit(limit)
     )
     result = await db.execute(stmt)
     return list(result.scalars().all()), int(total)
+
+
+async def list_supervisor_grades(db: AsyncSession) -> list[str]:
+    """등록된 감리원 등급 distinct — 필터 옵션용. 미정(NULL)은 프론트가 '미정' 옵션으로 붙인다."""
+    result = await db.execute(
+        select(Trainee.supervisor_grade)
+        .where(
+            Trainee.deleted_at.is_(None),
+            Trainee.supervisor_grade.is_not(None),
+        )
+        .distinct()
+        .order_by(Trainee.supervisor_grade.asc())
+    )
+    return [row[0] for row in result.all()]
 
 
 async def list_cert_no_duplicates(

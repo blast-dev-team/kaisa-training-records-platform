@@ -53,17 +53,42 @@ async def list_trainees(
     search: str | None = None,
     review_status: str | None = None,
     grade_id: uuid.UUID | None = None,
+    supervisor_grade: str | None = None,
+    birth_date: date | None = None,
+    sort: str | None = None,
+    order: str | None = None,
     page: int = 1,
     limit: int = 20,
 ) -> tuple[list[Trainee], int]:
+    # 정렬 키 화이트리스트 — 연간 만료일 + 등록일·수정일. 허용 조합만 repo 로 전달한다
+    allowed_sorts = ("grade_expires_at", "created_at", "updated_at")
+    sort_key: str | None = None
+    sort_order: str | None = None
+    if sort is not None or order is not None:
+        if sort not in allowed_sorts or order not in ("asc", "desc"):
+            raise api_error(
+                "VALIDATION_ERROR",
+                message=f"정렬은 {'/'.join(allowed_sorts)} + asc/desc 조합만 지원해요",
+            )
+        sort_key = sort
+        sort_order = order
     return await repo.list_trainees(
         db,
         search=search,
         review_status=review_status,
         grade_id=grade_id,
+        supervisor_grade=supervisor_grade,
+        birth_date=birth_date,
+        sort_key=sort_key,
+        sort_order=sort_order,
         page=page,
         limit=limit,
     )
+
+
+async def list_supervisor_grades(db: AsyncSession) -> list[str]:
+    """등록된 감리원 등급 distinct — 목록 필터 옵션."""
+    return await repo.list_supervisor_grades(db)
 
 
 async def list_cert_no_duplicates(db: AsyncSession) -> list[Trainee]:

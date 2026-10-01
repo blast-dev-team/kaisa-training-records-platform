@@ -25,7 +25,7 @@ async def list_orders(
     date_to=None,
     page: int = 1,
     limit: int = 20,
-) -> tuple[list[PaymentOrder], int]:
+) -> tuple[list[PaymentOrder], int, dict[uuid.UUID, int], dict[uuid.UUID, str]]:
     return await repo.list_orders(
         db,
         trainee_id=trainee_id,

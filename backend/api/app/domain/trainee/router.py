@@ -1,4 +1,5 @@
 import uuid
+from datetime import date
 
 from fastapi import APIRouter, Depends, File, Query, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -32,6 +33,10 @@ async def list_trainees(
     search: str | None = None,
     review_status: str | None = None,
     grade_id: uuid.UUID | None = None,
+    supervisor_grade: str | None = None,
+    birth_date: date | None = None,
+    sort: str | None = None,
+    order: str | None = None,
     page: int = Query(1, ge=1),
     limit: int = Query(20, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
@@ -44,6 +49,10 @@ async def list_trainees(
         search=search,
         review_status=review_status,
         grade_id=grade_id,
+        supervisor_grade=supervisor_grade,
+        birth_date=birth_date,
+        sort=sort,
+        order=order,
         page=page,
         limit=limit,
     )
@@ -53,6 +62,15 @@ async def list_trainees(
         page=page,
         limit=limit,
     )
+
+
+@router.get("/supervisor-grades", response_model=list[str])
+async def list_supervisor_grades(
+    db: AsyncSession = Depends(get_db),
+    _: AdminUser = Depends(require_admin),
+):
+    """등록된 감리원 등급 distinct — 목록 필터 옵션. /{trainee_id} 보다 먼저 선언."""
+    return await trainee_service.list_supervisor_grades(db)
 
 
 @router.post("", response_model=TraineeResponse, status_code=201)

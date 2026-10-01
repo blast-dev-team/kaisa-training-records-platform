@@ -165,7 +165,7 @@ class TestListSearch:
         old_grade = await make_grade(db, code="g-q-old", name="검색준회원", sort_order=1)
         new_grade = await make_grade(db, code="g-q-new", name="검색정회원", sort_order=2)
         _, trainee = await make_trainee(db, old_grade.id, ci_raw="ci-q", trainee_no="TR-2026-0033")
-        admin, admin_token = await make_admin(db, email="q-admin@example.com")
+        _admin, admin_token = await make_admin(db, email="q-admin@example.com")
         await db.commit()
 
         resp = await client.patch(

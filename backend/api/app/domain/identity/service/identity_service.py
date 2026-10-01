@@ -447,8 +447,12 @@ async def list_reviews(
     search: str | None = None,
     page: int = 1,
     limit: int = 20,
+    sort: str = "created_at",
+    order: str = "desc",
 ) -> tuple[list[IdentityReview], int]:
-    return await repo.list_reviews(db, status=status, search=search, page=page, limit=limit)
+    return await repo.list_reviews(
+        db, status=status, search=search, page=page, limit=limit, sort=sort, order=order
+    )
 
 
 async def approve_review(

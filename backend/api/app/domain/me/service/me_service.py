@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import settings
 from app.core.crypto import decrypt_field, mask_phone, sha256_hex
 from app.core.error_codes import api_error
-from app.core.kst import kst_range_end, kst_range_start, now_kst, today_kst
+from app.core.kst import KST, kst_range_end, kst_range_start, now_kst, today_kst
 from app.core.session import (
     ADMIN_TOKEN_PREFIX,
     extend_user_session,
@@ -52,7 +52,8 @@ async def get_session(db: AsyncSession, token: str | None) -> MeSessionResponse:
     user = await resolve_user_session(db, token)
     if user is None:
         raise api_error("SESSION_EXPIRED")
-    expires_at = await resolve_user_session_expiry(db, token)
+    # API 응답 시각은 KST(+09:00)로 통일 — DB 조회값(UTC)과 신규 발급값(now_kst)의 표기가 갈리지 않게
+    expires_at = (await resolve_user_session_expiry(db, token)).astimezone(KST)
     trainee = (
         await db.execute(
             select(Trainee).where(
@@ -88,7 +89,7 @@ async def extend_session(db: AsyncSession, token: str | None) -> MeSessionRespon
     user = await resolve_user_session(db, token)
     if user is None:
         raise api_error("SESSION_EXPIRED")
-    expires_at = await extend_user_session(db, token)
+    expires_at = (await extend_user_session(db, token)).astimezone(KST)
     trainee = (
         await db.execute(
             select(Trainee).where(

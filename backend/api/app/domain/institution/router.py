@@ -1,5 +1,6 @@
 import uuid
 from datetime import date
+from typing import Literal
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -47,7 +48,7 @@ async def list_institutions(
     db: AsyncSession = Depends(get_db),
     _: AdminUser = Depends(require_admin),
 ):
-    """기관명·기관코드 검색. institution_type=internal|external."""
+    """기관명·기관코드 검색. institution_type=internal|external|none(미선택)."""
     institutions, total = await institution_service.list_institutions(
         db,
         is_active=is_active,
@@ -252,7 +253,7 @@ async def get_session(
     _: AdminUser = Depends(require_admin),
 ):
     session = await course_session_service.get_session(db, session_id)
-    counts = await institution_service.count_session_records(db, [session.id])
+    counts = await course_session_service.count_records_for_sessions(db, [session.id])
     return SessionResponse.from_orm(session, counts.get(session.id, 0))
 
 
@@ -294,13 +295,15 @@ async def delete_session(
 async def list_session_names(
     search: str | None = None,
     is_active: bool | None = None,
+    sort: Literal["name", "created_at", "updated_at"] | None = None,
+    order: Literal["asc", "desc"] = "desc",
     page: int = Query(1, ge=1),
     limit: int = Query(20, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
     _: AdminUser = Depends(require_admin),
 ):
     names, total = await session_name_service.list_session_names(
-        db, search=search, is_active=is_active, page=page, limit=limit
+        db, search=search, is_active=is_active, sort=sort, order=order, page=page, limit=limit
     )
     return PagedResponse(
         items=[SessionNameResponse.model_validate(n) for n in names],
