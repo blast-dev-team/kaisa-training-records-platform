@@ -57,20 +57,20 @@ export function PaymentFailModal({ reason, onRetry, onSelectOther }: PaymentFail
         </button>
         {/* 배지·메시지 — 데스크톱 가로 나란히, 모바일 세로 스택 (node 131:10118) */}
         <div className="flex items-center gap-3 mobile:flex-col mobile:items-start mobile:gap-3">
-          <span className="w-fit rounded-[4px] border border-[#d93333] bg-[#fae5e5] px-3 py-1.5 text-sm font-semibold text-[#bf2626] mobile:text-xs">
+          <span className="w-fit rounded-[4px] border border-[#d93333] bg-[#fae5e5] px-3 py-1.5 text-14 font-semibold text-[#bf2626] mobile:text-12">
             결제 실패
           </span>
-          <p className="text-[15px] font-medium text-gray-800 mobile:text-sm">
+          <p className="text-15 font-medium text-gray-800 mobile:text-14">
             결제가 정상 처리되지 않았습니다.
           </p>
         </div>
 
-        <p className="text-[13px] leading-normal text-gray-600">{reason ?? DEFAULT_REASON}</p>
+        <p className="text-13 leading-normal text-gray-600">{reason ?? DEFAULT_REASON}</p>
 
         <div className="flex items-end gap-3 mobile:justify-end mobile:gap-2">
           <Button
             onClick={onRetry}
-            className="rounded-lg bg-[#bf2626] px-6 py-3 text-sm hover:bg-[#a81f1f] mobile:rounded-lg mobile:px-4 mobile:py-2"
+            className="rounded-lg bg-[#bf2626] px-6 py-3 text-14 hover:bg-[#a81f1f] mobile:rounded-lg mobile:px-4 mobile:py-2"
           >
             다시 결제
           </Button>
@@ -78,7 +78,7 @@ export function PaymentFailModal({ reason, onRetry, onSelectOther }: PaymentFail
             variant="outlined"
             color="gray"
             onClick={onSelectOther}
-            className="rounded-lg border-gray-300 px-6 py-3 text-sm font-medium text-gray-700 mobile:rounded-lg mobile:px-4 mobile:py-2"
+            className="rounded-lg border-gray-300 px-6 py-3 text-14 font-medium text-gray-700 mobile:rounded-lg mobile:px-4 mobile:py-2"
           >
             다른 수단 선택
           </Button>

@@ -20,9 +20,9 @@ const TRACK_HEIGHT: Record<ProgressBarSize, string> = {
 };
 
 const LABEL_SIZE: Record<ProgressBarSize, string> = {
-  l: "w-8 text-sm",
-  m: "w-[26px] text-xs",
-  s: "w-[22px] text-[10px]",
+  l: "w-8 text-14",
+  m: "w-[26px] text-12",
+  s: "w-[22px] text-10",
 };
 
 /**

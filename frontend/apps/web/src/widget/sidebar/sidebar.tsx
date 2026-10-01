@@ -52,7 +52,7 @@ export function Sidebar({
             to={item.to}
             className={({ isActive }) =>
               cn(
-                "flex items-start px-5 py-3 text-[15px] leading-normal whitespace-nowrap",
+                "flex items-start px-5 py-3 text-15 leading-normal whitespace-nowrap",
                 isActive ? "bg-primary-700 font-semibold text-white" : "font-medium text-gray-700",
               )
             }
@@ -63,14 +63,14 @@ export function Sidebar({
       </nav>
 
       <div className="flex w-full flex-col gap-5 px-5">
-        <div className="flex flex-col gap-2 text-sm leading-normal">
+        <div className="flex flex-col gap-2 text-14 leading-normal">
           <p className="font-semibold text-gray-800">{userName}</p>
           {authTimeLabel && <p className="text-gray-600">{authTimeLabel}</p>}
           {showExtendAuth && (
             <button
               type="button"
               onClick={onExtendAuth}
-              className="w-fit cursor-pointer text-sm font-semibold text-primary-700 underline"
+              className="w-fit cursor-pointer text-14 font-semibold text-primary-700 underline"
             >
               인증 연장
             </button>
@@ -79,7 +79,7 @@ export function Sidebar({
         <button
           type="button"
           onClick={onReleaseAuth}
-          className="w-fit cursor-pointer text-sm font-semibold leading-normal text-gray-500 underline"
+          className="w-fit cursor-pointer text-14 font-semibold leading-normal text-gray-500 underline"
         >
           인증해제
         </button>

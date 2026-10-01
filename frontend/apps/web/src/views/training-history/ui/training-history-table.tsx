@@ -34,7 +34,7 @@ const HEADER_LABELS = [
   "교육 이수시간",
 ] as const;
 
-const CELL_BASE = "text-sm leading-normal";
+const CELL_BASE = "text-14 leading-normal";
 const CELL_TEXT = "text-gray-700";
 const CELL_DIMMED = "text-gray-400";
 
@@ -79,7 +79,7 @@ export function TrainingHistoryTable({
           <p
             key={label}
             className={cn(
-              "font-sans text-sm font-semibold leading-normal text-gray-800",
+              "font-sans text-14 font-semibold leading-normal text-gray-800",
               COLUMNS[index + 1],
             )}
           >
@@ -130,7 +130,7 @@ export function TrainingHistoryTable({
               </p>
               {/* 기발급 표기 — 교육명 아래 보조 표기. 재발급과 무관하게 다시 발급 가능 */}
               {item.lastIssuedAt !== undefined && (
-                <p className="text-xs leading-normal whitespace-nowrap text-gray-400">
+                <p className="text-12 leading-normal whitespace-nowrap text-gray-400">
                   발급 완료
                 </p>
               )}

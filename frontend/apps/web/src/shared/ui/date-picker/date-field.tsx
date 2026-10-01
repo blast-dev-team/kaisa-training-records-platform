@@ -102,7 +102,7 @@ export function DateField({
     >
       <div
         className={cn(
-          "flex w-full cursor-text items-center gap-1 rounded-xl border px-4 py-3 font-sans text-base leading-normal tracking-[-0.03em] transition-[background-color,border-color]",
+          "flex w-full cursor-text items-center gap-1 rounded-xl border px-4 py-3 font-sans text-16 leading-normal tracking-[-0.03em] transition-[background-color,border-color]",
           open ? "border-primary-400 bg-gray-100" : "border-gray-300 bg-gray-100",
         )}
       >

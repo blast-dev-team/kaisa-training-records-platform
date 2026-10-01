@@ -151,7 +151,7 @@ export function SectionTable() {
                 className="flex flex-col items-center gap-1.5 text-gray-700"
               >
                 <span className="size-6">{icon}</span>
-                <span className="text-[10px] text-gray-400">{name}</span>
+                <span className="text-10 text-gray-400">{name}</span>
               </div>
             ))}
           </div>

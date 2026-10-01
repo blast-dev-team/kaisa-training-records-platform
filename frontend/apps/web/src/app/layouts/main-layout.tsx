@@ -69,7 +69,7 @@ export function MainLayout() {
               to={item.to}
               className={({ isActive }) =>
                 cn(
-                  'flex items-center border-b-2 px-3 py-2.5 text-sm whitespace-nowrap',
+                  'flex items-center border-b-2 px-3 py-2.5 text-14 whitespace-nowrap',
                   isActive
                     ? 'border-primary-700 font-semibold text-primary-700'
                     : 'border-transparent font-medium text-gray-500',
@@ -82,9 +82,9 @@ export function MainLayout() {
         </nav>
         <div className="flex w-full items-center justify-between bg-gray-100 px-5 py-2.5">
           <div className="flex items-center gap-2 whitespace-nowrap">
-            <p className="text-sm font-semibold leading-[1.5] text-gray-800">{userName}</p>
+            <p className="text-14 font-semibold leading-[1.5] text-gray-800">{userName}</p>
             {authTimeLabel && (
-              <p className="text-xs leading-[1.4] text-gray-500">{authTimeLabel}</p>
+              <p className="text-12 leading-[1.4] text-gray-500">{authTimeLabel}</p>
             )}
           </div>
           <div className="flex items-center gap-3 whitespace-nowrap">
@@ -93,7 +93,7 @@ export function MainLayout() {
               <button
                 type="button"
                 onClick={() => extendMutation.mutate()}
-                className="cursor-pointer text-sm font-semibold leading-normal text-primary-700 underline"
+                className="cursor-pointer text-14 font-semibold leading-normal text-primary-700 underline"
               >
                 인증 연장
               </button>
@@ -101,7 +101,7 @@ export function MainLayout() {
             <button
               type="button"
               onClick={() => setIsReleaseModalOpen(true)}
-              className="cursor-pointer text-sm font-semibold leading-normal text-gray-500 underline"
+              className="cursor-pointer text-14 font-semibold leading-normal text-gray-500 underline"
             >
               인증 해제
             </button>

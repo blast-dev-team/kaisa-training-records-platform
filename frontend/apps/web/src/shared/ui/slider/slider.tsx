@@ -43,7 +43,7 @@ export function Slider({
   return (
     <div className={cn("flex flex-col gap-2", className)}>
       {(leftText !== undefined || rightText !== undefined) && (
-        <div className="flex w-full items-center justify-between text-sm leading-[1.5] tracking-[-0.03em] text-gray-500">
+        <div className="flex w-full items-center justify-between text-14 leading-[1.5] tracking-[-0.03em] text-gray-500">
           <span>{leftText}</span>
           <span>{rightText}</span>
         </div>
@@ -78,7 +78,7 @@ export function Slider({
                   <span className="relative flex items-center justify-center">
                     <span className="size-5 rounded-full bg-white shadow-[0_4px_12px_0_rgba(16,24,40,0.1)] group-focus-visible:outline group-focus-visible:outline-1 group-focus-visible:outline-primary-400" />
                     {valueText !== undefined && (
-                      <span className="pointer-events-none absolute bottom-full left-1/2 mb-2.5 hidden -translate-x-1/2 rounded-[4px] bg-primary-100 px-1 text-xs leading-[1.5] tracking-[-0.03em] whitespace-nowrap text-gray-900 group-focus-visible:block">
+                      <span className="pointer-events-none absolute bottom-full left-1/2 mb-2.5 hidden -translate-x-1/2 rounded-[4px] bg-primary-100 px-1 text-12 leading-[1.5] tracking-[-0.03em] whitespace-nowrap text-gray-900 group-focus-visible:block">
                         {valueText}
                       </span>
                     )}

@@ -44,12 +44,12 @@ export function AuthReleaseModal({ onConfirm }: AuthReleaseModalProps) {
         >
           <XIcon className="size-6" />
         </button>
-        <p className="text-center text-base font-semibold text-black">인증해제</p>
-        <p className="text-center text-base text-black">인증이 해제되었습니다.</p>
+        <p className="text-center text-16 font-semibold text-black">인증해제</p>
+        <p className="text-center text-16 text-black">인증이 해제되었습니다.</p>
         <button
           type="button"
           onClick={onConfirm}
-          className="w-full cursor-pointer rounded-[12px] bg-gray-800 px-4 py-3 text-base font-semibold text-white"
+          className="w-full cursor-pointer rounded-[12px] bg-gray-800 px-4 py-3 text-16 font-semibold text-white"
         >
           확인
         </button>

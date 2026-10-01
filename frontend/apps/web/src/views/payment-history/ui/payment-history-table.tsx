@@ -22,7 +22,7 @@ const COLUMNS = [
 
 const HEADER_LABELS = ['결제일시', '확인서 / 교육명', '결제수단', '금액', '상태'] as const;
 
-const CELL_BASE = 'text-sm leading-normal';
+const CELL_BASE = 'text-14 leading-normal';
 const CELL_TEXT = 'text-gray-700';
 const CELL_DIMMED = 'text-gray-400';
 
@@ -57,7 +57,7 @@ export function PaymentHistoryTable({
           <p
             key={label}
             className={cn(
-              'font-sans text-sm font-semibold leading-normal text-gray-800',
+              'font-sans text-14 font-semibold leading-normal text-gray-800',
               COLUMNS[index],
               index === 4 && 'text-center',
             )}
@@ -85,10 +85,10 @@ export function PaymentHistoryTable({
 
             {/* 확인서 번호 + 교육명 2줄 */}
             <div className={cn('flex flex-col justify-center gap-1', COLUMNS[1])}>
-              <p className="text-sm leading-normal font-semibold text-gray-900">
+              <p className="text-14 leading-normal font-semibold text-gray-900">
                 {item.certificateNumber}
               </p>
-              <p className="text-sm leading-normal text-gray-400">{item.courseName}</p>
+              <p className="text-14 leading-normal text-gray-400">{item.courseName}</p>
             </div>
 
             {/* 결제수단 — 항상 클릭. 전표 URL 있으면 새 탭, 없으면 안내 모달 (페이지가 분기) */}

@@ -33,7 +33,7 @@ export function UploadButton({
       <button
         type={type}
         className={cn(
-          "inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-primary-50 px-4 py-3 text-base leading-normal font-semibold tracking-[-0.03em] whitespace-nowrap text-primary-500 select-none",
+          "inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-primary-50 px-4 py-3 text-16 leading-normal font-semibold tracking-[-0.03em] whitespace-nowrap text-primary-500 select-none",
           "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600",
         )}
         {...props}
@@ -43,7 +43,7 @@ export function UploadButton({
         </span>
         {label}
       </button>
-      <div className="flex flex-col items-start text-xs leading-normal tracking-[-0.03em] whitespace-nowrap text-gray-400">
+      <div className="flex flex-col items-start text-12 leading-normal tracking-[-0.03em] whitespace-nowrap text-gray-400">
         <p className="font-semibold">{hint}</p>
         <p>{formats}</p>
       </div>

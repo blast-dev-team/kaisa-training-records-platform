@@ -58,9 +58,9 @@ const SHAPE_CLASSES: Record<ChipShape, string> = {
 };
 
 const TEXT_SIZE_CLASSES: Record<ChipSize, string> = {
-  s: "text-[10px] font-normal",
-  m: "text-xs font-semibold",
-  l: "text-xs font-semibold",
+  s: "text-10 font-normal",
+  m: "text-12 font-semibold",
+  l: "text-12 font-semibold",
 };
 
 /** Figma — l 크기만 수직 패딩 4px, 나머지 2px */

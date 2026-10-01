@@ -121,8 +121,8 @@ export function IdentityVerificationModal({ onSuccess, onClose }: IdentityVerifi
         className="flex w-[420px] max-w-full flex-col gap-5 rounded-[20px] bg-white px-8 py-7 shadow-[0px_4px_24px_0px_rgba(0,0,0,0.15)] font-sans"
       >
         <div className="flex flex-col gap-1.5">
-          <p className="text-xl font-semibold tracking-[-0.03em] text-gray-900">본인인증</p>
-          <p className="text-base leading-[1.5] tracking-[-0.03em] text-gray-500">
+          <p className="text-20 font-semibold tracking-[-0.03em] text-gray-900">본인인증</p>
+          <p className="text-16 leading-[1.5] tracking-[-0.03em] text-gray-500">
             입력한 정보로 본인인증을 진행합니다.
           </p>
         </div>
@@ -164,20 +164,20 @@ export function IdentityVerificationModal({ onSuccess, onClose }: IdentityVerifi
           />
         </div>
 
-        {errorMessage && <p className="text-sm text-red-500">{errorMessage}</p>}
+        {errorMessage && <p className="text-14 text-red-500">{errorMessage}</p>}
 
         <div className="flex items-center gap-3">
           <Button
             variant="outlined"
             color="black"
-            className="flex-1 rounded-lg px-6 py-3.5 text-[15px] text-gray-700"
+            className="flex-1 rounded-lg px-6 py-3.5 text-15 text-gray-700"
             disabled={isPending}
             onClick={onClose}
           >
             취소
           </Button>
           <Button
-            className="flex-1 rounded-lg px-6 py-3.5 text-[15px]"
+            className="flex-1 rounded-lg px-6 py-3.5 text-15"
             disabled={!canSubmit || isPending}
             onClick={handleSubmit}
           >

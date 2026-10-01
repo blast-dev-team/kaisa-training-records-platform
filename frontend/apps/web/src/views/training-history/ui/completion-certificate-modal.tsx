@@ -194,7 +194,7 @@ export function CompletionCertificateModal({
 
         {isError ? (
           <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
-            <p className="text-sm text-gray-700">
+            <p className="text-14 text-gray-700">
               {preview.error instanceof Error
                 ? preview.error.message
                 : "문제가 생겼어요. 잠시 후 다시 시도해 주세요"}
@@ -213,15 +213,15 @@ export function CompletionCertificateModal({
             </div>
           </div>
         ) : preview.isPending || certificates === null ? (
-          <p className="py-20 text-center text-sm text-gray-500">
+          <p className="py-20 text-center text-14 text-gray-500">
             미리보기를 불러오고 있어요
           </p>
         ) : (
           <>
-            <h2 className="text-lg leading-normal font-bold text-gray-900 mobile:text-base">
+            <h2 className="text-18 leading-normal font-bold text-gray-900 mobile:text-16">
               수료증 미리보기
             </h2>
-            <p className="text-sm leading-normal text-gray-500 mobile:text-[13px]">
+            <p className="text-14 leading-normal text-gray-500 mobile:text-13">
               {previewOnly
                 ? `수료증 미리보기 ${certificates.length}건 — 발급되지 않은 미리보기예요`
                 : `사내 기관 수료내역 ${certificates.length}건 — PDF로 저장하면 발급돼요`}
@@ -246,7 +246,7 @@ export function CompletionCertificateModal({
                         <CompletionCertificateSheet certificate={certificate} />
                       </div>
                     </div>
-                    <figcaption className="mt-1 text-center text-xs leading-normal text-gray-500">
+                    <figcaption className="mt-1 text-center text-12 leading-normal text-gray-500">
                       {certificate.traineeName} · {certificate.certificateNo}
                     </figcaption>
                   </figure>
@@ -260,7 +260,7 @@ export function CompletionCertificateModal({
               fullWidth
               disabled={isPdfGenerating}
               onClick={() => void handleDownloadPdf()}
-              className="shrink-0 rounded-lg bg-gray-900 py-4 text-base font-bold hover:bg-gray-800 mobile:py-3 mobile:text-sm"
+              className="shrink-0 rounded-lg bg-gray-900 py-4 text-16 font-bold hover:bg-gray-800 mobile:py-3 mobile:text-14"
             >
               {isPdfGenerating
                 ? "생성 중..."

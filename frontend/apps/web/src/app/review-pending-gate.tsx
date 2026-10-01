@@ -20,27 +20,27 @@ export function ReviewPendingGate({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 p-6 font-sans">
       <section className="w-full max-w-md rounded-2xl border border-gray-200 bg-white px-8 py-10 text-center shadow-sm">
-        <div className="mx-auto mb-5 flex size-12 items-center justify-center rounded-full bg-amber-50 text-xl">
+        <div className="mx-auto mb-5 flex size-12 items-center justify-center rounded-full bg-amber-50 text-20">
           ⏳
         </div>
-        <h1 className="text-lg font-semibold tracking-[-0.02em] text-gray-900">
+        <h1 className="text-18 font-semibold tracking-[-0.02em] text-gray-900">
           감리원 심사가 진행 중이에요
         </h1>
-        <p className="mt-3 text-[15px] leading-[1.6] text-gray-500">
+        <p className="mt-3 text-15 leading-[1.6] text-gray-500">
           {userName}님의 본인인증은 완료됐어요.
           <br />
           가입 정보와 기존 감리원 데이터의 매칭 심사가 끝나면
           <br />
           로그인 후 교육 내역과 확인서 발급을 이용할 수 있어요.
         </p>
-        <p className="mt-4 rounded-lg bg-gray-50 px-4 py-3 text-[13px] leading-[1.6] text-gray-500">
+        <p className="mt-4 rounded-lg bg-gray-50 px-4 py-3 text-13 leading-[1.6] text-gray-500">
           심사는 영업일 기준 1~2일이 걸려요.
           <br />
           문의: 협회 담당자
         </p>
         <button
           type="button"
-          className="mt-6 w-full rounded-lg bg-gray-900 px-4 py-3 text-sm font-medium text-white hover:bg-gray-800"
+          className="mt-6 w-full rounded-lg bg-gray-900 px-4 py-3 text-14 font-medium text-white hover:bg-gray-800"
           onClick={() => signOut()}
         >
           닫기

@@ -101,7 +101,7 @@ export function IssuanceCompletePage() {
 
   if (isLoading) {
     return (
-      <section className="flex flex-1 items-center justify-center py-20 font-sans text-sm text-gray-500">
+      <section className="flex flex-1 items-center justify-center py-20 font-sans text-14 text-gray-500">
         확인서 정보를 불러오고 있어요
       </section>
     );
@@ -110,7 +110,7 @@ export function IssuanceCompletePage() {
   if (isError || !result) {
     return (
       <section className="flex flex-col items-center gap-4 py-20 text-center font-sans">
-        <p className="text-sm text-gray-700">
+        <p className="text-14 text-gray-700">
           {error instanceof Error
             ? error.message
             : "문제가 생겼어요. 잠시 후 다시 시도해 주세요"}
@@ -134,7 +134,7 @@ export function IssuanceCompletePage() {
           <span className="size-8 text-gray-700">
             <CaretLeftIcon />
           </span>
-          <h1 className="text-[28px] leading-normal font-bold whitespace-nowrap text-gray-900">
+          <h1 className="text-28 leading-normal font-bold whitespace-nowrap text-gray-900">
             발급 완료
           </h1>
         </button>
@@ -148,7 +148,7 @@ export function IssuanceCompletePage() {
             {/* 액션 — PDF 다운로드 · 인쇄 · 진위확인 링크 복사 */}
             <div className="flex items-center gap-3">
               <Button
-                className="rounded-lg px-6 py-3 text-sm"
+                className="rounded-lg px-6 py-3 text-14"
                 onClick={handleDownloadPdf}
               >
                 PDF 다운로드
@@ -156,7 +156,7 @@ export function IssuanceCompletePage() {
               <Button
                 variant="outlined"
                 color="gray"
-                className="rounded-lg px-6 py-3 text-sm font-medium text-gray-700"
+                className="rounded-lg px-6 py-3 text-14 font-medium text-gray-700"
                 onClick={() => window.print()}
               >
                 인쇄
@@ -164,7 +164,7 @@ export function IssuanceCompletePage() {
               <Button
                 variant="outlined"
                 color="gray"
-                className="rounded-lg px-6 py-3 text-sm font-medium text-gray-700"
+                className="rounded-lg px-6 py-3 text-14 font-medium text-gray-700"
                 onClick={handleCopyLink}
               >
                 진위확인 링크 복사
@@ -173,7 +173,7 @@ export function IssuanceCompletePage() {
 
             {/* 안내 배너 */}
             <div className="w-full rounded-lg border border-solid border-primary-100 bg-primary-50 px-5 py-3.5">
-              <ul className="ms-5 list-disc text-[13px] leading-normal text-primary-700">
+              <ul className="ms-5 list-disc text-13 leading-normal text-primary-700">
                 <li>확인서 하단 진위확인 ID로 제출처에서 유효성을 검증할 수 있습니다.</li>
                 <li>재다운로드는 일주일 이내에 발급·결제 내역에서 가능합니다.</li>
               </ul>
@@ -219,10 +219,10 @@ function InfoCard({ result }: { result: IssuanceResult }) {
           key={label}
           className="flex items-center justify-between border-b border-solid border-gray-100 py-3.5"
         >
-          <dt className="text-sm leading-normal font-medium whitespace-nowrap text-gray-500">
+          <dt className="text-14 leading-normal font-medium whitespace-nowrap text-gray-500">
             {label}
           </dt>
-          <dd className="text-sm leading-normal font-medium whitespace-nowrap text-gray-800">
+          <dd className="text-14 leading-normal font-medium whitespace-nowrap text-gray-800">
             {value}
           </dd>
         </div>

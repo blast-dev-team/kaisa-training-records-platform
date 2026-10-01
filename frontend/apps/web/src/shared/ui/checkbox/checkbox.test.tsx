@@ -40,7 +40,7 @@ describe("Checkbox", () => {
 
     const { box, text } = getParts("약관 동의");
     expect(box.className).toContain("size-[18px]");
-    expect(text?.className).toContain("text-xs");
+    expect(text?.className).toContain("text-12");
   });
 
   it("미선택 disabled는 gray-200 배경 클래스", () => {

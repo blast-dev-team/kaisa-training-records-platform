@@ -57,7 +57,7 @@ export function Tooltip({
           POSITION[direction],
         )}
       >
-        <p className="text-[10px] leading-normal tracking-[-0.03em] break-words text-black">
+        <p className="text-10 leading-normal tracking-[-0.03em] break-words text-black">
           {description}
         </p>
       </span>

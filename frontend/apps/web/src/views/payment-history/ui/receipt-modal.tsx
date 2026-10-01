@@ -48,7 +48,7 @@ export function ReceiptModal({ imageUrl, onDownload, onClose }: ReceiptModalProp
         </button>
         {/* 헤더 — node 78:5021 */}
         <div className="flex w-full shrink-0 items-center border-b border-solid border-[#dfe4ea] p-[30px]">
-          <p className="text-[24px] leading-[1.4] font-semibold text-gray-900">영수증</p>
+          <p className="text-24 leading-[1.4] font-semibold text-gray-900">영수증</p>
         </div>
 
         {/* 본문 — 이미지 영역 + 다운로드 버튼 (node 78:5024) */}
@@ -61,7 +61,7 @@ export function ReceiptModal({ imageUrl, onDownload, onClose }: ReceiptModalProp
             />
           ) : (
             <div className="flex min-h-0 w-full flex-[1_0_0%] items-center justify-center bg-gray-100 px-6">
-              <p className="text-center text-sm leading-[1.6] font-medium text-gray-500">
+              <p className="text-center text-14 leading-[1.6] font-medium text-gray-500">
                 이 결제에는 영수증 전표가 제공되지 않았어요.
                 <br />
                 결제 내역으로 확인해 주세요.
@@ -73,7 +73,7 @@ export function ReceiptModal({ imageUrl, onDownload, onClose }: ReceiptModalProp
             <button
               type="button"
               onClick={onDownload}
-              className="w-full shrink-0 rounded-lg bg-gray-900 py-4 text-base leading-normal font-bold text-white hover:bg-gray-800 cursor-pointer"
+              className="w-full shrink-0 rounded-lg bg-gray-900 py-4 text-16 leading-normal font-bold text-white hover:bg-gray-800 cursor-pointer"
             >
               다운로드
             </button>

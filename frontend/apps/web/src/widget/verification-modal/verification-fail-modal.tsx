@@ -66,21 +66,21 @@ export function VerificationFailModal({
         >
           <XIcon className="size-6" />
         </button>
-        <p className="whitespace-pre text-sm text-gray-500 mobile:text-xs">{heading}</p>
+        <p className="whitespace-pre text-14 text-gray-500 mobile:text-12">{heading}</p>
 
         {isSuperseded ? (
           <>
-            <span className="w-fit rounded-[4px] border border-[#f09744] bg-[#fdf3e7] px-3 py-1.5 text-sm font-semibold text-[#b06a1f] mobile:text-xs">
+            <span className="w-fit rounded-[4px] border border-[#f09744] bg-[#fdf3e7] px-3 py-1.5 text-14 font-semibold text-[#b06a1f] mobile:text-12">
               재발급됨
             </span>
 
-            <p className="text-[15px] font-medium text-gray-700 mobile:text-sm">
+            <p className="text-15 font-medium text-gray-700 mobile:text-14">
               입력하신 번호의 확인서는 재발급되어 무효처리된 확인서입니다.
             </p>
 
-            <div className="flex w-full flex-col gap-1 rounded-[8px] border border-solid border-[rgba(240,151,68,0.4)] bg-[#fdf8f0] px-5 py-4 text-[13px] leading-normal text-[#8a5a1d] mobile:px-4 mobile:py-3 mobile:text-xs">
+            <div className="flex w-full flex-col gap-1 rounded-[8px] border border-solid border-[rgba(240,151,68,0.4)] bg-[#fdf8f0] px-5 py-4 text-13 leading-normal text-[#8a5a1d] mobile:px-4 mobile:py-3 mobile:text-12">
               <p>최신 확인서 번호</p>
-              <p className="text-[15px] font-semibold text-[#b06a1f] mobile:text-sm">
+              <p className="text-15 font-semibold text-[#b06a1f] mobile:text-14">
                 {successorNo}
               </p>
               <p>새 번호로 다시 조회하시면 유효 여부를 확인할 수 있습니다.</p>
@@ -88,15 +88,15 @@ export function VerificationFailModal({
           </>
         ) : (
           <>
-            <span className="w-fit rounded-[4px] border border-[#d93333] bg-[#fae5e5] px-3 py-1.5 text-sm font-semibold text-[#bf2626] mobile:text-xs">
+            <span className="w-fit rounded-[4px] border border-[#d93333] bg-[#fae5e5] px-3 py-1.5 text-14 font-semibold text-[#bf2626] mobile:text-12">
               확인 불가
             </span>
 
-            <p className="text-[15px] font-medium text-gray-700 mobile:text-sm">
+            <p className="text-15 font-medium text-gray-700 mobile:text-14">
               {message || "입력하신 진위확인 ID와 성명이 일치하는 확인서가 없습니다."}
             </p>
 
-            <div className="flex w-full flex-col gap-2 rounded-[8px] border border-solid border-[rgba(229,77,77,0.3)] bg-[#fcf2f2] px-5 py-4 text-[13px] leading-normal text-[#b23333] mobile:px-4 mobile:py-3 mobile:text-xs">
+            <div className="flex w-full flex-col gap-2 rounded-[8px] border border-solid border-[rgba(229,77,77,0.3)] bg-[#fcf2f2] px-5 py-4 text-13 leading-normal text-[#b23333] mobile:px-4 mobile:py-3 mobile:text-12">
               {TIPS.map((tip) => (
                 <p key={tip}>{tip}</p>
               ))}
@@ -107,14 +107,14 @@ export function VerificationFailModal({
         <div className="flex items-center gap-3 mobile:flex-col mobile:gap-2">
           <Button
             onClick={onRetry}
-            className="flex-1 rounded-lg px-8 py-3.5 text-[15px] mobile:px-4 mobile:py-3 mobile:text-sm"
+            className="flex-1 rounded-lg px-8 py-3.5 text-15 mobile:px-4 mobile:py-3 mobile:text-14"
           >
             다시 입력
           </Button>
           <Button
             variant="outlined"
             color="black"
-            className="rounded-lg border-gray-700 px-8 py-3.5 text-[15px] text-gray-700 mobile:px-4 mobile:py-3 mobile:text-sm"
+            className="rounded-lg border-gray-700 px-8 py-3.5 text-15 text-gray-700 mobile:px-4 mobile:py-3 mobile:text-14"
             onClick={() => {
               window.location.href = `tel:${CONTACT_PHONE.replace(/-/g, "")}`;
             }}

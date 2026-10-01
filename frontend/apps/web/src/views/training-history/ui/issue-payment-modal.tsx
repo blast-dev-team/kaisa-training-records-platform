@@ -291,12 +291,12 @@ export function IssuePaymentModal({
         )}
         {phase === "preview" ? (
           isLoading ? (
-            <p className="py-20 text-center text-sm text-gray-500">
+            <p className="py-20 text-center text-14 text-gray-500">
               미리보기를 불러오고 있어요
             </p>
           ) : isError || !details ? (
             <div className="flex flex-col items-center gap-4 py-16 text-center">
-              <p className="text-sm text-gray-700">
+              <p className="text-14 text-gray-700">
                 {error instanceof Error
                   ? error.message
                   : "문제가 생겨요. 잠시 후 다시 시도해 주세요"}
@@ -313,7 +313,7 @@ export function IssuePaymentModal({
           ) : (
             <>
               {/* 발급될 확인서 미리보기 — 결제 전이라 확인서 번호·발급일은 비어 있다 */}
-              <h2 className="text-lg leading-normal font-bold text-gray-900 mobile:text-base">
+              <h2 className="text-18 leading-normal font-bold text-gray-900 mobile:text-16">
                 발급 미리보기
               </h2>
 
@@ -373,13 +373,13 @@ export function IssuePaymentModal({
 
               {/* 슈퍼 계정 — 결제 단계 없음. 미리보기 안내만 */}
               {previewOnly ? (
-                <p className="shrink-0 rounded-md bg-gray-100 px-4 py-3 text-[13px] leading-normal text-gray-500">
+                <p className="shrink-0 rounded-md bg-gray-100 px-4 py-3 text-13 leading-normal text-gray-500">
                   슈퍼 계정 미리보기예요. 발급·결제는 일반 회원 로그인에서만 가능해요.
                 </p>
               ) : (
               <div className="flex shrink-0 flex-col gap-3">
                 {paidIds.length > 0 && (
-                  <div className="flex w-full items-start justify-between text-sm leading-normal mobile:text-xs">
+                  <div className="flex w-full items-start justify-between text-14 leading-normal mobile:text-12">
                     <p className="text-gray-600">
                       확인서 {paidIds.length}건 ({unitFeeLabel}원)
                     </p>
@@ -387,7 +387,7 @@ export function IssuePaymentModal({
                   </div>
                 )}
 
-                <div className="flex w-full items-start justify-between text-base leading-normal font-bold text-gray-900 mobile:text-sm">
+                <div className="flex w-full items-start justify-between text-16 leading-normal font-bold text-gray-900 mobile:text-14">
                   <p>결제 금액</p>
                   <p>{feeLabel}원</p>
                 </div>
@@ -405,7 +405,7 @@ export function IssuePaymentModal({
                   fullWidth
                   disabled={!canPay}
                   onClick={() => payment.mutate()}
-                  className="rounded-lg bg-gray-900 py-4 text-base font-bold hover:bg-gray-800 mobile:py-3 mobile:text-sm"
+                  className="rounded-lg bg-gray-900 py-4 text-16 font-bold hover:bg-gray-800 mobile:py-3 mobile:text-14"
                 >
                   <span className="flex items-center gap-2">
                     <span>{feeLabel}원</span>
@@ -420,20 +420,20 @@ export function IssuePaymentModal({
                 </Button>
 
                 {prices.isError && (
-                  <p className="text-xs leading-normal text-red-500" role="alert">
+                  <p className="text-12 leading-normal text-red-500" role="alert">
                     가격 정보를 불러오지 못했어요. 모달을 닫고 다시 열어 주세요
                   </p>
                 )}
 
                 {payment.isError && (
-                  <p className="text-xs leading-normal text-red-500" role="alert">
+                  <p className="text-12 leading-normal text-red-500" role="alert">
                     {payment.error instanceof Error
                       ? payment.error.message
                       : "결제에 실패했어요. 잠시 후 다시 시도해 주세요"}
                   </p>
                 )}
 
-                <p className="text-xs leading-normal text-gray-400">
+                <p className="text-12 leading-normal text-gray-400">
                   발급 완료 후에는 환불되지 않습니다.
                 </p>
               </div>
@@ -443,17 +443,17 @@ export function IssuePaymentModal({
         ) : (
           <>
             {/* 신청 내용 — 발급 완료 요약. 확인서 번호·진위확인 정보는 발급·결제 내역 화면에서 본다 */}
-            <h2 className="text-lg leading-normal font-bold text-gray-900 mobile:text-base">
+            <h2 className="text-18 leading-normal font-bold text-gray-900 mobile:text-16">
               신청 내용
             </h2>
 
             {issuance.isLoading ? (
-              <p className="py-20 text-center text-sm text-gray-500">
+              <p className="py-20 text-center text-14 text-gray-500">
                 확인서 정보를 불러오고 있어요
               </p>
             ) : issuance.isError || !issuance.data ? (
               <div className="flex flex-col items-center gap-4 py-16 text-center">
-                <p className="text-sm text-gray-700">
+                <p className="text-14 text-gray-700">
                   {issuance.error instanceof Error
                     ? issuance.error.message
                     : "문제가 생겼어요. 잠시 후 다시 시도해 주세요"}
@@ -475,7 +475,7 @@ export function IssuePaymentModal({
                     type="button"
                     aria-expanded={isDetailOpen}
                     onClick={() => setIsDetailOpen((open) => !open)}
-                    className="flex cursor-pointer items-center gap-1 self-start font-sans text-xs leading-normal font-medium text-gray-500 hover:text-gray-700"
+                    className="flex cursor-pointer items-center gap-1 self-start font-sans text-12 leading-normal font-medium text-gray-500 hover:text-gray-700"
                   >
                     상세보기
                     {isDetailOpen ? (
@@ -489,7 +489,7 @@ export function IssuePaymentModal({
                       {(details ?? []).map((detail) => (
                         <li
                           key={detail.id}
-                          className="font-sans text-xs leading-normal text-gray-600"
+                          className="font-sans text-12 leading-normal text-gray-600"
                         >
                           {detail.courseName}
                         </li>
@@ -508,7 +508,7 @@ export function IssuePaymentModal({
               fullWidth
               disabled={isPdfGenerating || issuedSheets.length === 0}
               onClick={() => void handleDownloadPdf()}
-              className="mt-auto shrink-0 rounded-lg bg-gray-900 py-4 text-base font-bold hover:bg-gray-800 mobile:py-3 mobile:text-sm"
+              className="mt-auto shrink-0 rounded-lg bg-gray-900 py-4 text-16 font-bold hover:bg-gray-800 mobile:py-3 mobile:text-14"
             >
               {isPdfGenerating ? "생성 중..." : "PDF 다운로드"}
             </Button>
@@ -571,7 +571,7 @@ export function IssuePaymentModal({
 /** 신청 내용 행 — 라벨(gray-500) / 값(gray-800), 하단 구분선 */
 function DetailRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex w-full items-center justify-between border-b border-solid border-gray-100 pb-3 text-sm leading-normal font-medium">
+    <div className="flex w-full items-center justify-between border-b border-solid border-gray-100 pb-3 text-14 leading-normal font-medium">
       <dt className="whitespace-nowrap text-gray-500">{label}</dt>
       <dd className="text-gray-800">{value}</dd>
     </div>

@@ -61,7 +61,7 @@ export function TableCell({
       )}
     >
       {type === "text" ? (
-        <p className="min-w-px flex-1 font-sans text-xs leading-[1.5] tracking-[-0.03em] text-gray-600">
+        <p className="min-w-px flex-1 font-sans text-12 leading-[1.5] tracking-[-0.03em] text-gray-600">
           {children}
         </p>
       ) : (

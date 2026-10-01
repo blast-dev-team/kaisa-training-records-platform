@@ -35,7 +35,7 @@ const FILTER_CHIPS: { key: FilterChipKey; label: string }[] = [
 ];
 
 const CHIP_BASE =
-  "cursor-pointer rounded-md px-3 py-1.5 font-sans text-[13px] font-medium leading-normal whitespace-nowrap transition-[background-color,border-color,color] mobile:rounded-[6px] mobile:px-3 mobile:py-2 mobile:text-xs";
+  "cursor-pointer rounded-md px-3 py-1.5 font-sans text-13 font-medium leading-normal whitespace-nowrap transition-[background-color,border-color,color] mobile:rounded-[6px] mobile:px-3 mobile:py-2 mobile:text-12";
 const CHIP_ACTIVE = "bg-gray-700 text-white";
 const CHIP_INACTIVE = "border border-solid border-gray-300 bg-white text-gray-700 hover:bg-gray-50";
 
@@ -226,7 +226,7 @@ export function TrainingHistoryPage() {
 
   return (
     <section className="flex flex-col gap-6 mobile:gap-5">
-      <h1 className="font-sans text-[28px] leading-normal font-bold text-gray-900 mobile:text-2xl">
+      <h1 className="font-sans text-28 leading-normal font-bold text-gray-900 mobile:text-24">
         교육내역 조회
       </h1>
 
@@ -235,7 +235,7 @@ export function TrainingHistoryPage() {
       <div className="flex items-end justify-between mobile:flex-col mobile:items-stretch">
         <div className="flex items-end gap-3 mobile:flex-col mobile:items-stretch mobile:gap-3">
           <div className="flex flex-col gap-2">
-            <p className="font-sans text-[13px] leading-normal font-medium text-gray-700 mobile:text-sm mobile:font-semibold">
+            <p className="font-sans text-13 leading-normal font-medium text-gray-700 mobile:text-14 mobile:font-semibold">
               조회 기간
             </p>
             <div className="flex min-w-0 items-center gap-2 mobile:gap-1.5">
@@ -249,7 +249,7 @@ export function TrainingHistoryPage() {
                 }}
                 className="w-[150px] mobile:w-auto mobile:flex-1"
               />
-              <p className="font-sans text-sm leading-normal text-gray-700">~</p>
+              <p className="font-sans text-14 leading-normal text-gray-700">~</p>
               {/* 종료일 팝오버(335px)가 오른쪽 화면 밖으로 나가지 않게 right 정렬 */}
               <DateField
                 ariaLabel="조회 종료일"
@@ -291,13 +291,13 @@ export function TrainingHistoryPage() {
             }}
             placeholder="교육명 검색"
             aria-label="교육명 검색"
-            className="[&::-webkit-search-cancel-button]:cursor-pointer h-9 w-[180px] rounded-md border border-solid border-gray-300 bg-white px-3 font-sans text-sm leading-normal text-gray-800 outline-none placeholder:text-gray-400 focus:border-primary-400"
+            className="[&::-webkit-search-cancel-button]:cursor-pointer h-9 w-[180px] rounded-md border border-solid border-gray-300 bg-white px-3 font-sans text-16 leading-normal text-gray-800 outline-none placeholder:text-gray-400 focus:border-primary-400"
           />
           <Button
             type="submit"
             color="black"
             size="s"
-            className="rounded-md bg-gray-700 px-3 py-1.5 text-[13px] hover:bg-gray-600"
+            className="rounded-md bg-gray-700 px-3 py-1.5 text-13 hover:bg-gray-600"
           >
             조회
           </Button>
@@ -306,7 +306,7 @@ export function TrainingHistoryPage() {
 
       {/* 안내 배너 — node 25:2456 / 모바일 131:8739 */}
       <div className="flex w-full items-start rounded-md border-l-4 border-solid border-primary-400 bg-[#f0f4ff] px-5 py-3 mobile:rounded-[4px] mobile:px-3 mobile:py-3">
-        <p className="flex-1 font-sans text-sm leading-[1.6] text-primary-700 mobile:text-xs mobile:leading-[1.5]">
+        <p className="flex-1 font-sans text-14 leading-[1.6] text-primary-700 mobile:text-12 mobile:leading-[1.5]">
           기본 조회 기간 오늘부터 3년 이내 이력이 표시됩니다. &apos;전체 기간&apos; 선택 시 이전
           이력도 조회되나, 3년 초과 이력은 확인서 발급이 제한됩니다.
         </p>
@@ -323,13 +323,13 @@ export function TrainingHistoryPage() {
           }}
           placeholder="교육명 검색"
           aria-label="교육명 검색"
-          className="[&::-webkit-search-cancel-button]:cursor-pointer h-9 min-w-0 flex-1 rounded-md border border-solid border-gray-300 bg-white px-3 font-sans text-sm leading-normal text-gray-800 outline-none placeholder:text-gray-400 focus:border-primary-400"
+          className="[&::-webkit-search-cancel-button]:cursor-pointer h-9 min-w-0 flex-1 rounded-md border border-solid border-gray-300 bg-white px-3 font-sans text-16 leading-normal text-gray-800 outline-none placeholder:text-gray-400 focus:border-primary-400"
         />
         <Button
           type="submit"
           color="black"
           size="s"
-          className="rounded-md bg-gray-700 px-3 py-1.5 text-[13px] hover:bg-gray-600"
+          className="rounded-md bg-gray-700 px-3 py-1.5 text-13 hover:bg-gray-600"
         >
           조회
         </Button>
@@ -337,7 +337,7 @@ export function TrainingHistoryPage() {
 
       {/* 발급 툴바 — node 99:5098. 체크한 건을 일괄 발급한다 */}
       <div className="flex items-center justify-between gap-3 mobile:flex-col mobile:items-stretch mobile:gap-3">
-        <p className="font-sans text-sm leading-normal text-gray-500 mobile:text-[13px]">
+        <p className="font-sans text-14 leading-normal text-gray-500 mobile:text-13">
           <span className="font-semibold">
             총 <span className="text-primary-500">{data?.total ?? 0}건</span>
           </span>{" "}
@@ -356,17 +356,17 @@ export function TrainingHistoryPage() {
             <div className="flex flex-col gap-1">
               {isSuper ? (
                 <>
-                  <p className="font-sans text-sm leading-normal text-gray-500 mobile:text-[13px] mobile:hidden">
+                  <p className="font-sans text-14 leading-normal text-gray-500 mobile:text-13 mobile:hidden">
                     · 슈퍼 계정으로 전 회원 이력을 조회 중이에요. 발급 버튼은 미리보기만 제공해요.
                   </p>
                 </>
               ) : (
                 <>
-                  <p className="font-sans text-sm leading-normal text-gray-500 mobile:text-[13px] mobile:hidden">
+                  <p className="font-sans text-14 leading-normal text-gray-500 mobile:text-13 mobile:hidden">
                     · 여러 교육내역 확인서를 한번에 발급할 수 있습니다. 발급 비용은 단 건, 일괄 건
                     동일합니다.
                   </p>
-                  <p className="font-sans text-sm leading-normal text-gray-500 mobile:text-[13px] mobile:hidden">
+                  <p className="font-sans text-14 leading-normal text-gray-500 mobile:text-13 mobile:hidden">
                     · 협회에서 설정한 사내기관에 대한 교육내역만 수료증 발급이 가능합니다.
                   </p>
                 </>
@@ -376,7 +376,7 @@ export function TrainingHistoryPage() {
           <div className="flex items-center justify-end gap-3 mobile:justify-end mobile:gap-2">
             {/* 데스크톱은 안내 문구가 대신 알려주므로 모바일에서만 선택 건수 노출 */}
             {selectedIds.length > 0 && (
-              <p className="font-sans text-sm leading-normal text-gray-500 mobile:block mobile:text-[13px]">
+              <p className="font-sans text-14 leading-normal text-gray-500 mobile:block mobile:text-13">
                 {selectedIds.length}개 선택
               </p>
             )}
@@ -385,7 +385,7 @@ export function TrainingHistoryPage() {
               size="s"
               disabled={!canIssue}
               onClick={handleIssueClick}
-              className="rounded-md px-3 py-1.5 text-[13px] font-medium"
+              className="rounded-md px-3 py-1.5 text-13 font-medium"
             >
               발급
             </Button>
@@ -395,7 +395,7 @@ export function TrainingHistoryPage() {
               size="s"
               disabled={!canCompletionCert}
               onClick={handleCompletionCertClick}
-              className="rounded-md px-3 py-1.5 text-[13px] font-medium"
+              className="rounded-md px-3 py-1.5 text-13 font-medium"
             >
               수료증
             </Button>
@@ -406,13 +406,13 @@ export function TrainingHistoryPage() {
       {/* 목록 표 — 로딩·에러·빈 상태는 표 컨테이너 안에서 처리 */}
       {isLoading ? (
         <div className="flex w-full flex-col overflow-hidden rounded-xl border border-solid border-gray-200">
-          <div className="flex w-full items-center justify-center bg-white px-4 py-12 text-sm text-gray-500">
+          <div className="flex w-full items-center justify-center bg-white px-4 py-12 text-14 text-gray-500">
             교육내역을 불러오고 있어요
           </div>
         </div>
       ) : isError ? (
         <div className="flex w-full flex-col overflow-hidden rounded-xl border border-solid border-gray-200">
-          <div className="flex w-full flex-col items-center gap-3 bg-white px-4 py-12 text-sm text-gray-500">
+          <div className="flex w-full flex-col items-center gap-3 bg-white px-4 py-12 text-14 text-gray-500">
             <p>
               {error instanceof Error
                 ? error.message
@@ -421,7 +421,7 @@ export function TrainingHistoryPage() {
             <Button
               variant="outlined"
               size="s"
-              className="rounded-md px-3 py-1.5 text-[13px]"
+              className="rounded-md px-3 py-1.5 text-13"
               onClick={() => refetch()}
             >
               다시 시도
@@ -433,16 +433,16 @@ export function TrainingHistoryPage() {
         <div className="flex w-full flex-col items-center justify-center gap-3 rounded-2xl bg-gray-100 py-10 mobile:p-5">
           <div className="flex flex-col items-center gap-2">
             <WarningCircleIcon className="size-16 text-[#D92D20] mobile:size-8" />
-            <p className="font-sans text-base font-semibold leading-[1.5] tracking-[-0.48px] text-gray-500 mobile:text-sm mobile:tracking-[-0.03em]">
+            <p className="font-sans text-16 font-semibold leading-[1.5] tracking-[-0.48px] text-gray-500 mobile:text-14 mobile:tracking-[-0.03em]">
               조회된 내역이 없습니다.
             </p>
           </div>
-          <p className="font-sans text-sm leading-normal text-gray-400">
+          <p className="font-sans text-14 leading-normal text-gray-400">
             ‘전체 기간’으로 재조회하거나 협회로 문의하여 주십시오.
           </p>
           <a
             href="tel:025589140"
-            className="flex justify-center rounded-lg border border-solid border-gray-700 bg-white px-8 py-[14px] font-sans text-[15px] font-semibold leading-normal text-gray-700 mobile:w-full mobile:text-sm"
+            className="flex justify-center rounded-lg border border-solid border-gray-700 bg-white px-8 py-[14px] font-sans text-15 font-semibold leading-normal text-gray-700 mobile:w-full mobile:text-14"
           >
             이력 누락 문의 (02-558-9140, 9150)
           </a>

@@ -49,10 +49,10 @@ export function SessionExpireModal({ onRetry }: SessionExpireModalProps) {
         </button>
         {/* 배지·메시지 — 데스크톱 가로 나란히, 모바일 세로 스택 (node 131:9357) */}
         <div className="flex items-center gap-3 mobile:flex-col mobile:items-start mobile:gap-3">
-          <span className="w-fit rounded-[4px] border border-gray-300 bg-[#f2f2f2] px-3 py-1.5 text-sm font-semibold text-gray-600 mobile:text-xs">
+          <span className="w-fit rounded-[4px] border border-gray-300 bg-[#f2f2f2] px-3 py-1.5 text-14 font-semibold text-gray-600 mobile:text-12">
             세션 만료
           </span>
-          <p className="text-[15px] font-medium text-gray-800 mobile:text-sm mobile:whitespace-normal">
+          <p className="text-15 font-medium text-gray-800 mobile:text-14 mobile:whitespace-normal">
             본인인증 유효시간(10분)이 만료되었습니다.
           </p>
         </div>
@@ -62,7 +62,7 @@ export function SessionExpireModal({ onRetry }: SessionExpireModalProps) {
             variant="outlined"
             color="gray"
             onClick={onRetry}
-            className="w-fit rounded-lg px-6 py-3 text-sm font-medium text-gray-700 mobile:px-4 mobile:py-2"
+            className="w-fit rounded-lg px-6 py-3 text-14 font-medium text-gray-700 mobile:px-4 mobile:py-2"
           >
             본인인증 다시 하기
           </Button>

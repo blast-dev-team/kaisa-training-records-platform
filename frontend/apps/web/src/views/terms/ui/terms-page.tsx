@@ -177,7 +177,7 @@ export function TermsPage() {
         aria-label="이전 페이지로 돌아가기"
       >
         <CaretLeftIcon className="size-8" />
-        <span className="text-[28px] font-bold leading-tight text-gray-900 mobile:text-[20px]">
+        <span className="text-28 font-bold leading-tight text-gray-900 mobile:text-20">
           약관
         </span>
       </Link>
@@ -190,7 +190,7 @@ export function TermsPage() {
             type="button"
             onClick={() => selectTab(item.key)}
             className={cn(
-              'shrink-0 cursor-pointer whitespace-nowrap px-4 py-3 text-sm transition-colors',
+              'shrink-0 cursor-pointer whitespace-nowrap px-4 py-3 text-14 transition-colors',
               tab === item.key
                 ? 'bg-gray-900 font-semibold text-white'
                 : 'font-normal text-gray-600 hover:bg-gray-100 hover:text-gray-900',
@@ -209,7 +209,7 @@ export function TermsPage() {
               type="button"
               onClick={() => selectTab(item.key)}
               className={cn(
-                'cursor-pointer px-4 py-3 text-left text-sm transition-colors',
+                'cursor-pointer px-4 py-3 text-left text-14 transition-colors',
                 tab === item.key
                   ? 'bg-gray-900 font-semibold text-white'
                   : 'font-normal text-gray-600 hover:bg-gray-100 hover:text-gray-900',
@@ -221,20 +221,20 @@ export function TermsPage() {
         </nav>
 
         <div className="flex flex-1 flex-col gap-5 mobile:w-full mobile:gap-4 mobile:pt-6 mobile:pb-12">
-          <h1 className="text-[22px] font-bold leading-tight text-gray-900">{content.title}</h1>
-          {content.meta && <p className="text-[13px] text-gray-500">{content.meta}</p>}
+          <h1 className="text-22 font-bold leading-tight text-gray-900">{content.title}</h1>
+          {content.meta && <p className="text-13 text-gray-500">{content.meta}</p>}
           {/* 모바일 — 메타 아래 구분선 (node 133:2607) */}
           <div className="hidden h-px w-full bg-gray-200 mobile:block" />
           {content.articles.map((article, index) => (
             <article key={article.heading ?? index}>
               {article.heading && (
-                <h2 className="mb-5 text-base font-bold text-gray-900 mobile:mb-2 mobile:text-[15px]">
+                <h2 className="mb-5 text-16 font-bold text-gray-900 mobile:mb-2 mobile:text-15">
                   {article.heading}
                 </h2>
               )}
               {/* pre-wrap — 개인정보 보유기간 하위 목록("  - ")의 들여쓰기 유지 */}
               {article.paragraphs.map((paragraph) => (
-                <p className="whitespace-pre-wrap text-sm leading-6 text-gray-700 mobile:leading-[22px]">
+                <p className="whitespace-pre-wrap text-14 leading-6 text-gray-700 mobile:leading-[22px]">
                   {paragraph}
                 </p>
               ))}

@@ -78,20 +78,20 @@ export function VerificationResultModal({ result, onClose }: VerificationResultM
         >
           <XIcon className="size-6" />
         </button>
-        <p className="whitespace-pre text-sm text-gray-500 mobile:text-xs">{`결과  ·  유효`}</p>
+        <p className="whitespace-pre text-14 text-gray-500 mobile:text-12">{`결과  ·  유효`}</p>
 
         <div className="flex items-center gap-4">
-          <span className="rounded-[4px] border border-[#393] bg-[#d9f2d9] px-3 py-1.5 text-sm font-semibold text-[#268026] mobile:text-xs">
+          <span className="rounded-[4px] border border-[#393] bg-[#d9f2d9] px-3 py-1.5 text-14 font-semibold text-[#268026] mobile:text-12">
             {docLabel(result.kind)}
           </span>
-          <p className="text-sm whitespace-nowrap text-gray-500 mobile:text-xs">
+          <p className="text-14 whitespace-nowrap text-gray-500 mobile:text-12">
             {result.queriedAt} 조회
           </p>
         </div>
 
         {/* 내역이 많으면 이 카드만 스크롤 — 헤더(배지·조회일)와 안내 문구는 고정.
             flex 자식이 줄어들려면 min-h-0 이 필요하다 */}
-        <div className="flex min-h-0 w-full overflow-y-auto flex-col gap-1 rounded-[16px] border border-solid border-gray-200 p-4 text-sm text-gray-700">
+        <div className="flex min-h-0 w-full overflow-y-auto flex-col gap-1 rounded-[16px] border border-solid border-gray-200 p-4 text-14 text-gray-700">
           {(result.kind === "completion_certificate" ? COMPLETION_INFO_ROWS : CERT_INFO_ROWS).map(
             (row) => (
               <div
@@ -125,7 +125,7 @@ export function VerificationResultModal({ result, onClose }: VerificationResultM
           )}
         </div>
 
-        <p className="text-xs text-gray-400">
+        <p className="text-12 text-gray-400">
           본 결과는 협회 발급 기록과 일치함을 의미하며, 개인정보 보호를 위해 일부 정보는
           마스킹됩니다.
         </p>

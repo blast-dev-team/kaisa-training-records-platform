@@ -21,7 +21,7 @@ function StepBadge({ order, active }: { order: number; active: boolean }) {
   return (
     <span
       className={cn(
-        "flex size-7 shrink-0 items-center justify-center rounded-[14px] text-xs font-bold leading-[1.5] mobile:size-6 mobile:rounded-xl",
+        "flex size-7 shrink-0 items-center justify-center rounded-[14px] text-12 font-bold leading-[1.5] mobile:size-6 mobile:rounded-xl",
         active
           ? "bg-primary-700 text-white"
           : "border border-solid border-gray-300 bg-white text-gray-500",
@@ -38,7 +38,7 @@ function StepRow({ order, label, active }: { order: number; label: string; activ
       <StepBadge order={order} active={active} />
       <p
         className={cn(
-          "text-base leading-[1.5] tracking-[-0.03em] whitespace-nowrap mobile:text-sm mobile:whitespace-normal",
+          "text-16 leading-[1.5] tracking-[-0.03em] whitespace-nowrap mobile:text-14 mobile:whitespace-normal",
           active ? "text-gray-900" : "text-gray-500",
         )}
       >
@@ -58,7 +58,7 @@ function Callout({ tone, children }: { tone: "info" | "warn"; children: ReactNod
     >
       <p
         className={cn(
-          "text-base font-semibold leading-[1.5] tracking-[-0.03em]",
+          "text-16 font-semibold leading-[1.5] tracking-[-0.03em]",
           tone === "info" ? "text-primary-700" : "text-red-500",
         )}
       >
@@ -91,12 +91,12 @@ export function HeroSection() {
       <section className="flex flex-1 flex-col justify-center bg-[#f6f5f0] py-15 font-sans mobile:py-10">
         <div className="mx-auto flex w-full max-w-[1400px] flex-col justify-center gap-10 px-20 mobile:gap-5 mobile:px-5">
           <div className="flex w-full flex-col gap-4 mobile:gap-3">
-            <h1 className="text-4xl font-bold leading-[1.3] text-gray-900 mobile:text-2xl">
+            <h1 className="text-4xl font-bold leading-[1.3] text-gray-900 mobile:text-24">
               계속교육내역확인서
               <br />
               온라인 발급 서비스
             </h1>
-            <p className="text-base leading-[1.5] tracking-[-0.03em] text-gray-600 mobile:text-sm">
+            <p className="text-16 leading-[1.5] tracking-[-0.03em] text-gray-600 mobile:text-14">
               기존에는 협회 담당자가 수동으로 발급하였던 교육내역 확인서를, 본인인증을 통해 직접
               조회·발급하실 수 있습니다.
             </p>
@@ -104,7 +104,7 @@ export function HeroSection() {
 
           <div className="flex w-full flex-col gap-6 rounded-[20px] border border-solid border-gray-200 bg-white p-8 mobile:p-6">
             <div className="flex w-full flex-col gap-2">
-              <p className="text-xl font-semibold leading-[1.5] tracking-[-0.03em] text-gray-900">
+              <p className="text-20 font-semibold leading-[1.5] tracking-[-0.03em] text-gray-900">
                 서비스 선택
               </p>
               <div className="flex w-full flex-wrap items-center gap-2 mobile:justify-between">
@@ -125,7 +125,7 @@ export function HeroSection() {
                 </Checkbox>
                 <Link
                   to="/terms?tab=privacy"
-                  className="text-base font-semibold leading-[1.5] tracking-[-0.03em] whitespace-nowrap text-primary-700 mobile:text-sm mobile:underline"
+                  className="text-16 font-semibold leading-[1.5] tracking-[-0.03em] whitespace-nowrap text-primary-700 mobile:text-14 mobile:underline"
                 >
                   전문보기
                 </Link>
@@ -135,7 +135,7 @@ export function HeroSection() {
             <div className="flex w-full items-start gap-6 mobile:flex-col mobile:gap-8">
               {/* 좌측 — 교육이력확인서 발급 (본인인증 필요) */}
               <div className="flex min-w-px flex-1 flex-col gap-3 mobile:w-full">
-                <p className="text-sm leading-[1.5] tracking-[-0.03em] text-gray-500 mobile:text-xs">
+                <p className="text-14 leading-[1.5] tracking-[-0.03em] text-gray-500 mobile:text-12">
                   본인인증 필요
                 </p>
                 <Button
@@ -166,7 +166,7 @@ export function HeroSection() {
               {/* 우측 — 확인서 진위확인 (본인인증 불필요) */}
               <div className="flex min-w-px flex-1 self-stretch flex-col gap-3">
                 <div className="flex w-full flex-col gap-3">
-                  <p className="text-sm leading-[1.5] tracking-[-0.03em] text-gray-500 mobile:text-xs">
+                  <p className="text-14 leading-[1.5] tracking-[-0.03em] text-gray-500 mobile:text-12">
                     본인인증 불필요
                   </p>
                   <Button

@@ -45,12 +45,12 @@ describe("Chip", () => {
   it("size s는 10px Regular, m은 12px SemiBold를 쓴다", () => {
     const { rerender } = render(<Chip size="s">소</Chip>);
     const small = screen.getByText("소");
-    expect(small.className).toContain("text-[10px]");
+    expect(small.className).toContain("text-10");
     expect(small.className).toContain("font-normal");
 
     rerender(<Chip size="m">중</Chip>);
     const medium = screen.getByText("중");
-    expect(medium.className).toContain("text-xs");
+    expect(medium.className).toContain("text-12");
     expect(medium.className).toContain("font-semibold");
   });
 
