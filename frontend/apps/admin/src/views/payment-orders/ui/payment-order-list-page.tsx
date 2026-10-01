@@ -71,7 +71,7 @@ export function PaymentOrderListPage() {
         header: "주문번호",
         meta: { width: 170 },
         cell: ({ row }) => (
-          <span className="font-mono text-[12px] font-medium text-ink">{row.original.orderNo}</span>
+          <span className="font-mono text-12 font-medium text-ink">{row.original.orderNo}</span>
         ),
       },
       {
@@ -241,7 +241,7 @@ export function PaymentOrderListPage() {
         ]}
       >
         <div className="space-y-1.5 pt-1">
-          <p className="rounded-md bg-bg-2 px-3 py-2 text-[12px] leading-[1.5] text-ink-3">
+          <p className="rounded-md bg-bg-2 px-3 py-2 text-12 leading-[1.5] text-ink-3">
             이 결제로 발급된 확인서는 모두 폐기되고, WEB 회원의 결제 내역에는 환불로 표시돼요.
           </p>
           <Label>환불 사유 (필수)</Label>

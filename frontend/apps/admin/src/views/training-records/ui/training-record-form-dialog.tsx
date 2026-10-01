@@ -328,12 +328,12 @@ export function TrainingRecordFormDialog({
         <div className="space-y-1.5">
           <Label>감리원</Label>
           {record ? (
-            <p className="rounded-md border border-line bg-panel-2 px-3 py-2 text-[13px] text-ink">
+            <p className="rounded-md border border-line bg-panel-2 px-3 py-2 text-13 text-ink">
               {trainee?.certNo} {trainee?.name}
             </p>
           ) : trainee ? (
             <div className="flex items-center justify-between rounded-md border border-accent-soft bg-accent-soft px-3 py-2">
-              <span className="text-[13px] text-accent-ink">
+              <span className="text-13 text-accent-ink">
                 {trainee.certNo} · {trainee.name} · {trainee.phoneMasked}
               </span>
               <Button variant="ghost" size="sm" onClick={() => setTrainee(null)}>
@@ -367,10 +367,10 @@ export function TrainingRecordFormDialog({
                     }}
                   >
                     {traineeListQuery.isPending ? (
-                      <p className="px-3 py-2 text-[13px] text-ink-3">불러오는 중...</p>
+                      <p className="px-3 py-2 text-13 text-ink-3">불러오는 중...</p>
                     ) : traineeOptions.length === 0 ? (
                       <div className="space-y-2 px-3 py-2">
-                        <p className="text-[13px] text-ink-3">검색 결과가 없어요</p>
+                        <p className="text-13 text-ink-3">검색 결과가 없어요</p>
                         {!creatingTrainee && (
                           <Button
                             variant="secondary"
@@ -387,7 +387,7 @@ export function TrainingRecordFormDialog({
                         <button
                           key={t.id}
                           type="button"
-                          className="block w-full px-3 py-2 text-left text-[13px] hover:bg-panel-2"
+                          className="block w-full px-3 py-2 text-left text-13 hover:bg-panel-2"
                           onClick={() => {
                             setTrainee(t);
                             setTraineeQuery(null);
@@ -402,7 +402,7 @@ export function TrainingRecordFormDialog({
                       ))
                     )}
                     {traineeListQuery.isFetchingNextPage && (
-                      <p className="px-3 py-1.5 text-center text-[12px] text-ink-3">불러오는 중…</p>
+                      <p className="px-3 py-1.5 text-center text-12 text-ink-3">불러오는 중…</p>
                     )}
                   </div>
                   {/* 검색 결과 없음 → 그 자리에서 신규 생성 (기존 흐름 유지) */}
@@ -470,7 +470,7 @@ export function TrainingRecordFormDialog({
             onCreate={createCourse}
             createLabel={(q) => `'${q}' 새 과정으로 추가`}
           />
-          <p className="text-[11px] text-ink-3">
+          <p className="text-11 text-ink-3">
             과정을 선택하면 총 시수가 자동으로 채워져요. 없는 기관·과정은 검색어로 바로 추가할 수 있어요
           </p>
         </div>
@@ -524,7 +524,7 @@ export function TrainingRecordFormDialog({
             value={totalHours}
             onChange={(e) => setTotalHours(e.target.value)}
           />
-          <p className="text-[11px] text-ink-3">입력한 총 시수가 이수 시수로 인정돼요</p>
+          <p className="text-11 text-ink-3">입력한 총 시수가 이수 시수로 인정돼요</p>
         </div>
 
         <div className="space-y-1.5">

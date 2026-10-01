@@ -30,6 +30,8 @@ interface AppTableProps<TData extends RowData> {
   isLoading?: boolean;
   emptyMessage?: string;
   onRowClick?: (row: TData) => void;
+  /** 행별 클래스 — 상태 강조(만료 임박 등). hover 배경이 이후 덮으므로 조합 전제 */
+  getRowClassName?: (row: TData) => string;
   /** 컬럼 사이 세로 구분선(절반 높이, 가운데) — 컬럼 많은 테이블 가독성용 */
   columnDividers?: boolean;
   /** 셀 패딩 축소(px-2.5 py-2) — 너비 확보가 중요한 와이드 테이블용 */
@@ -69,11 +71,11 @@ function TableFooter({
 }) {
   return (
     <div className="flex items-center justify-between px-4 py-2.5 border-t border-line gap-3">
-      {info && <span className="text-[11px] text-ink-3">{info}</span>}
+      {info && <span className="text-11 text-ink-3">{info}</span>}
       <div className="flex items-center gap-2">
         {onLimitChange && (
           <Select
-            className="h-7 w-[100px] py-0 text-[12px] text-ink-3"
+            className="h-7 w-[100px] py-0 text-12 text-ink-3"
             value={limit}
             onChange={(e) => onLimitChange(Number(e.target.value))}
             aria-label="페이지 크기"
@@ -97,6 +99,7 @@ export function AppTable<TData extends RowData>({
   isLoading,
   emptyMessage = "데이터가 없습니다",
   onRowClick,
+  getRowClassName,
   columnDividers,
   dense,
   fixedLayout,
@@ -186,7 +189,7 @@ export function AppTable<TData extends RowData>({
         }}
       >
         <table
-          className="w-full text-[13px]"
+          className="w-full text-13"
           style={
             fixedLayout && minTableWidth > 0
               ? { minWidth: `${minTableWidth}px`, tableLayout: "fixed" }
@@ -206,7 +209,7 @@ export function AppTable<TData extends RowData>({
                   return (
                     <th
                       key={header.id}
-                      className={`${cellPad} text-[12px] font-medium text-ink-3 whitespace-nowrap select-none ${
+                      className={`${cellPad} text-12 font-medium text-ink-3 whitespace-nowrap select-none ${
                         align === "right"
                           ? "text-right"
                           : align === "center"
@@ -251,7 +254,7 @@ export function AppTable<TData extends RowData>({
                   onClick={onRowClick ? () => onRowClick(row.original) : undefined}
                   className={`group transition-colors border-b border-line-2 last:border-0 ${
                     onRowClick ? "cursor-pointer " : ""
-                  }hover:bg-panel-2`}
+                  }hover:bg-panel-2 ${getRowClassName?.(row.original) ?? ""}`}
                 >
                   {row.getVisibleCells().map((cell, idx, arr) => {
                     const align = cell.column.columnDef.meta?.align;

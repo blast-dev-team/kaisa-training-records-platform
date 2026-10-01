@@ -1,10 +1,11 @@
 export type ReviewStatus = 'pending' | 'approved' | 'rejected' | 'manual_review'
 
 export const REVIEW_STATUS_LABELS: Record<ReviewStatus, string> = {
+  // pending은 service가 절대 생성하지 않는 죽은 상태 — 옵션·Pill에 노출되지 않음
   pending: '대기',
   approved: '승인',
   rejected: '거절',
-  manual_review: '수동심사',
+  manual_review: '대기',
 }
 
 export interface IdentityReview {

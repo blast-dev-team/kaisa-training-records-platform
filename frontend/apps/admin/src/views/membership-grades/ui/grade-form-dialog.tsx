@@ -105,7 +105,7 @@ export function GradeFormDialog({ isOpen, onClose, grade }: Props) {
             value={priceKrw}
             onChange={(e) => setPriceKrw(e.target.value)}
           />
-          <p className="text-[11px] text-ink-3">
+          <p className="text-11 text-ink-3">
             확인서 발급 시 이 가격으로 결제돼요 — 0원이면 무료 발급
           </p>
         </div>
@@ -127,7 +127,7 @@ export function GradeFormDialog({ isOpen, onClose, grade }: Props) {
           />
         </div>
         {grade && (
-          <label className="flex items-center gap-2 text-[13px] text-ink-2">
+          <label className="flex items-center gap-2 text-13 text-ink-2">
             <input
               type="checkbox"
               className="size-4 accent-[--color-accent] cursor-pointer"

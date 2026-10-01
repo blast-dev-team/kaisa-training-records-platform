@@ -241,7 +241,7 @@ export function CertificatePreviewModal({ isOpen, onClose, records, onDownloaded
         ]}
       >
         {Object.keys(docNosByTrainee).length === 0 && (
-          <p className="mb-3 text-[12px] text-ink-3">
+          <p className="mb-3 text-12 text-ink-3">
             문서번호는 저장 시 발급 건마다 자동으로 부여돼요 — 내역마다가 아니라 발급 1건에 번호 1개예요
           </p>
         )}
@@ -249,7 +249,7 @@ export function CertificatePreviewModal({ isOpen, onClose, records, onDownloaded
           {groups.map((group) => (
             <section key={group.key} className="mb-6 last:mb-0">
               {groups.length > 1 && (
-                <h3 className="mb-2 text-[13px] font-medium text-ink">
+                <h3 className="mb-2 text-13 font-medium text-ink">
                   {group.traineeName || "감리원"} · {group.pages.length}페이지
                   {docNosByTrainee[group.key] && (
                     <span className="ml-2 font-normal text-ink-2">

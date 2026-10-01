@@ -81,9 +81,9 @@ export function AuditLogListPage() {
         header: "엔티티",
         meta: { width: 150 },
         cell: ({ row }) => (
-          <span className="text-[12px] text-ink-2">
+          <span className="text-12 text-ink-2">
             {formatEntityTypeLabel(row.original.entityType)}
-            <span className="ml-1 font-mono text-[11px] text-ink-3">#{row.original.entityId}</span>
+            <span className="ml-1 font-mono text-11 text-ink-3">#{row.original.entityId}</span>
           </span>
         ),
       },
@@ -176,7 +176,7 @@ export function AuditLogListPage() {
             />
             <button
               type="submit"
-              className="rounded-md border border-line px-3 py-1.5 text-[13px] font-medium text-ink-2 hover:bg-panel-2"
+              className="rounded-md border border-line px-3 py-1.5 text-13 font-medium text-ink-2 hover:bg-panel-2"
             >
               조회
             </button>
@@ -212,34 +212,34 @@ export function AuditLogListPage() {
         actions={[{ label: "닫기", variant: "primary", onClick: () => setDetail(null) }]}
       >
         {detail && (
-          <div className="space-y-4 pt-1 text-[13px]">
+          <div className="space-y-4 pt-1 text-13">
             <div className="flex flex-col gap-3 rounded-lg border border-line bg-panel-2/40 p-3">
               <div>
-                <p className="text-[11px] text-ink-3">일시</p>
+                <p className="text-11 text-ink-3">일시</p>
                 <p className="mt-0.5">{formatDateTime(detail.createdAt)}</p>
               </div>
               <div>
-                <p className="text-[11px] text-ink-3">관리자</p>
+                <p className="text-11 text-ink-3">관리자</p>
                 <p className="mt-0.5 font-medium text-ink">{detail.actorName}</p>
               </div>
               <div>
-                <p className="text-[11px] text-ink-3">액션</p>
+                <p className="text-11 text-ink-3">액션</p>
                 <p className="mt-0.5 font-medium text-ink">
                   {formatActionLabel(detail.action)}
-                  <span className="ml-1 font-mono text-[11px] text-ink-3">{detail.action}</span>
+                  <span className="ml-1 font-mono text-11 text-ink-3">{detail.action}</span>
                 </p>
               </div>
               <div>
-                <p className="text-[11px] text-ink-3">엔티티</p>
-                <p className="mt-0.5 text-[12px] text-ink-2">
+                <p className="text-11 text-ink-3">엔티티</p>
+                <p className="mt-0.5 text-12 text-ink-2">
                   {formatEntityTypeLabel(detail.entityType)}
-                  <span className="ml-1 font-mono text-[11px] text-ink-3">#{detail.entityId}</span>
+                  <span className="ml-1 font-mono text-11 text-ink-3">#{detail.entityId}</span>
                 </p>
               </div>
             </div>
 
             <div>
-              <p className="mb-1.5 text-[12px] font-medium text-ink">생성·변경 내용</p>
+              <p className="mb-1.5 text-12 font-medium text-ink">생성·변경 내용</p>
               <div className="max-h-[440px] overflow-y-auto scrollbar-thin rounded-lg border border-line">
                 {(() => {
                   const keys = Array.from(
@@ -258,17 +258,17 @@ export function AuditLogListPage() {
                         key={key}
                         className="flex flex-col items-start gap-2 border-b border-line/60 px-3 py-2.5 last:border-b-0 odd:bg-panel-2/30"
                       >
-                        <span className="pt-0.5 text-[12px] text-ink-3">
+                        <span className="pt-0.5 text-12 text-ink-3">
                           {formatFieldLabel(key)}
-                          <span className="mt-0.5 block font-mono text-[10px] text-ink-3/80">
+                          <span className="mt-0.5 block font-mono text-10 text-ink-3/80">
                             {key}
                           </span>
                         </span>
                         <div className="flex items-center gap-2">
-                          <span className="whitespace-pre-wrap break-all text-[12px] text-ink-2">
+                          <span className="whitespace-pre-wrap break-all text-12 text-ink-2">
                             {hasBefore ? formatFieldValue(detail.before?.[key]) : "—"}
                           </span>
-                          <span className="pt-0.5 text-[12px] text-ink-3">→</span>
+                          <span className="pt-0.5 text-12 text-ink-3">→</span>
                           <span className="whitespace-pre-wrap break-all font-medium text-ink">
                             {hasAfter ? formatFieldValue(detail.after?.[key]) : "—"}
                           </span>

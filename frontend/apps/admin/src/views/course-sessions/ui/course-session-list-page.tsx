@@ -15,7 +15,7 @@ import { PageContainer } from "@/src/shared/ui/page-container";
 import { PageHead } from "@/src/shared/ui/page-head";
 import { Pill } from "@/src/shared/ui/pill";
 import { Select } from "@/src/shared/ui/select";
-import { todayYMD } from "@/src/shared/utils/format";
+import { todayYMD, toYMD } from "@/src/shared/utils/format";
 import {
   courseSessionQueries,
   deleteCourseSession,
@@ -183,7 +183,7 @@ export function CourseSessionListPage() {
         cell: ({ row }) => (
           <span className="flex flex-col">
             <span className="font-medium text-ink">{row.original.courseName}</span>
-            <span className="text-[11px] text-ink-3">{row.original.institutionName}</span>
+            <span className="text-11 text-ink-3">{row.original.institutionName}</span>
           </span>
         ),
       },
@@ -217,9 +217,15 @@ export function CourseSessionListPage() {
         },
       },
       {
+        id: "createdAt",
+        header: "등록일",
+        meta: { width: 110 },
+        cell: ({ row }) => toYMD(row.original.createdAt) ?? "—",
+      },
+      {
         id: "actions",
         header: "",
-        meta: { width: 220, align: "right", sticky: "right" },
+        meta: { width: 220, align: "right" },
         cell: ({ row }) => (
           <div className="flex items-center justify-end gap-1.5">
             <Button
@@ -354,7 +360,7 @@ export function CourseSessionListPage() {
 
       {selectedCount > 0 && (
         <div className="flex items-center justify-between rounded-lg border border-line bg-panel px-4 py-2.5">
-          <span className="text-[13px] text-ink-2">
+          <span className="text-13 text-ink-2">
             <span className="font-semibold text-ink">{selectedCount.toLocaleString()}개</span>{" "}
             일정이 선택됐어요
           </span>

@@ -99,9 +99,9 @@ export function Dialog({
       >
         {/* Header */}
         <div className="px-6 pt-6 pb-4 shrink-0">
-          <h2 className="text-[16px] font-semibold text-ink">{title}</h2>
+          <h2 className="text-16 font-semibold text-ink">{title}</h2>
           {description && (
-            <p className="text-[13px] text-ink-2 mt-1.5 leading-relaxed">{description}</p>
+            <p className="text-13 text-ink-2 mt-1.5 leading-relaxed">{description}</p>
           )}
         </div>
 
@@ -129,7 +129,7 @@ export function Dialog({
                   key={i}
                   onClick={action.onClick}
                   disabled={disabled}
-                  className={`h-10 rounded-lg text-[13px] font-semibold transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${VARIANT_CLASSES[variant]} ${flexClass}`}
+                  className={`h-10 rounded-lg text-13 font-semibold transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${VARIANT_CLASSES[variant]} ${flexClass}`}
                 >
                   {action.isLoading
                     ? action.loadingLabel ?? '처리 중...'

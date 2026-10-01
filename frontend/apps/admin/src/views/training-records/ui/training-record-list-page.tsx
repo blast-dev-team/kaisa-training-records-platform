@@ -16,7 +16,7 @@ import { adjustDateRange } from "@/src/shared/utils/date-range";
 import { SearchInput } from "@/src/shared/ui/search-input";
 import { Select } from "@/src/shared/ui/select";
 import { cn } from "@/src/shared/utils/cn";
-import { formatNumber, todayYMD, yearsAgoYMD } from "@/src/shared/utils/format";
+import { formatNumber, toYMD, todayYMD, yearsAgoYMD } from "@/src/shared/utils/format";
 import {
   deleteTrainingRecord,
   deleteTrainingRecordBulk,
@@ -297,6 +297,12 @@ export function TrainingRecordListPage() {
         },
       },
       {
+        id: "createdAt",
+        header: "등록일",
+        meta: { width: 110 },
+        cell: ({ row }) => toYMD(row.original.createdAt) ?? "—",
+      },
+      {
         id: "actions",
         header: "",
         // PDF·수료증 아이콘 버튼 각 ~68px + 수정·삭제 각 48px + gap 18px + 셀 패딩 32px = 262px — 그래서 270.
@@ -493,7 +499,7 @@ export function TrainingRecordListPage() {
                       })
                     }
                     className={cn(
-                      "cursor-pointer rounded-md px-3 py-1.5 text-[13px] font-medium whitespace-nowrap transition-colors",
+                      "cursor-pointer rounded-md px-3 py-1.5 text-13 font-medium whitespace-nowrap transition-colors",
                       active
                         ? "bg-ink text-white"
                         : "border border-line bg-panel text-ink-2 hover:text-ink",
@@ -512,7 +518,7 @@ export function TrainingRecordListPage() {
           서버가 2026-09-01 이후 실등록분만 내려주므로 그 사실을 그대로 알려준다 */}
       {sort === "registration" && (
         <div className="flex w-full items-start rounded-md border-l-4 border-solid border-accent bg-accent-soft px-4 py-2.5">
-          <p className="flex-1 text-[13px] leading-[1.6] text-ink-2">
+          <p className="flex-1 text-13 leading-[1.6] text-ink-2">
             등록순은 <b className="font-semibold text-ink">2026년 9월 이후 등록된 내역</b>만
             보여줘요 — 그 이전 데이터는 시스템 이관으로 일괄 등록되어 실제 등록 순서가 없어요. 이관
             데이터는 수강기간순으로 확인해 주세요.
@@ -523,15 +529,15 @@ export function TrainingRecordListPage() {
       {/* 총 수료시간 — 교육생 필터가 있을 때만. 없으면 전체 교육생 합계라 의미가 없다 (레거시 총계 위치) */}
       {traineeId && (
         <div className="mb-1 flex items-baseline gap-1.5">
-          <span className="text-sm text-ink-2">총 수료시간</span>
-          <span className="text-sm font-semibold text-ink">{formatNumber(hoursSum)}</span>
-          <span className="text-sm text-ink-2">시간</span>
+          <span className="text-14 text-ink-2">총 수료시간</span>
+          <span className="text-14 font-semibold text-ink">{formatNumber(hoursSum)}</span>
+          <span className="text-14 text-ink-2">시간</span>
         </div>
       )}
 
       {selected.size > 0 && (
         <div className="mb-4 flex items-center gap-2 rounded-lg border border-line bg-panel px-4 py-2.5">
-          <span className="text-sm text-ink-2">선택 {selected.size}건</span>
+          <span className="text-14 text-ink-2">선택 {selected.size}건</span>
           <span className="flex-1" />
           <Button variant="ghost" size="sm" onClick={() => setSelected(new Map())}>
             선택 해제

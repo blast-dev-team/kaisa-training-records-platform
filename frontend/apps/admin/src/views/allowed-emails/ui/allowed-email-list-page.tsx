@@ -104,7 +104,7 @@ export function AllowedEmailListPage() {
       {
         id: 'actions',
         header: '',
-        meta: { width: 80, align: 'right', sticky: 'right' },
+        meta: { width: 80, align: 'right' },
         cell: ({ row }) =>
           row.original.status === 'pending' ? (
             <Button
@@ -224,7 +224,7 @@ export function AllowedEmailListPage() {
           },
         ]}
       >
-        <p className="pt-1 text-[13px] text-ink-2">
+        <p className="pt-1 text-13 text-ink-2">
           삭제하면 해당 이메일로는 회원가입할 수 없어요.
         </p>
       </Dialog>

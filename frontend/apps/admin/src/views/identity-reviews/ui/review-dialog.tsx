@@ -132,18 +132,18 @@ export function ReviewDialog({ review, onClose }: Props) {
       {review && (
         <div className="space-y-5 pt-1">
           {/* 신청 정보 */}
-          <div className="grid grid-cols-3 gap-3 rounded-lg border border-line bg-panel-2/40 p-4 text-[13px]">
+          <div className="grid grid-cols-3 gap-3 rounded-lg border border-line bg-panel-2/40 p-4 text-13">
             <div>
-              <p className="text-[11px] text-ink-3">회원 계정명</p>
+              <p className="text-11 text-ink-3">회원 계정명</p>
               <p className="mt-0.5 font-medium text-ink">{review.userName}</p>
             </div>
             <div>
-              <p className="text-[11px] text-ink-3">인증 성명</p>
+              <p className="text-11 text-ink-3">인증 성명</p>
               <p className="mt-0.5 font-medium text-ink">{review.verifiedName}</p>
             </div>
             <div>
-              <p className="text-[11px] text-ink-3">인증 전화</p>
-              <p className="mt-0.5 font-medium font-mono text-[12px] text-ink">
+              <p className="text-11 text-ink-3">인증 전화</p>
+              <p className="mt-0.5 font-medium font-mono text-12 text-ink">
                 {review.verifiedPhoneMasked}
               </p>
             </div>
@@ -159,7 +159,7 @@ export function ReviewDialog({ review, onClose }: Props) {
                   setMode(mode === "search" ? "new" : "search");
                   setQuery(null);
                 }}
-                className="text-[12px] font-medium text-accent hover:underline"
+                className="text-12 font-medium text-accent hover:underline"
               >
                 {mode === "search" ? "신규 감리원으로 생성" : "기존 검색으로 돌아가기"}
               </button>
@@ -188,15 +188,15 @@ export function ReviewDialog({ review, onClose }: Props) {
             {mode === "search" ? (
               selected ? (
                 <div className="flex items-center justify-between rounded-md border border-accent-soft bg-accent-soft px-3 py-2.5">
-                  <div className="text-[13px]">
+                  <div className="text-13">
                     <span className="font-medium text-accent-ink">
                       {selected.certNo} · {selected.name}
                     </span>
-                    <span className="ml-2 font-mono text-[12px] text-accent-ink">
+                    <span className="ml-2 font-mono text-12 text-accent-ink">
                       {selected.phoneMasked}
                     </span>
                     <span
-                      className={`ml-2 text-[12px] font-medium ${
+                      className={`ml-2 text-12 font-medium ${
                         selected.phoneMasked === review.verifiedPhoneMasked
                           ? "text-ok"
                           : "text-warn"
@@ -214,9 +214,9 @@ export function ReviewDialog({ review, onClose }: Props) {
               ) : query !== null ? (
                 <div className="max-h-48 overflow-y-auto scrollbar-thin rounded-md border border-line divide-y divide-line-2">
                   {searching ? (
-                    <p className="px-3 py-2 text-[13px] text-ink-3">검색 중...</p>
+                    <p className="px-3 py-2 text-13 text-ink-3">검색 중...</p>
                   ) : (results?.items ?? []).length === 0 ? (
-                    <p className="px-3 py-2 text-[13px] text-ink-3">
+                    <p className="px-3 py-2 text-13 text-ink-3">
                       검색 결과가 없어요 — 신규 감리원이라면 승인이 아니라 거절 후 별도 등록이
                       필요해요
                     </p>
@@ -231,9 +231,9 @@ export function ReviewDialog({ review, onClose }: Props) {
                           setQuery(null);
                         }}
                       >
-                        <span className="text-[13px] font-medium text-ink">{t.name}</span>
-                        <span className="ml-2 text-[12px] text-ink-3">{t.certNo}</span>
-                        <span className="ml-2 font-mono text-[12px] text-ink-2">
+                        <span className="text-13 font-medium text-ink">{t.name}</span>
+                        <span className="ml-2 text-12 text-ink-3">{t.certNo}</span>
+                        <span className="ml-2 font-mono text-12 text-ink-2">
                           {t.phoneMasked}
                           <span
                             className={`ml-1.5 not-italic font-sans ${
@@ -276,7 +276,7 @@ export function ReviewDialog({ review, onClose }: Props) {
                     onChange={(e) => setNewEmail(e.target.value)}
                   />
                 </div>
-                <p className="text-[11px] text-ink-3">
+                <p className="text-11 text-ink-3">
                   생성과 연결이 한 번에 처리돼요 — 감리원 목록에 바로 반영돼요. 성명·전화는 나중에
                   수정 가능해요
                 </p>

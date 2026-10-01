@@ -109,7 +109,7 @@ export function DateField({
     >
       <div
         className={cn(
-          "flex h-9 w-full items-center gap-1 rounded-md border bg-panel pl-3 pr-1 text-sm transition-[border-color]",
+          "flex h-9 w-full items-center gap-1 rounded-md border bg-panel pl-3 pr-1 text-14 transition-[border-color]",
           "focus-within:border-accent focus-within:ring-[3px] focus-within:ring-accent/20",
           open ? "border-accent" : "border-line hover:border-ink-3",
           triggerClassName,

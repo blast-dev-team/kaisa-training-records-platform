@@ -107,7 +107,7 @@ interface Props {
 }
 
 const TH =
-  "sticky top-0 z-10 bg-panel-2 px-2 py-2 text-left text-[11px] font-medium text-ink-3 whitespace-nowrap";
+  "sticky top-0 z-10 bg-panel-2 px-2 py-2 text-left text-11 font-medium text-ink-3 whitespace-nowrap";
 const TD = "px-2 py-1.5 align-middle";
 
 export function TrainingRecordBulkEditDialog({ isOpen, onClose, records, onSaved }: Props) {
@@ -156,7 +156,7 @@ export function TrainingRecordBulkEditDialog({ isOpen, onClose, records, onSaved
       ]}
     >
       <div className="max-h-[60vh] overflow-auto rounded-lg border border-line">
-        <table className="w-full min-w-[760px] text-[13px]" style={{ tableLayout: "fixed" }}>
+        <table className="w-full min-w-[760px] text-13" style={{ tableLayout: "fixed" }}>
           <colgroup>
             <col style={{ width: 110 }} />
             <col className="flex-1" />
@@ -194,7 +194,7 @@ export function TrainingRecordBulkEditDialog({ isOpen, onClose, records, onSaved
                 <td className={TD}>
                   <DateField
                     ariaLabel={`교육 시작일 ${row.id}`}
-                    className="text-[13px]"
+                    className="text-13"
                     value={row.startedAt}
                     onChange={(v) => {
                       setField(row.id, { startedAt: v });
@@ -205,7 +205,7 @@ export function TrainingRecordBulkEditDialog({ isOpen, onClose, records, onSaved
                 <td className={TD}>
                   <DateField
                     ariaLabel={`교육 종료일 ${row.id}`}
-                    className="text-[13px]"
+                    className="text-13"
                     value={row.endedAt}
                     onChange={(v) => {
                       setField(row.id, { endedAt: v });
@@ -219,7 +219,7 @@ export function TrainingRecordBulkEditDialog({ isOpen, onClose, records, onSaved
                     type="number"
                     step="0.5"
                     min="0"
-                    className="h-8 w-full px-2 text-right text-[13px]"
+                    className="h-8 w-full px-2 text-right text-13"
                     value={row.totalHours}
                     onChange={(e) => setField(row.id, { totalHours: e.target.value })}
                   />

@@ -17,6 +17,8 @@ export const getSessionNameList = async (
     params: {
       search: query.q || undefined,
       is_active: query.isActive,
+      sort: query.sort,
+      order: query.order,
       page: query.page ?? 1,
       limit: query.limit ?? 20,
     },

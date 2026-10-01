@@ -148,7 +148,7 @@ export function InstitutionListPage() {
       {
         id: "actions",
         header: "",
-        meta: { width: 130, align: "right", sticky: "right" },
+        meta: { width: 130, align: "right" },
         cell: ({ row }) => (
           <div className="flex items-center justify-end gap-1.5">
             <Button
@@ -241,6 +241,12 @@ export function InstitutionListPage() {
         cell: ({ row }) => <ActivePill isActive={row.original.isActive} />,
       },
       {
+        id: "createdAt",
+        header: "등록일",
+        meta: { width: 120 },
+        cell: ({ row }) => toYMD(row.original.createdAt) ?? "—",
+      },
+      {
         id: "actions",
         header: "",
         meta: { width: 130, align: "right" },
@@ -312,13 +318,13 @@ export function InstitutionListPage() {
           <button
             key={t.key}
             type="button"
-            className={`rounded-md px-3.5 py-1.5 text-[13px] font-medium transition-colors ${
+            className={`rounded-md px-3.5 py-1.5 text-13 font-medium transition-colors ${
               tab === t.key ? "bg-panel text-ink shadow-sm" : "text-ink-3 hover:text-ink"
             }`}
             onClick={() => setTab(t.key)}
           >
             {t.label}
-            <span className="ml-1.5 text-[11px] text-ink-3">
+            <span className="ml-1.5 text-11 text-ink-3">
               {t.key === "institution"
                 ? (institutions?.total ?? 0).toLocaleString()
                 : (courses?.total ?? 0).toLocaleString()}
@@ -370,6 +376,7 @@ export function InstitutionListPage() {
               <option value="">전체</option>
               <option value="internal">사내</option>
               <option value="external">외부</option>
+              <option value="none">미선택</option>
             </Select>
           </FilterRow>
         )}

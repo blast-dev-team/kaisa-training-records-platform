@@ -168,10 +168,10 @@ export function CourseSessionFormDialog({ isOpen, onClose, session, onCreated }:
               value={totalHours}
               onChange={(e) => setTotalHours(e.target.value)}
             />
-            <p className="text-[11px] text-ink-3">입력한 총 시수가 이수 시수로 인정돼요</p>
+            <p className="text-11 text-ink-3">입력한 총 시수가 이수 시수로 인정돼요</p>
           </div>
         </div>
-        <label className="flex flex-col text-[13px] text-ink-2">
+        <label className="flex flex-col text-13 text-ink-2">
           <div className="flex items-center gap-2">
             <input
               type="checkbox"
@@ -181,11 +181,11 @@ export function CourseSessionFormDialog({ isOpen, onClose, session, onCreated }:
             />
             외부 교육
           </div>
-          <span className="text-[11px] text-ink-3">
+          <span className="text-11 text-ink-3">
             (외부 기관 과정이면 자동 체크 — 연결된 감리원 내역이 외부로 구분돼요)
           </span>
         </label>
-        <label className="flex items-center gap-2 text-[13px] text-ink-2">
+        <label className="flex items-center gap-2 text-13 text-ink-2">
           <input
             type="checkbox"
             className="size-4 accent-[--color-accent]"
@@ -193,7 +193,7 @@ export function CourseSessionFormDialog({ isOpen, onClose, session, onCreated }:
             onChange={(e) => setIsActive(e.target.checked)}
           />
           운영중
-          <span className="text-[11px] text-ink-3">(해제하면 '종료' 상태로 표시돼요)</span>
+          <span className="text-11 text-ink-3">(해제하면 '종료' 상태로 표시돼요)</span>
         </label>
         <div className="space-y-1.5">
           <Label>메모</Label>

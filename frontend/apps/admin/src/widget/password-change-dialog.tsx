@@ -70,7 +70,7 @@ export function PasswordChangeDialog({ onClose }: { onClose: () => void }) {
             onChange={e => setNewPassword(e.target.value)}
           />
           {newPassword.length > 0 && !isValidNew && (
-            <p className="text-xs text-danger">{PASSWORD_HINT}</p>
+            <p className="text-12 text-danger">{PASSWORD_HINT}</p>
           )}
         </div>
         <div className="flex flex-col gap-1.5">
@@ -84,7 +84,7 @@ export function PasswordChangeDialog({ onClose }: { onClose: () => void }) {
             onChange={e => setConfirmPassword(e.target.value)}
           />
           {isMismatch && (
-            <p className="text-xs text-danger">비밀번호가 일치하지 않아요</p>
+            <p className="text-12 text-danger">비밀번호가 일치하지 않아요</p>
           )}
         </div>
       </div>

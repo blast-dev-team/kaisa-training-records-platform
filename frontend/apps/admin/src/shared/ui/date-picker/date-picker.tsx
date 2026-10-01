@@ -101,8 +101,8 @@ export function DatePicker({
           </button>
         </div>
         <div className="flex items-baseline gap-1.5">
-          <span className="text-[13px] font-medium text-ink-3">{viewYear}</span>
-          <span className="text-[15px] font-semibold text-ink">{viewMonth + 1}월</span>
+          <span className="text-13 font-medium text-ink-3">{viewYear}</span>
+          <span className="text-15 font-semibold text-ink">{viewMonth + 1}월</span>
         </div>
         <div className="flex items-center">
           <button
@@ -129,7 +129,7 @@ export function DatePicker({
         {WEEKDAYS.map((weekday) => (
           <div
             key={weekday}
-            className="flex size-9 items-center justify-center text-[11px] font-semibold text-ink-3"
+            className="flex size-9 items-center justify-center text-11 font-semibold text-ink-3"
           >
             {weekday}
           </div>
@@ -149,7 +149,7 @@ export function DatePicker({
                 <div
                   key={date.getTime()}
                   aria-hidden="true"
-                  className="flex size-9 items-center justify-center text-[12px] text-ink-3"
+                  className="flex size-9 items-center justify-center text-12 text-ink-3"
                 >
                   {date.getDate()}
                 </div>
@@ -165,7 +165,7 @@ export function DatePicker({
                 onClick={() => handleSelectDay(date)}
                 className={cn(
                   // 모든 셀에 투명 border를 예약해 hover 시 layout shift 방지
-                  "flex size-9 items-center justify-center rounded-md border-2 border-transparent text-[12px] font-medium text-ink select-none",
+                  "flex size-9 items-center justify-center rounded-md border-2 border-transparent text-12 font-medium text-ink select-none",
                   !isDisabled && "cursor-pointer hover:border-accent-soft hover:bg-accent-soft",
                   isToday && !isSelected && "font-semibold text-accent-ink",
                   isDisabled && "cursor-not-allowed bg-panel-2 text-ink-3",
@@ -187,7 +187,7 @@ export function DatePicker({
           if (selected !== null) onConfirm?.(selected);
         }}
         className={cn(
-          "w-full rounded-md px-3 py-2 text-[13px] font-semibold whitespace-nowrap select-none",
+          "w-full rounded-md px-3 py-2 text-13 font-semibold whitespace-nowrap select-none",
           selected === null
             ? "cursor-not-allowed bg-panel-2 text-ink-3"
             : "cursor-pointer bg-accent-soft text-accent-ink hover:bg-accent hover:text-white",

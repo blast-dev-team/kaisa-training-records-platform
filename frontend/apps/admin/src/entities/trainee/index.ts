@@ -1,6 +1,7 @@
 export * from './model/trainee'
 export {
   traineeQueries,
+  supervisorGradeQueries,
   membershipGradeQueries,
 } from './api/trainee-queries'
 export { getTraineeList } from './api/get-trainee-list'

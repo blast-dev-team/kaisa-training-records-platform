@@ -94,13 +94,13 @@ export function BulkGradeDialog({ isOpen, onClose, trainees, onDone }: Props) {
           <div className="space-y-1.5">
             <Label>만료일</Label>
             <DateField ariaLabel="만료일" value={expiresAt} onChange={setExpiresAt} />
-            <p className="text-[12px] text-ink-3">
+            <p className="text-12 text-ink-3">
               전원에 같은 만료일이 적용돼요 — 만료일이 지나면 자동으로 일반 등급으로 바뀌어요
             </p>
           </div>
         )}
         {trainees[0] && (
-          <p className="text-[12px] text-ink-3">
+          <p className="text-12 text-ink-3">
             적용 대상: {trainees[0].name}
             {trainees.length > 1 ? ` 외 ${trainees.length - 1}명` : ''}
           </p>

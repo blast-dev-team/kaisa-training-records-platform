@@ -99,10 +99,10 @@ export function BulkEditDialog({ isOpen, onClose, trainees, onDone }: Props) {
     >
       <div className="space-y-2">
         <div className="grid grid-cols-[110px_1fr_150px_170px] items-center gap-2 px-0.5">
-          <Label className="text-[11px] text-ink-3">성명</Label>
-          <Label className="text-[11px] text-ink-3">생년월일</Label>
-          <Label className="text-[11px] text-ink-3">전화번호</Label>
-          <Label className="text-[11px] text-ink-3">감리원증번호</Label>
+          <Label className="text-11 text-ink-3">성명</Label>
+          <Label className="text-11 text-ink-3">생년월일</Label>
+          <Label className="text-11 text-ink-3">전화번호</Label>
+          <Label className="text-11 text-ink-3">감리원증번호</Label>
         </div>
         <div className="max-h-[60vh] space-y-1.5 overflow-y-auto">
           {trainees.map((t) => {
@@ -133,7 +133,7 @@ export function BulkEditDialog({ isOpen, onClose, trainees, onDone }: Props) {
             );
           })}
         </div>
-        <p className="text-[12px] text-ink-3">
+        <p className="text-12 text-ink-3">
           전화번호·감리원증번호를 비워 두면 기존 값을 유지해요
         </p>
       </div>

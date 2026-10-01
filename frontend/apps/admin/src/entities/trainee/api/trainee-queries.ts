@@ -1,6 +1,7 @@
 import { queryOptions } from '@tanstack/react-query'
 import { getTraineeList } from './get-trainee-list'
 import { getTraineeDetail } from './get-trainee-detail'
+import { getSupervisorGradeList } from './get-supervisor-grade-list'
 import { getMembershipGradeList } from './get-membership-grade-list'
 import type { TraineeListQuery } from './query/trainee-list-query'
 
@@ -18,6 +19,17 @@ export const traineeQueries = {
     queryOptions({
       queryKey: [...traineeQueries.details(), traineeId],
       queryFn: () => getTraineeDetail(traineeId),
+    }),
+}
+
+export const supervisorGradeQueries = {
+  all: () => ['supervisor-grades'] as const,
+  lists: () => [...supervisorGradeQueries.all(), 'list'] as const,
+  list: () =>
+    queryOptions({
+      queryKey: [...supervisorGradeQueries.lists()],
+      queryFn: () => getSupervisorGradeList(),
+      staleTime: 5 * 60 * 1000,
     }),
 }
 

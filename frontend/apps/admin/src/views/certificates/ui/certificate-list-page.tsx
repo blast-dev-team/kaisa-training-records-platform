@@ -88,7 +88,7 @@ export function CertificateListPage() {
         header: "증명서번호",
         meta: { width: 150 },
         cell: ({ row }) => (
-          <span className="font-mono text-[12px] font-medium text-ink">
+          <span className="font-mono text-12 font-medium text-ink">
             {row.original.certificateNo}
           </span>
         ),
@@ -160,23 +160,6 @@ export function CertificateListPage() {
         header: "발급일시",
         meta: { width: 150 },
         cell: ({ row }) => (row.original.issuedAt ? formatDateTime(row.original.issuedAt) : "—"),
-      },
-      {
-        id: "download",
-        header: "다운로드",
-        meta: { width: 110 },
-        cell: ({ row }) => {
-          const { downloadCount, downloadedAt } = row.original;
-          if (!downloadCount) return <span className="text-ink-3">미다운로드</span>;
-          return (
-            <span className="flex flex-col">
-              <span className="text-ink">{downloadCount}회</span>
-              {downloadedAt && (
-                <span className="text-[11px] text-ink-3">{toYMD(downloadedAt)}</span>
-              )}
-            </span>
-          );
-        },
       },
       {
         accessorKey: "status",
@@ -259,11 +242,14 @@ export function CertificateListPage() {
             onChange={(e) => updateParams({ status: e.target.value || null })}
           >
             <option value="">상태 전체</option>
-            {Object.entries(CERTIFICATE_STATUS_LABELS).map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
+            {Object.entries(CERTIFICATE_STATUS_LABELS)
+              // 재발급 폐지 — superseded 는 구데이터 표시용으로만 남기고 필터에서는 뺀다
+              .filter(([value]) => value !== "superseded")
+              .map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
           </Select>
         </FilterRow>
       </FilterBar>

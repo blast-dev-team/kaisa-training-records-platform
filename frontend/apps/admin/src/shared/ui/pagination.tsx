@@ -18,10 +18,10 @@ export function Pagination({
   if (totalPages <= 1) return null
 
   const btnCls =
-    'px-2 py-1 text-[12px] text-ink-3 rounded hover:bg-panel-2 disabled:opacity-30 disabled:cursor-not-allowed transition-colors'
-  const activeCls = 'px-2.5 py-1 text-[12px] rounded font-semibold bg-accent/10 text-accent'
+    'px-2 py-1 text-12 text-ink-3 rounded hover:bg-panel-2 disabled:opacity-30 disabled:cursor-not-allowed transition-colors'
+  const activeCls = 'px-2.5 py-1 text-12 rounded font-semibold bg-accent/10 text-accent'
   const inactiveCls =
-    'px-2.5 py-1 text-[12px] rounded font-medium text-ink-3 hover:bg-panel-2 transition-colors'
+    'px-2.5 py-1 text-12 rounded font-medium text-ink-3 hover:bg-panel-2 transition-colors'
 
   const start = Math.max(1, page - delta)
   const end = Math.min(totalPages, page + delta)
@@ -46,7 +46,7 @@ export function Pagination({
       </button>
       {pages.map((p, idx) =>
         p === '...' ? (
-          <span key={`dots-${idx}`} className="px-2 py-1 text-[11px] text-ink-3">
+          <span key={`dots-${idx}`} className="px-2 py-1 text-11 text-ink-3">
             …
           </span>
         ) : (

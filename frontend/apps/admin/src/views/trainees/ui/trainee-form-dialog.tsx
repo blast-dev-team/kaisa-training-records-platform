@@ -149,7 +149,7 @@ export function TraineeFormDialog({ isOpen, onClose, trainee }: Props) {
               onChange={(e) => setPhone(e.target.value)}
             />
             {trainee && (
-              <p className="text-[11px] text-ink-3">
+              <p className="text-11 text-ink-3">
                 보안상 원문은 저장 시 암호화돼요 — 비워 두면 변경 없음
               </p>
             )}
@@ -177,12 +177,12 @@ export function TraineeFormDialog({ isOpen, onClose, trainee }: Props) {
                   value={expiresAt}
                   onChange={setExpiresAt}
                 />
-                <p className="text-[11px] text-ink-3">
+                <p className="text-11 text-ink-3">
                   만료일이 지나면 자동으로 일반 등급으로 바뀌어요
                 </p>
               </div>
             )}
-            <p className="text-[11px] text-ink-3">
+            <p className="text-11 text-ink-3">
               등급 변경은 교육생 목록의 등급변경으로 — 변경 이력이 남아요
             </p>
           </div>

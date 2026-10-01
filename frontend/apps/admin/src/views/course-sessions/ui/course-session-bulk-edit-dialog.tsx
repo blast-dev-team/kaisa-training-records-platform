@@ -125,7 +125,7 @@ export function CourseSessionBulkEditDialog({ isOpen, onClose, sessions, onDone 
     >
       <div className="space-y-3">
         {dateInvalid && (
-          <p className="text-[12px] text-danger">종료일이 시작일보다 앞선 일정이 있어요</p>
+          <p className="text-12 text-danger">종료일이 시작일보다 앞선 일정이 있어요</p>
         )}
         {sessions.map((s) => {
           const d = rows[s.id];
@@ -139,8 +139,8 @@ export function CourseSessionBulkEditDialog({ isOpen, onClose, sessions, onDone 
               }`}
             >
               <div className="mb-4 flex items-baseline justify-between gap-2">
-                <span className="text-[13px] font-semibold text-ink">{s.courseName}</span>
-                <span className="text-[11px] text-ink-3">{s.institutionName}</span>
+                <span className="text-13 font-semibold text-ink">{s.courseName}</span>
+                <span className="text-11 text-ink-3">{s.institutionName}</span>
               </div>
               <div className="grid grid-cols-3 gap-2">
                 <div className="space-y-1">
@@ -178,7 +178,7 @@ export function CourseSessionBulkEditDialog({ isOpen, onClose, sessions, onDone 
                 </div>
               </div>
               <div className="mt-2 flex items-center gap-3">
-                <label className="flex items-center gap-2 text-[13px] text-ink-2">
+                <label className="flex items-center gap-2 text-13 text-ink-2">
                   <input
                     type="checkbox"
                     className="size-4 accent-[--color-accent]"
@@ -188,7 +188,7 @@ export function CourseSessionBulkEditDialog({ isOpen, onClose, sessions, onDone 
                   운영중
                 </label>
                 <Input
-                  className="h-8 flex-1 text-[12px]"
+                  className="h-8 flex-1 text-12"
                   placeholder="메모 (선택)"
                   value={d.memo}
                   onChange={(e) => setRow(s.id, { memo: e.target.value })}

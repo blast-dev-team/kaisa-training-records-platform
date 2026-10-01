@@ -104,7 +104,7 @@ export function SearchableSelect({
       <button
         type="button"
         disabled={disabled}
-        className="flex h-9 w-full items-center justify-between gap-2 rounded-md border border-line bg-white px-3 text-[13px] text-ink disabled:cursor-not-allowed disabled:bg-bg-2"
+        className="flex h-9 w-full items-center justify-between gap-2 rounded-md border border-line bg-white px-3 text-14 text-ink disabled:cursor-not-allowed disabled:bg-bg-2"
         onClick={() => setOpen((v) => !v)}
       >
         <span className={currentLabel ? "" : "text-ink-3"}>
@@ -119,7 +119,7 @@ export function SearchableSelect({
             <Search className="size-3.5 shrink-0 text-ink-3" />
             <input
               autoFocus
-              className="w-full text-[13px] outline-none placeholder:text-ink-3"
+              className="w-full text-14 outline-none placeholder:text-ink-3"
               placeholder="검색"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -139,7 +139,7 @@ export function SearchableSelect({
             {clearable && (
               <button
                 type="button"
-                className="w-full px-3 py-2 text-left text-[13px] text-ink-3 hover:bg-bg-2"
+                className="w-full px-3 py-2 text-left text-14 text-ink-3 hover:bg-bg-2"
                 onClick={() => {
                   onChange(null);
                   setOpen(false);
@@ -149,13 +149,13 @@ export function SearchableSelect({
               </button>
             )}
             {!query.isPending && options.length === 0 && !onCreate && (
-              <p className="p-3 text-[13px] text-ink-3">{emptyMessage}</p>
+              <p className="p-3 text-14 text-ink-3">{emptyMessage}</p>
             )}
             {!disableCreate && search.trim() !== "" && (
               <button
                 type="button"
                 disabled={creating}
-                className="flex w-full items-center gap-1.5 border-b border-line px-3 py-2 text-left text-[13px] text-accent hover:bg-bg-2 disabled:text-ink-3"
+                className="flex w-full items-center gap-1.5 border-b border-line px-3 py-2 text-left text-14 text-accent hover:bg-bg-2 disabled:text-ink-3"
                 onClick={async () => {
                   if (onCreate) {
                     setCreating(true);
@@ -183,7 +183,7 @@ export function SearchableSelect({
               <button
                 key={o.value}
                 type="button"
-                className={`flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-[13px] hover:bg-bg-2 ${
+                className={`flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-14 hover:bg-bg-2 ${
                   o.value === value ? "bg-accent-soft" : ""
                 }`}
                 onClick={() => {
@@ -193,12 +193,12 @@ export function SearchableSelect({
               >
                 <span className="truncate text-ink">{o.label}</span>
                 {o.hint && (
-                  <span className="shrink-0 text-[11px] text-ink-3">{o.hint}</span>
+                  <span className="shrink-0 text-11 text-ink-3">{o.hint}</span>
                 )}
               </button>
             ))}
             {query.isFetchingNextPage && (
-              <p className="p-2 text-center text-[12px] text-ink-3">불러오는 중…</p>
+              <p className="p-2 text-center text-12 text-ink-3">불러오는 중…</p>
             )}
           </div>
         </div>

@@ -15,7 +15,7 @@ export function AdminLayout() {
       <div className="flex items-center justify-center min-h-screen bg-bg">
         <div className="flex flex-col items-center gap-3">
           <div className="w-8 h-8 border-2 border-line border-t-accent rounded-full animate-spin" />
-          <p className="text-sm text-ink-3">불러오는 중...</p>
+          <p className="text-14 text-ink-3">불러오는 중...</p>
         </div>
       </div>
     )

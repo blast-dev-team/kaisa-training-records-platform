@@ -19,12 +19,25 @@ export const getIdentityReviewList = async (
             v?.toLowerCase().includes(query.search!.toLowerCase()),
           )),
     )
-    return mockPage(filtered, query.page, query.limit)
+    const sortKey = query.sort === 'reviewed_at' ? 'reviewedAt' : 'createdAt'
+    const dir = query.order === 'asc' ? 1 : -1
+    const sorted = [...filtered].sort((a, b) => {
+      const av = a[sortKey]
+      const bv = b[sortKey]
+      // 처리일시 미정(null)은 방향 무관 맨 뒤 — 서버 nulls_last 와 동일
+      if (!av && !bv) return 0
+      if (!av) return 1
+      if (!bv) return -1
+      return av < bv ? -dir : av > bv ? dir : 0
+    })
+    return mockPage(sorted, query.page, query.limit)
   }
   const { data } = await apiClient.get<PagedResponse<IdentityReviewDto>>('/identity-reviews', {
     params: {
       status: query.status || undefined,
       search: query.search || undefined,
+      sort: query.sort || undefined,
+      order: query.order || undefined,
       page: query.page ?? 1,
       limit: query.limit ?? 20,
     },

@@ -58,7 +58,7 @@ export function SessionPickerDialog({ isOpen, onClose, onSelect }: Props) {
         </form>
         <div className="max-h-72 overflow-y-auto rounded-md border border-line">
           {!isLoading && sessions.length === 0 && (
-            <p className="p-3 text-[13px] text-ink-3">
+            <p className="p-3 text-13 text-ink-3">
               검색 결과가 없어요. 일정은 교육 일정 관리에서 먼저 등록해 주세요
             </p>
           )}
@@ -73,13 +73,13 @@ export function SessionPickerDialog({ isOpen, onClose, onSelect }: Props) {
               }}
             >
               <span className="flex min-w-0 flex-col">
-                <span className="truncate text-[13px] font-medium text-ink">{s.courseName}</span>
-                <span className="text-[11px] text-ink-3">
+                <span className="truncate text-13 font-medium text-ink">{s.courseName}</span>
+                <span className="text-11 text-ink-3">
                   {s.institutionName} · {s.startedAt ?? "기간 미정"}
                   {s.endedAt ? ` ~ ${s.endedAt}` : ""}
                 </span>
               </span>
-              <span className="shrink-0 text-[11px] text-ink-3">
+              <span className="shrink-0 text-11 text-ink-3">
                 수강생 {s.enrolledCount.toLocaleString()}명
               </span>
             </button>

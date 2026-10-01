@@ -29,7 +29,7 @@ export function AdminUserListPage() {
     return (
       <PageContainer>
         <PageHead title="관리자 계정" />
-        <div className="rounded-lg border border-line bg-panel p-8 text-center text-[13px] text-ink-2">
+        <div className="rounded-lg border border-line bg-panel p-8 text-center text-13 text-ink-2">
           총관리자(super)만 볼 수 있는 화면이에요.
         </div>
       </PageContainer>
@@ -119,7 +119,7 @@ function AdminUserTable({ me }: { me: Me }) {
       {
         id: 'actions',
         header: '',
-        meta: { width: 130, align: 'right', sticky: 'right' },
+        meta: { width: 130, align: 'right' },
         cell: ({ row }) => (
           <div className="flex justify-end gap-1">
             <Button
@@ -194,7 +194,7 @@ function AdminUserTable({ me }: { me: Me }) {
           },
         ]}
       >
-        <p className="pt-1 text-[13px] text-ink-2">
+        <p className="pt-1 text-13 text-ink-2">
           차단해도 감사 로그는 남아요. 필요하면 복구할 수 있어요.
         </p>
       </Dialog>
@@ -290,7 +290,7 @@ function EditDialog({
             <option value="staff">{ADMIN_ROLE_LABELS.staff}</option>
           </Select>
           {isSelf && (
-            <p className="text-xs text-ink-2">
+            <p className="text-12 text-ink-2">
               내 계정의 역할은 변경할 수 없어요. 다른 총관리자에게 부탁해 주세요.
             </p>
           )}
@@ -306,7 +306,7 @@ function EditDialog({
             onChange={e => setNewPassword(e.target.value)}
           />
           {newPassword.length > 0 && !isValidPassword && (
-            <p className="text-xs text-danger">
+            <p className="text-12 text-danger">
               10자 이상, 영문과 숫자를 조합해 주세요
             </p>
           )}

@@ -41,9 +41,9 @@ export function TraineeDuplicatesDialog({ isOpen, onClose, onEdit }: Props) {
       actions={[{ label: "닫기", onClick: onClose }]}
     >
       {isLoading ? (
-        <p className="p-3 text-[13px] text-ink-3">불러오는 중…</p>
+        <p className="p-3 text-13 text-ink-3">불러오는 중…</p>
       ) : rows.length === 0 ? (
-        <p className="p-3 text-[13px] text-ink-3">중복된 감리원증번호가 없어요</p>
+        <p className="p-3 text-13 text-ink-3">중복된 감리원증번호가 없어요</p>
       ) : (
         <DuplicateGroups
           rows={rows}
@@ -81,14 +81,14 @@ function DuplicateGroups({
     <div className="max-h-72 space-y-3 overflow-y-auto">
       {[...groups.entries()].map(([certNo, trainees]) => (
         <div key={certNo} className="rounded-md border border-line">
-          <p className="border-b border-line bg-bg-2 px-3 py-1.5 text-[12px] font-medium text-ink">
+          <p className="border-b border-line bg-bg-2 px-3 py-1.5 text-12 font-medium text-ink">
             {certNo}
             <span className="ml-1.5 text-ink-3">({trainees.length}명)</span>
           </p>
           {trainees.map((t) => (
             <div
               key={t.id}
-              className="flex items-center gap-2 border-b border-line px-3 py-2 text-[13px] last:border-b-0"
+              className="flex items-center gap-2 border-b border-line px-3 py-2 text-13 last:border-b-0"
             >
               <button
                 type="button"
@@ -96,8 +96,8 @@ function DuplicateGroups({
                 onClick={() => onEdit(t)}
               >
                 <span className="text-ink">{t.name}</span>
-                <span className="text-[11px] text-ink-3">{t.certNo}</span>
-                <span className="ml-auto text-[11px] text-ink-3">
+                <span className="text-11 text-ink-3">{t.certNo}</span>
+                <span className="ml-auto text-11 text-ink-3">
                   {t.birthDate ?? "생년월일 없음"}
                 </span>
               </button>
