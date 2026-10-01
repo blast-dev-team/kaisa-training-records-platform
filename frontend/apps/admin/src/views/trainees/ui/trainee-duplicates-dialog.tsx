@@ -70,12 +70,20 @@ function DuplicateGroups({
   deleteMutation: { isPending: boolean; mutate: (id: string) => void };
   onEdit: (trainee: Trainee) => void;
 }) {
-  const groups = new Map<string, Trainee[]>();
+  // 중복 축이 두 개 — 감리원증번호와 수석감리원증번호 각각에서 중복인 번호로 묶는다.
+  // 한 명이 양쪽 축에서 중복이면 두 그룹에 모두 나타난다
+  const byNo = new Map<string, Trainee[]>();
   for (const t of rows) {
-    const key = t.certNo ?? "";
-    if (!groups.has(key)) groups.set(key, []);
-    groups.get(key)!.push(t);
+    for (const no of [t.certNo, t.seniorCertNo]) {
+      if (!no) continue;
+      const list = byNo.get(no) ?? [];
+      list.push(t);
+      byNo.set(no, list);
+    }
   }
+  const groups = new Map(
+    [...byNo.entries()].filter(([, list]) => list.length > 1),
+  );
 
   return (
     <div className="max-h-72 space-y-3 overflow-y-auto">

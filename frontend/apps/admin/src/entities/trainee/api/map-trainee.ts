@@ -7,6 +7,8 @@ export function mapTrainee(dto: TraineeDto): Trainee {
     traineeNo: dto.trainee_no,
     certNo: dto.cert_no,
     supervisorGrade: dto.supervisor_grade,
+    seniorCertNo: dto.senior_cert_no,
+    seniorCertIssuedDate: dto.senior_cert_issued_date,
     name: dto.name,
     birthDate: dto.birth_date,
     phoneMasked: dto.phone_masked,

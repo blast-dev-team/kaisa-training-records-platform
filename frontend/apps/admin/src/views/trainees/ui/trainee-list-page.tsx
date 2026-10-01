@@ -18,7 +18,6 @@ import { AlertTriangle } from "lucide-react";
 import {
   deleteTrainee,
   membershipGradeQueries,
-  supervisorGradeQueries,
   traineeQueries,
   type Trainee,
 } from "@/src/entities/trainee";
@@ -28,6 +27,7 @@ import { GradeChangeDialog } from "./grade-change-dialog";
 import { TraineeFormDialog } from "./trainee-form-dialog";
 import { TraineeDuplicatesDialog } from "./trainee-duplicates-dialog";
 import { TraineeImportDialog } from "./trainee-import-dialog";
+import { GradeImportDialog } from "./grade-import-dialog";
 
 export function TraineeListPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -46,6 +46,7 @@ export function TraineeListPage() {
   const [deleteTarget, setDeleteTarget] = useState<Trainee | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+  const [gradeImportOpen, setGradeImportOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<Trainee | null>(null);
   const [duplicatesOpen, setDuplicatesOpen] = useState(false);
   const [bulkGradeOpen, setBulkGradeOpen] = useState(false);
@@ -67,7 +68,6 @@ export function TraineeListPage() {
       limit,
     }),
   );
-  const { data: supervisorGrades } = useQuery(supervisorGradeQueries.list());
   // 필터 옵션은 활성 등급만 — 등급 변경 모달들과 같은 기준
   const { data: grades } = useQuery(membershipGradeQueries.list(true));
   // 연간 등급 — code 기준 판별 (id 는 환경마다 다름). undefined = 등급 로딩 전
@@ -181,6 +181,19 @@ export function TraineeListPage() {
         cell: ({ row }) => (
           <span className="block max-w-[180px] truncate" title={row.original.certNo ?? ""}>
             {row.original.certNo ?? "—"}
+          </span>
+        ),
+      },
+      {
+        accessorKey: "seniorCertNo",
+        header: "수석감리원증번호",
+        meta: { width: 180 },
+        cell: ({ row }) => (
+          <span
+            className="block max-w-[180px] truncate"
+            title={row.original.seniorCertNo ?? ""}
+          >
+            {row.original.seniorCertNo ?? "—"}
           </span>
         ),
       },
@@ -300,6 +313,9 @@ export function TraineeListPage() {
         subtitle={`총 ${total.toLocaleString()}명`}
         actions={
           <>
+            <Button variant="outline" onClick={() => setGradeImportOpen(true)}>
+              <FileSpreadsheet className="size-4" /> 엑셀 등급 적용
+            </Button>
             <Button variant="outline" onClick={() => setImportOpen(true)}>
               <FileSpreadsheet className="size-4" /> 엑셀 등록
             </Button>
@@ -326,7 +342,7 @@ export function TraineeListPage() {
           >
             <SearchInput
               className="w-100"
-              placeholder="성명 (부분검색 불가) · 감리원증번호 · 이메일"
+              placeholder="성명 (부분검색 불가) · 감리원증번호·수석감리원증번호 · 이메일"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               onClear={() => updateParams({ q: null })}
@@ -345,18 +361,16 @@ export function TraineeListPage() {
           </form>
         </FilterRow>
         <FilterRow label="감리원">
+          {/* 등급은 enum 고정(감리원/수석감리원) — distinct 조회 대신 상수 옵션 */}
           <Select
             className="w-36"
             value={supervisorGrade}
             onChange={(e) => updateParams({ supervisor_grade: e.target.value || null })}
           >
             <option value="">감리원 등급 전체</option>
+            <option value="감리원">감리원</option>
+            <option value="수석감리원">수석감리원</option>
             <option value="none">미정</option>
-            {(supervisorGrades ?? []).map((g) => (
-              <option key={g} value={g}>
-                {g}
-              </option>
-            ))}
           </Select>
         </FilterRow>
         <FilterRow label="회원등급">
@@ -502,6 +516,7 @@ export function TraineeListPage() {
       />
 
       <TraineeImportDialog isOpen={importOpen} onClose={() => setImportOpen(false)} />
+      <GradeImportDialog isOpen={gradeImportOpen} onClose={() => setGradeImportOpen(false)} />
 
       <Dialog
         isOpen={deleteTarget !== null}

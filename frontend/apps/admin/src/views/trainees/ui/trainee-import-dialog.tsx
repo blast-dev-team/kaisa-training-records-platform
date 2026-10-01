@@ -35,6 +35,7 @@ interface ImportDraft {
   supervisorGrade: string;
   certIssuedDate: string;
   isDuplicate: boolean;
+  isPromotion: boolean;
   duplicateOfName: string | null;
   errors: string[];
   include: boolean;
@@ -88,9 +89,10 @@ export function TraineeImportDialog({ isOpen, onClose }: Props) {
           supervisorGrade: r.supervisor_grade ?? "",
           certIssuedDate: r.cert_issued_date ?? "",
           isDuplicate: r.is_duplicate,
+          isPromotion: r.is_promotion,
           duplicateOfName: r.duplicate_of_name,
           errors: r.errors,
-          // 중복·오류 행은 기본 제외 — 사용자가 확인하고 다시 포함시킨다
+          // 중복 행은 기본 제외, 승격 행은 기본 포함 — 승격은 기존 감리원 업데이트라 안전
           include: !r.is_duplicate && r.errors.length === 0,
         })),
       ]);
@@ -136,7 +138,11 @@ export function TraineeImportDialog({ isOpen, onClose }: Props) {
       setResult(data);
       setStage("result");
       queryClient.invalidateQueries({ queryKey: traineeQueries.all() });
-      toast.success(`감리원 ${data.created}명을 등록했어요`);
+      toast.success(
+        data.promoted > 0
+          ? `감리원 ${data.created}명 등록 · 기존 감리원 ${data.promoted}명 등급 변경했어요`
+          : `감리원 ${data.created}명을 등록했어요`,
+      );
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -144,6 +150,7 @@ export function TraineeImportDialog({ isOpen, onClose }: Props) {
   const included = drafts.filter((d) => d.include);
   const hasBlockingError = included.some((d) => !d.name.trim() || d.errors.length > 0);
   const duplicateCount = drafts.filter((d) => d.isDuplicate).length;
+  const promotionCount = drafts.filter((d) => d.isPromotion).length;
 
   const gridCols = "grid grid-cols-[36px_120px_120px_150px_200px_100px_140px_72px] gap-1.5";
 
@@ -224,8 +231,10 @@ export function TraineeImportDialog({ isOpen, onClose }: Props) {
           <div className="flex items-center justify-between">
             <p className="text-12 text-ink-3">
               파일 {fileNames.length}개 · 총 {drafts.length}행 · 중복 {duplicateCount}행
+              {promotionCount > 0 && ` · 등급 변경 ${promotionCount}행`}
               {duplicateCount > 0 && " (중복은 기본 제외 — 포함하려면 체크)"}
             </p>
+
             <div className="flex items-center gap-3">
               <button
                 type="button"
@@ -328,6 +337,8 @@ export function TraineeImportDialog({ isOpen, onClose }: Props) {
                       </div>
                       {d.isDuplicate ? (
                         <Pill tone="warn">중복</Pill>
+                      ) : d.isPromotion ? (
+                        <Pill tone="accent">등급 변경</Pill>
                       ) : d.errors.length > 0 ? (
                         <Pill tone="danger">오류</Pill>
                       ) : (
@@ -335,8 +346,12 @@ export function TraineeImportDialog({ isOpen, onClose }: Props) {
                       )}
                     </div>
                     {(d.errors.length > 0 || d.duplicateOfName) && (
-                      <p className="pl-10 text-11 text-danger">
-                        {d.duplicateOfName && `기존 감리원(${d.duplicateOfName})과 중복이에요`}
+                      <p
+                        className={`pl-10 text-11 ${d.isPromotion ? "text-accent" : "text-danger"}`}
+                      >
+                        {d.isPromotion
+                          ? `기존 감리원(${d.duplicateOfName})의 수석감리원증번호를 추가하고 등급을 수석감리원으로 변경해요`
+                          : d.duplicateOfName && `기존 감리원(${d.duplicateOfName})과 중복이에요`}
                         {d.errors.length > 0 && ` · ${d.errors.join(" · ")}`}
                       </p>
                     )}
@@ -355,6 +370,12 @@ export function TraineeImportDialog({ isOpen, onClose }: Props) {
               <p className="text-20 font-semibold text-ok-ink">{result.created}</p>
               <p className="text-12 text-ok-ink">등록</p>
             </div>
+            {result.promoted > 0 && (
+              <div className="flex-1 rounded-lg bg-accent-soft px-4 py-3 text-center">
+                <p className="text-20 font-semibold text-accent-ink">{result.promoted}</p>
+                <p className="text-12 text-accent-ink">등급 변경</p>
+              </div>
+            )}
             <div className="flex-1 rounded-lg bg-panel-2 px-4 py-3 text-center">
               <p className="text-20 font-semibold text-ink">{result.skipped}</p>
               <p className="text-12 text-ink-3">중복 제외</p>

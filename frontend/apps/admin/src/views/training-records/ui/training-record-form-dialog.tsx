@@ -178,6 +178,8 @@ export function TrainingRecordFormDialog({
               traineeNo: record.traineeNo ?? "",
               certNo: null,
               supervisorGrade: null,
+    seniorCertNo: null,
+    seniorCertIssuedDate: null,
               name: record.traineeName ?? "",
               birthDate: null,
               phoneMasked: "",

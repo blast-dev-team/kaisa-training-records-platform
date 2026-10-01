@@ -27,6 +27,7 @@ interface RowDraft {
   birthDate: string;
   phone: string;
   certNo: string;
+  seniorCertNo: string;
 }
 
 export function BulkEditDialog({ isOpen, onClose, trainees, onDone }: Props) {
@@ -42,6 +43,7 @@ export function BulkEditDialog({ isOpen, onClose, trainees, onDone }: Props) {
         birthDate: t.birthDate ?? "",
         phone: "",
         certNo: t.certNo ?? "",
+        seniorCertNo: t.seniorCertNo ?? "",
       };
     }
     setRows(seeded);
@@ -51,7 +53,13 @@ export function BulkEditDialog({ isOpen, onClose, trainees, onDone }: Props) {
 
   const setRow = (id: string, patch: Partial<RowDraft>) => {
     setRows((prev) => {
-      const base = prev[id] ?? { name: "", birthDate: "", phone: "", certNo: "" };
+      const base = prev[id] ?? {
+        name: "",
+        birthDate: "",
+        phone: "",
+        certNo: "",
+        seniorCertNo: "",
+      };
       return { ...prev, [id]: { ...base, ...patch } };
     });
   };
@@ -63,6 +71,7 @@ export function BulkEditDialog({ isOpen, onClose, trainees, onDone }: Props) {
     if (row?.birthDate) item.birth_date = row.birthDate;
     if (row?.phone.trim()) item.phone = row.phone.trim();
     if (row?.certNo.trim()) item.cert_no = row.certNo.trim();
+    if (row?.seniorCertNo.trim()) item.senior_cert_no = row.seniorCertNo.trim();
     return item;
   });
 
@@ -85,7 +94,7 @@ export function BulkEditDialog({ isOpen, onClose, trainees, onDone }: Props) {
       onClose={onClose}
       size="xl"
       title="감리원 정보 일괄 수정"
-      description={`${trainees.length}명의 성명·생년월일·전화번호·감리원증번호를 개별로 수정해요`}
+      description={`${trainees.length}명의 성명·생년월일·전화번호·감리원증번호·수석감리원증번호를 개별로 수정해요`}
       actions={[
         { label: "취소", onClick: onClose },
         {
@@ -98,11 +107,12 @@ export function BulkEditDialog({ isOpen, onClose, trainees, onDone }: Props) {
       ]}
     >
       <div className="space-y-2">
-        <div className="grid grid-cols-[110px_1fr_150px_170px] items-center gap-2 px-0.5">
+        <div className="grid grid-cols-[110px_1fr_150px_150px_170px] items-center gap-2 px-0.5">
           <Label className="text-11 text-ink-3">성명</Label>
           <Label className="text-11 text-ink-3">생년월일</Label>
           <Label className="text-11 text-ink-3">전화번호</Label>
           <Label className="text-11 text-ink-3">감리원증번호</Label>
+          <Label className="text-11 text-ink-3">수석감리원증번호</Label>
         </div>
         <div className="max-h-[60vh] space-y-1.5 overflow-y-auto">
           {trainees.map((t) => {
@@ -111,7 +121,7 @@ export function BulkEditDialog({ isOpen, onClose, trainees, onDone }: Props) {
             return (
               <div
                 key={t.id}
-                className="grid grid-cols-[110px_1fr_150px_170px] items-center gap-2 rounded-lg border border-line px-2.5 py-2"
+                className="grid grid-cols-[110px_1fr_150px_150px_170px] items-center gap-2 rounded-lg border border-line px-2.5 py-2"
               >
                 <Input value={row.name} onChange={(e) => setRow(t.id, { name: e.target.value })} />
                 <DateField
@@ -129,12 +139,17 @@ export function BulkEditDialog({ isOpen, onClose, trainees, onDone }: Props) {
                   placeholder={t.certNo || "번호 없음"}
                   onChange={(e) => setRow(t.id, { certNo: e.target.value })}
                 />
+                <Input
+                  value={row.seniorCertNo}
+                  placeholder={t.seniorCertNo || "번호 없음"}
+                  onChange={(e) => setRow(t.id, { seniorCertNo: e.target.value })}
+                />
               </div>
             );
           })}
         </div>
         <p className="text-12 text-ink-3">
-          전화번호·감리원증번호를 비워 두면 기존 값을 유지해요
+          전화번호·감리원증번호·수석감리원증번호를 비워 두면 기존 값을 유지해요
         </p>
       </div>
     </Dialog>
