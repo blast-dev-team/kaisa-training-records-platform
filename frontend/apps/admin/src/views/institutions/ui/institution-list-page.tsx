@@ -357,7 +357,7 @@ export function InstitutionListPage() {
         </FilterRow>
         <FilterRow label="상태">
           <Select
-            className="w-28"
+            className="w-36"
             value={status}
             onChange={(e) => updateTabParam({ status: e.target.value || null })}
           >
@@ -369,7 +369,7 @@ export function InstitutionListPage() {
         {tab === "institution" && (
           <FilterRow label="구분">
             <Select
-              className="w-28"
+              className="w-36"
               value={type}
               onChange={(e) => updateTabParam({ type: e.target.value || null })}
             >

@@ -142,7 +142,7 @@ export function AuditLogListPage() {
               defaultValue={q}
               onClear={() => formRef.current?.requestSubmit()}
             />
-            <div className="relative w-44">
+            <div className="relative w-36">
               <Select
                 className="w-full"
                 name="entity"

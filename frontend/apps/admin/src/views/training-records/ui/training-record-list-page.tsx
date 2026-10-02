@@ -433,7 +433,7 @@ export function TrainingRecordListPage() {
         </FilterRow>
         <FilterRow label="구분">
           <Select
-            className="w-32"
+            className="w-36"
             value={source}
             onChange={(e) => updateParams({ source: e.target.value || null })}
           >
@@ -447,7 +447,7 @@ export function TrainingRecordListPage() {
         </FilterRow>
         <FilterRow label="정렬">
           <Select
-            className="w-32"
+            className="w-36"
             value={sort}
             onChange={(e) =>
               updateParams({ sort: e.target.value === "registration" ? e.target.value : null })

@@ -335,7 +335,7 @@ export function CourseSessionListPage() {
         </FilterRow>
         <FilterRow label="상태">
           <Select
-            className="w-28"
+            className="w-36"
             value={status}
             onChange={(e) => updateParams({ status: e.target.value || null })}
           >
@@ -346,7 +346,7 @@ export function CourseSessionListPage() {
         </FilterRow>
         <FilterRow label="정렬">
           <Select
-            className="w-32"
+            className="w-36"
             value={sort}
             onChange={(e) =>
               updateParams({ sort: e.target.value === "registration" ? e.target.value : null })

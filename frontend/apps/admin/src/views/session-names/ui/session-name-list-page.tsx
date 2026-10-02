@@ -138,7 +138,7 @@ export function SessionNameListPage() {
         </FilterRow>
         <FilterRow label="상태">
           <Select
-            className="w-28"
+            className="w-36"
             value={status}
             onChange={(e) => updateParams({ status: e.target.value || null })}
           >
@@ -149,7 +149,7 @@ export function SessionNameListPage() {
         </FilterRow>
         <FilterRow label="정렬">
           <Select
-            className="w-32"
+            className="w-36"
             value={sortValue}
             onChange={(e) => {
               const [s, o] = e.target.value.split(":");

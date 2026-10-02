@@ -169,7 +169,7 @@ export function IdentityReviewListPage() {
         </FilterRow>
         <FilterRow label="정렬">
           <Select
-            className="w-40"
+            className="w-36"
             value={sort === "created_at" || sort === "reviewed_at" ? `${sort}:${order}` : ""}
             onChange={(e) => {
               const v = e.target.value;
