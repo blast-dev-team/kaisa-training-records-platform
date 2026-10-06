@@ -191,12 +191,18 @@ async def find_by_identifiers(
     cert_nos: list[str],
     trainee_nos: list[str],
 ) -> list[Trainee]:
-    """엑셀 대조 매칭용 — 이름·감리원증번호·교육생번호 중 하나라도 일치하는 교육생."""
+    """엑셀 대조 매칭용 — 이름·감리원증번호·교육생번호 중 하나라도 일치하는 교육생.
+
+    번호는 감리원증·수석감리원증 양쪽과 비교한다 — 단일 번호 수석감리원은
+    감리원증번호가 NULL이고 수석감리원증번호에만 번호가 있다.
+    """
     conditions = []
     if names:
         conditions.append(Trainee.name_hash.in_([name_hash(n) for n in names]))
     if cert_nos:
-        conditions.append(Trainee.cert_no.in_(cert_nos))
+        conditions.append(
+            or_(Trainee.cert_no.in_(cert_nos), Trainee.senior_cert_no.in_(cert_nos))
+        )
     if trainee_nos:
         conditions.append(Trainee.trainee_no.in_(trainee_nos))
     if not conditions:
