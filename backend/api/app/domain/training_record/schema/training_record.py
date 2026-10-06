@@ -182,3 +182,60 @@ class TraineeMatchPreviewResult(BaseModel):
     total_rows: int
     matched: list[MatchPreviewMatched]
     unmatched: list[MatchPreviewUnmatched]
+
+
+class TrainingRecordImportRow(BaseModel):
+    """교육내역 엑셀 1행 — 감리원 매칭·검증 결과. errors 가 비어야 등록 대상."""
+
+    row_number: int
+    name: str | None = None
+    cert_no: str | None = None
+    institution: str | None = None
+    subject: str | None = None
+    start_date: str | None = None
+    end_date: str | None = None
+    hours_total: str | None = None
+    hours_recog: str | None = None
+    # 기관·과정이 마스터에 없으면 확정 시 신규 생성된다 — 프리뷰에서 미리 알려준다
+    institution_exists: bool = True
+    course_exists: bool = True
+    trainee_id: uuid.UUID | None = None
+    trainee_name: str | None = None
+    errors: list[str] = []
+
+
+class TrainingRecordImportPreviewResult(BaseModel):
+    rows: list[TrainingRecordImportRow]
+    total: int
+
+
+class TrainingRecordImportConfirmItem(BaseModel):
+    """프리뷰에서 확정한 1행 — trainee_id 는 프리뷰의 매칭 결과."""
+
+    row_number: int
+    name: str
+    cert_no: str | None = None
+    institution: str
+    subject: str
+    start_date: str | None = None
+    end_date: str | None = None
+    hours_total: str | None = None
+    hours_recog: str | None = None
+    trainee_id: uuid.UUID
+
+
+class TrainingRecordImportConfirmRequest(BaseModel):
+    rows: list[TrainingRecordImportConfirmItem] = Field(min_length=1)
+
+
+class TrainingRecordImportFailure(BaseModel):
+    row_number: int
+    error: str
+
+
+class TrainingRecordImportResult(BaseModel):
+    """skipped = 같은 감리원·과정·시작일의 기존 이력이 있어 건너뛴 행."""
+
+    created: int
+    skipped: int
+    failed: list[TrainingRecordImportFailure] = []
