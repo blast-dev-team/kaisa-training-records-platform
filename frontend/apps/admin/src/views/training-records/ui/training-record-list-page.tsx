@@ -3,12 +3,13 @@ import { useSearchParams } from "react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Award, CalendarPlus, FileDown, Pencil, Plus, Trash2 } from "lucide-react";
+import { Award, FileSpreadsheet, CalendarPlus, FileDown, Pencil, Plus, Trash2 } from "lucide-react";
 import { AppTable } from "@/src/shared/ui/app-table";
 import { Button } from "@/src/shared/ui/button";
 import { Dialog } from "@/src/shared/ui/dialog";
 import { FilterBar, FilterRow } from "@/src/shared/ui/filter-bar";
 import { PageContainer } from "@/src/shared/ui/page-container";
+import { TrainingRecordImportDialog } from "./training-record-import-dialog";
 import { PageHead } from "@/src/shared/ui/page-head";
 import { SearchableSelect, fetchOptions } from "@/src/shared/ui/searchable-select";
 import { DateField } from "@/src/shared/ui/date-picker/date-field";
@@ -72,6 +73,7 @@ export function TrainingRecordListPage() {
 
   const [searchInput, setSearchInput] = useState(q);
   const [formOpen, setFormOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<TrainingRecord | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<TrainingRecord | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -229,7 +231,7 @@ export function TrainingRecordListPage() {
       {
         accessorKey: "courseName",
         header: "과정명",
-        meta: { width: 320 },
+        meta: { width: 330 },
         cell: ({ row }) => (
           <span className="block truncate font-medium text-ink" title={row.original.courseName}>
             {row.original.courseName}
@@ -239,13 +241,13 @@ export function TrainingRecordListPage() {
       {
         accessorKey: "source",
         header: "구분",
-        meta: { width: 70 },
+        meta: { width: 60 },
         cell: ({ row }) => TRAINING_SOURCE_LABELS[row.original.source],
       },
       {
         accessorKey: "institutionName",
         header: "기관",
-        meta: { width: 180 },
+        meta: { width: 200 },
         cell: ({ row }) => (
           <span title={row.original.institutionName ?? undefined}>
             {row.original.institutionName ?? "—"}
@@ -266,19 +268,19 @@ export function TrainingRecordListPage() {
         // 감리원증 번호 — trainee 조인 값(현재 값). record 스냅샷 컬럼은 레거시
         id: "traineeCertNo",
         header: "자격증번호",
-        meta: { width: 200 },
+        meta: { width: 230 },
         cell: ({ row }) => row.original.traineeCertNo ?? "—",
       },
       {
         accessorKey: "traineeBirthDate",
         header: "생년월일",
-        meta: { width: 110 },
+        meta: { width: 120 },
         cell: ({ row }) => row.original.traineeBirthDate ?? "—",
       },
       {
         id: "hours",
         header: "시수",
-        meta: { width: 90, align: "right" },
+        meta: { width: 70, align: "right" },
         cell: ({ row }) => {
           const { completedHours, totalHours } = row.original;
           if (completedHours === null && totalHours === null) return "—";
@@ -288,7 +290,7 @@ export function TrainingRecordListPage() {
       {
         id: "period",
         header: "기간",
-        meta: { width: 200 },
+        meta: { width: 220 },
         cell: ({ row }) => {
           const s = row.original.startedAt;
           const e = row.original.endedAt;
@@ -299,14 +301,14 @@ export function TrainingRecordListPage() {
       {
         id: "createdAt",
         header: "등록일",
-        meta: { width: 110 },
+        meta: { width: 120 },
         cell: ({ row }) => toYMD(row.original.createdAt) ?? "—",
       },
       {
         id: "actions",
         header: "",
         // PDF·수료증 아이콘 버튼 각 ~68px + 수정·삭제 각 48px + gap 18px + 셀 패딩 32px = 262px — 그래서 270.
-        meta: { width: 270, align: "right" },
+        meta: { width: 300 },
         cell: ({ row }) => {
           const eligible = canIssueCompletion(row.original);
           return (
@@ -372,11 +374,16 @@ export function TrainingRecordListPage() {
 
   return (
     <PageContainer>
+      <TrainingRecordImportDialog isOpen={importOpen} onClose={() => setImportOpen(false)} />
+
       <PageHead
         title="교육 내역 관리"
         subtitle={`총 ${total.toLocaleString()}건`}
         actions={
           <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={() => setImportOpen(true)}>
+              <FileSpreadsheet className="size-4" /> 엑셀 등록
+            </Button>
             <Button variant="outline" onClick={() => setPickerOpen(true)}>
               <CalendarPlus className="size-4" /> 일정으로 등록
             </Button>

@@ -84,3 +84,54 @@ export interface CompletionCertificate {
 export interface CompletionCertificateIssueInput {
   training_record_ids: string[];
 }
+
+// ── 교육내역 엑셀 일괄 등록 ─────────────────────────────────────────────────────
+
+export interface TrainingRecordImportRow {
+  row_number: number
+  /** 교육생명·감리원명 */
+  name: string | null
+  cert_no: string | null
+  institution: string | null
+  subject: string | null
+  start_date: string | null
+  end_date: string | null
+  hours_total: string | null
+  hours_recog: string | null
+  trainee_id: string | null
+  trainee_name: string | null
+  /** 마스터에 없는 기관·과정 — 확정 시 신규 생성됨 */
+  institution_exists: boolean
+  course_exists: boolean
+  /** 비어 있어야 등록 가능한 행 (감리원 미매칭, 기관·과목 누락 등) */
+  errors: string[]
+}
+
+export interface TrainingRecordImportPreviewResult {
+  rows: TrainingRecordImportRow[]
+  total: number
+}
+
+export interface TrainingRecordImportConfirmItem {
+  row_number: number
+  name: string
+  cert_no: string | null
+  institution: string
+  subject: string
+  start_date: string | null
+  end_date: string | null
+  hours_total: string | null
+  trainee_id: string
+}
+
+export interface TrainingRecordImportFailure {
+  row_number: number
+  error: string
+}
+
+export interface TrainingRecordImportResult {
+  /** skipped = 같은 감리원·과정·시작일의 기존 이력이 있어 건너뛴 행 */
+  created: number
+  skipped: number
+  failed: TrainingRecordImportFailure[]
+}
