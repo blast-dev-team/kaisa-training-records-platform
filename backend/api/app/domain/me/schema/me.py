@@ -89,7 +89,8 @@ class MyCertificateRequestResponse(BaseModel):
 class MyPaymentOrderResponse(BaseModel):
     id: uuid.UUID
     order_no: str
-    certificate_request_id: uuid.UUID
+    # 레거시 단건 주문 — payment_order_id 로 묶인 신규 주문은 NULL
+    certificate_request_id: uuid.UUID | None
     amount_krw: int
     status: str
     paid_at: datetime | None
@@ -117,8 +118,8 @@ class MyPaymentHistoryItem(BaseModel):
 class CertificatePriceResponse(BaseModel):
     training_record_id: uuid.UUID
     course_name: str
-    issue_type: str
     grade_name: str | None
+    # 가격은 항상 등급 단가 — 재발급 무료 규칙 폐지로 issue_type 입력 없음
     price_krw: int
     currency: str
 

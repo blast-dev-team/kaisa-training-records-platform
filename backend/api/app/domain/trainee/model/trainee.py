@@ -15,8 +15,11 @@ from sqlalchemy import (
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
+from app.domain.trainee.model.enums import SupervisorGrade
 
 if TYPE_CHECKING:
+    from app.domain.trainee.model.membership_grade import MembershipGrade
+    from app.domain.user.model.user import User
     from app.domain.trainee.model.membership_grade import MembershipGrade
     from app.domain.user.model.user import User
 
@@ -39,10 +42,15 @@ class Trainee(Base):
     trainee_no: Mapped[str | None] = mapped_column(String(100), unique=True)
     # 감리원증번호 (구 시스템 감리원추가 E열, 예: 정보시스템감리협회 제1361호)
     cert_no: Mapped[str | None] = mapped_column(String(100))
-    # 감리원 등급 (감리원 / 수석감리원) — 확인서 표기용. 회원등급(결제 단가)과 별개
+    # 감리원 등급 (감리원 / 수석감리원) — 확인서 표기용. 회원등급(결제 단가)과 별개.
+    # 수동 입력이 아니라 번호에서 파생된다(senior_cert_no 있으면 수석감리원)
     supervisor_grade: Mapped[str | None] = mapped_column(String(50))
+    # 수석감리원증번호 — 승격 시 새로 부여. 감리원증번호(cert_no)와 동시 보유
+    senior_cert_no: Mapped[str | None] = mapped_column(String(100))
     # 감리원증 발급일자 — 엑셀 일괄 등록에서 받는 참조 정보
     cert_issued_date: Mapped[date | None] = mapped_column(Date)
+    # 수석감리원증 발급일자 — 승격 시 참조 정보
+    senior_cert_issued_date: Mapped[date | None] = mapped_column(Date)
     # 이름 — Fernet 가역 저장 + HMAC blind index (정확히-일치 검색). 부분 검색 불가
     name_encrypted: Mapped[str] = mapped_column(Text, nullable=False)
     name_hash: Mapped[str] = mapped_column(String(64), nullable=False)
@@ -77,3 +85,14 @@ class Trainee(Base):
     grade: Mapped["MembershipGrade | None"] = relationship(
         "MembershipGrade", lazy="joined"
     )
+
+    @property
+    def current_supervisor_cert_no(self) -> str | None:
+        """현재 등급의 감리원증번호 — 확인서·교육이력 표기용.
+
+        수석감리원은 수석감리원증번호를 쓰고, 아직 미입력이면 감리원증번호로
+        폴백한다(빈 확인서보다 기존 번호 노출이 안전).
+        """
+        if self.supervisor_grade == SupervisorGrade.senior.value:
+            return self.senior_cert_no or self.cert_no
+        return self.cert_no

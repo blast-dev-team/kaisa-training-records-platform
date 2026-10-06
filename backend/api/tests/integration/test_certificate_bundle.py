@@ -31,14 +31,11 @@ async def _member(db, *, record_count=1, price=0, code="g-bundle"):
     return trainee, records, token
 
 
-async def _batch_request(client, token, records, issue_type="original"):
+async def _batch_request(client, token, records):
     return await client.post(
         "/api/certificate-requests/batch",
         json={
-            "items": [
-                {"training_record_id": str(record.id), "issue_type": issue_type}
-                for record in records
-            ]
+            "items": [{"training_record_id": str(record.id)} for record in records]
         },
         cookies=member_cookie(token),
     )
@@ -71,10 +68,7 @@ class TestBundleNo:
         _, records, token = await _member(db)
         resp = await client.post(
             "/api/certificate-requests",
-            json={
-                "training_record_id": str(records[0].id),
-                "issue_type": "original",
-            },
+            json={"training_record_id": str(records[0].id)},
             cookies=member_cookie(token),
         )
         assert resp.status_code == 201
@@ -128,6 +122,38 @@ class TestBundleNo:
 
 
 class TestBundleVerification:
+    async def test_admin_list_groups_by_issue_event(self, client, db):
+        """어드민 목록 — 발급건 단위 1행. 묶음은 대표 1건 + record_count."""
+        _, records, token = await _member(db, record_count=3)
+        await _batch_request(client, token, records)
+
+        _, admin_token = await make_admin(db)
+        await db.commit()
+
+        resp = await client.get(
+            "/api/certificates", cookies=admin_cookie(admin_token)
+        )
+        assert resp.status_code == 200
+        body = resp.json()
+        # 교육이력 3행이 아니라 발급건 1행 — total 도 발급건 수
+        assert body["total"] == 1
+        (item,) = body["items"]
+        assert item["record_count"] == 3
+        # 대표는 연번순 첫 건 — 진위확인 단건 필드와 같은 출처
+        certs = await _issued_certs(db)
+        first_by_no = min(certs, key=lambda c: c.certificate_no)
+        assert item["certificate_no"] == first_by_no.certificate_no
+        assert item["course_name"] == first_by_no.course_name
+
+        # 검색이 멤버 과정명에 걸려도 같은 발급건이 노출된다
+        searched = await client.get(
+            "/api/certificates",
+            params={"search": first_by_no.course_name},
+            cookies=admin_cookie(admin_token),
+        )
+        assert searched.json()["total"] == 1
+        assert searched.json()["items"][0]["record_count"] == 3
+
     async def test_doc_no_returns_all_rows(self, client, db):
         """문서번호 진위확인 — 이력 N행 + 단건 필드는 첫 행 값."""
         _, records, token = await _member(db, record_count=3)
@@ -144,11 +170,8 @@ class TestBundleVerification:
             cert.course_name for cert in certs
         }
 
-    async def test_reissued_out_member_excluded(self, client, db):
-        """재발급으로 superseded 된 멤버는 문서번호 조회에서 빠진다 — 발급 단위가 문서.
-
-        묶음 전체를 다시 발급하면 이전 문서 번호의 유효 멤버는 0 이 된다.
-        """
+    async def test_full_repeat_issue_keeps_old_document(self, client, db):
+        """묶음 전체 다시 발급 — 새 문서(풀구성)와 원 문서가 모두 유효하다."""
         _, records, token = await _member(db, record_count=2)
         await _batch_request(client, token, records)
         certs = await _issued_certs(db)
@@ -157,22 +180,27 @@ class TestBundleVerification:
         reissue = await client.post(
             "/api/certificate-requests/batch",
             json={
-                "items": [
-                    {"training_record_id": str(r.id), "issue_type": "reissue"}
-                    for r in records
-                ]
+                "items": [{"training_record_id": str(r.id)} for r in records]
             },
             cookies=member_cookie(token),
         )
         assert reissue.status_code == 201, reissue.json()
 
-        resp = await _verify(client, old_doc_no)
-        assert resp.status_code == 200
-        # 기존 fallback 동작 — 유효 멤버가 없으면 대상 확정서 단건(여기선 superseded)으로 응답
-        assert len(resp.json()["records"]) == 1
+        # 원 문서도 여전히 유효 — 재발급은 폐기를 수반하지 않는다
+        old = await _verify(client, old_doc_no)
+        assert old.status_code == 200
+        assert old.json()["result"] == "valid"
+        assert len(old.json()["records"]) == 2
 
-    async def test_superseded_member_excluded(self, client, db):
-        """재발급 supersede — 이전 묶음 조회에서 제외되고 새 묶음이 생긴다."""
+        # 새 문서 번호로 조회 — 풀구성 2행
+        new_certs = await _issued_certs(db)
+        new_doc_no = next(c.doc_no for c in new_certs if c.doc_no != old_doc_no)
+        new = await _verify(client, new_doc_no)
+        assert new.json()["result"] == "valid"
+        assert len(new.json()["records"]) == 2
+
+    async def test_partial_repeat_issue_adds_independent_document(self, client, db):
+        """부분 재발급 — 원 문서는 그대로 유효, 새 1건 문서가 추가된다."""
         _, records, token = await _member(db, record_count=2)
         await _batch_request(client, token, records)
         certs = await _issued_certs(db)
@@ -180,28 +208,23 @@ class TestBundleVerification:
 
         reissue = await client.post(
             "/api/certificate-requests",
-            json={
-                "training_record_id": str(records[0].id),
-                "issue_type": "reissue",
-            },
+            json={"training_record_id": str(records[0].id)},
             cookies=member_cookie(token),
         )
         assert reissue.status_code == 201, reissue.json()
 
-        # 이전 문서 번호로 조회 — 재발급된 건은 빠진 나머지 1행
+        # 원 문서 — 멤버 2행 그대로 유효
         old = await _verify(client, old_doc_no)
         assert old.status_code == 200
         assert old.json()["result"] == "valid"
-        assert len(old.json()["records"]) == 1
+        assert len(old.json()["records"]) == 2
 
-        # 새 묶음 — 1건짜리
-        (new_cert,) = [
-            cert
-            for cert in await _issued_certs(db)
-            if cert.doc_no != old_doc_no
-        ]
-        fresh = await _verify(client, new_cert.doc_no)
-        assert len(fresh.json()["records"]) == 1
+        # 새 문서 — 재발급(반복 발급) 건 1행
+        new_certs = await _issued_certs(db)
+        new_doc_no = next(c.doc_no for c in new_certs if c.doc_no != old_doc_no)
+        new = await _verify(client, new_doc_no)
+        assert new.json()["result"] == "valid"
+        assert len(new.json()["records"]) == 1
 
 
 class TestBundleRevoke:
@@ -231,16 +254,103 @@ class TestBundleRevoke:
         assert verify.json()["result"] == "revoked"
 
 
+class TestIssueSourceSeparation:
+    """발급 경로 분리 — 어드민 발급과 회원 발급이 서로를 폐기하지 않는다."""
+
+    async def test_admin_issue_keeps_member_cert_valid(self, client, db):
+        """회원 발급 후 어드민이 같은 이력을 발급 — 회원본 유지, 둘 다 유효."""
+        trainee, records, token = await _member(db, record_count=1, code="g-src-m")
+        resp = await _batch_request(client, token, records)
+        assert resp.status_code == 201, resp.json()
+        # expire_all 후엔 sync 속성 접근이 greenlet 에러 — id 를 미리 캡처
+        record_id = records[0].id
+        trainee_id = trainee.id
+
+        _, admin_token = await make_admin(db)
+        await db.commit()
+        admin_resp = await client.post(
+            "/api/certificates/issue",
+            json={
+                "groups": [
+                    {
+                        "trainee_id": str(trainee_id),
+                        "record_ids": [str(record_id)],
+                    }
+                ]
+            },
+            cookies=admin_cookie(admin_token),
+        )
+        assert admin_resp.status_code == 200, admin_resp.json()
+
+        db.expire_all()
+        certs = list(
+            (
+                await db.execute(
+                    select(Certificate)
+                    .where(Certificate.training_record_id == record_id)
+                    .order_by(Certificate.issued_at)
+                )
+            )
+            .scalars()
+            .all()
+        )
+        assert len(certs) == 2
+        assert {cert.status for cert in certs} == {"issued"}
+        assert {cert.issue_source for cert in certs} == {"member", "admin"}
+
+        # WEB 발급내역엔 어드민 복사본이 보이지 않는다 — 회원이 신청한 건만
+        mine = await client.get("/api/me/certificates", cookies=member_cookie(token))
+        rows = mine.json()
+        assert len(rows) == 1
+        assert rows[0]["certificate_no"] == certs[0].certificate_no
+
+    async def test_member_can_issue_original_over_admin_copy(self, client, db):
+        """어드민 발급분은 회원 권리 판정에서 무시 — 회원 original 신청 가능."""
+        trainee, records, token = await _member(db, record_count=1, code="g-src-a")
+        record_id = records[0].id
+        _, admin_token = await make_admin(db)
+        await db.commit()
+        admin_resp = await client.post(
+            "/api/certificates/issue",
+            json={
+                "groups": [
+                    {
+                        "trainee_id": str(trainee.id),
+                        "record_ids": [str(record_id)],
+                    }
+                ]
+            },
+            cookies=admin_cookie(admin_token),
+        )
+        assert admin_resp.status_code == 200, admin_resp.json()
+
+        # 어드민 발급분이 있어도 회원 original 신청은 차단되지 않는다
+        resp = await _batch_request(client, token, records)
+        assert resp.status_code == 201, resp.json()
+
+        db.expire_all()
+        certs = list(
+            (
+                await db.execute(
+                    select(Certificate)
+                    .where(Certificate.training_record_id == record_id)
+                    .order_by(Certificate.issued_at)
+                )
+            )
+            .scalars()
+            .all()
+        )
+        assert len(certs) == 2
+        assert {cert.status for cert in certs} == {"issued"}
+
+
 class TestBackfillCompatibility:
     async def test_legacy_cert_without_bundle_behaves_single(self, client, db):
         """bundle_no 없는 구 데이터(방어) — 단건으로 동작한다."""
         _, records, token = await _member(db)
         resp = await client.post(
             "/api/certificate-requests",
-            json={
-                "training_record_id": str(records[0].id),
-                "issue_type": "original",
-            },
+            json={"training_record_id": str(records[0].id)},
             cookies=member_cookie(token),
         )
         assert resp.status_code == 201

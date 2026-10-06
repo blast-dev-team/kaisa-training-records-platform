@@ -26,6 +26,11 @@ dev = [
     "httpx>=0.28",
 ]
 
+[tool.ruff]
+# alembic/versions 는 autogenerate 산출물 — 이미 적용된 마이그레이션은 편집하지 않는다는
+# 규칙과 함께 린트 대상에서도 뺀다 (스타일 지적이 계속 쌓여 실수요소 신호를 묻는다)
+extend-exclude = ["alembic/versions"]
+
 [tool.ruff.lint]
 # 기본(E,F)에 DTZ(flake8-datetimez) 추가 — naive datetime 을 금지한다.
 #

@@ -7,7 +7,9 @@ import { AppTable } from "@/src/shared/ui/app-table";
 import { Button } from "@/src/shared/ui/button";
 import { Dialog } from "@/src/shared/ui/dialog";
 import { FilterBar, FilterRow } from "@/src/shared/ui/filter-bar";
-import { Input } from "@/src/shared/ui/input";
+import { DateField } from "@/src/shared/ui/date-picker/date-field";
+import { adjustDateRange } from "@/src/shared/utils/date-range";
+import { SearchInput } from "@/src/shared/ui/search-input";
 import { Label } from "@/src/shared/ui/label";
 import { PageContainer } from "@/src/shared/ui/page-container";
 import { PageHead } from "@/src/shared/ui/page-head";
@@ -18,6 +20,8 @@ import { formatDateTime, toYMD } from "@/src/shared/utils/format";
 import {
   certificateQueries,
   CERTIFICATE_STATUS_LABELS,
+  ISSUE_SOURCE_LABELS,
+  isReissueReplaced,
   postRevokeCertificate,
   type Certificate,
 } from "@/src/entities/certificate";
@@ -84,28 +88,10 @@ export function CertificateListPage() {
         header: "증명서번호",
         meta: { width: 150 },
         cell: ({ row }) => (
-          <span className="font-mono text-[12px] font-medium text-ink">
+          <span className="font-mono text-12 font-medium text-ink">
             {row.original.certificateNo}
           </span>
         ),
-      },
-      {
-        // 묶음 확인서 — 여러 이력을 한 문서로 발급한 묶음 번호. 단건은 자기
-        // 번호와 같아 "—" 로 숨긴다 (묶음일 때만 노출)
-        id: "bundleNo",
-        header: "묶음번호",
-        meta: { width: 150 },
-        cell: ({ row }) => {
-          const { bundleNo, certificateNo } = row.original;
-          if (!bundleNo || bundleNo === certificateNo) {
-            return <span className="text-ink-3">—</span>;
-          }
-          return (
-            <span className="font-mono text-[12px] text-ink" title={bundleNo}>
-              {bundleNo}
-            </span>
-          );
-        },
       },
       {
         accessorKey: "issuedName",
@@ -113,14 +99,38 @@ export function CertificateListPage() {
         meta: { width: 100 },
       },
       {
+        accessorKey: "issueSource",
+        header: "출처",
+        meta: { width: 80 },
+        cell: ({ row }) => {
+          // 어드민 발급은 회원 유효본과 무관한 독립 문서 — 폐기 전환도 서로 무관
+          if (row.original.issueSource === "admin") {
+            return <Pill tone="info">{ISSUE_SOURCE_LABELS.admin}</Pill>;
+          }
+          return (
+            <span className="text-ink-3">{ISSUE_SOURCE_LABELS.member}</span>
+          );
+        },
+      },
+      {
         accessorKey: "courseName",
         header: "과정",
-        meta: { width: 220 },
-        cell: ({ row }) => (
-          <span className="text-ink" title={row.original.courseName}>
-            {row.original.courseName}
-          </span>
-        ),
+        meta: { width: 260 },
+        cell: ({ row }) => {
+          const { courseName, memberCount } = row.original;
+          return (
+            <span
+              className="text-ink"
+              title={
+                memberCount > 1
+                  ? `${courseName} 외 ${memberCount - 1}건`
+                  : courseName
+              }
+            >
+              {memberCount > 1 ? `${courseName} 외 ${memberCount - 1}건` : courseName}
+            </span>
+          );
+        },
       },
       {
         accessorKey: "institutionName",
@@ -152,31 +162,20 @@ export function CertificateListPage() {
         cell: ({ row }) => (row.original.issuedAt ? formatDateTime(row.original.issuedAt) : "—"),
       },
       {
-        id: "download",
-        header: "다운로드",
-        meta: { width: 110 },
-        cell: ({ row }) => {
-          const { downloadCount, downloadedAt } = row.original;
-          if (!downloadCount) return <span className="text-ink-3">미다운로드</span>;
-          return (
-            <span className="flex flex-col">
-              <span className="text-ink">{downloadCount}회</span>
-              {downloadedAt && (
-                <span className="text-[11px] text-ink-3">{toYMD(downloadedAt)}</span>
-              )}
-            </span>
-          );
-        },
-      },
-      {
         accessorKey: "status",
         header: "상태",
         meta: { width: 100 },
-        cell: ({ row }) => (
-          <Pill tone={statusTone(row.original.status)}>
-            {CERTIFICATE_STATUS_LABELS[row.original.status]}
-          </Pill>
-        ),
+        cell: ({ row }) => {
+          // revoked 는 환불과 재발급 대체를 포괄 — 재발급 대체는 환불로 읽히면 안 된다
+          const reissue = isReissueReplaced(row.original);
+          return (
+            <Pill tone={reissue ? "default" : statusTone(row.original.status)}>
+              {reissue
+                ? CERTIFICATE_STATUS_LABELS.superseded
+                : CERTIFICATE_STATUS_LABELS[row.original.status]}
+            </Pill>
+          );
+        },
       },
     ],
     [],
@@ -199,11 +198,12 @@ export function CertificateListPage() {
               updateParams({ q: searchInput.trim() || null });
             }}
           >
-            <Input
+            <SearchInput
               className="w-64"
               placeholder="확인서 번호 · 성명(전체) · 과정명"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
+              onClear={() => updateParams({ q: null })}
             />
             <Button type="submit" variant="secondary" size="sm">
               검색
@@ -212,19 +212,26 @@ export function CertificateListPage() {
         </FilterRow>
         <FilterRow label="기간">
           <div className="flex items-center gap-1.5">
-            <Input
-              type="date"
+            <DateField
+              ariaLabel="시작일"
               className="w-36"
               value={from}
-              onChange={(e) => updateParams({ from: e.target.value || null })}
+              onChange={(v) => {
+                const r = adjustDateRange({ from, to }, "from", v);
+                updateParams({ from: r.from || null, to: r.to || null });
+              }}
+              maxDate={to || undefined}
             />
             <span className="text-ink-3">~</span>
-            <Input
-              type="date"
+            <DateField
+              ariaLabel="종료일"
               className="w-36"
               value={to}
-              min={from || undefined}
-              onChange={(e) => updateParams({ to: e.target.value || null })}
+              onChange={(v) => {
+                const r = adjustDateRange({ from, to }, "to", v);
+                updateParams({ from: r.from || null, to: r.to || null });
+              }}
+              minDate={from || undefined}
             />
           </div>
         </FilterRow>
@@ -235,11 +242,14 @@ export function CertificateListPage() {
             onChange={(e) => updateParams({ status: e.target.value || null })}
           >
             <option value="">상태 전체</option>
-            {Object.entries(CERTIFICATE_STATUS_LABELS).map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
+            {Object.entries(CERTIFICATE_STATUS_LABELS)
+              // 재발급 폐지 — superseded 는 구데이터 표시용으로만 남기고 필터에서는 뺀다
+              .filter(([value]) => value !== "superseded")
+              .map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
           </Select>
         </FilterRow>
       </FilterBar>

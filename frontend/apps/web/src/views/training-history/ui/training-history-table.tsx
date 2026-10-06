@@ -34,7 +34,7 @@ const HEADER_LABELS = [
   "교육 이수시간",
 ] as const;
 
-const CELL_BASE = "text-sm leading-normal";
+const CELL_BASE = "text-14 leading-normal";
 const CELL_TEXT = "text-gray-700";
 const CELL_DIMMED = "text-gray-400";
 
@@ -46,8 +46,8 @@ function formatYMD(ymd: string): string {
  * 교육이력 표 — Figma node 25:2458 기반.
  *
  * 행 단위 발급 버튼 대신 체크박스로 발급 대상을 고르고, 상단 툴바의
- * 발급·재발급 버튼으로 일괄 신청한다. 3년 초과 등 발급 불가 행과
- * 선택 카테고리가 다른 행(발급 vs 재발급 혼합 방지)은 체크박스가 잠긴다.
+ * 발급 버튼으로 일괄 신청한다. 3년 초과 등 발급 불가 행과 선택 카테고리가
+ * 다른 행(발급 vs 수료증 혼합 방지)은 체크박스가 잠긴다.
  */
 export function TrainingHistoryTable({
   items,
@@ -79,7 +79,7 @@ export function TrainingHistoryTable({
           <p
             key={label}
             className={cn(
-              "font-sans text-sm font-semibold leading-normal text-gray-800",
+              "font-sans text-14 font-semibold leading-normal text-gray-800",
               COLUMNS[index + 1],
             )}
           >
@@ -128,10 +128,10 @@ export function TrainingHistoryTable({
               >
                 {item.courseName}
               </p>
-              {/* 재발급 기한 — 교육명 아래 보조 표기 (node 104:5375) */}
-              {item.certificateStatus === "reissuable" && item.reissueDeadline && (
-                <p className="text-xs leading-normal whitespace-nowrap text-gray-400">
-                  {item.reissueDeadline}까지 재발급 가능
+              {/* 기발급 표기 — 교육명 아래 보조 표기. 재발급과 무관하게 다시 발급 가능 */}
+              {item.lastIssuedAt !== undefined && (
+                <p className="text-12 leading-normal whitespace-nowrap text-gray-400">
+                  발급 완료
                 </p>
               )}
             </div>

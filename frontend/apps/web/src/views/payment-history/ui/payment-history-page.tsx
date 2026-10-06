@@ -4,6 +4,7 @@ import { useSearchParams } from "react-router";
 
 import { Button, DateField, Dropdown, Pagination } from "@/src/shared/ui";
 import { cn } from "@/src/shared/utils/cn";
+import { adjustDateRange } from "@/src/shared/utils/date-range";
 
 import {
   getPaymentHistoryList,
@@ -96,7 +97,7 @@ export function PaymentHistoryPage() {
 
   return (
     <section className="flex flex-col gap-6 mobile:gap-5">
-      <h1 className="font-sans text-[28px] leading-normal font-bold text-gray-900 mobile:text-2xl">
+      <h1 className="font-sans text-28 leading-normal font-bold text-gray-900 mobile:text-24">
         발급·결제 내역
       </h1>
 
@@ -113,21 +114,27 @@ export function PaymentHistoryPage() {
         />
 
         <div className="flex flex-col items-end gap-2 mobile:items-stretch mobile:gap-2">
-          <p className="font-sans text-[13px] leading-normal font-medium text-gray-700 mobile:text-sm mobile:font-semibold">
+          <p className="font-sans text-13 leading-normal font-medium text-gray-700 mobile:text-14 mobile:font-semibold">
             조회 기간
           </p>
           <div className="flex min-w-0 items-center gap-2 mobile:gap-1.5">
             <DateField
               ariaLabel="조회 시작일"
               value={from}
-              onChange={(dateYMD) => updateParams({ from: dateYMD || null })}
+              onChange={(dateYMD) => {
+                const r = adjustDateRange({ from, to }, "from", dateYMD);
+                updateParams({ from: r.from || null, to: r.to || null });
+              }}
               className="w-[150px] mobile:w-auto mobile:flex-1"
             />
-            <p className="font-sans text-sm leading-normal text-gray-700">~</p>
+            <p className="font-sans text-14 leading-normal text-gray-700">~</p>
             <DateField
               ariaLabel="조회 종료일"
               value={to}
-              onChange={(dateYMD) => updateParams({ to: dateYMD || null })}
+              onChange={(dateYMD) => {
+                const r = adjustDateRange({ from, to }, "to", dateYMD);
+                updateParams({ from: r.from || null, to: r.to || null });
+              }}
               popoverAlign="right"
               className="w-[150px] mobile:w-auto mobile:flex-1"
             />
@@ -138,13 +145,13 @@ export function PaymentHistoryPage() {
       {/* 목록 표 — 로딩·에러·빈 상태는 표 컨테이너 안에서 처리 */}
       {isLoading ? (
         <div className="flex w-full flex-col overflow-hidden rounded-xl border border-solid border-gray-200">
-          <div className="flex w-full items-center justify-center bg-white px-4 py-12 text-sm text-gray-500">
+          <div className="flex w-full items-center justify-center bg-white px-4 py-12 text-14 text-gray-500">
             결제 내역을 불러오고 있어요
           </div>
         </div>
       ) : isError ? (
         <div className="flex w-full flex-col overflow-hidden rounded-xl border border-solid border-gray-200">
-          <div className="flex w-full flex-col items-center gap-3 bg-white px-4 py-12 text-sm text-gray-500">
+          <div className="flex w-full flex-col items-center gap-3 bg-white px-4 py-12 text-14 text-gray-500">
             <p>
               {error instanceof Error
                 ? error.message
@@ -153,7 +160,7 @@ export function PaymentHistoryPage() {
             <Button
               variant="outlined"
               size="s"
-              className="rounded-md px-3 py-1.5 text-[13px]"
+              className="rounded-md px-3 py-1.5 text-13"
               onClick={() => refetch()}
             >
               다시 시도
@@ -162,7 +169,7 @@ export function PaymentHistoryPage() {
         </div>
       ) : items.length === 0 ? (
         <div className="flex w-full flex-col overflow-hidden rounded-xl border border-solid border-gray-200">
-          <div className="flex w-full items-center justify-center bg-white px-4 py-12 text-sm text-gray-500">
+          <div className="flex w-full items-center justify-center bg-white px-4 py-12 text-14 text-gray-500">
             조건에 맞는 결제 내역을 찾지 못했어요. 조회 기간을 바꿔볼까요?
           </div>
         </div>
@@ -180,14 +187,14 @@ export function PaymentHistoryPage() {
         <div className="flex flex-col gpa-1">
           <p
             className={cn(
-              "font-sans text-sm leading-normal mobile:text-xs",
+              "font-sans text-14 leading-normal mobile:text-12",
               actionError ? "text-red-500" : "text-gray-500",
             )}
           >
             {actionError ?? "· 영수증(현금영수증·카드전표)은 결제수단 클릭 시 확인"}
           </p>
           {hasRefunded && (
-            <p className="font-sans text-sm leading-normal text-gray-500 mobile:text-xs">
+            <p className="font-sans text-14 leading-normal text-gray-500 mobile:text-12">
               · 환불처리된 확인서는 즉시 폐기
             </p>
           )}

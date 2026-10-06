@@ -27,8 +27,8 @@ export function Header({ me }: { me: Me }) {
     <header className="h-14 shrink-0 border-b border-line bg-panel flex items-center justify-between px-6">
       <div />
       <div className="flex items-center gap-3">
-        <span className="text-[13px] text-ink-2">{me.name}</span>
-        <span className="text-[12px] text-ink-3">{me.email}</span>
+        <span className="text-13 text-ink-2">{me.name}</span>
+        <span className="text-12 text-ink-3">{me.email}</span>
         {me.role === 'super' && <Badge>super</Badge>}
         <Button
           variant="ghost"

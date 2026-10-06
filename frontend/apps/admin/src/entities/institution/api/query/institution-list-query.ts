@@ -21,6 +21,9 @@ export interface CourseListQuery {
 export interface SessionNameListQuery {
   q?: string
   isActive?: boolean
+  /** 정렬 기준 — 기본 name(이름 asc) */
+  sort?: 'name' | 'created_at' | 'updated_at'
+  order?: 'asc' | 'desc'
   page?: number
   limit?: number
 }

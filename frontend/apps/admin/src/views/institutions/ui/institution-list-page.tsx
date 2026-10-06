@@ -7,7 +7,7 @@ import { Plus } from "lucide-react";
 import { AppTable } from "@/src/shared/ui/app-table";
 import { Button } from "@/src/shared/ui/button";
 import { FilterBar, FilterRow } from "@/src/shared/ui/filter-bar";
-import { Input } from "@/src/shared/ui/input";
+import { SearchInput } from "@/src/shared/ui/search-input";
 import { Dialog } from "@/src/shared/ui/dialog";
 import { PageContainer } from "@/src/shared/ui/page-container";
 import { PageHead } from "@/src/shared/ui/page-head";
@@ -148,7 +148,7 @@ export function InstitutionListPage() {
       {
         id: "actions",
         header: "",
-        meta: { width: 130, align: "right", sticky: "right" },
+        meta: { width: 130, align: "right" },
         cell: ({ row }) => (
           <div className="flex items-center justify-end gap-1.5">
             <Button
@@ -241,6 +241,12 @@ export function InstitutionListPage() {
         cell: ({ row }) => <ActivePill isActive={row.original.isActive} />,
       },
       {
+        id: "createdAt",
+        header: "등록일",
+        meta: { width: 120 },
+        cell: ({ row }) => toYMD(row.original.createdAt) ?? "—",
+      },
+      {
         id: "actions",
         header: "",
         meta: { width: 130, align: "right" },
@@ -312,13 +318,13 @@ export function InstitutionListPage() {
           <button
             key={t.key}
             type="button"
-            className={`rounded-md px-3.5 py-1.5 text-[13px] font-medium transition-colors ${
+            className={`rounded-md px-3.5 py-1.5 text-13 font-medium transition-colors ${
               tab === t.key ? "bg-panel text-ink shadow-sm" : "text-ink-3 hover:text-ink"
             }`}
             onClick={() => setTab(t.key)}
           >
             {t.label}
-            <span className="ml-1.5 text-[11px] text-ink-3">
+            <span className="ml-1.5 text-11 text-ink-3">
               {t.key === "institution"
                 ? (institutions?.total ?? 0).toLocaleString()
                 : (courses?.total ?? 0).toLocaleString()}
@@ -335,13 +341,14 @@ export function InstitutionListPage() {
               updateTabParam({ q: searchInput.trim() || null });
             }}
           >
-            <Input
+            <SearchInput
               className="w-64"
               placeholder={
                 tab === "institution" ? "기관명 · 기관코드" : "과정명 · 코드 · 회차명 · 기관명"
               }
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
+              onClear={() => updateTabParam({ q: null })}
             />
             <Button type="submit" variant="secondary" size="sm">
               검색
@@ -350,7 +357,7 @@ export function InstitutionListPage() {
         </FilterRow>
         <FilterRow label="상태">
           <Select
-            className="w-28"
+            className="w-36"
             value={status}
             onChange={(e) => updateTabParam({ status: e.target.value || null })}
           >
@@ -362,13 +369,14 @@ export function InstitutionListPage() {
         {tab === "institution" && (
           <FilterRow label="구분">
             <Select
-              className="w-28"
+              className="w-36"
               value={type}
               onChange={(e) => updateTabParam({ type: e.target.value || null })}
             >
               <option value="">전체</option>
               <option value="internal">사내</option>
               <option value="external">외부</option>
+              <option value="none">미선택</option>
             </Select>
           </FilterRow>
         )}

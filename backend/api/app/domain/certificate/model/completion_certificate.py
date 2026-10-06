@@ -55,6 +55,11 @@ class CompletionCertificate(Base):
     ended_at: Mapped[date | None] = mapped_column(Date)
     issued_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     status: Mapped[str] = mapped_column(String(30), nullable=False, default="issued")
+    # 발급 경로 — 'member'(WEB 신청) | 'admin'(어드민 발급). 1이력=1문서 멱등이라
+    # 경로가 달라도 같은 문서를 공유하며, 이 컬럼은 최초 발급 경로를 기록한다
+    issue_source: Mapped[str] = mapped_column(
+        String(10), nullable=False, default="member", server_default="member"
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )

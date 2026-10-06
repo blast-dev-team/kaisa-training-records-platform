@@ -6,7 +6,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import settings
 from app.core.database import get_db
 from app.core.dependencies import get_current_trainee, get_current_user
-from app.core.error_codes import api_error
 from app.core.response import PagedResponse
 from app.domain.certificate.schema import (
     CompletionCertificateIssueRequest,
@@ -140,11 +139,13 @@ async def preview_my_completion_certificate(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """수료증 미리보기 — 슈퍼 계정 전용. 저장 없이 해당 이력 교육생 데이터로 조립."""
-    if not me_service.is_super_user(user):
-        raise api_error("FORBIDDEN", message="권한이 없어요")
-    preview = await completion_certificate_service.build_preview_completion_certificate(
-        db, training_record_id
+    """수료증 미리보기 — 발급 없이 해당 이력 교육생 데이터로 조립.
+
+    본인 이력만(슈퍼 계정은 소속 무관). 웹 모달이 열릴 때 발급 없이 보여 주는 용도 —
+    실제 발급은 PDF 저장 시점에 일어난다.
+    """
+    preview = await me_service.build_completion_certificate_preview(
+        db, user, training_record_id
     )
     return CompletionCertificateResponse(**preview)
 
@@ -222,10 +223,7 @@ async def get_my_payment_history(
 @router.get("/certificate-price", response_model=CertificatePriceResponse)
 async def get_my_certificate_price(
     training_record_id: uuid.UUID,
-    issue_type: str,
     db: AsyncSession = Depends(get_db),
     trainee: Trainee = Depends(get_current_trainee),
 ):
-    return await me_service.get_certificate_price(
-        db, trainee, training_record_id, issue_type
-    )
+    return await me_service.get_certificate_price(db, trainee, training_record_id)

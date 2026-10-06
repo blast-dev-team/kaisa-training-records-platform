@@ -1,4 +1,5 @@
 import uuid
+from datetime import date
 
 from fastapi import APIRouter, Depends, File, Query, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -8,6 +9,11 @@ from app.core.dependencies import require_admin
 from app.core.response import PagedResponse
 from app.domain.auth.model import AdminUser
 from app.domain.trainee.schema import (
+    GradeImportConfirmRequest,
+    GradeImportPreviewResponse,
+    GradeImportRematchRequest,
+    GradeImportResult,
+    GradeImportRowResult,
     MembershipGradeCreate,
     MembershipGradeResponse,
     MembershipGradeUpdate,
@@ -21,7 +27,7 @@ from app.domain.trainee.schema import (
     TraineeResponse,
     TraineeUpdate,
 )
-from app.domain.trainee.service import trainee_service
+from app.domain.trainee.service import grade_import_service, trainee_service
 
 router = APIRouter(prefix="/trainees", tags=["trainees"])
 grade_router = APIRouter(prefix="/membership-grades", tags=["membership-grades"])
@@ -32,6 +38,10 @@ async def list_trainees(
     search: str | None = None,
     review_status: str | None = None,
     grade_id: uuid.UUID | None = None,
+    supervisor_grade: str | None = None,
+    birth_date: date | None = None,
+    sort: str | None = None,
+    order: str | None = None,
     page: int = Query(1, ge=1),
     limit: int = Query(20, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
@@ -44,6 +54,10 @@ async def list_trainees(
         search=search,
         review_status=review_status,
         grade_id=grade_id,
+        supervisor_grade=supervisor_grade,
+        birth_date=birth_date,
+        sort=sort,
+        order=order,
         page=page,
         limit=limit,
     )
@@ -53,6 +67,15 @@ async def list_trainees(
         page=page,
         limit=limit,
     )
+
+
+@router.get("/supervisor-grades", response_model=list[str])
+async def list_supervisor_grades(
+    db: AsyncSession = Depends(get_db),
+    _: AdminUser = Depends(require_admin),
+):
+    """등록된 감리원 등급 distinct — 목록 필터 옵션. /{trainee_id} 보다 먼저 선언."""
+    return await trainee_service.list_supervisor_grades(db)
 
 
 @router.post("", response_model=TraineeResponse, status_code=201)
@@ -121,12 +144,49 @@ async def confirm_trainee_import(
     actor: AdminUser = Depends(require_admin),
 ):
     """프리뷰에서 편집 완료된 행을 일괄 등록 — 중복은 확정 시점에 다시 걸러진다."""
-    created, skipped, failed = await trainee_service.confirm_import(db, body, actor)
+    created, promoted, skipped, failed = await trainee_service.confirm_import(
+        db, body, actor
+    )
     return TraineeImportResult(
         created=created,
+        promoted=promoted,
         skipped=skipped,
         failed=[{"row_number": n, "error": msg} for n, msg in failed],
     )
+
+
+# /grade-import* 정적 경로 — /{trainee_id} 보다 먼저 선언해야 한다
+
+
+@router.post("/grade-import-preview", response_model=GradeImportPreviewResponse)
+async def preview_grade_import(
+    file: UploadFile = File(...),
+    db: AsyncSession = Depends(get_db),
+    _: AdminUser = Depends(require_admin),
+):
+    """협회 회원명부 엑셀 → 기존 교육생 등급 매칭·검증 리포트 — 확정 전 확인용."""
+    content = await file.read()
+    return await grade_import_service.preview_grade_import(db, content)
+
+
+@router.post("/grade-import-rematch", response_model=GradeImportRowResult)
+async def rematch_grade_import(
+    body: GradeImportRematchRequest,
+    db: AsyncSession = Depends(get_db),
+    _: AdminUser = Depends(require_admin),
+):
+    """행 편집 후 재매칭 — 증번호 정정·생년 오타 수정 등 사유별 값을 고쳐 다시 판정한다."""
+    return await grade_import_service.rematch_grade_import_row(db, body)
+
+
+@router.post("/grade-import-confirm", response_model=GradeImportResult)
+async def confirm_grade_import(
+    body: GradeImportConfirmRequest,
+    db: AsyncSession = Depends(get_db),
+    actor: AdminUser = Depends(require_admin),
+):
+    """리포트에서 선택한 행의 회원등급·연락처를 일괄 적용 — 충돌·빈 값 규칙은 재검증."""
+    return await grade_import_service.confirm_grade_import(db, body, actor)
 
 
 @router.get("/{trainee_id}", response_model=TraineeResponse)

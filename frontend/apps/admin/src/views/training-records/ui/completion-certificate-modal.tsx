@@ -99,7 +99,7 @@ export function CompletionCertificateModal({ isOpen, onClose, certificates }: Pr
                   <CompletionCertificateSheet certificate={certificate} />
                 </div>
               </div>
-              <figcaption className="mt-1 text-center text-[12px] text-ink-2">
+              <figcaption className="mt-1 text-center text-12 text-ink-2">
                 {certificate.traineeName} · {certificate.certificateNo}
               </figcaption>
             </figure>

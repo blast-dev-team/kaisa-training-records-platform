@@ -6,6 +6,7 @@ from decimal import Decimal
 from sqlalchemy import select
 
 from app.core.audit import AuditLog
+from app.core.kst import today_kst
 from app.domain.certificate.model import CompletionCertificate
 from app.domain.institution.model.course_session import CourseSession
 from app.domain.institution.model.session_name import SessionName
@@ -22,6 +23,15 @@ from tests.integration.helpers import (
     member_cookie,
     member_token,
 )
+
+
+def _month_prefix(offset_months: int = 0) -> str:
+    """이번 달(=KST) 'YYYY-MM' — offset_months 로 지난달 등 계산. 채번 prefix 는 매월 바뀌므로 고정 문자열 금지."""
+    today = today_kst()
+    m = today.month - 1 + offset_months
+    y = today.year + m // 12
+    m = m % 12 + 1
+    return f"{y:04d}-{m:02d}"
 
 
 async def _make_institution(
@@ -69,7 +79,7 @@ class TestIssueGate:
         resp = await _issue(client, db, record.id, token)
         assert resp.status_code == 201
         body = resp.json()[0]
-        assert body["certificate_no"] == "2026-09-001호"
+        assert body["certificate_no"] == f"{_month_prefix()}-001호"
         assert body["institution_name"] == "한국감리협회"
 
     async def test_course_session_snapshot_mapping(self, client, db):
@@ -189,8 +199,8 @@ class TestNumbering:
 
         first = (await _issue(client, db, record.id, token)).json()[0]
         second = (await _issue(client, db, record2.id, token)).json()[0]
-        assert first["certificate_no"] == "2026-09-001호"
-        assert second["certificate_no"] == "2026-09-002호"
+        assert first["certificate_no"] == f"{_month_prefix()}-001호"
+        assert second["certificate_no"] == f"{_month_prefix()}-002호"
 
     async def test_month_resets_after_month_boundary(self, client, db):
         """지난달 번호가 있어도 이번 달은 001부터 — prefix 필터 검증.
@@ -203,7 +213,7 @@ class TestNumbering:
         past_record, _, _ = await _internal_record(db)
         db.add(
             CompletionCertificate(
-                certificate_no="2026-08-099호",
+                certificate_no=f"{_month_prefix(-1)}-099호",
                 training_record_id=past_record.id,
                 trainee_id=record.trainee_id,
                 issued_name_encrypted="x",
@@ -219,7 +229,7 @@ class TestNumbering:
 
         resp = await _issue(client, db, record.id, token)
         assert resp.status_code == 201
-        assert resp.json()[0]["certificate_no"] == "2026-09-001호"
+        assert resp.json()[0]["certificate_no"] == f"{_month_prefix()}-001호"
 
 
 class TestIdempotency:
@@ -302,6 +312,31 @@ class TestWebIssue:
         user = await db.get(User, trainee.user_id)
         return await member_token(db, user)
 
+    async def test_preview_own_record_without_issuing(self, client, db):
+        """미리보기는 그저 미리보기 — 본인 이력 조회되고 발급(INSERT)은 없다.
+
+        모달이 열릴 때 이 조회로 연다. 번호는 미부여("")로 돌고
+        실제 발급은 PDF 저장 시점에 일어난다.
+        """
+        record, _, _ = await _internal_record(db)
+        token = await self._owner_token(db, record)
+        await db.commit()
+
+        resp = await client.get(
+            "/api/me/completion-certificates/preview",
+            params={"training_record_id": str(record.id)},
+            cookies=member_cookie(token),
+        )
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["certificate_no"] == ""
+        assert body["trainee_name"] == "홍길동"
+
+        certs = (
+            (await db.execute(select(CompletionCertificate))).scalars().all()
+        )
+        assert len(certs) == 0
+
     async def test_issue_own_internal_completed(self, client, db):
         record, _, _ = await _internal_record(db)
         token = await self._owner_token(db, record)
@@ -310,7 +345,7 @@ class TestWebIssue:
         resp = await self._issue_web(client, [record.id], token)
         assert resp.status_code == 201
         body = resp.json()[0]
-        assert body["certificate_no"] == "2026-09-001호"
+        assert body["certificate_no"] == f"{_month_prefix()}-001호"
         assert body["trainee_name"] == "홍길동"
 
     async def test_other_trainee_record_404(self, client, db):
@@ -357,8 +392,9 @@ class TestWebIssue:
         )
         assert len(certs) == 1
 
-    async def test_audit_records_web_actor(self, client, db):
-        record, trainee, _ = await _internal_record(db)
+    async def test_web_issue_not_audited(self, client, db):
+        """웹 회원 발급은 감사로그에 남지 않는다 — 감사로그는 관리자 행동만 기록."""
+        record, _trainee, _ = await _internal_record(db)
         token = await self._owner_token(db, record)
         await db.commit()
 
@@ -370,10 +406,7 @@ class TestWebIssue:
                 )
             )
         ).scalars()
-        log = list(logs)[0]
-        assert log.actor_admin_id is None
-        assert log.after_data["actor"] == "web"
-        assert log.after_data["trainee_id"] == str(trainee.id)
+        assert list(logs) == []
 
     async def test_requires_member(self, client, db):
         record, _, _ = await _internal_record(db)

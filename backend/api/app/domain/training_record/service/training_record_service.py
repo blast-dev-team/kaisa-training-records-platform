@@ -89,7 +89,6 @@ async def create_records_bulk(db: AsyncSession, data, actor: AdminUser) -> tuple
         db,
         data.session_id,
         data.trainee_ids,
-        data.completed_hours,
         data.completion_status,
         data.memo,
         actor,
@@ -135,10 +134,9 @@ async def create_record(
     total_hours = data.total_hours
     if total_hours is None and course is not None:
         total_hours = course.total_hours
+    # 시수는 총 시수 하나로 관리 — 이수 시수는 총 시수를 그대로 인정한다
+    completed_hours = total_hours if total_hours is not None else Decimal(0)
 
-    # 확인서 표기용 감리원 정보 — 입력 없으면 교육생 마스터(감리원 등급)에서 자동 주입
-    supervisor_grade = data.supervisor_grade or trainee.supervisor_grade
-    supervisor_cert_no = data.supervisor_cert_no or trainee.cert_no
     # savepoint 재시도 — training_record_no 가 확률적 채번이라 충돌 시 재생성
     record: TrainingRecord | None = None
     for _ in range(5):
@@ -151,10 +149,8 @@ async def create_record(
                     institution_id=data.institution_id,
                     course_name=course_name,
                     institution_name=institution_name,
-                    supervisor_grade=supervisor_grade,
-                    supervisor_cert_no=supervisor_cert_no,
                     total_hours=total_hours if total_hours is not None else 0,
-                    completed_hours=data.completed_hours,
+                    completed_hours=completed_hours,
                     started_at=data.started_at,
                     ended_at=data.ended_at,
                     source=data.source,
@@ -210,14 +206,20 @@ async def update_record(
 
     for field, value in updates.items():
         setattr(record, field, value)
+    # 시수는 총 시수 하나로 관리 — 이수 시수는 총 시수를 따라간다
+    if "total_hours" in updates:
+        record.completed_hours = record.total_hours
     record.updated_by = actor.id
+    after = {k: str(v) for k, v in updates.items()}
+    if "total_hours" in updates:
+        after["completed_hours"] = str(record.completed_hours)
     record_audit(
         db,
         actor_admin_id=actor.id,
         action="training_record.updated",
         entity_type="training_record",
         entity_id=record.id,
-        after={k: str(v) for k, v in updates.items()},
+        after=after,
     )
     await db.commit()
     await db.refresh(record)
@@ -260,14 +262,20 @@ async def bulk_update_records(
 
         for field, value in updates.items():
             setattr(record, field, value)
+        # 시수는 총 시수 하나로 관리 — 이수 시수는 총 시수를 따라간다
+        if "total_hours" in updates:
+            record.completed_hours = record.total_hours
         record.updated_by = actor.id
+        after = {k: str(v) for k, v in updates.items()}
+        if "total_hours" in updates:
+            after["completed_hours"] = str(record.completed_hours)
         record_audit(
             db,
             actor_admin_id=actor.id,
             action="training_record.updated",
             entity_type="training_record",
             entity_id=record.id,
-            after={k: str(v) for k, v in updates.items()},
+            after=after,
         )
         updated += 1
 

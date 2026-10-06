@@ -64,6 +64,37 @@
   --color-line: #e9eaeb;
 }
 
+/* ── 타입 스케일 ─────────────────────────────────────────────────────────
+   px 숫자 = 클래스 이름 (text-14 = 14px). 기본 스케일(xs/sm/base…)은 리셋해
+   크기 표기가 한 가지 방식만 존재하게 한다. 크기·line-height 전부 px 고정 —
+   브라우저 "기본 글꼴 크기" 설정(rem base 변경)의 영향을 받지 않고 모든
+   브라우저에서 같은 크기로 렌더링된다. 표준 클래스 기본 lh 는 값만 이식
+   (xs=16px, sm=20px, base=24px, lg/xl=28px, 2xl/3xl=32px).
+   픽셀 arbitrary(text-[13px] 등)는 기본 lh 없이 사용돼 왔으므로 lh 를 붙이지
+   않는다(상속 = 기존 동작 동일). */
+@theme {
+  --text-*: initial;
+  --text-10: 10px;
+  --text-11: 11px;
+  --text-12: 12px;
+  --text-12--line-height: 16px;
+  --text-13: 13px;
+  --text-14: 14px;
+  --text-14--line-height: 20px;
+  --text-15: 15px;
+  --text-16: 16px;
+  --text-16--line-height: 24px;
+  --text-18: 18px;
+  --text-18--line-height: 28px;
+  --text-20: 20px;
+  --text-20--line-height: 28px;
+  --text-22: 22px;
+  --text-24: 24px;
+  --text-24--line-height: 32px;
+  --text-28: 28px;
+  --text-28--line-height: 32px;
+}
+
 @theme {
   --animate-toast-in: toast-in 200ms ease-out;
   --animate-toast-out: toast-out 200ms ease-in forwards;

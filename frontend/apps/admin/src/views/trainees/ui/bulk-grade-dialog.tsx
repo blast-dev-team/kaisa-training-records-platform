@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'react-toastify'
 import { Dialog } from '@/src/shared/ui/dialog'
-import { Input } from '@/src/shared/ui/input'
+import { DateField } from "@/src/shared/ui/date-picker/date-field";
 import { Label } from '@/src/shared/ui/label'
 import { Select } from '@/src/shared/ui/select'
 import {
@@ -93,18 +93,14 @@ export function BulkGradeDialog({ isOpen, onClose, trainees, onDone }: Props) {
         {isAnnual && (
           <div className="space-y-1.5">
             <Label>만료일</Label>
-            <Input
-              type="date"
-              value={expiresAt}
-              onChange={(e) => setExpiresAt(e.target.value)}
-            />
-            <p className="text-[12px] text-ink-3">
+            <DateField ariaLabel="만료일" value={expiresAt} onChange={setExpiresAt} />
+            <p className="text-12 text-ink-3">
               전원에 같은 만료일이 적용돼요 — 만료일이 지나면 자동으로 일반 등급으로 바뀌어요
             </p>
           </div>
         )}
         {trainees[0] && (
-          <p className="text-[12px] text-ink-3">
+          <p className="text-12 text-ink-3">
             적용 대상: {trainees[0].name}
             {trainees.length > 1 ? ` 외 ${trainees.length - 1}명` : ''}
           </p>

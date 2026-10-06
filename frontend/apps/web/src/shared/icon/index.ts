@@ -1,5 +1,7 @@
 export { CaretDownIcon } from "./caret-down";
 export { CaretDown16Icon } from "./caret-down-16";
+export { CaretDoubleLeftIcon } from "./caret-double-left";
+export { CaretDoubleRightIcon } from "./caret-double-right";
 export { CaretLeftIcon } from "./caret-left";
 export { CaretLineLeftIcon } from "./caret-line-left";
 export { CaretLineRightIcon } from "./caret-line-right";

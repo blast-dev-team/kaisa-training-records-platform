@@ -54,7 +54,7 @@ export function MembershipGradeListPage() {
         accessorKey: "code",
         header: "코드",
         meta: { width: 120 },
-        cell: ({ row }) => <span className="font-mono text-[12px]">{row.original.code}</span>,
+        cell: ({ row }) => <span className="font-mono text-12">{row.original.code}</span>,
       },
       {
         accessorKey: "priceKrw",
@@ -91,7 +91,7 @@ export function MembershipGradeListPage() {
       {
         id: "actions",
         header: "",
-        meta: { width: 130, align: "right", sticky: "right" },
+        meta: { width: 130, align: "right" },
         cell: ({ row }) => (
           <div className="flex items-center justify-end gap-1.5">
             <Button

@@ -52,7 +52,7 @@ const MINUTE_OPTIONS: DropdownOption[] = Array.from(
 );
 
 const INPUT_FIELD =
-  "w-[60px] rounded-xl border border-solid border-gray-300 bg-gray-100 px-4 py-3 text-center text-base leading-normal tracking-[-0.03em] text-gray-800 placeholder:text-gray-400 focus:border-primary-400 focus:outline-none";
+  "w-[60px] rounded-xl border border-solid border-gray-300 bg-gray-100 px-4 py-3 text-center text-16 leading-normal tracking-[-0.03em] text-gray-800 placeholder:text-gray-400 focus:border-primary-400 focus:outline-none";
 
 export function TimeSelection({
   label,
@@ -86,7 +86,7 @@ export function TimeSelection({
       )}
     >
       {label && (
-        <span className="text-sm leading-normal tracking-[-0.03em] text-gray-400">
+        <span className="text-14 leading-normal tracking-[-0.03em] text-gray-400">
           {label}
         </span>
       )}
@@ -110,7 +110,7 @@ export function TimeSelection({
             />
             <span
               aria-hidden="true"
-              className="w-[6px] text-lg leading-normal font-bold tracking-[-0.03em] text-gray-700"
+              className="w-[6px] text-18 leading-normal font-bold tracking-[-0.03em] text-gray-700"
             >
               :
             </span>
@@ -135,7 +135,7 @@ export function TimeSelection({
             />
             <span
               aria-hidden="true"
-              className="w-[6px] text-lg leading-normal font-bold tracking-[-0.03em] text-gray-700"
+              className="w-[6px] text-18 leading-normal font-bold tracking-[-0.03em] text-gray-700"
             >
               :
             </span>
@@ -158,7 +158,7 @@ export function TimeSelection({
                 aria-pressed={value.period === period}
                 onClick={() => handleChange({ period })}
                 className={cn(
-                  "w-[60px] cursor-pointer px-4 py-3 text-base leading-normal font-semibold tracking-[-0.03em] select-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600",
+                  "w-[60px] cursor-pointer px-4 py-3 text-16 leading-normal font-semibold tracking-[-0.03em] select-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600",
                   value.period === period
                     ? "bg-primary-700 text-white"
                     : "bg-gray-200 text-gray-500",

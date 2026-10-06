@@ -4,7 +4,8 @@ import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-q
 import { toast } from "react-toastify";
 import { Check, ChevronDown, ChevronUp, FileSpreadsheet, X } from "lucide-react";
 import { Dialog } from "@/src/shared/ui/dialog";
-import { Input } from "@/src/shared/ui/input";
+import { DateField } from "@/src/shared/ui/date-picker/date-field";
+import { SearchInput } from "@/src/shared/ui/search-input";
 import { Label } from "@/src/shared/ui/label";
 import { Textarea } from "@/src/shared/ui/textarea";
 import { getTraineeList, postTrainee, traineeQueries } from "@/src/entities/trainee";
@@ -61,7 +62,6 @@ export function AttachTraineesDialog({ isOpen, onClose, session }: Props) {
   const [searchInput, setSearchInput] = useState("");
   const [selected, setSelected] = useState<Record<string, string>>({});
   const search = useDebouncedValue(searchInput.trim(), 300);
-  const [hours, setHours] = useState("");
   const [memo, setMemo] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [uploads, setUploads] = useState<MatchUpload[]>([]);
@@ -127,7 +127,6 @@ export function AttachTraineesDialog({ isOpen, onClose, session }: Props) {
     }
     setSearchInput("");
     setSelected({});
-    setHours(session?.recognizedHours != null ? String(session.recognizedHours) : "");
     setMemo("");
     setUploads([]);
     setDraftNames({});
@@ -220,7 +219,6 @@ export function AttachTraineesDialog({ isOpen, onClose, session }: Props) {
       postTrainingRecordBulk({
         session_id: session!.id,
         trainee_ids: Object.keys(selected),
-        completed_hours: hours === "" ? null : Number(hours),
         memo: memo.trim() || null,
       }),
     onSuccess: ({ created, skipped }) => {
@@ -308,7 +306,7 @@ export function AttachTraineesDialog({ isOpen, onClose, session }: Props) {
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
             <Label>연결된 감리원</Label>
-            <span className="text-[11px] text-ink-3">
+            <span className="text-11 text-ink-3">
               {connectedQuery.data?.pages[0]
                 ? `${connectedQuery.data.pages[0].total.toLocaleString()}명`
                 : ""}
@@ -320,22 +318,22 @@ export function AttachTraineesDialog({ isOpen, onClose, session }: Props) {
             onScroll={onConnectedScroll}
           >
             {connected.length === 0 && (
-              <p className="p-3 text-[12px] text-ink-3">아직 연결된 감리원이 없어요</p>
+              <p className="p-3 text-12 text-ink-3">아직 연결된 감리원이 없어요</p>
             )}
             {connected.map((r) => (
               <div
                 key={r.id}
-                className="flex items-center gap-2 border-b border-line px-3 py-1.5 text-[12px] last:border-b-0"
+                className="flex items-center gap-2 border-b border-line px-3 py-1.5 text-12 last:border-b-0"
               >
                 <span className="text-ink">{r.traineeName ?? "—"}</span>
-                <span className="text-[11px] text-ink-3">{r.traineeCertNo ?? "—"}</span>
-                <span className="ml-auto text-[11px] text-ink-3">
+                <span className="text-11 text-ink-3">{r.traineeCertNo ?? "—"}</span>
+                <span className="ml-auto text-11 text-ink-3">
                   {r.completedHours ?? "—"}시수 · {r.startedAt ?? "기간미정"}
                 </span>
               </div>
             ))}
             {connectedQuery.isFetchingNextPage && (
-              <p className="p-1.5 text-center text-[11px] text-ink-3">불러오는 중…</p>
+              <p className="p-1.5 text-center text-11 text-ink-3">불러오는 중…</p>
             )}
           </div>
         </div>
@@ -346,43 +344,43 @@ export function AttachTraineesDialog({ isOpen, onClose, session }: Props) {
           {merged ? (
             <div className="space-y-2.5 rounded-md border border-line p-3">
               <div className="flex items-center justify-between">
-                <p className="text-[12px] font-medium text-ink">
+                <p className="text-12 font-medium text-ink">
                   파일 {merged.fileCount}개 · 총 {merged.totalRows}행 · 매칭 {merged.matched.length}
                   명 · 미매칭 {merged.unmatched.length}행
                 </p>
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="text-[11px] text-accent hover:underline"
+                  className="text-11 text-accent hover:underline"
                   disabled={matchMutation.isPending}
                 >
                   {matchMutation.isPending ? "대조 중..." : "엑셀 추가"}
                 </button>
               </div>
-              <p className="truncate text-[11px] text-ink-3">
+              <p className="truncate text-11 text-ink-3">
                 {uploads.map((u) => u.fileName).join(" · ")}
               </p>
               {/* 매칭된 감리원 — 대조 키와 함께 상세 표시 */}
               <div className="space-y-1">
-                <p className="text-[11px] font-medium text-ink-2">
+                <p className="text-11 font-medium text-ink-2">
                   매칭된 감리원 {merged.matched.length}명
                 </p>
                 <div className="max-h-40 overflow-y-auto rounded-md border border-line">
                   {merged.matched.map((m) => (
                     <div
                       key={m.trainee_id}
-                      className="flex items-center gap-2 border-b border-line px-2.5 py-1.5 text-[12px] last:border-b-0"
+                      className="flex items-center gap-2 border-b border-line px-2.5 py-1.5 text-12 last:border-b-0"
                     >
                       <span className="text-ink">{m.name}</span>
                       {m.cert_no && (
-                        <span className="truncate text-[11px] text-ink-3">{m.cert_no}</span>
+                        <span className="truncate text-11 text-ink-3">{m.cert_no}</span>
                       )}
                       <span className="ml-auto flex shrink-0 items-center gap-1.5">
-                        <span className="rounded-full bg-bg-2 px-1.5 py-0.5 text-[10px] text-ink-3">
+                        <span className="rounded-full bg-bg-2 px-1.5 py-0.5 text-10 text-ink-3">
                           {MATCHED_BY_LABELS[m.matched_by] ?? m.matched_by}
                         </span>
                         {connectedIds.has(m.trainee_id) && (
-                          <span className="text-[11px] text-ink-3">연결됨</span>
+                          <span className="text-11 text-ink-3">연결됨</span>
                         )}
                       </span>
                     </div>
@@ -392,7 +390,7 @@ export function AttachTraineesDialog({ isOpen, onClose, session }: Props) {
               {/* 미매칭 행 — 못 찾은 행은 이름 직접 입력으로 신규 등록·선택 가능 */}
               {merged.unmatched.length > 0 && (
                 <div className="space-y-1">
-                  <p className="text-[11px] font-medium text-warn-ink">
+                  <p className="text-11 font-medium text-warn-ink">
                     미매칭 {merged.unmatched.length}행 — 이름을 고쳐 직접 등록하거나 아래 검색으로
                     수동 추가할 수 있어요
                   </p>
@@ -402,17 +400,17 @@ export function AttachTraineesDialog({ isOpen, onClose, session }: Props) {
                       const added = addedRows.has(u.key);
                       return (
                         <div key={u.key} className="px-2.5 py-1.5">
-                          <div className="flex items-center gap-2 text-[12px]">
+                          <div className="flex items-center gap-2 text-12">
                             <span className="w-9 shrink-0 text-ink-3">{u.row_number}행</span>
                             {added ? (
                               <span className="text-ink">
                                 {draftNames[u.key] ?? u.name ?? "—"}
-                                <span className="ml-1.5 text-[11px] text-ok">등록·선택됨</span>
+                                <span className="ml-1.5 text-11 text-ok">등록·선택됨</span>
                               </span>
                             ) : canDirectAdd ? (
                               <>
                                 <input
-                                  className="h-6 min-w-0 flex-1 rounded border border-line bg-white px-1.5 text-[12px]"
+                                  className="h-6 min-w-0 flex-1 rounded border border-line bg-white px-1.5 text-12"
                                   value={draftNames[u.key] ?? u.name ?? ""}
                                   onChange={(e) =>
                                     setDraftNames((prev) => ({
@@ -423,7 +421,7 @@ export function AttachTraineesDialog({ isOpen, onClose, session }: Props) {
                                 />
                                 <button
                                   type="button"
-                                  className={`flex shrink-0 items-center gap-0.5 text-[11px] transition-colors ${
+                                  className={`flex shrink-0 items-center gap-0.5 text-11 transition-colors ${
                                     detailOpen.has(u.key)
                                       ? "text-accent"
                                       : "text-ink-3 hover:text-accent"
@@ -439,7 +437,7 @@ export function AttachTraineesDialog({ isOpen, onClose, session }: Props) {
                                 </button>
                                 <button
                                   type="button"
-                                  className="shrink-0 rounded-md border border-line px-2 py-0.5 text-[11px] text-ink-2 transition-colors hover:border-accent hover:text-accent disabled:opacity-45"
+                                  className="shrink-0 rounded-md border border-line px-2 py-0.5 text-11 text-ink-2 transition-colors hover:border-accent hover:text-accent disabled:opacity-45"
                                   disabled={
                                     createMutation.isPending ||
                                     (draftNames[u.key] ?? u.name ?? "").trim() === ""
@@ -465,7 +463,7 @@ export function AttachTraineesDialog({ isOpen, onClose, session }: Props) {
                           {detailOpen.has(u.key) && canDirectAdd && !added && (
                             <div className="mt-1 grid grid-cols-1 gap-1.5 pl-11">
                               <input
-                                className="h-6 min-w-0 rounded border border-line bg-white px-1.5 text-[12px]"
+                                className="h-6 min-w-0 rounded border border-line bg-white px-1.5 text-12"
                                 placeholder="전화번호"
                                 value={draftDetails[u.key]?.phone ?? ""}
                                 onChange={(e) =>
@@ -479,24 +477,23 @@ export function AttachTraineesDialog({ isOpen, onClose, session }: Props) {
                                   }))
                                 }
                               />
-                              <input
-                                className="h-6 min-w-0 rounded border border-line bg-white px-1.5 text-[12px]"
-                                type="date"
-                                placeholder="생년월일"
+                              <DateField
+                                ariaLabel={`생년월일 ${u.key}`}
+                                triggerClassName="h-6 rounded px-1.5 text-12"
                                 value={draftDetails[u.key]?.birthDate ?? ""}
-                                onChange={(e) =>
+                                onChange={(v) =>
                                   setDraftDetails((prev) => ({
                                     ...prev,
                                     [u.key]: {
                                       phone: draftDetails[u.key]?.phone ?? "",
-                                      birthDate: e.target.value,
+                                      birthDate: v,
                                       certNo: draftDetails[u.key]?.certNo ?? "",
                                     },
                                   }))
                                 }
                               />
                               <input
-                                className="h-6 min-w-0 rounded border border-line bg-white px-1.5 text-[12px]"
+                                className="h-6 min-w-0 rounded border border-line bg-white px-1.5 text-12"
                                 placeholder="감리원증번호"
                                 value={draftDetails[u.key]?.certNo ?? ""}
                                 onChange={(e) =>
@@ -512,7 +509,7 @@ export function AttachTraineesDialog({ isOpen, onClose, session }: Props) {
                               />
                             </div>
                           )}
-                          <p className="mt-0.5 pl-11 text-[11px] text-ink-3">{u.reason}</p>
+                          <p className="mt-0.5 pl-11 text-11 text-ink-3">{u.reason}</p>
                         </div>
                       );
                     })}
@@ -528,10 +525,10 @@ export function AttachTraineesDialog({ isOpen, onClose, session }: Props) {
               className="flex w-full flex-col items-center gap-1.5 rounded-xl border border-dashed border-line px-4 py-6 text-ink-3 transition-colors hover:border-accent hover:text-accent cursor-pointer"
             >
               <FileSpreadsheet className="size-7" />
-              <span className="text-[13px]">
+              <span className="text-13">
                 {matchMutation.isPending ? "대조 중..." : "클릭해서 엑셀 파일 선택 · 즉시 대조"}
               </span>
-              <span className="text-[11px] text-ink-3">
+              <span className="text-11 text-ink-3">
                 헤더: 감리원명 · 감리원증번호 (순서 무관, 이름만 있어도 가능)
               </span>
             </button>
@@ -552,7 +549,7 @@ export function AttachTraineesDialog({ isOpen, onClose, session }: Props) {
         <div className="space-y-1.5">
           <Label>감리원 추가</Label>
           <div ref={comboRef} className="relative">
-            <Input
+            <SearchInput
               placeholder="클릭해서 감리원 검색 · 선택"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
@@ -581,7 +578,7 @@ export function AttachTraineesDialog({ isOpen, onClose, session }: Props) {
                     onScroll={onTraineeScroll}
                   >
                     {!traineeQuery.isPending && trainees.length === 0 && (
-                      <p className="p-3 text-[13px] text-ink-3">조건에 맞는 감리원이 없어요</p>
+                      <p className="p-3 text-13 text-ink-3">조건에 맞는 감리원이 없어요</p>
                     )}
                     {trainees.map((t) => {
                       const checked = t.id in selected;
@@ -589,7 +586,7 @@ export function AttachTraineesDialog({ isOpen, onClose, session }: Props) {
                       return (
                         <label
                           key={t.id}
-                          className={`flex cursor-pointer items-center gap-2.5 border-b border-line px-3 py-2 text-[13px] last:border-b-0 hover:bg-bg-2 ${
+                          className={`flex cursor-pointer items-center gap-2.5 border-b border-line px-3 py-2 text-13 last:border-b-0 hover:bg-bg-2 ${
                             already ? "opacity-45" : ""
                           }`}
                         >
@@ -607,15 +604,15 @@ export function AttachTraineesDialog({ isOpen, onClose, session }: Props) {
                             onChange={() => toggle(t.id, t.name)}
                           />
                           <span className="text-ink">{t.name}</span>
-                          <span className="text-[11px] text-ink-3">{t.traineeNo}</span>
+                          <span className="text-11 text-ink-3">{t.traineeNo}</span>
                           {already && (
-                            <span className="ml-auto text-[11px] text-ink-3">연결됨</span>
+                            <span className="ml-auto text-11 text-ink-3">연결됨</span>
                           )}
                         </label>
                       );
                     })}
                     {traineeQuery.isFetchingNextPage && (
-                      <p className="p-1.5 text-center text-[12px] text-ink-3">불러오는 중…</p>
+                      <p className="p-1.5 text-center text-12 text-ink-3">불러오는 중…</p>
                     )}
                   </div>
                 </div>,
@@ -628,7 +625,7 @@ export function AttachTraineesDialog({ isOpen, onClose, session }: Props) {
               {Object.entries(selected).map(([id, name]) => (
                 <span
                   key={id}
-                  className="inline-flex items-center gap-1 rounded-full border border-accent-soft bg-accent-soft px-2.5 py-0.5 text-[12px] font-medium text-accent-ink"
+                  className="inline-flex items-center gap-1 rounded-full border border-accent-soft bg-accent-soft px-2.5 py-0.5 text-12 font-medium text-accent-ink"
                 >
                   {name}
                   <button
@@ -646,7 +643,7 @@ export function AttachTraineesDialog({ isOpen, onClose, session }: Props) {
 
         <div className="flex flex-col gap-1.5">
           {/* 외부 구분 — 일정 source 그대로 저장됨을 저장 전에 확인 */}
-          <label className="flex items-center gap-2 text-[13px] text-ink-2">
+          <label className="flex items-center gap-2 text-13 text-ink-2">
             <input
               type="checkbox"
               className="size-4 accent-[--color-accent]"
@@ -654,17 +651,15 @@ export function AttachTraineesDialog({ isOpen, onClose, session }: Props) {
               disabled
             />
             외부 교육으로 저장
-            <span className="text-[11px] text-ink-3">
+            <span className="text-11 text-ink-3">
               {session?.source === "external"
                 ? "— 일정이 외부 교육이라 연결되는 내역이 외부로 기록돼요"
                 : "— 일정의 구분을 따라 사내로 기록돼요"}
             </span>
           </label>
-          <div className="flex flex-col gap-1.5">
-            <Label>이수 시수</Label>
-            <Input type="number" min={0} value={hours} onChange={(e) => setHours(e.target.value)} />
-            <p className="text-[11px] text-ink-3">기본값: 일정 인정 시수</p>
-          </div>
+          <p className="text-11 text-ink-3">
+            이수 시수는 일정의 총 시수로 기록돼요
+          </p>
           <div className="flex flex-col gap-1.5">
             <Label>메모</Label>
             <Textarea

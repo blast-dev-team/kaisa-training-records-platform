@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import settings
 from app.core.crypto import decrypt_field, mask_phone, sha256_hex
 from app.core.error_codes import api_error
-from app.core.kst import kst_range_end, kst_range_start, now_kst, today_kst
+from app.core.kst import KST, kst_range_end, kst_range_start, now_kst, today_kst
 from app.core.session import (
     ADMIN_TOKEN_PREFIX,
     extend_user_session,
@@ -16,6 +16,7 @@ from app.core.session import (
     resolve_user_session_expiry,
 )
 from app.domain.certificate.model import Certificate
+from app.domain.certificate.service import completion_certificate_service
 from app.domain.identity.repository import identity_repository as identity_repo
 from app.domain.me.repository import me_repository as repo
 from app.domain.me.schema import (
@@ -26,6 +27,7 @@ from app.domain.me.schema import (
 )
 from app.domain.trainee.model import Trainee
 from app.domain.trainee.service import trainee_service
+from app.domain.training_record.model import TrainingRecord
 from app.domain.training_record.schema import TrainingRecordResponse
 from app.domain.user.model import User
 from app.integrations import s3
@@ -50,7 +52,8 @@ async def get_session(db: AsyncSession, token: str | None) -> MeSessionResponse:
     user = await resolve_user_session(db, token)
     if user is None:
         raise api_error("SESSION_EXPIRED")
-    expires_at = await resolve_user_session_expiry(db, token)
+    # API 응답 시각은 KST(+09:00)로 통일 — DB 조회값(UTC)과 신규 발급값(now_kst)의 표기가 갈리지 않게
+    expires_at = (await resolve_user_session_expiry(db, token)).astimezone(KST)
     trainee = (
         await db.execute(
             select(Trainee).where(
@@ -86,7 +89,7 @@ async def extend_session(db: AsyncSession, token: str | None) -> MeSessionRespon
     user = await resolve_user_session(db, token)
     if user is None:
         raise api_error("SESSION_EXPIRED")
-    expires_at = await extend_user_session(db, token)
+    expires_at = (await extend_user_session(db, token)).astimezone(KST)
     trainee = (
         await db.execute(
             select(Trainee).where(
@@ -168,11 +171,12 @@ async def _latest_issued_certs(
     return certs
 
 
-def _certificate_fields(record, cert: Certificate | None, now, today) -> dict:
+def _certificate_fields(record, cert: Certificate | None, today) -> dict:
     """회원별 발급 상태 산출 — 발급 게이트(_validate_item)와 같은 순서로 판정한다.
 
-    3년 초과·수료 미완료는 기발급 여부와 무관하게 unavailable, 유효 확인서가
-    있으면 reissuable(무료 기한 내면 reissue_free_until), 없으면 issuable.
+    3년 초과·수료 미완료는 기발급 여부와 무관하게 unavailable. 재발급 개념이
+    없다(2026-09-30 기획 변경) — 기발급 이력도 issuable(매번 결제 발급)이며
+    last_issued_at 은 화면의 '발급 완료' 표기용이다.
     """
     within_window = not (
         record.started_at is not None
@@ -182,17 +186,10 @@ def _certificate_fields(record, cert: Certificate | None, now, today) -> dict:
     if not within_window or record.completion_status != "completed":
         return {"certificate_status": "unavailable"}
     if cert is not None:
-        fields: dict = {
-            "certificate_status": "reissuable",
+        return {
+            "certificate_status": "issuable",
             "last_issued_at": cert.issued_at,
         }
-        if cert.issued_at is not None:
-            free_until = cert.issued_at + timedelta(
-                days=settings.CERTIFICATE_REISSUE_FREE_DAYS
-            )
-            if now <= free_until:
-                fields["reissue_free_until"] = free_until
-        return fields
     return {"certificate_status": "issuable"}
 
 
@@ -215,13 +212,12 @@ async def decorate_member_records(
         if (trainee_id is not None or all_records)
         else {}
     )
-    now = now_kst()
     today = today_kst()
     items = []
     for record in records:
         response = TrainingRecordResponse.from_orm(record)
         for key, value in _certificate_fields(
-            record, certs.get(record.id), now, today
+            record, certs.get(record.id), today
         ).items():
             setattr(response, key, value)
         items.append(response)
@@ -330,6 +326,32 @@ async def get_member_record_response(
 
 async def list_my_certificates(db: AsyncSession, trainee: Trainee):
     return await repo.list_my_certificates(db, trainee.id)
+
+
+async def build_completion_certificate_preview(
+    db: AsyncSession, user: User, record_id: uuid.UUID
+) -> dict:
+    """수료증 미리보기 — 발급(INSERT·채번) 없이 스냅샷만 조립. 번호는 미부여("").
+
+    웹 모달은 열릴 때 이 미리보기로 연다 — 실제 발급은 PDF 저장 시점에 일어난다
+    (미리보기는 그저 미리보기). 본인 이력만, 슈퍼 계정은 소속 무관 조회 허용.
+    """
+    record = await db.get(TrainingRecord, record_id)
+    if record is None or record.deleted_at is not None:
+        raise api_error("NOT_FOUND", message="교육내역을 찾을 수 없어요")
+    if not is_super_user(user):
+        trainee = (
+            await db.execute(
+                select(Trainee).where(
+                    Trainee.user_id == user.id, Trainee.deleted_at.is_(None)
+                )
+            )
+        ).scalar_one_or_none()
+        if trainee is None or record.trainee_id != trainee.id:
+            raise api_error("FORBIDDEN", message="본인 이력만 미리볼 수 있어요")
+    return await completion_certificate_service.build_preview_completion_certificate(
+        db, record_id
+    )
 
 
 async def mark_certificate_downloaded(
@@ -441,9 +463,12 @@ async def list_payment_history(
 
 
 async def get_certificate_price(
-    db: AsyncSession, trainee: Trainee, record_id: uuid.UUID, issue_type: str
+    db: AsyncSession, trainee: Trainee, record_id: uuid.UUID
 ) -> CertificatePriceResponse:
-    """발급 요청 전 가격 미리보기 — 소유·수료·등급 판별 게이트를 서버에서 선검사."""
+    """발급 요청 전 가격 미리보기 — 소유·수료·등급 판별 게이트를 서버에서 선검사.
+
+    가격은 항상 등급 단가다 — 무료 재발급이 폐지돼 issue_type 입력을 받지 않는다.
+    """
     # 단가 산정 전 자동 전환 — 기간 지난 연간 회원은 일반 단가가 적용돼야 한다
     if await trainee_service.expire_due_memberships(db):
         await db.refresh(trainee)
@@ -452,8 +477,6 @@ async def get_certificate_price(
         raise api_error(
             "VALIDATION_ERROR", message="수료 완료된 이력만 발급 신청할 수 있어요"
         )
-    if issue_type not in ("original", "reissue"):
-        raise api_error("VALIDATION_ERROR", message="올바르지 않은 발급 유형이에요")
     if trainee.review_status != "approved" or trainee.membership_grade_id is None:
         raise api_error(
             "GRADE_NOT_DETERMINED", message="회원등급 판별이 완료되지 않았어요"
@@ -462,9 +485,8 @@ async def get_certificate_price(
     return CertificatePriceResponse(
         training_record_id=record.id,
         course_name=record.course_name,
-        issue_type=issue_type,
         grade_name=trainee.grade.name if trainee.grade else None,
-        # 발급 단가 = 등급 가격. 무료 재발급(7일 내)은 web 이 reissueFreeUntil 로 별도 표기
+        # 발급 단가 = 등급 가격 — 매 발급마다 결제(무료 재발급 폐지)
         price_krw=trainee.grade.price_krw if trainee.grade else 0,
         currency="KRW",
     )

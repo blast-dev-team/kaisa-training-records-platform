@@ -64,8 +64,10 @@ Table trainees {
   user_id uuid [unique, note: '회원가입 전에는 NULL 허용']
   trainee_no varchar(100) [unique, note: '협회에서 관리하는 교육생 고유번호']
   cert_no varchar(100) [note: '감리원증번호 (구 시스템 감리원추가 E열)']
-  supervisor_grade varchar(50) [note: '감리원 등급 (감리원/수석감리원) — 확인서 표기용, 회원등급과 별개']
+  supervisor_grade varchar(50) [note: '감리원 등급 (감리원/수석감리원) — 확인서 표기용, 회원등급과 별개. 저장 시 번호 유무에서 파생']
+  senior_cert_no varchar(100) [note: '수석감리원증번호 — 승격 시 새로 부여. cert_no 와 동시 보유']
   cert_issued_date date [note: '감리원증 발급일자 — 엑셀 일괄 등록에서 받는 참조 정보']
+  senior_cert_issued_date date [note: '수석감리원증 발급일자 — 승격 시 참조 정보']
   name_encrypted text [not null, note: 'Fernet 암호화']
   name_hash varchar(64) [not null, note: '이름 HMAC blind index — 전체 이름 일치 검색만 지원']
   birth_date date [note: '생년월일 (어드민 수정 항목)']
@@ -417,6 +419,7 @@ Table certificates {
   issued_at timestamptz [not null]
   expires_at timestamptz
   status varchar(30) [not null, default: 'issued', note: 'issued / revoked / superseded']
+  issue_source varchar(10) [not null, default: 'member', note: '발급 경로 — member(WEB 신청·결제) / admin(어드민 발급 저장). 어드민 발급은 회원 유효본과 무관한 독립 문서(폐기·권리 판정에서 서로 간섭 없음)']
   revoked_at timestamptz
   revoked_reason text
 

@@ -8,12 +8,14 @@ import { AppTable } from "@/src/shared/ui/app-table";
 import { Button } from "@/src/shared/ui/button";
 import { Dialog } from "@/src/shared/ui/dialog";
 import { FilterBar, FilterRow } from "@/src/shared/ui/filter-bar";
-import { Input } from "@/src/shared/ui/input";
+import { SearchInput } from "@/src/shared/ui/search-input";
+import { DateField } from "@/src/shared/ui/date-picker/date-field";
+import { adjustDateRange } from "@/src/shared/utils/date-range";
 import { PageContainer } from "@/src/shared/ui/page-container";
 import { PageHead } from "@/src/shared/ui/page-head";
 import { Pill } from "@/src/shared/ui/pill";
 import { Select } from "@/src/shared/ui/select";
-import { todayYMD } from "@/src/shared/utils/format";
+import { todayYMD, toYMD } from "@/src/shared/utils/format";
 import {
   courseSessionQueries,
   deleteCourseSession,
@@ -181,7 +183,7 @@ export function CourseSessionListPage() {
         cell: ({ row }) => (
           <span className="flex flex-col">
             <span className="font-medium text-ink">{row.original.courseName}</span>
-            <span className="text-[11px] text-ink-3">{row.original.institutionName}</span>
+            <span className="text-11 text-ink-3">{row.original.institutionName}</span>
           </span>
         ),
       },
@@ -215,9 +217,15 @@ export function CourseSessionListPage() {
         },
       },
       {
+        id: "createdAt",
+        header: "등록일",
+        meta: { width: 110 },
+        cell: ({ row }) => toYMD(row.original.createdAt) ?? "—",
+      },
+      {
         id: "actions",
         header: "",
-        meta: { width: 220, align: "right", sticky: "right" },
+        meta: { width: 220, align: "right" },
         cell: ({ row }) => (
           <div className="flex items-center justify-end gap-1.5">
             <Button
@@ -288,11 +296,12 @@ export function CourseSessionListPage() {
               updateParams({ q: searchInput.trim() || null });
             }}
           >
-            <Input
+            <SearchInput
               className="w-64"
               placeholder="과정명 · 기관명"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
+              onClear={() => updateParams({ q: null })}
             />
             <Button type="submit" variant="secondary" size="sm">
               검색
@@ -301,25 +310,32 @@ export function CourseSessionListPage() {
         </FilterRow>
         <FilterRow label="기간">
           <div className="flex items-center gap-1.5">
-            <Input
-              type="date"
+            <DateField
+              ariaLabel="시작일"
               className="w-36"
               value={from}
-              onChange={(e) => updateParams({ from: e.target.value || null })}
+              onChange={(v) => {
+                const r = adjustDateRange({ from, to }, "from", v);
+                updateParams({ from: r.from || null, to: r.to || null });
+              }}
+              maxDate={to || undefined}
             />
             <span className="text-ink-3">~</span>
-            <Input
-              type="date"
+            <DateField
+              ariaLabel="종료일"
               className="w-36"
               value={to}
-              min={from || undefined}
-              onChange={(e) => updateParams({ to: e.target.value || null })}
+              onChange={(v) => {
+                const r = adjustDateRange({ from, to }, "to", v);
+                updateParams({ from: r.from || null, to: r.to || null });
+              }}
+              minDate={from || undefined}
             />
           </div>
         </FilterRow>
         <FilterRow label="상태">
           <Select
-            className="w-28"
+            className="w-36"
             value={status}
             onChange={(e) => updateParams({ status: e.target.value || null })}
           >
@@ -330,7 +346,7 @@ export function CourseSessionListPage() {
         </FilterRow>
         <FilterRow label="정렬">
           <Select
-            className="w-32"
+            className="w-36"
             value={sort}
             onChange={(e) =>
               updateParams({ sort: e.target.value === "registration" ? e.target.value : null })
@@ -344,7 +360,7 @@ export function CourseSessionListPage() {
 
       {selectedCount > 0 && (
         <div className="flex items-center justify-between rounded-lg border border-line bg-panel px-4 py-2.5">
-          <span className="text-[13px] text-ink-2">
+          <span className="text-13 text-ink-2">
             <span className="font-semibold text-ink">{selectedCount.toLocaleString()}개</span>{" "}
             일정이 선택됐어요
           </span>

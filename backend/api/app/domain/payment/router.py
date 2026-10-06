@@ -57,11 +57,18 @@ async def list_payment_orders(
     db: AsyncSession = Depends(get_db),
     _: AdminUser = Depends(require_admin),
 ):
-    orders, total = await refund_service.list_orders(
+    orders, total, doc_counts, first_course_names = await refund_service.list_orders(
         db, trainee_id=trainee_id, status=status, date_from=date_from, date_to=date_to, search=search, page=page, limit=limit
     )
     return PagedResponse(
-        items=[PaymentOrderResponse.from_orm(o) for o in orders],
+        items=[
+            PaymentOrderResponse.from_orm(
+                o,
+                doc_count=doc_counts.get(o.id, 0),
+                first_course_name=first_course_names.get(o.id),
+            )
+            for o in orders
+        ],
         total=total,
         page=page,
         limit=limit,

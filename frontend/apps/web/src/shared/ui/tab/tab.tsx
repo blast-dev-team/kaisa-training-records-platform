@@ -32,7 +32,7 @@ export function Tab({
       role="tab"
       aria-selected={selected}
       className={cn(
-        "inline-flex cursor-pointer items-center gap-1 p-2 border-b-2 border-solid font-sans text-base leading-normal font-semibold tracking-[-0.03em] whitespace-nowrap transition-colors select-none",
+        "inline-flex cursor-pointer items-center gap-1 p-2 border-b-2 border-solid font-sans text-16 leading-normal font-semibold tracking-[-0.03em] whitespace-nowrap transition-colors select-none",
         "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600",
         selected
           ? "border-primary-700 text-primary-700"

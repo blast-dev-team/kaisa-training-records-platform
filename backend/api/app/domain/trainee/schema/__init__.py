@@ -3,6 +3,16 @@ from app.domain.trainee.schema.grade import (
     MembershipGradeResponse,
     MembershipGradeUpdate,
 )
+from app.domain.trainee.schema.grade_import import (
+    GradeImportConfirmItem,
+    GradeImportConfirmRequest,
+    GradeImportFailure,
+    GradeImportPreviewResponse,
+    GradeImportRematchRequest,
+    GradeImportResult,
+    GradeImportRowResult,
+    GradeImportSummary,
+)
 from app.domain.trainee.schema.trainee import (
     TraineeBulkGradeCreate,
     TraineeBulkResult,
@@ -17,6 +27,14 @@ from app.domain.trainee.schema.trainee import (
 )
 
 __all__ = [
+    "GradeImportConfirmItem",
+    "GradeImportConfirmRequest",
+    "GradeImportFailure",
+    "GradeImportPreviewResponse",
+    "GradeImportRematchRequest",
+    "GradeImportResult",
+    "GradeImportRowResult",
+    "GradeImportSummary",
     "MembershipGradeCreate",
     "MembershipGradeResponse",
     "MembershipGradeUpdate",

@@ -1,11 +1,11 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { useSearchParams } from "react-router";
 import { useQuery } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 import { AppTable } from "@/src/shared/ui/app-table";
 import { Button } from "@/src/shared/ui/button";
 import { FilterBar, FilterRow } from "@/src/shared/ui/filter-bar";
-import { Input } from "@/src/shared/ui/input";
+import { SearchInput } from "@/src/shared/ui/search-input";
 import { PageContainer } from "@/src/shared/ui/page-container";
 import { PageHead } from "@/src/shared/ui/page-head";
 import { Pill, statusTone } from "@/src/shared/ui/pill";
@@ -18,12 +18,13 @@ import {
 } from "@/src/entities/identity-review";
 import { ReviewDialog } from "./review-dialog";
 
-/** 수동심사 필요 건이 가장 많이 보여야 하므로 기본 필터 */
-const DEFAULT_STATUS = "manual_review";
-
 export function IdentityReviewListPage() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const status = searchParams.get("status") ?? DEFAULT_STATUS;
+  // 상태 필터 — 기본 전체(status 키 없음). 과거 승인·거절 이력도 같은 목록에서 조회.
+  const status = searchParams.get("status") ?? "";
+  // 정렬 — URL 값 없으면 서버 기본(created_at desc = 기본순). UI 기본 표시는 빈 값.
+  const sort = searchParams.get("sort") ?? "";
+  const order = searchParams.get("order") ?? "desc";
   const q = searchParams.get("q") ?? "";
   const page = Math.max(1, Number(searchParams.get("page") ?? 1) || 1);
   const limit = Math.max(1, Number(searchParams.get("limit") ?? 10) || 10);
@@ -31,20 +32,15 @@ export function IdentityReviewListPage() {
   const [searchInput, setSearchInput] = useState(q);
   const [reviewTarget, setReviewTarget] = useState<IdentityReview | null>(null);
 
-  // 기본 필터 1회 주입 — 공유 링크 재현성 (url-state.md 패턴)
-  const didInit = useRef(false);
-  useEffect(() => {
-    if (didInit.current) return;
-    didInit.current = true;
-    if (!searchParams.has("status")) {
-      const next = new URLSearchParams(searchParams);
-      next.set("status", DEFAULT_STATUS);
-      setSearchParams(next, { replace: true });
-    }
-  }, [searchParams, setSearchParams]);
-
   const { data } = useQuery(
-    identityReviewQueries.list({ status, search: q || undefined, page, limit }),
+    identityReviewQueries.list({
+      status: status || undefined,
+      search: q || undefined,
+      sort: sort || undefined,
+      order: order || undefined,
+      page,
+      limit,
+    }),
   );
 
   const updateParams = (patch: Record<string, string | null>, resetPage = true) => {
@@ -81,7 +77,7 @@ export function IdentityReviewListPage() {
         header: "인증 전화",
         meta: { width: 140 },
         cell: ({ row }) => (
-          <span className="font-mono text-[12px]">{row.original.verifiedPhoneMasked}</span>
+          <span className="font-mono text-12">{row.original.verifiedPhoneMasked}</span>
         ),
       },
       {
@@ -114,7 +110,7 @@ export function IdentityReviewListPage() {
       {
         id: "actions",
         header: "",
-        meta: { width: 100, align: "right", sticky: "right" },
+        meta: { width: 100, align: "right" },
         cell: ({ row }) =>
           row.original.status === "manual_review" || row.original.status === "pending" ? (
             <Button variant="outline" size="sm" onClick={() => setReviewTarget(row.original)}>
@@ -146,11 +142,12 @@ export function IdentityReviewListPage() {
               updateParams({ q: searchInput.trim() || null });
             }}
           >
-            <Input
+            <SearchInput
               className="w-64"
               placeholder="계정명 · 인증 성명(전체)"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
+              onClear={() => updateParams({ q: null })}
             />
             <Button type="submit" variant="secondary" size="sm">
               검색
@@ -163,11 +160,32 @@ export function IdentityReviewListPage() {
             value={status}
             onChange={(e) => updateParams({ status: e.target.value || null })}
           >
-            {Object.entries(REVIEW_STATUS_LABELS).map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
+            {/* pending은 service가 절대 생성하지 않는 죽은 상태 — 옵션에서 제외 */}
+            <option value="">전체</option>
+            <option value="manual_review">{REVIEW_STATUS_LABELS.manual_review}</option>
+            <option value="approved">{REVIEW_STATUS_LABELS.approved}</option>
+            <option value="rejected">{REVIEW_STATUS_LABELS.rejected}</option>
+          </Select>
+        </FilterRow>
+        <FilterRow label="정렬">
+          <Select
+            className="w-36"
+            value={sort === "created_at" || sort === "reviewed_at" ? `${sort}:${order}` : ""}
+            onChange={(e) => {
+              const v = e.target.value;
+              if (!v) {
+                updateParams({ sort: null, order: null });
+                return;
+              }
+              const [s = "", o = ""] = v.split(":");
+              updateParams({ sort: s, order: o });
+            }}
+          >
+            <option value="">기본순</option>
+            <option value="created_at:desc">신청일시 최신순</option>
+            <option value="created_at:asc">신청일시 오래된순</option>
+            <option value="reviewed_at:desc">처리일시 최신순</option>
+            <option value="reviewed_at:asc">처리일시 오래된순</option>
           </Select>
         </FilterRow>
       </FilterBar>

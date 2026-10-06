@@ -23,11 +23,13 @@ async def list_reviews(
     search: str | None = None,
     page: int = Query(1, ge=1),
     limit: int = Query(20, ge=1, le=100),
+    sort: str = Query("created_at"),
+    order: str = Query("desc", pattern="^(asc|desc)$"),
     db: AsyncSession = Depends(get_db),
     _: AdminUser = Depends(require_admin),
 ):
     reviews, total = await identity_service.list_reviews(
-        db, status=status, search=search, page=page, limit=limit
+        db, status=status, search=search, page=page, limit=limit, sort=sort, order=order
     )
     return PagedResponse(
         items=[IdentityReviewResponse.from_orm(r) for r in reviews],

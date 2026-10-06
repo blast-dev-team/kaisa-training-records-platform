@@ -29,6 +29,12 @@ class PaymentOrderResponse(BaseModel):
     certificate_request_id: uuid.UUID | None = None
     trainee_id: uuid.UUID
     trainee_name: str | None = None
+    # 결제자 정보 — 회원등급·감리원증번호 (trainee 조인 값)
+    grade_name: str | None = None
+    cert_no: str | None = None
+    # 이 결제로 발급된 문서 — 수와 대표 과정명(다건 '외 N건' 표기용)
+    doc_count: int = 0
+    first_course_name: str | None = None
     amount_krw: int
     currency: str
     status: str
@@ -38,13 +44,22 @@ class PaymentOrderResponse(BaseModel):
     model_config = {"from_attributes": True}
 
     @classmethod
-    def from_orm(cls, o) -> "PaymentOrderResponse":
+    def from_orm(
+        cls,
+        o,
+        doc_count: int = 0,
+        first_course_name: str | None = None,
+    ) -> "PaymentOrderResponse":
         return cls(
             id=o.id,
             order_no=o.order_no,
             certificate_request_id=o.certificate_request_id,
             trainee_id=o.trainee_id,
             trainee_name=decrypt_field(o.trainee.name_encrypted) if o.trainee else None,
+            grade_name=o.trainee.grade.name if o.trainee and o.trainee.grade else None,
+            cert_no=o.trainee.cert_no if o.trainee else None,
+            doc_count=doc_count,
+            first_course_name=first_course_name,
             amount_krw=o.amount_krw,
             currency=o.currency,
             status=o.status,

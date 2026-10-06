@@ -7,6 +7,7 @@ WEB 진위확인 화면이 입력창 하나라 번호 형태로 갈리지 않고
 """
 
 import re
+from decimal import Decimal
 
 from fastapi import Request
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -140,6 +141,19 @@ async def _verify_certificate(db, certificate, _log, now) -> PublicVerificationR
             message="폐기된 확인서예요",
         )
 
+    # 전 멤버가 superseded — 규칙 변경(재발급 무효화 폐지) 전에 만들어진 레거시
+    # 문서. 옛 번호는 무효이고, 재발급 체인 끝의 최신 번호를 안내한다.
+    if all(member.status == "superseded" for member in members):
+        successor_no = await repo.find_latest_bundle_no(db, certificate)
+        await _log("superseded", certificate.id)
+        await db.commit()
+        return PublicVerificationResponse(
+            result="superseded",
+            kind="certificate",
+            certificate_no=successor_no or display_no,
+            message="재발급된 확인서예요. 새 확인서 번호로 조회해 주세요",
+        )
+
     head = members[0]
     result = "valid"
     if head.expires_at is not None and head.expires_at < now:
@@ -153,7 +167,11 @@ async def _verify_certificate(db, certificate, _log, now) -> PublicVerificationR
         certificate_no=display_no,
         issued_name_masked=mask_name(decrypt_field(head.issued_name_encrypted)),
         course_name=head.course_name,
-        total_hours=head.total_hours,
+        # 문서 전체 이수시간 합계 — PDF 합계와 같은 값. course_name 등 나머지
+        # 단건 필드는 첫 행 값(호환 유지), total_hours 만 묶음 합계다.
+        total_hours=sum(
+            (member.total_hours for member in members), Decimal(0)
+        ),
         training_ended_at=head.training_ended_at,
         issued_at=to_kst_date(head.issued_at),
         expires_at=(

@@ -40,7 +40,7 @@ const BOX_DISABLED =
   "has-disabled:border-gray-300 has-disabled:bg-gray-200";
 
 const INPUT_BASE =
-  "w-full min-w-0 flex-1 bg-transparent font-sans text-base leading-normal tracking-[-0.03em] text-gray-800 outline-none placeholder:text-gray-400 focus:text-primary-400 focus:placeholder:text-primary-400";
+  "w-full min-w-0 flex-1 bg-transparent font-sans text-16 leading-normal tracking-[-0.03em] text-gray-800 outline-none placeholder:text-gray-400 focus:text-primary-400 focus:placeholder:text-primary-400";
 
 const INPUT_ERROR =
   "text-red-500 placeholder:text-red-500 focus:text-red-500 focus:placeholder:text-red-500";
@@ -70,7 +70,7 @@ export function TextField({
         <label
           htmlFor={inputId}
           className={cn(
-            "font-sans text-sm leading-normal tracking-[-0.03em] whitespace-nowrap",
+            "font-sans text-14 leading-normal tracking-[-0.03em] whitespace-nowrap",
             error ? "text-red-500" : "text-gray-400",
           )}
         >
@@ -114,7 +114,7 @@ export function TextField({
         <p
           id={describedBy}
           className={cn(
-            "font-sans text-sm leading-normal tracking-[-0.03em]",
+            "font-sans text-14 leading-normal tracking-[-0.03em]",
             error ? "text-red-500" : "text-gray-400",
           )}
         >

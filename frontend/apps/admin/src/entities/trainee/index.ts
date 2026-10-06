@@ -1,6 +1,8 @@
 export * from './model/trainee'
+export * from './model/grade-import'
 export {
   traineeQueries,
+  supervisorGradeQueries,
   membershipGradeQueries,
 } from './api/trainee-queries'
 export { getTraineeList } from './api/get-trainee-list'
@@ -12,6 +14,9 @@ export { postTraineeBulkGrade } from './api/post-trainee-bulk-grade'
 export { postTraineeBulkUpdate } from './api/post-trainee-bulk-update'
 export { postTraineeImportPreview } from './api/post-trainee-import-preview'
 export { postTraineeImportConfirm } from './api/post-trainee-import-confirm'
+export { postTraineeGradeImportPreview } from './api/post-trainee-grade-import-preview'
+export { postTraineeGradeImportConfirm } from './api/post-trainee-grade-import-confirm'
+export { postTraineeGradeImportRematch } from './api/post-trainee-grade-import-rematch'
 export { deleteTrainee } from './api/delete-trainee'
 export { getMembershipGradeList } from './api/get-membership-grade-list'
 export { postMembershipGrade } from './api/post-membership-grade'

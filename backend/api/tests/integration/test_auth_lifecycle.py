@@ -1,10 +1,14 @@
 """통합 — 관리자 인증 라이프사이클: 가입(화이트리스트)·로그인·세션·429."""
 
+from datetime import timedelta
+
 from sqlalchemy import select
 
 from app.core.config import settings
-from app.domain.auth.model import AdminAllowedEmail
-from tests.integration.helpers import member_cookie
+from app.core.kst import now_kst
+from app.core.session import hash_token
+from app.domain.auth.model import AdminAllowedEmail, AdminSession
+from tests.integration.helpers import admin_cookie, member_cookie
 
 
 async def _allow_email(db, email="new@example.com"):
@@ -149,6 +153,48 @@ class TestLoginSession:
             json={"email": "reset@example.com", "password": "wrong-pass1"},
         )
         assert fail.status_code == 401
+
+
+class TestSessionSliding:
+    """슬라이딩 갱신 — 잔여 TTL 절반 이하에서 /api/auth/me 한 번이면 expires_at 리셋."""
+
+    async def _session_row(self, db, token: str) -> AdminSession:
+        return (
+            await db.execute(
+                select(AdminSession).where(AdminSession.token_hash == hash_token(token))
+            )
+        ).scalar_one()
+
+    async def test_fresh_session_not_extended(self, client, db):
+        """잔여가 TTL 절반 초과면 expires_at 그대로 — 매 요청 UPDATE 하지 않는다."""
+        from tests.integration.helpers import make_admin
+
+        _, token = await make_admin(db)
+        await db.commit()
+
+        before = (await self._session_row(db, token)).expires_at
+        me = await client.get("/api/auth/me", cookies=admin_cookie(token))
+        assert me.status_code == 200
+
+        after = (await self._session_row(db, token)).expires_at
+        assert after == before
+
+    async def test_near_expiry_session_extended(self, client, db):
+        """잔여 5h(절반 이하) → /me 호출 시 now+TTL 로 리셋."""
+        from tests.integration.helpers import make_admin
+
+        _, token = await make_admin(db)
+        row = await self._session_row(db, token)
+        row.expires_at = now_kst() + timedelta(hours=5)
+        await db.commit()
+
+        me = await client.get("/api/auth/me", cookies=admin_cookie(token))
+        assert me.status_code == 200
+
+        # 앱 세션이 커밋한 UPDATE 를 이 세션 identity map 캐시가 가리지 않게 만료
+        db.expire_all()
+        after = (await self._session_row(db, token)).expires_at
+        assert after - now_kst() > timedelta(hours=23)
 
 
 class TestDemoLogin:

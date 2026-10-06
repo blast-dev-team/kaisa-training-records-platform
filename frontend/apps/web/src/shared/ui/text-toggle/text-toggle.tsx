@@ -26,9 +26,9 @@ export interface TextToggleProps
 }
 
 const SIZE: Record<TextToggleSize, string> = {
-  l: "gap-2 px-4 py-2 text-xl",
-  m: "gap-2 px-3 py-2 text-base",
-  s: "gap-1 px-2 py-1 text-xs",
+  l: "gap-2 px-4 py-2 text-20",
+  m: "gap-2 px-3 py-2 text-16",
+  s: "gap-1 px-2 py-1 text-12",
 };
 
 /** square 모서리 radius — oval은 rounded-full */

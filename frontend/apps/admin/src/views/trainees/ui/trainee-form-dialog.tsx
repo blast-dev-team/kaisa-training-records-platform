@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
+import { Button } from "@/src/shared/ui/button";
 import { Dialog } from "@/src/shared/ui/dialog";
 import { Input } from "@/src/shared/ui/input";
+import { DateField } from "@/src/shared/ui/date-picker/date-field";
 import { Label } from "@/src/shared/ui/label";
 import { Select } from "@/src/shared/ui/select";
 import {
@@ -17,6 +19,9 @@ import { yearsAgoYMD } from "@/src/shared/utils/format";
 /** 연간 등급 코드 — BE PERIOD_GRADE_CODE 와 일치. 이 등급만 기간(만료일)이 있다 */
 const PERIOD_GRADE_CODE = "annual";
 
+/** 감리원 등급 옵션 — BE SupervisorGrade enum 과 같은 값. 저장 시 서버가 검증한다 */
+const SUPERVISOR_GRADE_OPTIONS = ["미지정", "감리원", "수석감리원"] as const;
+
 interface Props {
   isOpen: boolean;
   onClose: () => void;
@@ -26,13 +31,17 @@ interface Props {
 
 /**
  * 감리원 등록·정보 수정. 성명·생년월일·전화·이메일.
- * 등급 변경은 이력이 남는 GradeChangeDialog 전용 — 신규 등록 시에만 초기 등급을 고른다.
+ * 감리원 등급은 선택값 — 단, 수석감리원증번호를 추가하면 수석감리원으로 고정된다.
+ * 번호를 지우고 저장하면 선택한 등급(기본 감리원)으로 저장된다.
  */
 export function TraineeFormDialog({ isOpen, onClose, trainee }: Props) {
   const queryClient = useQueryClient();
   const [name, setName] = useState("");
   const [certNo, setCertNo] = useState("");
-  const [supervisorGrade, setSupervisorGrade] = useState("");
+  const [showSenior, setShowSenior] = useState(false);
+  const [seniorCertNo, setSeniorCertNo] = useState("");
+  const [seniorCertIssuedDate, setSeniorCertIssuedDate] = useState("");
+  const [supervisorGrade, setSupervisorGrade] = useState("감리원");
   const [birthDate, setBirthDate] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
@@ -48,7 +57,10 @@ export function TraineeFormDialog({ isOpen, onClose, trainee }: Props) {
     if (!isOpen) return;
     setName(trainee?.name ?? "");
     setCertNo(trainee?.certNo ?? "");
-    setSupervisorGrade(trainee?.supervisorGrade ?? "");
+    setShowSenior(trainee?.seniorCertNo != null);
+    setSeniorCertNo(trainee?.seniorCertNo ?? "");
+    setSeniorCertIssuedDate(trainee?.seniorCertIssuedDate ?? "");
+    setSupervisorGrade(trainee?.supervisorGrade ?? "감리원");
     setBirthDate(trainee?.birthDate ?? "");
     setPhone(""); // 전화는 원문 미보유(마스킹만 응답) — 입력 시에만 변경
     setEmail(trainee?.email ?? "");
@@ -57,13 +69,26 @@ export function TraineeFormDialog({ isOpen, onClose, trainee }: Props) {
     setExpiresAt(trainee?.gradeExpiresAt ?? yearsAgoYMD(-1));
   }, [isOpen, trainee]);
 
+  // 저장 시점 유효 수석번호 — 입력칸을 닫으면 제거 의미
+  const effectiveSeniorNo = showSenior ? seniorCertNo.trim() : "";
+  // 수석감리원증번호를 추가하는 동안은 등급이 수석감리원으로 고정된다
+  const effectiveGrade = showSenior ? "수석감리원" : supervisorGrade;
+
+  const handleGradeChange = (v: string) => {
+    // 수석감리원 직접 선택은 수석감리원증번호 추가와 같은 의미 — 입력칸을 연다
+    if (v === "수석감리원") setShowSenior(true);
+    setSupervisorGrade(v);
+  };
+
   const mutation = useMutation({
     mutationFn: () => {
       if (trainee) {
         const input: Parameters<typeof patchTrainee>[1] = {
           name: name.trim(),
           cert_no: certNo.trim() || null,
-          supervisor_grade: supervisorGrade.trim() || null,
+          senior_cert_no: effectiveSeniorNo || null,
+          senior_cert_issued_date: showSenior ? seniorCertIssuedDate || null : null,
+          supervisor_grade: effectiveGrade === "미지정" ? null : effectiveGrade,
           birth_date: birthDate || null,
           email: email.trim() || null,
           memo: memo.trim() || null,
@@ -74,7 +99,9 @@ export function TraineeFormDialog({ isOpen, onClose, trainee }: Props) {
       return postTrainee({
         name: name.trim(),
         cert_no: certNo.trim() || null,
-        supervisor_grade: supervisorGrade.trim() || null,
+        senior_cert_no: effectiveSeniorNo || null,
+        senior_cert_issued_date: showSenior ? seniorCertIssuedDate || null : null,
+        supervisor_grade: effectiveGrade === "미지정" ? null : effectiveGrade,
         birth_date: birthDate || null,
         phone: phone.trim() || undefined,
         email: email.trim() || null,
@@ -119,7 +146,12 @@ export function TraineeFormDialog({ isOpen, onClose, trainee }: Props) {
             <Input value={name} onChange={(e) => setName(e.target.value)} />
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label>감리원증번호</Label>
+            <div className="flex gap-1">
+              <Label>감리원증번호</Label>
+              <span className="text-11 text-ink-3">
+                감리원증번호와 수석감리원증번호를 모두 등록할 수 있어요.
+              </span>
+            </div>
             <Input
               placeholder="예: 정보시스템감리협회 제1361호"
               value={certNo}
@@ -128,15 +160,68 @@ export function TraineeFormDialog({ isOpen, onClose, trainee }: Props) {
           </div>
           <div className="flex flex-col gap-1.5">
             <Label>감리원 등급</Label>
-            <Input
-              placeholder="예: 감리원 / 수석감리원"
-              value={supervisorGrade}
-              onChange={(e) => setSupervisorGrade(e.target.value)}
-            />
+            <Select
+              value={effectiveGrade}
+              disabled={showSenior}
+              onChange={(e) => handleGradeChange(e.target.value)}
+            >
+              {SUPERVISOR_GRADE_OPTIONS.map((g) => (
+                <option key={g} value={g}>
+                  {g}
+                </option>
+              ))}
+            </Select>
+            {showSenior && (
+              <p className="text-11 text-ink-3">
+                수석감리원증번호가 있어 수석감리원으로 고정돼요 — 번호를 제거하면
+                선택할 수 있어요
+              </p>
+            )}
+          </div>
+          <div className="flex flex-col gap-1.5">
+            {showSenior ? (
+              <div className="space-y-1.5 rounded-lg border border-line bg-bg p-3">
+                <div className="flex items-center justify-between">
+                  <Label>수석감리원증번호</Label>
+                  <button
+                    type="button"
+                    className="text-12 text-ink-3 underline-offset-2 hover:underline"
+                    onClick={() => {
+                      setShowSenior(false);
+                      setSupervisorGrade("감리원");
+                    }}
+                  >
+                    제거
+                  </button>
+                </div>
+                <Input
+                  placeholder="수석 감리원증 번호를 입력해 주세요"
+                  value={seniorCertNo}
+                  onChange={(e) => setSeniorCertNo(e.target.value)}
+                />
+                <div className="flex flex-col gap-1.5">
+                  <Label>수석감리원증 발급일</Label>
+                  <DateField
+                    ariaLabel="수석감리원증 발급일"
+                    value={seniorCertIssuedDate}
+                    onChange={setSeniorCertIssuedDate}
+                  />
+                </div>
+                <p className="flex flex-col text-11 text-ink-3">
+                  번호를 입력하면 저장 시 수석감리원 등급으로 변경됩니다.
+                  <br />
+                  지우고 저장하면 감리원등급으로 변경됩니다.
+                </p>
+              </div>
+            ) : (
+              <Button type="button" variant="outline" onClick={() => setShowSenior(true)}>
+                + 수석 감리원증 추가
+              </Button>
+            )}
           </div>
           <div className="flex flex-col gap-1.5">
             <Label>생년월일</Label>
-            <Input type="date" value={birthDate} onChange={(e) => setBirthDate(e.target.value)} />
+            <DateField ariaLabel="생년월일" value={birthDate} onChange={setBirthDate} />
           </div>
         </div>
         <div className="grid grid-cols-2 gap-3">
@@ -148,7 +233,7 @@ export function TraineeFormDialog({ isOpen, onClose, trainee }: Props) {
               onChange={(e) => setPhone(e.target.value)}
             />
             {trainee && (
-              <p className="text-[11px] text-ink-3">
+              <p className="text-11 text-ink-3">
                 보안상 원문은 저장 시 암호화돼요 — 비워 두면 변경 없음
               </p>
             )}
@@ -171,17 +256,13 @@ export function TraineeFormDialog({ isOpen, onClose, trainee }: Props) {
             {isAnnual && (
               <div className="flex flex-col gap-1.5">
                 <Label>만료일</Label>
-                <Input
-                  type="date"
-                  value={expiresAt}
-                  onChange={(e) => setExpiresAt(e.target.value)}
-                />
-                <p className="text-[11px] text-ink-3">
+                <DateField ariaLabel="만료일" value={expiresAt} onChange={setExpiresAt} />
+                <p className="text-11 text-ink-3">
                   만료일이 지나면 자동으로 일반 등급으로 바뀌어요
                 </p>
               </div>
             )}
-            <p className="text-[11px] text-ink-3">
+            <p className="text-11 text-ink-3">
               등급 변경은 교육생 목록의 등급변경으로 — 변경 이력이 남아요
             </p>
           </div>

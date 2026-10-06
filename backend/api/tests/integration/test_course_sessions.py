@@ -50,7 +50,6 @@ class TestCourseSessions:
                 "started_at": "2026-09-01",
                 "ended_at": "2026-09-02",
                 "total_hours": "8",
-                "recognized_hours": "8",
                 "memo": "9월 정기 교육",
             },
             cookies=admin_cookie(token),
@@ -91,7 +90,7 @@ class TestCourseSessions:
         resp = await client.post(
             "/api/course-sessions",
             json={"course_id": str(course.id), "started_at": "2026-09-01",
-                  "recognized_hours": "4"},
+                  "total_hours": "4"},
             cookies=admin_cookie(token),
         )
         session_id = resp.json()["id"]
@@ -154,7 +153,7 @@ class TestCourseSessions:
         resp = await client.post(
             "/api/course-sessions",
             json={"course_id": str(course.id), "started_at": future,
-                  "recognized_hours": "6"},
+                  "total_hours": "6"},
             cookies=admin_cookie(token),
         )
         session_id = resp.json()["id"]
@@ -224,7 +223,7 @@ class TestCourseSessions:
                     "course_id": str(course.id),
                     "started_at": started,
                     "ended_at": "2026-09-05",
-                    "recognized_hours": "4",
+                    "total_hours": "4",
                     "memo": "원래 메모",
                 },
                 cookies=admin_cookie(token),
@@ -237,7 +236,7 @@ class TestCourseSessions:
             "/api/course-sessions/bulk",
             json={
                 "items": [
-                    {"id": ids[0], "started_at": "2026-09-03", "recognized_hours": "8"},
+                    {"id": ids[0], "started_at": "2026-09-03", "total_hours": "8"},
                     {"id": ids[1], "is_active": False},
                 ]
             },

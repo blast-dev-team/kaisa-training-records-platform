@@ -60,3 +60,13 @@ export function yearsAgoYMD(years: number): string {
   d.setFullYear(d.getFullYear() - years)
   return d.toLocaleString('sv-SE').slice(0, 10)
 }
+
+/**
+ * 'YYYY-MM-DD' 날짜에 N일을 더한/뺀 'YYYY-MM-DD' — 로컬(=KST) 기준.
+ * `toISOString()` 사용 금지 — UTC 변환돼 KST 자정 근처에서 하루 밀린다.
+ */
+export function addDaysYMD(ymd: string, days: number): string {
+  const d = new Date(`${ymd}T00:00:00`)
+  d.setDate(d.getDate() + days)
+  return d.toLocaleString('sv-SE').slice(0, 10)
+}

@@ -2,7 +2,11 @@
 
 from sqlalchemy import select
 
-from app.domain.certificate.model import Certificate, CertificateVerificationLog
+from app.domain.certificate.model import (
+    Certificate,
+    CertificateRequest,
+    CertificateVerificationLog,
+)
 from tests.integration.helpers import (
     admin_cookie,
     make_admin,
@@ -122,6 +126,46 @@ class TestVerify:
         verify = await _verify(client, cert.doc_no)
         assert verify.status_code == 200
         assert verify.json()["result"] == "revoked"
+
+    async def test_legacy_superseded_points_to_successor(self, client, db):
+        """규칙 변경 전 superseded 문서 — 무효 응답 + 최신 확인서 번호 안내.
+
+        현행 규칙의 재발급은 이전 문서를 revoked 로 폐기하지만, 규칙이 오가며
+        만들어진 superseded row 는 남아 있다. 그 번호로 조회하면 valid 로
+        둔갑하지 않게 한다(과거 fallback 버그).
+        """
+        cert, token = await _issued_cert(client, db)
+        resp = await client.post(
+            "/api/certificate-requests",
+            json={"training_record_id": str(cert.training_record_id)},
+            cookies=member_cookie(token),
+        )
+        assert resp.status_code == 201, resp.json()
+        successor = (
+            await db.execute(
+                select(Certificate).where(
+                    Certificate.status == "issued",
+                    Certificate.id != cert.id,
+                )
+            )
+        ).scalar_one()
+
+        # 재발급 체인은 레거시 전용 — 현행 API 는 previous 를 세우지 않는다.
+        # 레거시 데이터의 체인을 시뮬레이션한다
+        successor_request = await db.get(
+            CertificateRequest, successor.certificate_request_id
+        )
+        successor_request.previous_certificate_id = cert.id
+        await db.commit()
+
+        # 레거시 데이터 시뮬레이션 — 이전 확인서를 superseded 로 만든다
+        cert.status = "superseded"
+        await db.commit()
+
+        body = (await _verify(client, cert.certificate_no)).json()
+        assert body["result"] == "superseded"
+        assert body["certificate_no"] == successor.bundle_no
+        assert body["message"]
 
 
 class TestLogging:

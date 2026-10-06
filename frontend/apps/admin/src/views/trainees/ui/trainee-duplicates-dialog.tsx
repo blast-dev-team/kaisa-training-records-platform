@@ -41,9 +41,9 @@ export function TraineeDuplicatesDialog({ isOpen, onClose, onEdit }: Props) {
       actions={[{ label: "닫기", onClick: onClose }]}
     >
       {isLoading ? (
-        <p className="p-3 text-[13px] text-ink-3">불러오는 중…</p>
+        <p className="p-3 text-13 text-ink-3">불러오는 중…</p>
       ) : rows.length === 0 ? (
-        <p className="p-3 text-[13px] text-ink-3">중복된 감리원증번호가 없어요</p>
+        <p className="p-3 text-13 text-ink-3">중복된 감리원증번호가 없어요</p>
       ) : (
         <DuplicateGroups
           rows={rows}
@@ -70,25 +70,33 @@ function DuplicateGroups({
   deleteMutation: { isPending: boolean; mutate: (id: string) => void };
   onEdit: (trainee: Trainee) => void;
 }) {
-  const groups = new Map<string, Trainee[]>();
+  // 중복 축이 두 개 — 감리원증번호와 수석감리원증번호 각각에서 중복인 번호로 묶는다.
+  // 한 명이 양쪽 축에서 중복이면 두 그룹에 모두 나타난다
+  const byNo = new Map<string, Trainee[]>();
   for (const t of rows) {
-    const key = t.certNo ?? "";
-    if (!groups.has(key)) groups.set(key, []);
-    groups.get(key)!.push(t);
+    for (const no of [t.certNo, t.seniorCertNo]) {
+      if (!no) continue;
+      const list = byNo.get(no) ?? [];
+      list.push(t);
+      byNo.set(no, list);
+    }
   }
+  const groups = new Map(
+    [...byNo.entries()].filter(([, list]) => list.length > 1),
+  );
 
   return (
     <div className="max-h-72 space-y-3 overflow-y-auto">
       {[...groups.entries()].map(([certNo, trainees]) => (
         <div key={certNo} className="rounded-md border border-line">
-          <p className="border-b border-line bg-bg-2 px-3 py-1.5 text-[12px] font-medium text-ink">
+          <p className="border-b border-line bg-bg-2 px-3 py-1.5 text-12 font-medium text-ink">
             {certNo}
             <span className="ml-1.5 text-ink-3">({trainees.length}명)</span>
           </p>
           {trainees.map((t) => (
             <div
               key={t.id}
-              className="flex items-center gap-2 border-b border-line px-3 py-2 text-[13px] last:border-b-0"
+              className="flex items-center gap-2 border-b border-line px-3 py-2 text-13 last:border-b-0"
             >
               <button
                 type="button"
@@ -96,8 +104,8 @@ function DuplicateGroups({
                 onClick={() => onEdit(t)}
               >
                 <span className="text-ink">{t.name}</span>
-                <span className="text-[11px] text-ink-3">{t.certNo}</span>
-                <span className="ml-auto text-[11px] text-ink-3">
+                <span className="text-11 text-ink-3">{t.certNo}</span>
+                <span className="ml-auto text-11 text-ink-3">
                   {t.birthDate ?? "생년월일 없음"}
                 </span>
               </button>

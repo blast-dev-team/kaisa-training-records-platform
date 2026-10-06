@@ -46,7 +46,7 @@ const MAX_CHIPS = 2;
 
 const TRIGGER_BASE =
   'flex w-full cursor-pointer items-center rounded-xl border px-4 py-3 transition-[background-color,border-color]';
-const TRIGGER_SIZE_S = 'rounded-lg px-3 py-2 text-xs';
+const TRIGGER_SIZE_S = 'rounded-lg px-3 py-2 text-12';
 const TRIGGER_OPEN = 'border-primary-400 bg-gray-100';
 const TRIGGER_CLOSED = 'border-gray-300 bg-gray-100';
 const TRIGGER_DISABLED = 'border-gray-300 bg-gray-200 cursor-not-allowed';
@@ -55,14 +55,14 @@ const MENU_BASE =
   'absolute cursor-pointer top-full z-10 mt-1 flex max-h-72 w-full flex-col gap-1 overflow-y-auto rounded-xl border border-gray-300 bg-white p-1 shadow-[0_4px_12px_0_rgba(16,24,40,0.1)]';
 
 const ITEM_BASE =
-  'flex w-full cursor-pointer items-center gap-2 rounded-lg px-3 py-2 font-sans text-base leading-normal tracking-[-0.03em] text-gray-800';
+  'flex w-full cursor-pointer items-center gap-2 rounded-lg px-3 py-2 font-sans text-16 leading-normal tracking-[-0.03em] text-gray-800';
 const ITEM_SELECTED = 'bg-primary-50';
 const ITEM_HOVER = 'hover:bg-gray-100';
 const ITEM_ACTIVE = 'bg-gray-100';
 const ITEM_DISABLED = 'bg-gray-200 text-gray-400 cursor-not-allowed';
 
 const CHIP_BASE =
-  'flex shrink-0 items-center gap-1 rounded-full border-[0.5px] border-primary-300 bg-primary-100 px-2 py-0.5 font-sans text-xs font-semibold leading-normal tracking-[-0.03em] whitespace-nowrap text-primary-600';
+  'flex shrink-0 items-center gap-1 rounded-full border-[0.5px] border-primary-300 bg-primary-100 px-2 py-0.5 font-sans text-12 font-semibold leading-normal tracking-[-0.03em] whitespace-nowrap text-primary-600';
 
 export function Dropdown({
   options,
@@ -177,7 +177,7 @@ export function Dropdown({
           htmlFor={triggerId}
           className={cn(
             'font-sans leading-normal tracking-[-0.03em] whitespace-nowrap text-gray-400',
-            size === 's' ? 'text-xs' : 'text-sm',
+            size === 's' ? 'text-12' : 'text-14',
           )}
         >
           {label}
@@ -205,7 +205,7 @@ export function Dropdown({
           <span
             className={cn(
               'min-w-0 flex-1 truncate text-left font-sans leading-normal tracking-[-0.03em]',
-              size === 's' ? 'text-xs' : 'text-base',
+              size === 's' ? 'text-12' : 'text-16',
               open ? 'text-gray-800' : 'text-gray-400',
             )}
           >
@@ -238,7 +238,7 @@ export function Dropdown({
           <span
             className={cn(
               'min-w-0 flex-1 truncate text-left font-sans leading-normal tracking-[-0.03em] text-black',
-              size === 's' ? 'text-xs' : 'text-base',
+              size === 's' ? 'text-12' : 'text-16',
             )}
           >
             {labelOf(selectedList[0] ?? '')}

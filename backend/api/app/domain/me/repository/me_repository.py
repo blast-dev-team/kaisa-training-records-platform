@@ -100,14 +100,21 @@ async def find_downloadable_record(
 async def list_my_certificates(
     db: AsyncSession, trainee_id: uuid.UUID
 ) -> list[tuple[Certificate, str]]:
-    """(확인서, issue_type) — issue_type 읔 신청에서 조인해 가져온다."""
+    """(확인서, issue_type) — issue_type 은 신청에서 조인해 가져온다.
+
+    issue_source='admin' 문서는 어드민이 내부적으로 찍어 둔 복사본이라
+    회원 발급내역에서 숨긴다 — 회원이 신청하지 않은 문서다.
+    """
     stmt = (
         select(Certificate, CertificateRequest.issue_type)
         .join(
             CertificateRequest,
             Certificate.certificate_request_id == CertificateRequest.id,
         )
-        .where(Certificate.trainee_id == trainee_id)
+        .where(
+            Certificate.trainee_id == trainee_id,
+            Certificate.issue_source == "member",
+        )
         .order_by(Certificate.issued_at.desc())
     )
     return [tuple(row) for row in (await db.execute(stmt)).all()]

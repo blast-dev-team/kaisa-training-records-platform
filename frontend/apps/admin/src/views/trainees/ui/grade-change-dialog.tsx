@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { Dialog } from "@/src/shared/ui/dialog";
-import { Input } from "@/src/shared/ui/input";
+import { DateField } from "@/src/shared/ui/date-picker/date-field";
 import { Label } from "@/src/shared/ui/label";
 import { Select } from "@/src/shared/ui/select";
 import { Textarea } from "@/src/shared/ui/textarea";
@@ -96,8 +96,8 @@ export function GradeChangeDialog({ trainee, onClose }: Props) {
         {isAnnual && (
           <div className="space-y-1.5">
             <Label>만료일</Label>
-            <Input type="date" value={expiresAt} onChange={(e) => setExpiresAt(e.target.value)} />
-            <p className="text-[12px] text-ink-3">
+            <DateField ariaLabel="만료일" value={expiresAt} onChange={setExpiresAt} />
+            <p className="text-12 text-ink-3">
               만료일 당일까지 유지되고, 지나면 자동으로 일반 등급으로 바뀌어요
             </p>
           </div>

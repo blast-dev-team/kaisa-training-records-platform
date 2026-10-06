@@ -97,7 +97,7 @@ export function LoginPage() {
           <img src={logoMark} alt="KAISA 로고" className="size-50" />
           <div className="flex flex-col items-start">
             <p className="text-[30px] font-semibold tracking-tight">KAISA 관리자콘솔</p>
-            <p className="text-[20px] text-white/70">교육내역 관리</p>
+            <p className="text-20 text-white/70">교육내역 관리</p>
           </div>
         </div>
       </div>
@@ -106,23 +106,23 @@ export function LoginPage() {
         <div className="w-full max-w-sm">
           <div className="login-mobile-logo mb-8 flex items-center gap-2 text-ink">
             <ShieldCheck className="size-7 text-accent" strokeWidth={1.5} />
-            <span className="text-lg font-semibold">KAISA 관리자콘솔</span>
+            <span className="text-18 font-semibold">KAISA 관리자콘솔</span>
           </div>
 
-          <h1 className="text-2xl font-semibold tracking-tight text-ink">
+          <h1 className="text-24 font-semibold tracking-tight text-ink">
             {mode === "login" ? "로그인" : "관리자 가입"}
           </h1>
-          <p className="mt-2 text-sm text-ink-3">
+          <p className="mt-2 text-14 text-ink-3">
             {mode === "login"
               ? "관리자 계정으로 로그인하세요"
               : "초대받은 이메일로만 가입할 수 있어요"}
           </p>
 
           {notice && (
-            <p className="mt-4 rounded-md bg-ok-soft px-3 py-2 text-sm text-ok">{notice}</p>
+            <p className="mt-4 rounded-md bg-ok-soft px-3 py-2 text-14 text-ok">{notice}</p>
           )}
           {error && (
-            <p className="mt-4 rounded-md bg-danger-soft px-3 py-2 text-sm text-danger">{error}</p>
+            <p className="mt-4 rounded-md bg-danger-soft px-3 py-2 text-14 text-danger">{error}</p>
           )}
 
           <form onSubmit={handleSubmit} noValidate className="mt-6 space-y-4">
@@ -188,7 +188,7 @@ export function LoginPage() {
             </Button>
           </form>
 
-          <p className="mt-6 text-center text-sm text-ink-3">
+          <p className="mt-6 text-center text-14 text-ink-3">
             {mode === "login" ? (
               <>
                 초대를 받았다면{" "}

@@ -43,7 +43,7 @@ describe("Radio", () => {
     const { wrapper, dot, text } = getParts("월간");
     expect(wrapper.className).toContain("size-[18px]");
     expect(dot.className).toContain("size-[10px]");
-    expect(text?.className).toContain("text-xs");
+    expect(text?.className).toContain("text-12");
   });
 
   it("미선택 텍스트는 gray-800, disabled면 gray-300", () => {

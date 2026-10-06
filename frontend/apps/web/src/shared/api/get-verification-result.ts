@@ -3,6 +3,7 @@
  * POST /api/public/certificate-verifications — 진위확인 ID 는 확인서 번호(certificate_no).
  * 성명은 폼 입력만 있을 뿐 서버가 검증하지 않는다 (데모 단계 — 이름 일치와 무관하게 확인 가능).
  * 결과는 유효(valid)만 상세를 노출하고 expired·revoked·not_found 는 확인 불가로 처리한다.
+ * superseded(재발급된 레거시 문서)는 확인 불가이되 새 확인서 번호(successorNo)를 안내한다.
  */
 
 /** 묶음 확인서의 교육이력 1행 — 확인서에 인쇄된 정보만 서버가 공개한다 */
@@ -17,6 +18,10 @@ export type VerificationKind = 'certificate' | 'completion_certificate';
 export interface VerificationResult {
   /** 진위확인 결과 — true면 유효한 문서 */
   isValid: boolean;
+  /** 확인 불가 사유 서버 메시지 — valid 면 빈값 */
+  message: string;
+  /** 재발급(superseded) 안내용 — 최신 문서의 확인서 번호, 그 외 null */
+  successorNo: string | null;
   /** 문서 종류 */
   kind: VerificationKind;
   /** 성명 (마스킹된 값, 예: 홍○○) */
@@ -87,10 +92,14 @@ function todayYMD(): string {
 }
 
 function toResult(dto: PublicVerificationDto): VerificationResult {
-  // 유효한 확인서만 상세 노출 — expired·revoked·not_found 는 확인 불가 화면
+  // 유효한 확인서만 상세 노출 — expired·revoked·superseded·not_found 는 확인 불가 화면
   if (dto.result !== "valid") {
     return {
       isValid: false,
+      // 재발급(superseded) 은 사유와 새 번호를 안내한다 — 나머지는 확인 불가만
+      message: dto.message ?? "",
+      successorNo:
+        dto.result === "superseded" ? (dto.certificate_no ?? null) : null,
       kind: dto.kind ?? "certificate",
       applicantName: "",
       certificateNumber: "",
@@ -120,6 +129,8 @@ function toResult(dto: PublicVerificationDto): VerificationResult {
       dto.completed_hours != null ? Number(dto.completed_hours) : null;
     return {
       isValid: true,
+      message: "",
+      successorNo: null,
       kind,
       applicantName: dto.issued_name_masked ?? "",
       certificateNumber: dto.certificate_no ?? "",
@@ -136,25 +147,33 @@ function toResult(dto: PublicVerificationDto): VerificationResult {
           : period,
     };
   }
+  const records = (dto.records ?? []).map((record) => {
+    const recordHours = Number(record.total_hours);
+    return {
+      courseName: record.course_name,
+      hoursSummary: Number.isNaN(recordHours)
+        ? ""
+        : `${recordHours}시간 (${formatYMD(record.training_ended_at)})`,
+    };
+  });
   return {
     isValid: true,
+    message: "",
+    successorNo: null,
     kind,
     applicantName: dto.issued_name_masked ?? "",
     certificateNumber: dto.certificate_no ?? "",
     courseName: dto.course_name ?? "",
+    // 묶음이면 서버가 내려준 전체 합계만(각 행에 일자 표기) — 단건은 시간(일자)
     completionSummary:
-      hours != null ? `${hours}시간 (${formatYMD(dto.training_ended_at)})` : "",
+      hours == null
+        ? ""
+        : records.length > 1
+          ? `${hours}시간`
+          : `${hours}시간 (${formatYMD(dto.training_ended_at)})`,
     issuedAt: formatYMD(dto.issued_at),
     queriedAt: todayYMD(),
-    records: (dto.records ?? []).map((record) => {
-      const recordHours = Number(record.total_hours);
-      return {
-        courseName: record.course_name,
-        hoursSummary: Number.isNaN(recordHours)
-          ? ""
-          : `${recordHours}시간 (${formatYMD(record.training_ended_at)})`,
-      };
-    }),
+    records,
     birthDate: "",
     sessionName: "",
     periodSummary: "",
@@ -164,11 +183,13 @@ function toResult(dto: PublicVerificationDto): VerificationResult {
 export async function getVerificationResult(
   params: VerificationLookupParams,
 ): Promise<VerificationResult> {
+  // 번호에 섞인 공백은 전부 제거 — 'CERT - 20260929 - 95' 도 같은 번호로 본다
+  const verificationId = params.verificationId.replace(/\s+/g, "");
   const response = await fetch(`${API_BASE}/api/public/certificate-verifications`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      certificate_no: params.verificationId,
+      certificate_no: verificationId,
       doc_type: params.docType,
     }),
   });

@@ -38,7 +38,12 @@ async def list_institutions(
     if is_active is not None:
         stmt = stmt.where(TrainingInstitution.is_active == is_active)
         count_stmt = count_stmt.where(TrainingInstitution.is_active == is_active)
-    if institution_type:
+    if institution_type == "none":
+        # 구분 미선택(null)만 보기 — FE 필터의 '미선택' 옵션
+        null_cond = TrainingInstitution.institution_type.is_(None)
+        stmt = stmt.where(null_cond)
+        count_stmt = count_stmt.where(null_cond)
+    elif institution_type:
         stmt = stmt.where(TrainingInstitution.institution_type == institution_type)
         count_stmt = count_stmt.where(
             TrainingInstitution.institution_type == institution_type

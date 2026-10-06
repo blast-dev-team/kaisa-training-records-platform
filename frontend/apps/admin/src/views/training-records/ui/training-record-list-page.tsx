@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
@@ -11,10 +11,12 @@ import { FilterBar, FilterRow } from "@/src/shared/ui/filter-bar";
 import { PageContainer } from "@/src/shared/ui/page-container";
 import { PageHead } from "@/src/shared/ui/page-head";
 import { SearchableSelect, fetchOptions } from "@/src/shared/ui/searchable-select";
-import { Input } from "@/src/shared/ui/input";
+import { DateField } from "@/src/shared/ui/date-picker/date-field";
+import { adjustDateRange } from "@/src/shared/utils/date-range";
+import { SearchInput } from "@/src/shared/ui/search-input";
 import { Select } from "@/src/shared/ui/select";
 import { cn } from "@/src/shared/utils/cn";
-import { formatNumber, todayYMD, yearsAgoYMD } from "@/src/shared/utils/format";
+import { formatNumber, toYMD, todayYMD, yearsAgoYMD } from "@/src/shared/utils/format";
 import {
   deleteTrainingRecord,
   deleteTrainingRecordBulk,
@@ -50,7 +52,7 @@ type PeriodChip = (typeof PERIOD_CHIPS)[number]["key"];
 const traineeOptionsFetcher = fetchOptions("/trainees", {}, (t) => ({
   value: t.id as string,
   label: t.name as string,
-  hint: (t.trainee_no as string | null) ?? undefined,
+  hint: (t.cert_no as string | null) ?? (t.trainee_no as string | null) ?? undefined,
 }));
 
 export function TrainingRecordListPage() {
@@ -89,9 +91,9 @@ export function TrainingRecordListPage() {
   const [selected, setSelected] = useState<Map<string, TrainingRecord>>(new Map());
   const [previewRecords, setPreviewRecords] = useState<TrainingRecord[] | null>(null);
   // 수료증 발급 — 발급 응답(번호 포함)으로 미리보기 모달
-  const [issuedCertificates, setIssuedCertificates] = useState<
-    CompletionCertificate[] | null
-  >(null);
+  const [issuedCertificates, setIssuedCertificates] = useState<CompletionCertificate[] | null>(
+    null,
+  );
   // 일괄 수정 모달 — 체크박스 선택분. 저장 성공 시 선택 해제
   const [bulkEditOpen, setBulkEditOpen] = useState(false);
   const [bulkEditRecords, setBulkEditRecords] = useState<TrainingRecord[]>([]);
@@ -120,6 +122,11 @@ export function TrainingRecordListPage() {
       return next;
     });
   }, []);
+
+  // 검색·필터가 바뀌면 행 집합의 의미가 달라진다 — 안 보이는 내역이 남지 않게 선택 해제
+  useEffect(() => {
+    setSelected(new Map());
+  }, [traineeId, source, status, q, from, to, period, sort]);
 
   /** 선택된 교육생 이름 — 옵션 목록에 없어도 드롭다운에 표시 */
   const { data: selectedTrainee } = useQuery({
@@ -155,10 +162,16 @@ export function TrainingRecordListPage() {
 
   // 수료증 발급 — 서버에 문서 생성(번호 채번) → 응답으로 미리보기 모달
   const issueCompletionMutation = useMutation({
-    mutationFn: (ids: string[]) =>
-      postCompletionCertificatesIssue({ training_record_ids: ids }),
+    mutationFn: (ids: string[]) => postCompletionCertificatesIssue({ training_record_ids: ids }),
     onSuccess: (certificates) => {
       setIssuedCertificates(certificates);
+      // 발급이 확정된 내역은 선택에서 뺀다 — 일괄 발급이면 선택이 비고,
+      // 행 단건 발급은 선택하지 않은 다른 행을 건드리지 않는다
+      setSelected((prev) => {
+        const next = new Map(prev);
+        for (const cert of certificates) next.delete(cert.trainingRecordId);
+        return next;
+      });
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -250,10 +263,11 @@ export function TrainingRecordListPage() {
         ),
       },
       {
-        id: "supervisorCertNo",
+        // 감리원증 번호 — trainee 조인 값(현재 값). record 스냅샷 컬럼은 레거시
+        id: "traineeCertNo",
         header: "자격증번호",
         meta: { width: 200 },
-        cell: ({ row }) => row.original.supervisorCertNo ?? "—",
+        cell: ({ row }) => row.original.traineeCertNo ?? "—",
       },
       {
         accessorKey: "traineeBirthDate",
@@ -283,6 +297,12 @@ export function TrainingRecordListPage() {
         },
       },
       {
+        id: "createdAt",
+        header: "등록일",
+        meta: { width: 110 },
+        cell: ({ row }) => toYMD(row.original.createdAt) ?? "—",
+      },
+      {
         id: "actions",
         header: "",
         // PDF·수료증 아이콘 버튼 각 ~68px + 수정·삭제 각 48px + gap 18px + 셀 패딩 32px = 262px — 그래서 270.
@@ -305,11 +325,7 @@ export function TrainingRecordListPage() {
                 variant="ghost"
                 size="sm"
                 disabled={!eligible}
-                title={
-                  eligible
-                    ? undefined
-                    : "사내 기관의 수료 완료 내역만 발급할 수 있어요"
-                }
+                title={eligible ? undefined : "사내 기관의 수료 완료 내역만 발급할 수 있어요"}
                 onClick={(e) => {
                   e.stopPropagation();
                   issueCompletionMutation.mutate([row.original.id]);
@@ -370,7 +386,7 @@ export function TrainingRecordListPage() {
                 setFormOpen(true);
               }}
             >
-              <Plus className="size-4" /> 이력 등록
+              <Plus className="size-4" /> 내역 등록
             </Button>
           </div>
         }
@@ -389,8 +405,8 @@ export function TrainingRecordListPage() {
             queryKeyPrefix={["options", "trainees"]}
             // 동명이인 구분 — 선택 후에도 어떤 감리원인지 번호로 보이게
             selectedLabel={
-              selectedTrainee?.traineeNo
-                ? `${selectedTrainee.name} (${selectedTrainee.traineeNo})`
+              selectedTrainee?.certNo
+                ? `${selectedTrainee.name} (${selectedTrainee.certNo})`
                 : selectedTrainee?.name
             }
           />
@@ -403,11 +419,12 @@ export function TrainingRecordListPage() {
               updateParams({ q: searchInput.trim() || null });
             }}
           >
-            <Input
+            <SearchInput
               className="w-64"
-              placeholder="과정명 · 기관명 · 감리원 성명(전체)"
+              placeholder="과정명 · 기관명"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
+              onClear={() => updateParams({ q: null })}
             />
             <Button type="submit" variant="secondary" size="sm">
               검색
@@ -416,7 +433,7 @@ export function TrainingRecordListPage() {
         </FilterRow>
         <FilterRow label="구분">
           <Select
-            className="w-32"
+            className="w-36"
             value={source}
             onChange={(e) => updateParams({ source: e.target.value || null })}
           >
@@ -430,9 +447,11 @@ export function TrainingRecordListPage() {
         </FilterRow>
         <FilterRow label="정렬">
           <Select
-            className="w-32"
+            className="w-36"
             value={sort}
-            onChange={(e) => updateParams({ sort: e.target.value === "registration" ? e.target.value : null })}
+            onChange={(e) =>
+              updateParams({ sort: e.target.value === "registration" ? e.target.value : null })
+            }
           >
             <option value="period">수강기간순</option>
             <option value="registration">등록순</option>
@@ -441,19 +460,26 @@ export function TrainingRecordListPage() {
         <FilterRow label="기간">
           <div className="flex flex-wrap items-center gap-2">
             <div className="flex items-center gap-1.5">
-              <Input
-                type="date"
+              <DateField
+                ariaLabel="시작일"
                 className="w-36"
                 value={effFrom}
-                onChange={(e) => updateParams({ from: e.target.value || null, period: null })}
+                onChange={(v) => {
+                  const r = adjustDateRange({ from: effFrom, to: effTo }, "from", v);
+                  updateParams({ from: r.from || null, to: r.to || null, period: null });
+                }}
+                maxDate={effTo || undefined}
               />
               <span className="text-ink-3">~</span>
-              <Input
-                type="date"
+              <DateField
+                ariaLabel="종료일"
                 className="w-36"
                 value={effTo}
-                min={effFrom || undefined}
-                onChange={(e) => updateParams({ to: e.target.value || null, period: null })}
+                onChange={(v) => {
+                  const r = adjustDateRange({ from: effFrom, to: effTo }, "to", v);
+                  updateParams({ from: r.from || null, to: r.to || null, period: null });
+                }}
+                minDate={effFrom || undefined}
               />
             </div>
             {/* 조회기간 칩 — 직접 지정 시 칩은 해제 (web 교육이력과 동일) */}
@@ -473,7 +499,7 @@ export function TrainingRecordListPage() {
                       })
                     }
                     className={cn(
-                      "cursor-pointer rounded-md px-3 py-1.5 text-[13px] font-medium whitespace-nowrap transition-colors",
+                      "cursor-pointer rounded-md px-3 py-1.5 text-13 font-medium whitespace-nowrap transition-colors",
                       active
                         ? "bg-ink text-white"
                         : "border border-line bg-panel text-ink-2 hover:text-ink",
@@ -492,10 +518,10 @@ export function TrainingRecordListPage() {
           서버가 2026-09-01 이후 실등록분만 내려주므로 그 사실을 그대로 알려준다 */}
       {sort === "registration" && (
         <div className="flex w-full items-start rounded-md border-l-4 border-solid border-accent bg-accent-soft px-4 py-2.5">
-          <p className="flex-1 text-[13px] leading-[1.6] text-ink-2">
+          <p className="flex-1 text-13 leading-[1.6] text-ink-2">
             등록순은 <b className="font-semibold text-ink">2026년 9월 이후 등록된 내역</b>만
-            보여줘요 — 그 이전 데이터는 시스템 이관으로 일괄 등록되어 실제 등록 순서가 없어요.
-            이관 데이터는 수강기간순으로 확인해 주세요.
+            보여줘요 — 그 이전 데이터는 시스템 이관으로 일괄 등록되어 실제 등록 순서가 없어요. 이관
+            데이터는 수강기간순으로 확인해 주세요.
           </p>
         </div>
       )}
@@ -503,15 +529,15 @@ export function TrainingRecordListPage() {
       {/* 총 수료시간 — 교육생 필터가 있을 때만. 없으면 전체 교육생 합계라 의미가 없다 (레거시 총계 위치) */}
       {traineeId && (
         <div className="mb-1 flex items-baseline gap-1.5">
-          <span className="text-sm text-ink-2">총 수료시간</span>
-          <span className="text-sm font-semibold text-ink">{formatNumber(hoursSum)}</span>
-          <span className="text-sm text-ink-2">시간</span>
+          <span className="text-14 text-ink-2">총 수료시간</span>
+          <span className="text-14 font-semibold text-ink">{formatNumber(hoursSum)}</span>
+          <span className="text-14 text-ink-2">시간</span>
         </div>
       )}
 
       {selected.size > 0 && (
         <div className="mb-4 flex items-center gap-2 rounded-lg border border-line bg-panel px-4 py-2.5">
-          <span className="text-sm text-ink-2">선택 {selected.size}건</span>
+          <span className="text-14 text-ink-2">선택 {selected.size}건</span>
           <span className="flex-1" />
           <Button variant="ghost" size="sm" onClick={() => setSelected(new Map())}>
             선택 해제
@@ -540,9 +566,7 @@ export function TrainingRecordListPage() {
             onClick={() => {
               const excluded = selected.size - eligibleRecords.length;
               if (excluded > 0) {
-                toast.info(
-                  `사내 기관 수료 완료 건만 발급해요 — ${excluded}건은 제외했어요`,
-                );
+                toast.info(`사내 기관 수료 완료 건만 발급해요 — ${excluded}건은 제외했어요`);
               }
               issueCompletionMutation.mutate(eligibleRecords.map((r) => r.id));
             }}
@@ -586,6 +610,13 @@ export function TrainingRecordListPage() {
         isOpen={previewRecords !== null}
         onClose={() => setPreviewRecords(null)}
         records={previewRecords ?? []}
+        onDownloaded={(ids) =>
+          setSelected((prev) => {
+            const next = new Map(prev);
+            for (const id of ids) next.delete(id);
+            return next;
+          })
+        }
       />
 
       <CompletionCertificateModal

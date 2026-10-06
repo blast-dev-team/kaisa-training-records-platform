@@ -35,10 +35,10 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const SIZE: Record<ButtonSize, string> = {
-  l: "px-4 py-4 text-base gap-2 rounded-xl",
-  m: "px-4 py-3 text-base gap-2 rounded-xl",
-  s: "px-4 py-2 text-xs gap-1.5 rounded-lg",
-  xs: "px-2 py-1 text-xs gap-1 rounded-lg",
+  l: "px-4 py-4 text-16 gap-2 rounded-xl",
+  m: "px-4 py-3 text-16 gap-2 rounded-xl",
+  s: "px-4 py-2 text-12 gap-1.5 rounded-lg",
+  xs: "px-2 py-1 text-12 gap-1 rounded-lg",
 };
 
 const ICON_ONLY_SIZE: Record<ButtonSize, string> = {

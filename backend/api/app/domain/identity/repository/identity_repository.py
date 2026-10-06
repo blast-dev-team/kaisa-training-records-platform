@@ -47,12 +47,21 @@ async def find_review_by_id(
     return result.scalar_one_or_none()
 
 
+# 정렬 화이트리스트 — 신청일시 / 처리일시만 허용
+REVIEW_SORT_FIELDS = {
+    "created_at": IdentityReview.created_at,
+    "reviewed_at": IdentityReview.reviewed_at,
+}
+
+
 async def list_reviews(
     db: AsyncSession,
     status: str | None = None,
     search: str | None = None,
     page: int = 1,
     limit: int = 20,
+    sort: str = "created_at",
+    order: str = "desc",
 ) -> tuple[list[IdentityReview], int]:
     stmt = select(IdentityReview)
     count_stmt = select(func.count()).select_from(IdentityReview)
@@ -73,8 +82,12 @@ async def list_reviews(
         count_stmt = count_stmt.where(cond)
 
     total = (await db.execute(count_stmt)).scalar_one()
+    col = REVIEW_SORT_FIELDS.get(sort, IdentityReview.created_at)
+    dir = col.asc() if order == "asc" else col.desc()
     stmt = (
-        stmt.order_by(IdentityReview.created_at.desc())
+        # nulls_last — 처리일시 미정(null) 건이 asc 에서 맨 앞으로 오는 것 방지
+        # id tiebreaker — 같은 초에 생성된 건의 순서 고정 (페이지네이션 안정화)
+        stmt.order_by(dir.nulls_last(), IdentityReview.id.desc())
         .offset((page - 1) * limit)
         .limit(limit)
     )

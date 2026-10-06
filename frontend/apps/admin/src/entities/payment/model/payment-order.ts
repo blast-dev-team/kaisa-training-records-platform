@@ -15,6 +15,10 @@ export interface PaymentOrder {
   certificateRequestId: string | null;
   traineeId: string;
   traineeName: string | null;
+  gradeName: string | null;
+  certNo: string | null;
+  docCount: number;
+  firstCourseName: string | null;
   amountKrw: number;
   currency: string;
   status: PaymentStatus;

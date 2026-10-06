@@ -26,14 +26,14 @@ export function Footer({ className }: FooterProps) {
       )}
     >
       <div className="mx-auto flex w-full max-w-[1400px] flex-col items-center justify-center gap-4 px-20 py-8 mobile:px-5">
-        <nav className="flex w-full flex-wrap items-center justify-center gap-x-8 gap-y-2 text-sm whitespace-nowrap text-gray-600">
+        <nav className="flex w-full flex-wrap items-center justify-center gap-x-8 gap-y-2 text-14 whitespace-nowrap text-gray-600">
           {FOOTER_LINKS.map((link) => (
             <Link key={link.label} to={link.to} className="shrink-0 hover:text-ink">
               {link.label}
             </Link>
           ))}
         </nav>
-        <p className="shrink-0 text-[13px] mobile:text-[12px] text-gray-400">
+        <p className="shrink-0 text-13 mobile:text-12 text-gray-400">
           Copyright © 2025 (사)정보시스템감리협회. All Rights Reserved.
         </p>
       </div>

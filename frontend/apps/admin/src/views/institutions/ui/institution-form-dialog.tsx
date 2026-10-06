@@ -102,11 +102,11 @@ export function InstitutionFormDialog({ isOpen, onClose, institution }: Props) {
             <option value="internal">사내</option>
             <option value="external">외부</option>
           </Select>
-          <p className="text-xs text-ink-3">
+          <p className="text-12 text-ink-3">
             사내 기관의 수료내역만 수료증 발급이 가능해요
           </p>
         </div>
-        <label className="flex items-center gap-2 text-[13px] text-ink-2">
+        <label className="flex items-center gap-2 text-13 text-ink-2">
           <input
             type="checkbox"
             className="size-4 accent-[--color-accent]"

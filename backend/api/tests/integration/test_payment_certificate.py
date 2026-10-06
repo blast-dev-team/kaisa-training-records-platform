@@ -1,4 +1,4 @@
-"""통합 — 확인서 신청 → 결제 confirm → 발급 + 웹훅 멱급 + 재발급."""
+"""통합 — 확인서 신청 → 결제 confirm → 발급 + 웹훅 멱등 + 반복 발급."""
 
 import hashlib
 import hmac
@@ -34,10 +34,10 @@ async def _member(db, *, price=0):
     return trainee, record, token
 
 
-async def _request(client, token, record_id, issue_type="original"):
+async def _request(client, token, record_id):
     return await client.post(
         "/api/certificate-requests",
-        json={"training_record_id": str(record_id), "issue_type": issue_type},
+        json={"training_record_id": str(record_id)},
         cookies=member_cookie(token),
     )
 
@@ -240,80 +240,46 @@ class TestWebhook:
         assert resp.json() == {"ok": True, "order_found": False}
 
 
-class TestReissue:
-    async def test_original_blocked_after_issue(self, client, db):
+class TestRepeatIssue:
+    """재발급 폐지(2026-09-30 기획 변경) — 같은 이력도 매번 결제 발급한다."""
+
+    async def test_repeat_issue_allowed_after_issue(self, client, db):
+        """기발급 이력 재신청 — 차단되지 않고 새 문서로 발급된다(0원 등급)."""
         _, record, token = await _member(db)
         await _request(client, token, record.id)
         again = await _request(client, token, record.id)
-        assert again.status_code == 409
-        assert again.json()["code"] == "CERTIFICATE_ALREADY_ISSUED"
+        assert again.status_code == 201, again.json()
+        assert again.json()["status"] == "issued"
+        assert again.json()["amount_krw"] == 0
 
-    async def _backdate_last_issue(self, db, days: int) -> None:
-        """직전 발급일을 N일 전으로 — 무료 재발급 기간(7일) 경과를 시뮬레이션."""
-        from datetime import timedelta
-
-        from app.core.kst import now_kst
-
-        certs = (await db.execute(select(Certificate))).scalars().all()
-        for cert in certs:
-            cert.issued_at = now_kst() - timedelta(days=days)
-        await db.commit()
-
-    async def test_reissue_free_within_seven_days(self, client, db):
-        """직전 발급 7일 이내 — 재발급 0원, 결제 없이 즉시 발급."""
-        _, record, token = await _member(db)
-        await _request(client, token, record.id)  # 최초 0원 발급 — 지금 막 발급됨
-
-        reissue = await _request(client, token, record.id, issue_type="reissue")
-        assert reissue.status_code == 201
-        assert reissue.json()["status"] == "issued"
-        assert reissue.json()["amount_krw"] == 0
-        assert reissue.json()["order_no"] is None
-
-    async def test_reissue_supersedes_original(self, client, db, monkeypatch):
+    async def test_repeat_issue_keeps_previous_valid(self, client, db, monkeypatch):
         async def fake_get(payment_id):
             return portone_payment(payment_id, total=5000)
 
         monkeypatch.setattr(portone, "get_payment", fake_get)
         _, record, token = await _member(db, price=5000)
 
-        # 최초 유료 발급 — 결제까지 완료
-        first = await _request(client, token, record.id)
-        assert first.status_code == 201
-        assert first.json()["status"] == "payment_pending"
-        first_confirm = await client.post(
-            f"/api/payments/{first.json()['order_no']}/confirm",
-            cookies=member_cookie(token),
-        )
-        assert first_confirm.status_code == 200
-
-        await self._backdate_last_issue(db, days=8)  # 무료 기간(7일) 경과
-
-        reissue = await _request(client, token, record.id, issue_type="reissue")
-        assert reissue.status_code == 201
-        assert reissue.json()["status"] == "payment_pending"
-        order_no = reissue.json()["order_no"]
-
-        confirm = await client.post(
-            f"/api/payments/{order_no}/confirm", cookies=member_cookie(token)
-        )
-        assert confirm.status_code == 200
+        for _ in range(2):
+            first = await _request(client, token, record.id)
+            assert first.status_code == 201
+            confirm = await client.post(
+                f"/api/payments/{first.json()['order_no']}/confirm",
+                cookies=member_cookie(token),
+            )
+            assert confirm.status_code == 200
 
         certs = (
             (await db.execute(select(Certificate).order_by(Certificate.issued_at)))
             .scalars()
             .all()
         )
-        statuses = sorted(c.status for c in certs)
-        assert statuses == ["issued", "superseded"]
-        # 재발급 cert 가 issued
-        issued = next(c for c in certs if c.status == "issued")
-        assert issued.certificate_no != certs[0].certificate_no
+        # 환불 전까지 발급된 문서는 모두 유효 — 이전 건을 폐기하지 않는다
+        assert [c.status for c in certs] == ["issued", "issued"]
+        assert certs[0].certificate_no != certs[1].certificate_no
 
         mine = await client.get("/api/me/certificates", cookies=member_cookie(token))
-        issue_types = {c["issue_type"]: c["status"] for c in mine.json()}
-        assert issue_types["original"] == "superseded"
-        assert issue_types["reissue"] == "issued"
+        assert len(mine.json()) == 2
+        assert {c["issue_type"] for c in mine.json()} == {"original"}
 
 
 class TestBatchFlow:
@@ -401,8 +367,8 @@ class TestBatchFlow:
         assert resp.status_code == 422
         assert resp.json()["code"] == "VALIDATION_ERROR"
 
-    async def test_mixed_free_reissue_groups_into_one_order(self, client, db, monkeypatch):
-        """유료 신규 발급 + 7일 내 무료 재발급 혼합 — 주문 금액은 유료분만."""
+    async def test_batch_over_issued_records_charges_once(self, client, db, monkeypatch):
+        """기발급 이력을 포함한 배치 — 재발급 개념 없이 전 건 유료, 주문 1개."""
         async def fake_get(payment_id):
             return portone_payment(payment_id, total=5000)
 
@@ -411,7 +377,7 @@ class TestBatchFlow:
         record_b = await make_record(db, trainee.id, record_no="TRN-PAY-0005")
         await db.commit()
 
-        # record_b 를 먼저 발급 → 지금 막 발급됐으니 재발급은 무료
+        # record_b 를 먼저 발급 — 이후 배치에 다시 들어가면 유료 재발급분
         first = await _request(client, token, record_b.id)
         assert first.status_code == 201
         confirm_first = await client.post(
@@ -420,17 +386,13 @@ class TestBatchFlow:
         )
         assert confirm_first.status_code == 200
 
-        resp = await self._batch(
-            client,
-            token,
-            [(record_a.id, "original"), (record_b.id, "reissue")],
-        )
+        resp = await self._batch(client, token, [record_a.id, record_b.id])
         assert resp.status_code == 201, resp.json()
         requests = resp.json()
         by_record = {r["training_record_id"]: r for r in requests}
         assert by_record[str(record_a.id)]["amount_krw"] == 5000
-        assert by_record[str(record_b.id)]["amount_krw"] == 0  # 무료 재발급
-        # 주문은 하나 — 유료분 5,000원만 청구
+        assert by_record[str(record_b.id)]["amount_krw"] == 5000
+        # 주문은 하나 — 단가 1회만 청구
         assert requests[0]["order_no"] == requests[1]["order_no"]
 
         confirm = await client.post(
@@ -482,7 +444,7 @@ class TestDemoRecordIssuance:
         assert resp.json()["status"] == "issued"
 
     async def test_issuance_scoped_per_trainee(self, client, db):
-        """A가 발급한 데모 이력도 B가 발급할 수 있다 — active cert 는 회원별."""
+        """A가 발급한 데모 이력도 B가 발급할 수 있다 — 발급은 회원별 문서."""
         record, token_a, token_b = await self._setup_demo(db)
         first = await _request(client, token_a, record.id)
         assert first.status_code == 201
@@ -490,13 +452,13 @@ class TestDemoRecordIssuance:
         second = await _request(client, token_b, record.id)
         assert second.status_code == 201, second.json()
 
-        # A의 무료 재발급은 A의 직전 발급 기준 — B 발급과 무관
-        reissue = await _request(client, token_a, record.id, issue_type="reissue")
-        assert reissue.status_code == 201
-        assert reissue.json()["amount_krw"] == 0
+        # A가 다시 발급해도 A/B 각자의 문서로 유효하다
+        third = await _request(client, token_a, record.id)
+        assert third.status_code == 201
+        assert third.json()["amount_krw"] == 0
 
     async def test_me_records_reflect_certificate_status(self, client, db):
-        """교육이력 목록 — 발급 전 issuable, 발급 후 reissuable + 무료 기한."""
+        """교육이력 목록 — 발급 전후 모두 issuable, 기발급분은 last_issued_at."""
         record, token_a, _ = await self._setup_demo(db)
 
         before = await client.get(
@@ -504,6 +466,7 @@ class TestDemoRecordIssuance:
         )
         items = {i["id"]: i for i in before.json()["items"]}
         assert items[str(record.id)]["certificate_status"] == "issuable"
+        assert items[str(record.id)]["last_issued_at"] is None
 
         await _request(client, token_a, record.id)
 
@@ -511,8 +474,9 @@ class TestDemoRecordIssuance:
             "/api/me/training-records", cookies=member_cookie(token_a)
         )
         items = {i["id"]: i for i in after.json()["items"]}
-        assert items[str(record.id)]["certificate_status"] == "reissuable"
-        assert items[str(record.id)]["reissue_free_until"] is not None
+        # 재발급 개념 폐지 — 기발급 이력도 issuable(매번 결제 발급)
+        assert items[str(record.id)]["certificate_status"] == "issuable"
+        assert items[str(record.id)]["last_issued_at"] is not None
 
 
 class TestPaymentHistory:

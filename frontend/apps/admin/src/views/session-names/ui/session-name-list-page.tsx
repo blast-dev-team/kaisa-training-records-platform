@@ -8,6 +8,7 @@ import { Button } from "@/src/shared/ui/button";
 import { Dialog } from "@/src/shared/ui/dialog";
 import { FilterBar, FilterRow } from "@/src/shared/ui/filter-bar";
 import { Input } from "@/src/shared/ui/input";
+import { SearchInput } from "@/src/shared/ui/search-input";
 import { Label } from "@/src/shared/ui/label";
 import { PageContainer } from "@/src/shared/ui/page-container";
 import { PageHead } from "@/src/shared/ui/page-head";
@@ -19,6 +20,18 @@ import {
   postSessionName,
   sessionNameQueries,
 } from "@/src/entities/institution";
+import { formatDateTime } from "@/src/shared/utils/format";
+
+type SortField = "created_at" | "name" | "updated_at";
+
+/** URL sort 파라미터 파싱 — 허용값 밖/없음은 기본(name) */
+const parseSort = (v: string | null): SortField =>
+  v === "created_at" || v === "updated_at" ? v : "name";
+
+const parseOrder = (v: string | null): "asc" | "desc" => (v === "asc" ? "asc" : "desc");
+
+/** 정렬 미지정 시 기본 방향 — 이름 asc, 날짜 desc(최신순) */
+const defaultOrder = (sort: SortField): "asc" | "desc" => (sort === "name" ? "asc" : "desc");
 
 interface EditState {
   id: string | null; // null = 신규
@@ -30,6 +43,9 @@ export function SessionNameListPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const q = searchParams.get("q") ?? "";
   const status = searchParams.get("status") ?? "";
+  const sort = parseSort(searchParams.get("sort"));
+  const order = parseOrder(searchParams.get("order")) || defaultOrder(sort);
+  const sortValue = `${sort}:${order}`;
   const page = Math.max(1, Number(searchParams.get("page") ?? 1) || 1);
   const limit = Math.max(1, Number(searchParams.get("limit") ?? 10) || 10);
   const [searchInput, setSearchInput] = useState(q);
@@ -40,6 +56,8 @@ export function SessionNameListPage() {
     sessionNameQueries.list({
       q: q || undefined,
       isActive: status === "" ? undefined : status === "active",
+      sort: sort === "name" ? undefined : sort,
+      order: sort === "name" && order === "asc" ? undefined : order,
       page,
       limit,
     }),
@@ -106,11 +124,12 @@ export function SessionNameListPage() {
               updateParams({ q: searchInput.trim() || null });
             }}
           >
-            <Input
+            <SearchInput
               className="w-64"
               placeholder="회차명"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
+              onClear={() => updateParams({ q: null })}
             />
             <Button type="submit" variant="secondary" size="sm">
               검색
@@ -119,13 +138,35 @@ export function SessionNameListPage() {
         </FilterRow>
         <FilterRow label="상태">
           <Select
-            className="w-28"
+            className="w-36"
             value={status}
             onChange={(e) => updateParams({ status: e.target.value || null })}
           >
             <option value="">전체</option>
             <option value="active">사용중</option>
             <option value="inactive">비활성</option>
+          </Select>
+        </FilterRow>
+        <FilterRow label="정렬">
+          <Select
+            className="w-36"
+            value={sortValue}
+            onChange={(e) => {
+              const [s, o] = e.target.value.split(":");
+              const field = s === "created_at" || s === "updated_at" ? s : "name";
+              const dir = o === "asc" ? "asc" : "desc";
+              updateParams({
+                sort: field === "name" ? null : field,
+                // 기본 방향이면 order 파라미터 생략 — 기본값은 URL에 안 남긴다
+                order: dir === defaultOrder(field) ? null : dir,
+              });
+            }}
+          >
+            <option value="created_at:desc">등록 최신순</option>
+            <option value="created_at:asc">등록 오래된순</option>
+            <option value="updated_at:desc">수정 최신순</option>
+            <option value="updated_at:asc">수정 오래된순</option>
+            <option value="name:asc">이름순</option>
           </Select>
         </FilterRow>
       </FilterBar>
@@ -148,9 +189,21 @@ export function SessionNameListPage() {
             ),
           },
           {
+            accessorKey: "createdAt",
+            header: "등록일",
+            meta: { width: 150 },
+            cell: ({ row }) => formatDateTime(row.original.createdAt),
+          },
+          {
+            accessorKey: "updatedAt",
+            header: "수정일",
+            meta: { width: 150 },
+            cell: ({ row }) => formatDateTime(row.original.updatedAt),
+          },
+          {
             id: "actions",
             header: "",
-            meta: { width: 150, align: "right", sticky: "right" },
+            meta: { width: 150, align: "right" },
             cell: ({ row }) => (
               <div className="flex items-center justify-end gap-1.5">
                 <Button

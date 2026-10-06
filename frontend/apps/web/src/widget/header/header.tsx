@@ -74,12 +74,12 @@ export function Header({ variant = "default", className }: HeaderProps) {
       <div className="mx-auto flex h-16 w-full max-w-[1400px] items-center justify-between px-20 mobile:h-auto mobile:py-3 mobile:px-5">
         <Link
           to={logoTo}
-          className="flex shrink-0 items-center gap-2 text-lg font-bold leading-normal text-primary-700 mobile:text-[15px]"
+          className="flex shrink-0 items-center gap-2 text-18 font-bold leading-normal text-primary-700 mobile:text-15"
         >
           <img src="/logo-mark.svg" alt="KAISA" className="h-8 w-auto mobile:h-7" />
           {config.title}
         </Link>
-        <nav className="flex shrink-0 items-center gap-8 text-[15px] font-medium leading-normal whitespace-nowrap text-gray-700 mobile:hidden">
+        <nav className="flex shrink-0 items-center gap-8 text-15 font-medium leading-normal whitespace-nowrap text-gray-700 mobile:hidden">
           {config.navItems.map((item) => (
             <Link
               key={item.label}

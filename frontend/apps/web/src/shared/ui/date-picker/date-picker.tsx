@@ -1,6 +1,11 @@
 import { useMemo, useState } from "react";
 
-import { CaretLeftIcon, CaretRightIcon } from "@/src/shared/icon";
+import {
+  CaretDoubleLeftIcon,
+  CaretDoubleRightIcon,
+  CaretLeftIcon,
+  CaretRightIcon,
+} from "@/src/shared/icon";
 import { cn } from "@/src/shared/utils/cn";
 
 const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"] as const;
@@ -82,28 +87,48 @@ export function DatePicker({
         className,
       )}
     >
-      {/* 헤더 — 이전/다음 월 이동 + 연도·월 표시 */}
+      {/* 헤더 — 이전/다음 연도·월 이동 + 연도·월 표시 */}
       <div className="flex w-full items-center justify-between px-1">
-        <button
-          type="button"
-          aria-label="이전 달"
-          onClick={() => navigateMonth(-1)}
-          className="size-6 shrink-0 cursor-pointer text-gray-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
-        >
-          <CaretLeftIcon />
-        </button>
-        <div className="flex flex-col items-center leading-normal tracking-[-0.03em]">
-          <p className="text-xs font-semibold text-gray-400">{viewYear}</p>
-          <p className="text-xl font-semibold text-black">{viewMonth + 1}월</p>
+        <div className="flex items-center">
+          <button
+            type="button"
+            aria-label="이전 해"
+            onClick={() => navigateMonth(-12)}
+            className="size-6 shrink-0 cursor-pointer text-gray-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
+          >
+            <CaretDoubleLeftIcon />
+          </button>
+          <button
+            type="button"
+            aria-label="이전 달"
+            onClick={() => navigateMonth(-1)}
+            className="size-6 shrink-0 cursor-pointer text-gray-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
+          >
+            <CaretLeftIcon />
+          </button>
         </div>
-        <button
-          type="button"
-          aria-label="다음 달"
-          onClick={() => navigateMonth(1)}
-          className="size-6 shrink-0 cursor-pointer text-gray-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
-        >
-          <CaretRightIcon />
-        </button>
+        <div className="flex flex-col items-center leading-normal tracking-[-0.03em]">
+          <p className="text-12 font-semibold text-gray-400">{viewYear}</p>
+          <p className="text-20 font-semibold text-black">{viewMonth + 1}월</p>
+        </div>
+        <div className="flex items-center">
+          <button
+            type="button"
+            aria-label="다음 달"
+            onClick={() => navigateMonth(1)}
+            className="size-6 shrink-0 cursor-pointer text-gray-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
+          >
+            <CaretRightIcon />
+          </button>
+          <button
+            type="button"
+            aria-label="다음 해"
+            onClick={() => navigateMonth(12)}
+            className="size-6 shrink-0 cursor-pointer text-gray-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
+          >
+            <CaretDoubleRightIcon />
+          </button>
+        </div>
       </div>
 
       {/* 요일 헤더 */}
@@ -111,7 +136,7 @@ export function DatePicker({
         {WEEKDAYS.map((weekday) => (
           <div
             key={weekday}
-            className="flex size-9 items-center justify-center px-1 py-2 text-xs leading-normal font-semibold tracking-[-0.03em] text-gray-500"
+            className="flex size-9 items-center justify-center px-1 py-2 text-12 leading-normal font-semibold tracking-[-0.03em] text-gray-500"
           >
             {weekday}
           </div>
@@ -131,7 +156,7 @@ export function DatePicker({
                 <div
                   key={date.getTime()}
                   aria-hidden="true"
-                  className="flex size-9 items-center justify-center text-xs leading-normal font-bold tracking-[-0.03em] text-gray-400"
+                  className="flex size-9 items-center justify-center text-12 leading-normal font-bold tracking-[-0.03em] text-gray-400"
                 >
                   {date.getDate()}
                 </div>
@@ -146,7 +171,7 @@ export function DatePicker({
                 aria-current={isToday ? "date" : undefined}
                 onClick={() => handleSelectDay(date)}
                 className={cn(
-                  "flex size-9 items-center justify-center rounded-lg border-[3px] border-transparent text-xs leading-normal font-bold tracking-[-0.03em] text-black select-none",
+                  "flex size-9 items-center justify-center rounded-lg border-[3px] border-transparent text-12 leading-normal font-bold tracking-[-0.03em] text-black select-none",
                   !isDisabled &&
                     "cursor-pointer hover:border-primary-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600",
                   isToday && "text-gray-800",
@@ -169,7 +194,7 @@ export function DatePicker({
           if (selected !== null) onConfirm?.(selected);
         }}
         className={cn(
-          "w-full rounded-xl px-4 py-3 text-base leading-normal font-semibold tracking-[-0.03em] whitespace-nowrap select-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600",
+          "w-full rounded-xl px-4 py-3 text-16 leading-normal font-semibold tracking-[-0.03em] whitespace-nowrap select-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600",
           selected === null
             ? "cursor-not-allowed bg-gray-300 text-white"
             : "cursor-pointer bg-primary-50 text-primary-500",

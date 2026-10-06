@@ -26,11 +26,13 @@ async def list_session_names(
     db: AsyncSession,
     search: str | None = None,
     is_active: bool | None = None,
+    sort: str | None = None,
+    order: str = "desc",
     page: int = 1,
     limit: int = 20,
 ) -> tuple[list[SessionName], int]:
     return await session_name_repo.list_session_names(
-        db, search=search, is_active=is_active, page=page, limit=limit
+        db, search=search, is_active=is_active, sort=sort, order=order, page=page, limit=limit
     )
 
 
@@ -76,6 +78,8 @@ async def update_session_name(
                 "VALIDATION_ERROR", status_code=409, message="이미 등록된 회차명이에요"
             )
         updates["name"] = name
+    # 바뀐 필드만 before/after 에 남긴다 — 무변경 저장도 저장 사실은 기록
+    before = {k: getattr(session_name, k) for k in updates}
     for field, value in updates.items():
         setattr(session_name, field, value)
     record_audit(
@@ -84,6 +88,8 @@ async def update_session_name(
         action="session_name.updated",
         entity_type="session_name",
         entity_id=session_name.id,
+        before=before,
+        after={k: getattr(session_name, k) for k in updates},
     )
     return await session_name_repo.commit_refresh(db, session_name)
 

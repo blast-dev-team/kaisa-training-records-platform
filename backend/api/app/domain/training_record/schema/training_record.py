@@ -16,11 +16,7 @@ class TrainingRecordCreate(BaseModel):
     # 과정·기관 마스터 미연결 시 스냅샷 직접 입력 (최소 하나는 필수)
     course_name: str | None = None
     institution_name: str | None = None
-    # 확인서 표기용 — 문서번호는 서버 자동 채번(정감 제{YY}-E{NNNN}호)이라 입력받지 않는다
-    supervisor_grade: str | None = None
-    supervisor_cert_no: str | None = None
-    total_hours: Decimal | None = None  # 미지정 시 과정 마스터 값
-    completed_hours: Decimal = Decimal(0)
+    total_hours: Decimal | None = None  # 미지정 시 과정 마스터 값. completed_hours 는 서버가 total_hours 로 채운다
     started_at: date | None = None
     ended_at: date | None = None
     source: str = "internal"  # internal | external | legacy_import
@@ -34,10 +30,7 @@ class TrainingRecordUpdate(BaseModel):
 
     course_id: uuid.UUID | None = None
     institution_id: uuid.UUID | None = None
-    supervisor_grade: str | None = None
-    supervisor_cert_no: str | None = None
     total_hours: Decimal | None = None
-    completed_hours: Decimal | None = None
     started_at: date | None = None
     ended_at: date | None = None
     evidence_file_key: str | None = None
@@ -64,6 +57,8 @@ class TrainingRecordResponse(BaseModel):
     institution_type: str | None = None
     course_name: str
     institution_name: str
+    # 감리원 표기 — trainee 마스터 조인 값(현재 값). 문서 서식·발급 시점에
+    # 읽히는 값이라 별도 스냅샷을 두지 않는다 (record 컬럼은 레거시)
     supervisor_grade: str | None
     supervisor_cert_no: str | None
     total_hours: Decimal
@@ -79,9 +74,8 @@ class TrainingRecordResponse(BaseModel):
     updated_at: datetime
     # 회원 포털 전용 — 어드민 응답에서는 None. 유저별 발급 상태는 certificates 에서 산출
     # (데모 이력은 여러 회원이 공유하므로 training_records 에 발급 상태를 둘 수 없다)
-    certificate_status: str | None = None  # issuable | reissuable | unavailable
-    last_issued_at: datetime | None = None
-    reissue_free_until: datetime | None = None  # 7일 무료 재발급 기한
+    certificate_status: str | None = None  # issuable | unavailable — 재발급 개념 없음(기발급도 issuable)
+    last_issued_at: datetime | None = None  # 기발급 표기용
 
     model_config = {"from_attributes": True}
 
@@ -111,8 +105,9 @@ class TrainingRecordResponse(BaseModel):
             ),
             course_name=record.course_name,
             institution_name=record.institution_name,
-            supervisor_grade=record.supervisor_grade,
-            supervisor_cert_no=record.supervisor_cert_no,
+            supervisor_grade=trainee.supervisor_grade if trainee else None,
+            # 확인서 표기 번호 — 현재 등급의 번호(수석감리원이면 수석감리원증번호)
+            supervisor_cert_no=trainee.current_supervisor_cert_no if trainee else None,
             total_hours=record.total_hours,
             completed_hours=record.completed_hours,
             started_at=record.started_at,
@@ -128,11 +123,13 @@ class TrainingRecordResponse(BaseModel):
 
 
 class TrainingRecordBulkCreate(BaseModel):
-    """일정 → 교육생 일괄 연결 — 연결된 교육생 수만큼 이력 생성. 중복 연결은 건너뜀."""
+    """일정 → 교육생 일괄 연결 — 연결된 교육생 수만큼 이력 생성. 중복 연결은 건너뜀.
+
+    이력의 총·이수 시수는 일정의 총 시수로 채운다.
+    """
 
     session_id: uuid.UUID
     trainee_ids: list[uuid.UUID]
-    completed_hours: Decimal | None = None  # 미지정 시 일정 인정시간
     completion_status: str = "completed"
     memo: str | None = None
 
@@ -146,7 +143,6 @@ class TrainingRecordBulkUpdateItem(BaseModel):
     started_at: date | None = None
     ended_at: date | None = None
     total_hours: Decimal | None = None
-    completed_hours: Decimal | None = None
 
 
 class TrainingRecordBulkUpdate(BaseModel):

@@ -29,14 +29,14 @@ export function IssuanceStepper({
         return (
           <Fragment key={label}>
             {index > 0 && (
-              <li aria-hidden className="shrink-0 text-base leading-normal text-gray-300">
+              <li aria-hidden className="shrink-0 text-16 leading-normal text-gray-300">
                 ›
               </li>
             )}
             <li className="flex shrink-0 items-center gap-2">
               <span
                 className={cn(
-                  "flex size-6 items-center justify-center rounded-full text-xs font-semibold leading-normal",
+                  "flex size-6 items-center justify-center rounded-full text-12 font-semibold leading-normal",
                   isDone ? "bg-primary-700 text-white" : "bg-gray-200 text-gray-500",
                 )}
               >
@@ -44,7 +44,7 @@ export function IssuanceStepper({
               </span>
               <span
                 className={cn(
-                  "text-sm leading-normal whitespace-nowrap",
+                  "text-14 leading-normal whitespace-nowrap",
                   isDone
                     ? "font-semibold text-gray-900"
                     : "font-medium text-gray-500",

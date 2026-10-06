@@ -82,12 +82,10 @@ async def _issue_certificates(
     by_id: dict[uuid.UUID, TrainingRecord],
     record_ids: list[uuid.UUID],
     actor_admin_id: uuid.UUID | None,
-    audit_after_extra: dict,
 ) -> list[CompletionCertificate]:
     """발급 공통 — 1 이력 = 1 수료증. 이미 발급된 건은 기존 수료증을 그대로 돌려준다.
 
-    감사로그 actor 는 어드민 경로면 admin id, 웹 회원 경로면 None 이고
-    발급 주체 정보는 audit_after_extra 로 남긴다 (audit 테이블에 trainee 컬럼 없음).
+    감사로그는 관리자 행동만 남긴다 — 웹 회원 발급(actor_admin_id=None)은 기록하지 않는다.
     """
     issued_at = now_kst()
     existing = await repo.find_by_record_ids(db, record_ids)
@@ -108,6 +106,9 @@ async def _issue_certificates(
                         certificate_no=await _next_completion_cert_no(db),
                         training_record_id=record.id,
                         trainee_id=record.trainee_id,
+                        # 1이력=1문서 멱등 — 경로가 달라도 같은 문서 공유라
+                        # 최초 발급 경로만 기록된다
+                        issue_source="admin" if actor_admin_id else "member",
                         issued_name_encrypted=trainee.name_encrypted,
                         issued_name_hash=trainee.name_hash,
                         trainee_birth_date=trainee.birth_date,
@@ -128,18 +129,18 @@ async def _issue_certificates(
                     cert = again[rid]  # 남이 먼저 발급함 — 멱등 채택
                     break
                 continue  # 번호 충돌 — 재채번 후 재시도
-            record_audit(
-                db,
-                actor_admin_id=actor_admin_id,
-                action="completion_certificate.issued",
-                entity_type="completion_certificate",
-                entity_id=cert.id,
-                after={
-                    "certificate_no": cert.certificate_no,
-                    "training_record_no": record.training_record_no,
-                    **audit_after_extra,
-                },
-            )
+            if actor_admin_id is not None:
+                record_audit(
+                    db,
+                    actor_admin_id=actor_admin_id,
+                    action="completion_certificate.issued",
+                    entity_type="completion_certificate",
+                    entity_id=cert.id,
+                    after={
+                        "certificate_no": cert.certificate_no,
+                        "training_record_no": record.training_record_no,
+                    },
+                )
             certificates.append(cert)
             break
         else:
@@ -169,7 +170,7 @@ async def issue_completion_certificates(
     if any(rid not in by_id for rid in record_ids):
         raise api_error("NOT_FOUND", message="교육내역을 찾을 수 없어요")
     _ensure_issuable(by_id, record_ids)
-    return await _issue_certificates(db, by_id, record_ids, admin.id, {})
+    return await _issue_certificates(db, by_id, record_ids, admin.id)
 
 
 async def issue_completion_certificates_for_trainee(
@@ -195,7 +196,7 @@ async def issue_completion_certificates_for_trainee(
         raise api_error("NOT_FOUND", message="교육내역을 찾을 수 없어요")
     _ensure_issuable(by_id, record_ids)
     return await _issue_certificates(
-        db, by_id, record_ids, None, {"actor": "web", "trainee_id": str(trainee.id)}
+        db, by_id, record_ids, None
     )
 
 

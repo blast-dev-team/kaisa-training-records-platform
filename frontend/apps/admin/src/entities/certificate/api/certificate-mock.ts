@@ -25,8 +25,10 @@ export const MOCK_CERTIFICATES: Certificate[] = [
     downloadedAt: '2026-09-18T10:00:00+09:00',
     downloadCount: 1,
     status: 'issued',
+    issueSource: 'member',
     revokedAt: null,
     revokedReason: null,
+    memberCount: 1,
   },
   {
     id: 'crt-002',
@@ -48,8 +50,10 @@ export const MOCK_CERTIFICATES: Certificate[] = [
     downloadedAt: '2026-09-18T10:00:00+09:00',
     downloadCount: 1,
     status: 'issued',
+    issueSource: 'member',
     revokedAt: null,
     revokedReason: null,
+    memberCount: 1,
   },
   {
     id: 'crt-003',
@@ -71,8 +75,10 @@ export const MOCK_CERTIFICATES: Certificate[] = [
     downloadedAt: null,
     downloadCount: 0,
     status: 'revoked',
+    issueSource: 'member',
     revokedAt: '2024-09-01T09:00:00',
     revokedReason: '발급 정보 오류 — 재발급 후 철회',
+    memberCount: 1,
   },
 ]
 

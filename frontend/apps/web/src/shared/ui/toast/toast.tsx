@@ -49,7 +49,7 @@ export function Toast({
         <span className={cn("size-5 shrink-0", color)}>
           <Icon />
         </span>
-        <p className="shrink-0 font-sans text-xs leading-[1.5] tracking-[-0.03em] whitespace-nowrap text-gray-700">
+        <p className="shrink-0 font-sans text-12 leading-[1.5] tracking-[-0.03em] whitespace-nowrap text-gray-700">
           {children}
         </p>
       </div>

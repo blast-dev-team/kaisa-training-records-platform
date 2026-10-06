@@ -20,13 +20,13 @@ export interface PaginationProps {
 }
 
 const PAGE_BUTTON_BASE =
-  "flex size-8 cursor-pointer items-center justify-center font-sans text-sm leading-[1.4] tracking-[-0.03em]";
+  "flex size-8 cursor-pointer items-center justify-center font-sans text-14 leading-[1.4] tracking-[-0.03em]";
 const PAGE_ACTIVE = "rounded-lg bg-primary-700 text-white";
 const PAGE_INACTIVE = "text-gray-400";
 const CARET_BUTTON =
   "flex size-6 cursor-pointer items-center justify-center text-gray-700 disabled:cursor-not-allowed disabled:text-gray-300";
 const ELLIPSIS =
-  "flex size-8 items-center justify-center font-sans text-sm leading-[1.4] text-gray-400";
+  "flex size-8 items-center justify-center font-sans text-14 leading-[1.4] text-gray-400";
 
 /** 축약 시 항상 보여 줄 숫자 개수 (첫·현재±1·마지막) — 이하면 전체 노출 */
 const MAX_VISIBLE = 5;

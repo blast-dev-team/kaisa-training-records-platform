@@ -47,7 +47,7 @@ export function OnboardingBubble({
     >
       {/* 헤더 — 제목 + 닫기 */}
       <div className="flex items-center justify-between gap-2">
-        <p className="text-base leading-normal font-semibold tracking-[-0.03em] text-gray-900">
+        <p className="text-16 leading-normal font-semibold tracking-[-0.03em] text-gray-900">
           {title}
         </p>
         <button
@@ -61,27 +61,27 @@ export function OnboardingBubble({
       </div>
 
       {/* 설명 */}
-      <p className="text-sm leading-normal tracking-[-0.03em] text-gray-500">
+      <p className="text-14 leading-normal tracking-[-0.03em] text-gray-500">
         {description}
       </p>
 
       {/* 푸터 — 단계 표기 + 이전/다음 */}
       <div className="flex items-center justify-between">
-        <p className="text-sm leading-normal tracking-[-0.03em] text-gray-500">
+        <p className="text-14 leading-normal tracking-[-0.03em] text-gray-500">
           {step} / {totalSteps}
         </p>
         <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={onPrev}
-            className="cursor-pointer rounded-lg border border-solid border-gray-300 bg-white px-2 py-1 text-xs leading-normal font-semibold tracking-[-0.03em] whitespace-nowrap text-gray-500 select-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
+            className="cursor-pointer rounded-lg border border-solid border-gray-300 bg-white px-2 py-1 text-12 leading-normal font-semibold tracking-[-0.03em] whitespace-nowrap text-gray-500 select-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
           >
             이전
           </button>
           <button
             type="button"
             onClick={onNext}
-            className="cursor-pointer rounded-lg border border-solid border-gray-300 bg-white px-2 py-1 text-xs leading-normal font-semibold tracking-[-0.03em] whitespace-nowrap text-gray-500 select-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
+            className="cursor-pointer rounded-lg border border-solid border-gray-300 bg-white px-2 py-1 text-12 leading-normal font-semibold tracking-[-0.03em] whitespace-nowrap text-gray-500 select-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
           >
             다음
           </button>

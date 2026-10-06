@@ -56,9 +56,9 @@ class TrainingRecord(Base):
     )
     course_name: Mapped[str] = mapped_column(String(255), nullable=False)
     institution_name: Mapped[str] = mapped_column(String(255), nullable=False)
-    # 감리원 등급 (예: 정감리원, 부감리원)
+    # 레거시 스냅샷 — 응답은 trainee 조인 값(현재 값)을 쓴다(2026-09-30).
+    # 새 이력은 채우지 않는다. 이관·시드 데이터의 원본 보존용으로만 남긴다
     supervisor_grade: Mapped[str | None] = mapped_column(String(50))
-    # 감리원증 발급번호
     supervisor_cert_no: Mapped[str | None] = mapped_column(String(100))
     total_hours: Mapped[Decimal] = mapped_column(
         Numeric(8, 2), nullable=False, default=Decimal(0)

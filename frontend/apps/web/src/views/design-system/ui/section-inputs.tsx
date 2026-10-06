@@ -218,7 +218,7 @@ export function SectionInputs() {
             />
           </Demo>
           <Demo label="onChange 값">
-            <p className="text-sm text-gray-700">
+            <p className="text-14 text-gray-700">
               {timeValue
                 ? `${timeValue.hour}:${timeValue.minute}${
                     timeValue.period ? ` ${timeValue.period}` : ""

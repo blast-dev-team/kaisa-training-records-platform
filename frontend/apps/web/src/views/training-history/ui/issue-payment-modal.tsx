@@ -24,8 +24,6 @@ import {
 export interface IssuePaymentModalProps {
   /** 발급 대상 교육이력 ID 목록 — 1건이면 단건과 동일, N건이면 일괄 결제 */
   recordIds: string[];
-  /** original: 결제 후 발급 / reissue: 직전 발급 7일 이내면 무료, 초과면 유료 */
-  issueType: "original" | "reissue";
   onClose: () => void;
   /** 발급 확정 시 — 페이지가 선택 상태를 비운다 */
   onIssued?: () => void;
@@ -37,12 +35,6 @@ const TOAST_DURATION_MS = 3000;
 
 /** 모달 단계 — 발급될 PDF 미리보기·결제 → 신청 내용(발급 완료) */
 type ModalPhase = "preview" | "issued";
-
-/** 무료 재발급 기한이 남아 있는지 — 서버가 산출한 기한(reissueFreeUntil) 기준 */
-function isFreeReissue(detail: TrainingHistoryDetail): boolean {
-  if (detail.reissueFreeUntil === undefined) return false;
-  return new Date(detail.reissueFreeUntil).getTime() > Date.now();
-}
 
 /** 32 → "32", 8.5 → "8.5" — 합계 시간의 소수점 꼬리 정리 */
 function formatHours(value: number): string {
@@ -58,7 +50,6 @@ function formatHours(value: number): string {
  */
 export function IssuePaymentModal({
   recordIds,
-  issueType,
   onClose,
   onIssued,
   previewOnly = false,
@@ -92,12 +83,12 @@ export function IssuePaymentModal({
 
   /**
    * 발급 단가 — 회원등급이 가진 가격으로 서버가 정한다
-   * (기본: 일반 3,000원 · 평생·연간 1,800원, 어드민 등급 화면에서 수정). 표기용이며
-   * 최종 청구·무료 재발급 판정은 신청 시점에 서버가 한다.
+   * (기본: 일반 3,000원 · 평생·연간 1,800원, 어드민 등급 화면에서 수정).
+   * 표기용이며 매 발급마다 이 단가로 결제한다(무료 재발급 폐지).
    */
   const prices = useQuery({
-    queryKey: ["certificate-price", issueType, ...recordIds],
-    queryFn: () => Promise.all(recordIds.map((id) => getCertificatePrice(id, issueType))),
+    queryKey: ["certificate-price", ...recordIds],
+    queryFn: () => Promise.all(recordIds.map((id) => getCertificatePrice(id))),
     enabled: details !== undefined,
   });
 
@@ -109,21 +100,8 @@ export function IssuePaymentModal({
     enabled: phase === "issued",
   });
 
-  /** 유료 결제 대상 — 신규 발급 전체 + 7일 초과 재발급 (표기용 — 실제 판정은 서버) */
-  const paidIds =
-    details === undefined
-      ? []
-      : issueType === "original"
-        ? recordIds
-        : recordIds.filter(
-            (id) =>
-              !details.some(
-                (detail) => detail.id === id && isFreeReissue(detail),
-              ),
-          );
-  /** 무료 재발급 건수 — 결제 금액에서 제외 */
-  const freeReissueCount =
-    issueType === "reissue" ? recordIds.length - paidIds.length : 0;
+  /** 결제 대상 — 전 건. 무료 재발급이 폐지돼 예외 없다 */
+  const paidIds = recordIds;
 
   /** 건별 단가 — 서버 규칙값. 아직 로드 전이면 undefined */
   const priceById = new Map(
@@ -140,7 +118,7 @@ export function IssuePaymentModal({
   const payment = useMutation({
     mutationFn: () =>
       postIssuancePayment({
-        items: recordIds.map((id) => ({ recordId: id, issueType })),
+        items: recordIds.map((id) => ({ recordId: id })),
       }),
     onSuccess: () => {
       // 발급 가능 상태로 목록을 갱신하고 같은 모달에서 신청 내용으로 전환한다
@@ -242,6 +220,8 @@ export function IssuePaymentModal({
     () => paginateRows(toSheetRows(details ?? [])),
     [details],
   );
+  /** 빈 행으로 채우지 않은 원본 행 — 여러 페이지를 한 문서로 이어 보여줄 때 쓴다 */
+  const sheetRows = useMemo(() => toSheetRows(details ?? []), [details]);
   /** 문서 머리 표기(서식·문서번호·감리원) — 첫 이력 값 */
   const headDetail = details?.[0];
 
@@ -277,8 +257,8 @@ export function IssuePaymentModal({
   const unitFeeLabel = pricesLoaded
     ? (headDetail ? priceById.get(headDetail.id) ?? 0 : 0).toLocaleString("ko-KR")
     : "—";
-  /** 전 건 무료 재발급 — 결제창 없이 서버 신청만으로 발급된다 */
-  const isFree = paidIds.length === 0;
+  /** 0원 등급 — 결제창 없이 서버 신청만으로 발급된다 */
+  const isFree = totalAmount === 0;
   const canPay = agreed && !payment.isPending && pricesLoaded && (totalAmount > 0 || isFree);
 
   return (
@@ -311,12 +291,12 @@ export function IssuePaymentModal({
         )}
         {phase === "preview" ? (
           isLoading ? (
-            <p className="py-20 text-center text-sm text-gray-500">
+            <p className="py-20 text-center text-14 text-gray-500">
               미리보기를 불러오고 있어요
             </p>
           ) : isError || !details ? (
             <div className="flex flex-col items-center gap-4 py-16 text-center">
-              <p className="text-sm text-gray-700">
+              <p className="text-14 text-gray-700">
                 {error instanceof Error
                   ? error.message
                   : "문제가 생겨요. 잠시 후 다시 시도해 주세요"}
@@ -333,7 +313,7 @@ export function IssuePaymentModal({
           ) : (
             <>
               {/* 발급될 확인서 미리보기 — 결제 전이라 확인서 번호·발급일은 비어 있다 */}
-              <h2 className="text-lg leading-normal font-bold text-gray-900 mobile:text-base">
+              <h2 className="text-18 leading-normal font-bold text-gray-900 mobile:text-16">
                 발급 미리보기
               </h2>
 
@@ -342,41 +322,64 @@ export function IssuePaymentModal({
                   ref={previewRef}
                   className="w-full flex-none pointer-events-none"
                 >
-                  {previewPages.map((page, pageIndex) => (
+                  {/* 여러 페이지 — 미리보기에서는 한 문서로 이어 보여준다. 페이지 경계마다
+                      생기던 여백 띠(앞 페이지 하단 슬랙+다음 페이지 상단 패딩)를 없애고
+                      연속 문서처럼 보이게. 페이지 분할은 내려받는 PDF(밑의 캡처 컨테이너)가 담당.
+                      zoom 은 transform 과 달리 레이아웃 높이에 반영돼 다음 요소와 간격이 유지된다 */}
+                  {previewPages.length > 1 ? (
                     <div
-                      key={pageIndex}
-                      className="overflow-hidden"
-                      style={{ aspectRatio: "794 / 1123" }}
+                      className="overflow-hidden mx-auto"
+                      style={{ width: 794 * previewScale }}
                     >
-                      {/* 모달 본문 폭에 맞춘 등비 축소 — 시트 원본은 A4 794px */}
-                      <div
-                        style={{
-                          width: 794,
-                          transform: `scale(${previewScale})`,
-                          transformOrigin: "top left",
-                        }}
-                      >
-                        <PreviewSheet
-                          page={page}
-                          headDetail={headDetail}
+                      <div style={{ zoom: previewScale }}>
+                        <CertificateDocumentSheet
+                          continuous
+                          rows={sheetRows}
                           memberName={memberName}
+                          supervisorGrade={headDetail?.supervisorGrade}
+                          supervisorCertNo={headDetail?.supervisorCertNo}
+                          formNo="제31호"
                           totalHours={totalHours}
                         />
                       </div>
                     </div>
-                  ))}
+                  ) : (
+                    previewPages.map((page, pageIndex) => (
+                      <div
+                        key={pageIndex}
+                        className="overflow-hidden"
+                        style={{ aspectRatio: "794 / 1123" }}
+                      >
+                        {/* 모달 본문 폭에 맞춘 등비 축소 — 시트 원본은 A4 794px */}
+                        <div
+                          style={{
+                            width: 794,
+                            transform: `scale(${previewScale})`,
+                            transformOrigin: "top left",
+                          }}
+                        >
+                          <PreviewSheet
+                            page={page}
+                            headDetail={headDetail}
+                            memberName={memberName}
+                            totalHours={totalHours}
+                          />
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
 
               {/* 슈퍼 계정 — 결제 단계 없음. 미리보기 안내만 */}
               {previewOnly ? (
-                <p className="shrink-0 rounded-md bg-gray-100 px-4 py-3 text-[13px] leading-normal text-gray-500">
+                <p className="shrink-0 rounded-md bg-gray-100 px-4 py-3 text-13 leading-normal text-gray-500">
                   슈퍼 계정 미리보기예요. 발급·결제는 일반 회원 로그인에서만 가능해요.
                 </p>
               ) : (
               <div className="flex shrink-0 flex-col gap-3">
                 {paidIds.length > 0 && (
-                  <div className="flex w-full items-start justify-between text-sm leading-normal mobile:text-xs">
+                  <div className="flex w-full items-start justify-between text-14 leading-normal mobile:text-12">
                     <p className="text-gray-600">
                       확인서 {paidIds.length}건 ({unitFeeLabel}원)
                     </p>
@@ -384,14 +387,7 @@ export function IssuePaymentModal({
                   </div>
                 )}
 
-                {freeReissueCount > 0 && (
-                  <div className="flex w-full items-start justify-between text-sm leading-normal mobile:text-xs">
-                    <p className="text-gray-600">무료 재발급 {freeReissueCount}건</p>
-                    <p className="text-gray-700">0원</p>
-                  </div>
-                )}
-
-                <div className="flex w-full items-start justify-between text-base leading-normal font-bold text-gray-900 mobile:text-sm">
+                <div className="flex w-full items-start justify-between text-16 leading-normal font-bold text-gray-900 mobile:text-14">
                   <p>결제 금액</p>
                   <p>{feeLabel}원</p>
                 </div>
@@ -409,7 +405,7 @@ export function IssuePaymentModal({
                   fullWidth
                   disabled={!canPay}
                   onClick={() => payment.mutate()}
-                  className="rounded-lg bg-gray-900 py-4 text-base font-bold hover:bg-gray-800 mobile:py-3 mobile:text-sm"
+                  className="rounded-lg bg-gray-900 py-4 text-16 font-bold hover:bg-gray-800 mobile:py-3 mobile:text-14"
                 >
                   <span className="flex items-center gap-2">
                     <span>{feeLabel}원</span>
@@ -424,20 +420,20 @@ export function IssuePaymentModal({
                 </Button>
 
                 {prices.isError && (
-                  <p className="text-xs leading-normal text-red-500" role="alert">
+                  <p className="text-12 leading-normal text-red-500" role="alert">
                     가격 정보를 불러오지 못했어요. 모달을 닫고 다시 열어 주세요
                   </p>
                 )}
 
                 {payment.isError && (
-                  <p className="text-xs leading-normal text-red-500" role="alert">
+                  <p className="text-12 leading-normal text-red-500" role="alert">
                     {payment.error instanceof Error
                       ? payment.error.message
                       : "결제에 실패했어요. 잠시 후 다시 시도해 주세요"}
                   </p>
                 )}
 
-                <p className="text-xs leading-normal text-gray-400">
+                <p className="text-12 leading-normal text-gray-400">
                   발급 완료 후에는 환불되지 않습니다.
                 </p>
               </div>
@@ -447,17 +443,17 @@ export function IssuePaymentModal({
         ) : (
           <>
             {/* 신청 내용 — 발급 완료 요약. 확인서 번호·진위확인 정보는 발급·결제 내역 화면에서 본다 */}
-            <h2 className="text-lg leading-normal font-bold text-gray-900 mobile:text-base">
+            <h2 className="text-18 leading-normal font-bold text-gray-900 mobile:text-16">
               신청 내용
             </h2>
 
             {issuance.isLoading ? (
-              <p className="py-20 text-center text-sm text-gray-500">
+              <p className="py-20 text-center text-14 text-gray-500">
                 확인서 정보를 불러오고 있어요
               </p>
             ) : issuance.isError || !issuance.data ? (
               <div className="flex flex-col items-center gap-4 py-16 text-center">
-                <p className="text-sm text-gray-700">
+                <p className="text-14 text-gray-700">
                   {issuance.error instanceof Error
                     ? issuance.error.message
                     : "문제가 생겼어요. 잠시 후 다시 시도해 주세요"}
@@ -479,7 +475,7 @@ export function IssuePaymentModal({
                     type="button"
                     aria-expanded={isDetailOpen}
                     onClick={() => setIsDetailOpen((open) => !open)}
-                    className="flex cursor-pointer items-center gap-1 self-start font-sans text-xs leading-normal font-medium text-gray-500 hover:text-gray-700"
+                    className="flex cursor-pointer items-center gap-1 self-start font-sans text-12 leading-normal font-medium text-gray-500 hover:text-gray-700"
                   >
                     상세보기
                     {isDetailOpen ? (
@@ -493,7 +489,7 @@ export function IssuePaymentModal({
                       {(details ?? []).map((detail) => (
                         <li
                           key={detail.id}
-                          className="font-sans text-xs leading-normal text-gray-600"
+                          className="font-sans text-12 leading-normal text-gray-600"
                         >
                           {detail.courseName}
                         </li>
@@ -512,7 +508,7 @@ export function IssuePaymentModal({
               fullWidth
               disabled={isPdfGenerating || issuedSheets.length === 0}
               onClick={() => void handleDownloadPdf()}
-              className="mt-auto shrink-0 rounded-lg bg-gray-900 py-4 text-base font-bold hover:bg-gray-800 mobile:py-3 mobile:text-sm"
+              className="mt-auto shrink-0 rounded-lg bg-gray-900 py-4 text-16 font-bold hover:bg-gray-800 mobile:py-3 mobile:text-14"
             >
               {isPdfGenerating ? "생성 중..." : "PDF 다운로드"}
             </Button>
@@ -528,13 +524,15 @@ export function IssuePaymentModal({
                     pages.map((page, pageIndex) => (
                       <div
                         key={`${bundle.verificationId}-${pageIndex}`}
-                        data-sheet-page
-                      >
+                        data-sheet-page>
+                        {/* 확인서 번호는 모든 페이지 하단에 같은 번호로 들어간다(협회 발급 방식) */}
                         <CertificateDocumentSheet
                           rows={page.rows}
                           showHead={page.showHead}
                           showClosing={page.showClosing}
                           startNo={page.startNo}
+                          pageNo={pageIndex + 1}
+                          pageCount={pages.length}
                           totalHours={totalHours}
                           memberName={memberName}
                           supervisorGrade={head?.supervisorGrade}
@@ -542,7 +540,7 @@ export function IssuePaymentModal({
                           formNo="제31호"
                           docNo={bundle.docNo ?? undefined}
                           issuedOnLabel={formatKoreanDate(bundle.issuedAt)}
-                          certificateNumber={page.showClosing ? bundle.certificateNumber : undefined}
+                          certificateNumber={bundle.certificateNumber ?? undefined}
                         />
                       </div>
                     )),
@@ -573,7 +571,7 @@ export function IssuePaymentModal({
 /** 신청 내용 행 — 라벨(gray-500) / 값(gray-800), 하단 구분선 */
 function DetailRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex w-full items-center justify-between border-b border-solid border-gray-100 pb-3 text-sm leading-normal font-medium">
+    <div className="flex w-full items-center justify-between border-b border-solid border-gray-100 pb-3 text-14 leading-normal font-medium">
       <dt className="whitespace-nowrap text-gray-500">{label}</dt>
       <dd className="text-gray-800">{value}</dd>
     </div>

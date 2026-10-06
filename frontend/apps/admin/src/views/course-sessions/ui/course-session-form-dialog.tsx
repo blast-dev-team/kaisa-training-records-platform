@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { Dialog } from "@/src/shared/ui/dialog";
 import { Input } from "@/src/shared/ui/input";
+import { DateField } from "@/src/shared/ui/date-picker/date-field";
 import { Label } from "@/src/shared/ui/label";
 import { Textarea } from "@/src/shared/ui/textarea";
 import { SearchableSelect, fetchOptions } from "@/src/shared/ui/searchable-select";
@@ -44,7 +45,6 @@ export function CourseSessionFormDialog({ isOpen, onClose, session, onCreated }:
   const [startedAt, setStartedAt] = useState("");
   const [endedAt, setEndedAt] = useState("");
   const [totalHours, setTotalHours] = useState("");
-  const [recognizedHours, setRecognizedHours] = useState("");
   const [memo, setMemo] = useState("");
   const [isActive, setIsActive] = useState(true);
   // 외부 교육 — 연결된 감리원 내역의 source. 외부 기관 과정 선택 시 자동 체크
@@ -57,7 +57,6 @@ export function CourseSessionFormDialog({ isOpen, onClose, session, onCreated }:
     setStartedAt(session?.startedAt ?? "");
     setEndedAt(session?.endedAt ?? "");
     setTotalHours(session?.totalHours != null ? String(session.totalHours) : "");
-    setRecognizedHours(session?.recognizedHours != null ? String(session.recognizedHours) : "");
     setMemo(session?.memo ?? "");
     setIsActive(session?.isActive ?? true);
     setSource(session?.source ?? "internal");
@@ -70,7 +69,6 @@ export function CourseSessionFormDialog({ isOpen, onClose, session, onCreated }:
           started_at: startedAt || null,
           ended_at: endedAt || null,
           total_hours: totalHours === "" ? null : Number(totalHours),
-          recognized_hours: recognizedHours === "" ? null : Number(recognizedHours),
           is_active: isActive,
           source,
           memo: memo.trim() || null,
@@ -81,7 +79,6 @@ export function CourseSessionFormDialog({ isOpen, onClose, session, onCreated }:
         started_at: startedAt || null,
         ended_at: endedAt || null,
         total_hours: totalHours === "" ? 0 : Number(totalHours),
-        recognized_hours: recognizedHours === "" ? 0 : Number(recognizedHours),
         is_active: isActive,
         source,
         memo: memo.trim() || null,
@@ -138,19 +135,26 @@ export function CourseSessionFormDialog({ isOpen, onClose, session, onCreated }:
         <div className="grid grid-cols-2 gap-2">
           <div className="space-y-1.5">
             <Label>시작일</Label>
-            <Input
-              type="date"
+            <DateField
+              ariaLabel="시작일"
               value={startedAt ?? ""}
-              onChange={(e) => setStartedAt(e.target.value)}
+              onChange={(v) => {
+                setStartedAt(v);
+                if (v && endedAt && v > endedAt) setEndedAt(v);
+              }}
+              maxDate={endedAt || undefined}
             />
           </div>
           <div className="space-y-1.5">
             <Label>종료일</Label>
-            <Input
-              type="date"
+            <DateField
+              ariaLabel="종료일"
               value={endedAt ?? ""}
-              min={startedAt || undefined}
-              onChange={(e) => setEndedAt(e.target.value)}
+              onChange={(v) => {
+                setEndedAt(v);
+                if (v && startedAt && v < startedAt) setStartedAt(v);
+              }}
+              minDate={startedAt || undefined}
             />
           </div>
         </div>
@@ -164,19 +168,10 @@ export function CourseSessionFormDialog({ isOpen, onClose, session, onCreated }:
               value={totalHours}
               onChange={(e) => setTotalHours(e.target.value)}
             />
-          </div>
-          <div className="space-y-1.5">
-            <Label>인정 시수</Label>
-            <Input
-              type="number"
-              min={0}
-              placeholder="예: 8"
-              value={recognizedHours}
-              onChange={(e) => setRecognizedHours(e.target.value)}
-            />
+            <p className="text-11 text-ink-3">입력한 총 시수가 이수 시수로 인정돼요</p>
           </div>
         </div>
-        <label className="flex flex-col text-[13px] text-ink-2">
+        <label className="flex flex-col text-13 text-ink-2">
           <div className="flex items-center gap-2">
             <input
               type="checkbox"
@@ -186,11 +181,11 @@ export function CourseSessionFormDialog({ isOpen, onClose, session, onCreated }:
             />
             외부 교육
           </div>
-          <span className="text-[11px] text-ink-3">
+          <span className="text-11 text-ink-3">
             (외부 기관 과정이면 자동 체크 — 연결된 감리원 내역이 외부로 구분돼요)
           </span>
         </label>
-        <label className="flex items-center gap-2 text-[13px] text-ink-2">
+        <label className="flex items-center gap-2 text-13 text-ink-2">
           <input
             type="checkbox"
             className="size-4 accent-[--color-accent]"
@@ -198,7 +193,7 @@ export function CourseSessionFormDialog({ isOpen, onClose, session, onCreated }:
             onChange={(e) => setIsActive(e.target.checked)}
           />
           운영중
-          <span className="text-[11px] text-ink-3">(해제하면 '종료' 상태로 표시돼요)</span>
+          <span className="text-11 text-ink-3">(해제하면 '종료' 상태로 표시돼요)</span>
         </label>
         <div className="space-y-1.5">
           <Label>메모</Label>

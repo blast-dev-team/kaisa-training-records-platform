@@ -3,18 +3,12 @@ import { Link } from "react-router";
 import { ChevronRight } from "lucide-react";
 import { PageContainer } from "@/src/shared/ui/page-container";
 import { PageHead } from "@/src/shared/ui/page-head";
-import { formatNumber, todayYMD } from "@/src/shared/utils/format";
+import { addDaysYMD, formatNumber, todayYMD } from "@/src/shared/utils/format";
 import { traineeQueries } from "@/src/entities/trainee";
 import { identityReviewQueries } from "@/src/entities/identity-review";
 import { certificateQueries } from "@/src/entities/certificate";
 import { paymentOrderQueries, PAYMENT_STATUS_LABELS } from "@/src/entities/payment";
 import { courseSessionQueries } from "@/src/entities/course-session";
-
-function addDays(ymd: string, days: number): string {
-  const d = new Date(`${ymd}T00:00:00`);
-  d.setDate(d.getDate() + days);
-  return d.toISOString().slice(0, 10);
-}
 
 /** 주간 섹션 공통 — 제목 + 바로가기 + 미니 테이블 */
 function WeekSection({
@@ -41,13 +35,13 @@ function WeekSection({
       className={`flex min-w-0 flex-col rounded-lg border border-line bg-panel ${className}`}
     >
       <div className="flex items-center justify-between border-b border-line px-5 py-3.5">
-        <h3 className="flex items-baseline gap-2 text-[14px] font-semibold text-ink">
+        <h3 className="flex items-baseline gap-2 text-14 font-semibold text-ink">
           {title}
           {total !== undefined && (
-            <span className="text-[12px] font-normal text-ink-3">{total.toLocaleString()}건</span>
+            <span className="text-12 font-normal text-ink-3">{total.toLocaleString()}건</span>
           )}
         </h3>
-        <Link to={to} className="flex items-center gap-0.5 text-[12px] text-accent hover:underline">
+        <Link to={to} className="flex items-center gap-0.5 text-12 text-accent hover:underline">
           {linkLabel}
           <ChevronRight className="size-3.5" />
         </Link>
@@ -58,11 +52,11 @@ function WeekSection({
           <div className="h-4 w-1/2 animate-pulse rounded bg-panel-2" />
         </div>
       ) : total === 0 ? (
-        <p className="px-5 py-6 text-[13px] text-ink-3">{emptyMessage}</p>
+        <p className="px-5 py-6 text-13 text-ink-3">{emptyMessage}</p>
       ) : (
-        <table className="w-full text-[13px]">
+        <table className="w-full text-13">
           <thead>
-            <tr className="border-b border-line text-left text-[11px] text-ink-3">
+            <tr className="border-b border-line text-left text-11 text-ink-3">
               {head.map((h) => (
                 <th key={h} className="px-5 py-2 font-normal">
                   {h}
@@ -92,30 +86,30 @@ function KpiCard({ title, value, to, hint, emphasis }: KpiProps) {
       className="group flex flex-col gap-2 rounded-lg border border-line bg-panel p-5 transition-colors hover:border-accent"
     >
       <div className="flex items-center justify-between">
-        <h3 className="text-[13px] font-medium text-ink-2">{title}</h3>
+        <h3 className="text-13 font-medium text-ink-2">{title}</h3>
         <ChevronRight className="h-4 w-4 text-ink-3 transition-transform group-hover:translate-x-0.5" />
       </div>
       {value === undefined ? (
         <div className="h-9 w-24 animate-pulse rounded bg-panel-2" />
       ) : (
         <p
-          className={`text-[28px] font-semibold leading-none tabular-nums ${
+          className={`text-28 font-semibold leading-none tabular-nums ${
             emphasis && value > 0 ? "text-accent" : "text-ink"
           }`}
         >
           {formatNumber(value)}
-          <span className="ml-1 text-[14px] font-normal text-ink-3">건</span>
+          <span className="ml-1 text-14 font-normal text-ink-3">건</span>
         </p>
       )}
-      <p className="text-[12px] text-ink-3">{hint}</p>
+      <p className="text-12 text-ink-3">{hint}</p>
     </Link>
   );
 }
 
 export function DashboardPage() {
   const today = todayYMD();
-  const weekEnd = addDays(today, 7);
-  const weekAgo = addDays(today, -6);
+  const weekEnd = addDaysYMD(today, 7);
+  const weekAgo = addDaysYMD(today, -6);
 
   const { data: trainees } = useQuery(traineeQueries.list({ page: 1 }));
   const { data: reviews } = useQuery(
@@ -157,7 +151,7 @@ export function DashboardPage() {
         />
       </div>
 
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-1">
         <WeekSection
           title="이번 주 교육 일정 (7일 내)"
           to="/course-sessions"
@@ -193,13 +187,28 @@ export function DashboardPage() {
           linkLabel="결제 내역"
           total={weekPayments?.total}
           emptyMessage="최근 7일간 결제가 없어요"
-          head={["주문번호", "금액", "상태"]}
+          head={["주문번호", "결제자", "등급", "감리원증번호", "과정", "상태"]}
         >
           {(weekPayments?.items ?? []).map((o) => (
             <tr key={o.id} className="border-b border-line last:border-b-0">
               <td className="px-5 py-2.5 text-ink">{o.orderNo}</td>
-              <td className="px-5 py-2.5 tabular-nums text-ink-2">
-                {o.amountKrw.toLocaleString()}원
+              <td className="px-5 py-2.5 text-ink-2">{o.traineeName ?? "—"}</td>
+              <td className="px-5 py-2.5 text-ink-2">{o.gradeName ?? "—"}</td>
+              <td
+                className="max-w-[180px] truncate px-5 py-2.5 text-ink-2"
+                title={o.certNo ?? undefined}
+              >
+                {o.certNo ?? "—"}
+              </td>
+              <td
+                className="max-w-[160px] truncate px-5 py-2.5 text-ink-2"
+                title={o.firstCourseName ?? undefined}
+              >
+                {o.docCount === 0
+                  ? "—"
+                  : o.docCount > 1
+                    ? `${o.firstCourseName ?? `${o.docCount}건`} 외 ${o.docCount - 1}건`
+                    : (o.firstCourseName ?? `${o.docCount}건`)}
               </td>
               <td className="px-5 py-2.5 text-ink-2">
                 {PAYMENT_STATUS_LABELS[o.status] ?? o.status}

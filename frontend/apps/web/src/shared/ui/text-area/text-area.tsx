@@ -42,7 +42,7 @@ const BOX_ERROR =
 const BOX_DISABLED = "has-disabled:border-gray-300 has-disabled:bg-gray-200";
 
 const FIELD_BASE =
-  "min-h-0 w-full flex-1 resize-none bg-transparent font-sans text-base leading-normal tracking-[-0.03em] text-gray-800 outline-none placeholder:text-gray-400 focus:text-primary-400 focus:placeholder:text-primary-400";
+  "min-h-0 w-full flex-1 resize-none bg-transparent font-sans text-16 leading-normal tracking-[-0.03em] text-gray-800 outline-none placeholder:text-gray-400 focus:text-primary-400 focus:placeholder:text-primary-400";
 
 const FIELD_ERROR =
   "text-red-500 placeholder:text-red-500 focus:text-red-500 focus:placeholder:text-red-500";
@@ -51,7 +51,7 @@ const FIELD_DISABLED =
   "disabled:text-gray-400 disabled:placeholder:text-gray-400 disabled:cursor-not-allowed";
 
 const COUNTER_BASE =
-  "font-sans text-xs leading-normal tracking-[-0.03em] whitespace-nowrap";
+  "font-sans text-12 leading-normal tracking-[-0.03em] whitespace-nowrap";
 
 export function TextArea({
   label,
@@ -91,7 +91,7 @@ export function TextArea({
         <label
           htmlFor={textareaId}
           className={cn(
-            "font-sans text-sm leading-normal tracking-[-0.03em] whitespace-nowrap",
+            "font-sans text-14 leading-normal tracking-[-0.03em] whitespace-nowrap",
             error ? "text-red-500" : "text-gray-400",
           )}
         >
@@ -135,7 +135,7 @@ export function TextArea({
         <p
           id={describedBy}
           className={cn(
-            "font-sans text-sm leading-normal tracking-[-0.03em]",
+            "font-sans text-14 leading-normal tracking-[-0.03em]",
             error ? "text-red-500" : "text-gray-400",
           )}
         >

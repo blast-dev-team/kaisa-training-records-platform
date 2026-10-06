@@ -24,12 +24,10 @@ export interface TrainingHistoryDetail {
   applicantLabel: string;
   /** 이력 소유 교육생명 — 슈퍼 계정 미리보기에서 서식 성명으로 쓴다 */
   traineeName?: string;
-  /** 확인서 발급 상태 — 서버가 회원별로 판정 (데모 이력 공유 대응) */
-  certificateStatus: "issuable" | "reissuable" | "unavailable";
-  /** 직전 발급일시 (ISO) — reissue일 때만 */
+  /** 확인서 발급 상태 — 서버가 회원별로 판정 (데모 이력 공유 대응). 재발급 개념 없음 */
+  certificateStatus: "issuable" | "unavailable";
+  /** 직전 발급일시 (ISO) — 기발급 표기용 */
   lastIssuedAt?: string;
-  /** 7일 무료 재발급 기한 (ISO) — 기한 내면 무료, 지나면 유료 재발급 */
-  reissueFreeUntil?: string;
 }
 
 const API_BASE = import.meta.env.VITE_API_URL ?? "";
@@ -63,6 +61,5 @@ export async function getTrainingHistoryDetail(id: string): Promise<TrainingHist
     // 발급 게이트(3년·수료·기발급)는 서버 판정 값을 그대로 쓴다
     certificateStatus: data.certificate_status ?? "issuable",
     lastIssuedAt: data.last_issued_at ?? undefined,
-    reissueFreeUntil: data.reissue_free_until ?? undefined,
   };
 }

@@ -4,6 +4,7 @@ import { toast } from "react-toastify";
 import { FileSpreadsheet, Upload } from "lucide-react";
 import { Dialog } from "@/src/shared/ui/dialog";
 import { Input } from "@/src/shared/ui/input";
+import { DateField } from "@/src/shared/ui/date-picker/date-field";
 import { Label } from "@/src/shared/ui/label";
 import { Pill } from "@/src/shared/ui/pill";
 import { Button } from "@/src/shared/ui/button";
@@ -34,6 +35,7 @@ interface ImportDraft {
   supervisorGrade: string;
   certIssuedDate: string;
   isDuplicate: boolean;
+  isPromotion: boolean;
   duplicateOfName: string | null;
   errors: string[];
   include: boolean;
@@ -87,9 +89,10 @@ export function TraineeImportDialog({ isOpen, onClose }: Props) {
           supervisorGrade: r.supervisor_grade ?? "",
           certIssuedDate: r.cert_issued_date ?? "",
           isDuplicate: r.is_duplicate,
+          isPromotion: r.is_promotion,
           duplicateOfName: r.duplicate_of_name,
           errors: r.errors,
-          // 중복·오류 행은 기본 제외 — 사용자가 확인하고 다시 포함시킨다
+          // 중복 행은 기본 제외, 승격 행은 기본 포함 — 승격은 기존 감리원 업데이트라 안전
           include: !r.is_duplicate && r.errors.length === 0,
         })),
       ]);
@@ -135,7 +138,11 @@ export function TraineeImportDialog({ isOpen, onClose }: Props) {
       setResult(data);
       setStage("result");
       queryClient.invalidateQueries({ queryKey: traineeQueries.all() });
-      toast.success(`감리원 ${data.created}명을 등록했어요`);
+      toast.success(
+        data.promoted > 0
+          ? `감리원 ${data.created}명 등록 · 기존 감리원 ${data.promoted}명 등급 변경했어요`
+          : `감리원 ${data.created}명을 등록했어요`,
+      );
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -143,6 +150,7 @@ export function TraineeImportDialog({ isOpen, onClose }: Props) {
   const included = drafts.filter((d) => d.include);
   const hasBlockingError = included.some((d) => !d.name.trim() || d.errors.length > 0);
   const duplicateCount = drafts.filter((d) => d.isDuplicate).length;
+  const promotionCount = drafts.filter((d) => d.isPromotion).length;
 
   const gridCols = "grid grid-cols-[36px_120px_120px_150px_200px_100px_140px_72px] gap-1.5";
 
@@ -187,7 +195,7 @@ export function TraineeImportDialog({ isOpen, onClose }: Props) {
             className="flex w-full flex-col items-center gap-2 rounded-xl border border-dashed border-line px-4 py-10 text-ink-3 transition-colors hover:border-accent hover:text-accent cursor-pointer"
           >
             <FileSpreadsheet className="size-8" />
-            <span className="text-sm">
+            <span className="text-14">
               {files.length === 0
                 ? "클릭해서 엑셀 파일 선택"
                 : files.length === 1
@@ -221,20 +229,22 @@ export function TraineeImportDialog({ isOpen, onClose }: Props) {
       {stage === "preview" && (
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <p className="text-[12px] text-ink-3">
+            <p className="text-12 text-ink-3">
               파일 {fileNames.length}개 · 총 {drafts.length}행 · 중복 {duplicateCount}행
+              {promotionCount > 0 && ` · 등급 변경 ${promotionCount}행`}
               {duplicateCount > 0 && " (중복은 기본 제외 — 포함하려면 체크)"}
             </p>
+
             <div className="flex items-center gap-3">
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="text-[12px] text-accent hover:underline"
+                className="text-12 text-accent hover:underline"
                 disabled={previewMutation.isPending}
               >
                 {previewMutation.isPending ? "읽는 중..." : "엑셀 추가"}
               </button>
-              <label className="flex cursor-pointer items-center gap-1.5 text-[12px] text-ink-2">
+              <label className="flex cursor-pointer items-center gap-1.5 text-12 text-ink-2">
                 <input
                   type="checkbox"
                   className="accent-accent"
@@ -252,13 +262,13 @@ export function TraineeImportDialog({ isOpen, onClose }: Props) {
             <div className="min-w-[880px] space-y-1.5">
               <div className={`${gridCols} sticky top-0 z-10 items-center bg-panel py-1 px-2.5`}>
                 <span />
-                <Label className="text-[11px] text-ink-3">감리원명 *</Label>
-                <Label className="text-[11px] text-ink-3">전화번호</Label>
-                <Label className="text-[11px] text-ink-3">생년월일</Label>
-                <Label className="text-[11px] text-ink-3">감리원증번호</Label>
-                <Label className="text-[11px] text-ink-3">등급</Label>
-                <Label className="text-[11px] text-ink-3">발급일자</Label>
-                <Label className="text-[11px] text-ink-3">상태</Label>
+                <Label className="text-11 text-ink-3">감리원명 *</Label>
+                <Label className="text-11 text-ink-3">전화번호</Label>
+                <Label className="text-11 text-ink-3">생년월일</Label>
+                <Label className="text-11 text-ink-3">감리원증번호</Label>
+                <Label className="text-11 text-ink-3">등급</Label>
+                <Label className="text-11 text-ink-3">발급일자</Label>
+                <Label className="text-11 text-ink-3">상태</Label>
               </div>
               <div className="space-y-1.5">
                 {drafts.map((d, i) => (
@@ -267,10 +277,10 @@ export function TraineeImportDialog({ isOpen, onClose }: Props) {
                     {(i === 0 || drafts[i - 1]?.fileIndex !== d.fileIndex) && (
                       <div className="flex items-center gap-1.5 pt-2">
                         <FileSpreadsheet className="size-3 shrink-0 text-ink-3" />
-                        <span className="truncate text-[11px] font-medium text-ink-2">
+                        <span className="truncate text-11 font-medium text-ink-2">
                           {d.fileName}
                         </span>
-                        <span className="shrink-0 text-[11px] text-ink-3">
+                        <span className="shrink-0 text-11 text-ink-3">
                           {drafts.filter((x) => x.fileIndex === d.fileIndex).length}행
                         </span>
                       </div>
@@ -297,12 +307,13 @@ export function TraineeImportDialog({ isOpen, onClose }: Props) {
                         value={d.phone}
                         onChange={(e) => setDraft(d.key, { phone: e.target.value })}
                       />
-                      <Input
-                        disabled={!d.include}
-                        type="date"
-                        value={d.birthDate}
-                        onChange={(e) => setDraft(d.key, { birthDate: e.target.value })}
-                      />
+                      <div className={d.include ? undefined : "pointer-events-none opacity-50"}>
+                        <DateField
+                          ariaLabel={`생년월일 ${d.key}`}
+                          value={d.birthDate}
+                          onChange={(v) => setDraft(d.key, { birthDate: v })}
+                        />
+                      </div>
                       <Input
                         disabled={!d.include}
                         value={d.certNo}
@@ -317,18 +328,17 @@ export function TraineeImportDialog({ isOpen, onClose }: Props) {
                           })
                         }
                       />
-                      <Input
-                        disabled={!d.include}
-                        type="date"
-                        value={d.certIssuedDate}
-                        onChange={(e) =>
-                          setDraft(d.key, {
-                            certIssuedDate: e.target.value,
-                          })
-                        }
-                      />
+                      <div className={d.include ? undefined : "pointer-events-none opacity-50"}>
+                        <DateField
+                          ariaLabel={`자격 발급일 ${d.key}`}
+                          value={d.certIssuedDate}
+                          onChange={(v) => setDraft(d.key, { certIssuedDate: v })}
+                        />
+                      </div>
                       {d.isDuplicate ? (
                         <Pill tone="warn">중복</Pill>
+                      ) : d.isPromotion ? (
+                        <Pill tone="accent">등급 변경</Pill>
                       ) : d.errors.length > 0 ? (
                         <Pill tone="danger">오류</Pill>
                       ) : (
@@ -336,8 +346,12 @@ export function TraineeImportDialog({ isOpen, onClose }: Props) {
                       )}
                     </div>
                     {(d.errors.length > 0 || d.duplicateOfName) && (
-                      <p className="pl-10 text-[11px] text-danger">
-                        {d.duplicateOfName && `기존 감리원(${d.duplicateOfName})과 중복이에요`}
+                      <p
+                        className={`pl-10 text-11 ${d.isPromotion ? "text-accent" : "text-danger"}`}
+                      >
+                        {d.isPromotion
+                          ? `기존 감리원(${d.duplicateOfName})의 수석감리원증번호를 추가하고 등급을 수석감리원으로 변경해요`
+                          : d.duplicateOfName && `기존 감리원(${d.duplicateOfName})과 중복이에요`}
                         {d.errors.length > 0 && ` · ${d.errors.join(" · ")}`}
                       </p>
                     )}
@@ -353,20 +367,26 @@ export function TraineeImportDialog({ isOpen, onClose }: Props) {
         <div className="space-y-3">
           <div className="flex gap-3">
             <div className="flex-1 rounded-lg bg-ok-soft px-4 py-3 text-center">
-              <p className="text-xl font-semibold text-ok-ink">{result.created}</p>
-              <p className="text-[12px] text-ok-ink">등록</p>
+              <p className="text-20 font-semibold text-ok-ink">{result.created}</p>
+              <p className="text-12 text-ok-ink">등록</p>
             </div>
+            {result.promoted > 0 && (
+              <div className="flex-1 rounded-lg bg-accent-soft px-4 py-3 text-center">
+                <p className="text-20 font-semibold text-accent-ink">{result.promoted}</p>
+                <p className="text-12 text-accent-ink">등급 변경</p>
+              </div>
+            )}
             <div className="flex-1 rounded-lg bg-panel-2 px-4 py-3 text-center">
-              <p className="text-xl font-semibold text-ink">{result.skipped}</p>
-              <p className="text-[12px] text-ink-3">중복 제외</p>
+              <p className="text-20 font-semibold text-ink">{result.skipped}</p>
+              <p className="text-12 text-ink-3">중복 제외</p>
             </div>
           </div>
           {result.failed.length > 0 && (
             <div className="rounded-lg border border-danger-soft bg-danger-soft/40 px-3 py-2">
-              <p className="mb-1 text-[12px] font-medium text-danger">
+              <p className="mb-1 text-12 font-medium text-danger">
                 등록 못한 행 {result.failed.length}건
               </p>
-              <ul className="space-y-0.5 text-[12px] text-danger">
+              <ul className="space-y-0.5 text-12 text-danger">
                 {result.failed.map((f) => (
                   <li key={f.row_number}>
                     {f.row_number}행 — {f.error}

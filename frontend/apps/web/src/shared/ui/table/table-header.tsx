@@ -84,7 +84,7 @@ export function TableHeader({
     >
       {type === "text" && (
         <>
-          <p className="min-w-px flex-1 font-sans text-xs font-semibold leading-[1.5] tracking-[-0.03em] text-gray-600">
+          <p className="min-w-px flex-1 font-sans text-12 font-semibold leading-[1.5] tracking-[-0.03em] text-gray-600">
             {text}
           </p>
           {sort && (

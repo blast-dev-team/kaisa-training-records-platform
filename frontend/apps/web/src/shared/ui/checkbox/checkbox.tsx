@@ -36,8 +36,8 @@ const GAP: Record<CheckboxSize, string> = {
 };
 
 const TEXT_SIZE: Record<CheckboxSize, string> = {
-  m: "text-base",
-  s: "text-xs",
+  m: "text-16",
+  s: "text-12",
 };
 
 /** Figma outline 카드 — m 12px radius·16/12 padding, s 8px radius·8 padding */

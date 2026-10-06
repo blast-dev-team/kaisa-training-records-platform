@@ -14,7 +14,7 @@ export function FilterRow({ label, children }: { label?: ReactNode; children: Re
   return (
     <div className="flex items-center gap-1.5 flex-wrap">
       {label !== undefined && (
-        <span className="w-16 shrink-0 text-[13px] text-ink-3">{label}</span>
+        <span className="w-16 shrink-0 text-13 text-ink-3">{label}</span>
       )}
       {children}
     </div>

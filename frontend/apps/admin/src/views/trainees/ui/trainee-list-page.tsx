@@ -7,19 +7,18 @@ import { AppTable } from "@/src/shared/ui/app-table";
 import { Button } from "@/src/shared/ui/button";
 import { Dialog } from "@/src/shared/ui/dialog";
 import { FilterBar, FilterRow } from "@/src/shared/ui/filter-bar";
-import { Input } from "@/src/shared/ui/input";
+import { SearchInput } from "@/src/shared/ui/search-input";
+import { DateField } from "@/src/shared/ui/date-picker/date-field";
 import { PageHead } from "@/src/shared/ui/page-head";
 import { PageContainer } from "@/src/shared/ui/page-container";
-import { Pill, statusTone } from "@/src/shared/ui/pill";
 import { Select } from "@/src/shared/ui/select";
 import { toYMD } from "@/src/shared/utils/format";
-import { Check, FileSpreadsheet, Minus, Plus } from "lucide-react";
+import { Check, FileSpreadsheet, Info, Minus, Plus } from "lucide-react";
 import { AlertTriangle } from "lucide-react";
 import {
   deleteTrainee,
   membershipGradeQueries,
   traineeQueries,
-  TRAINEE_REVIEW_STATUS_LABELS,
   type Trainee,
 } from "@/src/entities/trainee";
 import { BulkEditDialog } from "./bulk-edit-dialog";
@@ -28,13 +27,17 @@ import { GradeChangeDialog } from "./grade-change-dialog";
 import { TraineeFormDialog } from "./trainee-form-dialog";
 import { TraineeDuplicatesDialog } from "./trainee-duplicates-dialog";
 import { TraineeImportDialog } from "./trainee-import-dialog";
+import { GradeImportDialog } from "./grade-import-dialog";
 
 export function TraineeListPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const queryClient = useQueryClient();
   const q = searchParams.get("q") ?? "";
-  const status = searchParams.get("status") ?? "";
   const gradeId = searchParams.get("grade") ?? "";
+  const supervisorGrade = searchParams.get("supervisor_grade") ?? "";
+  const birth = searchParams.get("birth") ?? "";
+  const sort = searchParams.get("sort") ?? "";
+  const order = searchParams.get("order") ?? "";
   const page = Math.max(1, Number(searchParams.get("page") ?? 1) || 1);
   const limit = Math.max(1, Number(searchParams.get("limit") ?? 10) || 10);
 
@@ -43,6 +46,7 @@ export function TraineeListPage() {
   const [deleteTarget, setDeleteTarget] = useState<Trainee | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+  const [gradeImportOpen, setGradeImportOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<Trainee | null>(null);
   const [duplicatesOpen, setDuplicatesOpen] = useState(false);
   const [bulkGradeOpen, setBulkGradeOpen] = useState(false);
@@ -50,13 +54,42 @@ export function TraineeListPage() {
   /** id → Trainee — 페이지를 넘어 선택해도 일괄 모달에서 프리필할 수 있게 객체를 저장 */
   const [selected, setSelected] = useState<Record<string, Trainee>>({});
 
-  const { data } = useQuery(traineeQueries.list({ q, reviewStatus: status, gradeId, page, limit }));
+  const { data } = useQuery(
+    traineeQueries.list({
+      q,
+      gradeId: gradeId || undefined,
+      supervisorGrade: supervisorGrade || undefined,
+      birthDate: birth || undefined,
+      sort: (sort || undefined) as
+        "grade_expires_at" | "created_at" | "updated_at" | undefined,
+      order: (order === "asc" || order === "desc" ? order : undefined) as
+        "asc" | "desc" | undefined,
+      page,
+      limit,
+    }),
+  );
+  // 필터 옵션은 활성 등급만 — 등급 변경 모달들과 같은 기준
   const { data: grades } = useQuery(membershipGradeQueries.list(true));
+  // 연간 등급 — code 기준 판별 (id 는 환경마다 다름). undefined = 등급 로딩 전
+  const annualId = grades?.find((g) => g.code === "annual")?.id;
+  const isAnnualFilter = gradeId !== "" && gradeId === annualId;
 
   // 검색·필터가 바뀌면 행 집합의 의미가 달라진다 — 안 보이는 교육생이 남지 않게 선택 해제
   useEffect(() => {
     setSelected({});
-  }, [q, status, gradeId]);
+  }, [q, gradeId, supervisorGrade, birth]);
+
+  // 만료일 정렬은 연간 필터에만 의미가 있다 — 등급 필터가 연간을 벗어나면 해제
+  // (등록일·수정일 정렬은 등급 필터와 무관하므로 건드리지 않는다)
+  useEffect(() => {
+    if (annualId === undefined) return;
+    if (
+      gradeId !== annualId &&
+      searchParams.get("sort") === "grade_expires_at"
+    ) {
+      updateParams({ sort: null, order: null });
+    }
+  }, [gradeId, annualId]);
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteTrainee(id),
@@ -151,6 +184,19 @@ export function TraineeListPage() {
           </span>
         ),
       },
+      {
+        accessorKey: "seniorCertNo",
+        header: "수석감리원증번호",
+        meta: { width: 180 },
+        cell: ({ row }) => (
+          <span
+            className="block max-w-[180px] truncate"
+            title={row.original.seniorCertNo ?? ""}
+          >
+            {row.original.seniorCertNo ?? "—"}
+          </span>
+        ),
+      },
       { accessorKey: "phoneMasked", header: "전화", meta: { width: 130 } },
       {
         accessorKey: "email",
@@ -162,25 +208,22 @@ export function TraineeListPage() {
         accessorKey: "gradeName",
         header: "회원등급",
         meta: { width: 150 },
-        cell: ({ row }) =>
-          row.original.gradeExpiresAt ? (
-            <span>
-              {row.original.gradeName ?? "—"}{" "}
-              <span className="text-ink-3">· ~{row.original.gradeExpiresAt}</span>
+        cell: ({ row }) => {
+          const t = row.original;
+          return (
+            <span className="inline-flex items-center gap-1">
+              {t.gradeName ?? "—"}
+              {t.gradeExpiresAt && (
+                <span className="group/info relative inline-flex cursor-help">
+                  <Info className="size-3.5 text-ink-3" />
+                  <span className="pointer-events-none absolute right-full top-1/2 z-10 mr-1.5 -translate-y-1/2 whitespace-nowrap rounded-md bg-ink px-2 py-1 text-11 font-normal text-panel opacity-0 shadow-md transition-opacity duration-100 group-hover/info:opacity-100">
+                    만료일 {t.gradeExpiresAt}
+                  </span>
+                </span>
+              )}
             </span>
-          ) : (
-            (row.original.gradeName ?? "—")
-          ),
-      },
-      {
-        accessorKey: "reviewStatus",
-        header: "인증상태",
-        meta: { width: 100 },
-        cell: ({ row }) => (
-          <Pill tone={statusTone(row.original.reviewStatus)}>
-            {TRAINEE_REVIEW_STATUS_LABELS[row.original.reviewStatus]}
-          </Pill>
-        ),
+          );
+        },
       },
       {
         accessorKey: "createdAt",
@@ -189,9 +232,15 @@ export function TraineeListPage() {
         cell: ({ row }) => toYMD(row.original.createdAt) ?? "—",
       },
       {
+        accessorKey: "updatedAt",
+        header: "수정일",
+        meta: { width: 110 },
+        cell: ({ row }) => toYMD(row.original.updatedAt) ?? "—",
+      },
+      {
         id: "actions",
         header: "",
-        meta: { width: 230, align: "right", sticky: "right" },
+        meta: { width: 230 },
         cell: ({ row }) => (
           <div className="flex items-center justify-end gap-1.5">
             <Button
@@ -242,6 +291,21 @@ export function TraineeListPage() {
     [selected, allPageSelected, pageSelectedCount, toggleAllPage],
   );
 
+  /** 만료 ≤7일(지난 행 포함) 강조 — 연간 자동 전환 전이라 지난 날짜도 임박으로 본다 */
+  const isExpiringSoon = (t: Trainee): boolean => {
+    if (!t.gradeExpiresAt) return false;
+    const [y = NaN, m = NaN, d = NaN] = t.gradeExpiresAt.split("-").map(Number);
+    const expires = new Date(y, m - 1, d);
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    return (expires.getTime() - today.getTime()) / 86_400_000 <= 7;
+  };
+
+  const getRowClassName = useCallback(
+    (t: Trainee) => (isExpiringSoon(t) ? "bg-warn-soft" : ""),
+    [],
+  );
+
   return (
     <PageContainer>
       <PageHead
@@ -249,6 +313,9 @@ export function TraineeListPage() {
         subtitle={`총 ${total.toLocaleString()}명`}
         actions={
           <>
+            <Button variant="outline" onClick={() => setGradeImportOpen(true)}>
+              <FileSpreadsheet className="size-4" /> 엑셀 등급 적용
+            </Button>
             <Button variant="outline" onClick={() => setImportOpen(true)}>
               <FileSpreadsheet className="size-4" /> 엑셀 등록
             </Button>
@@ -273,11 +340,12 @@ export function TraineeListPage() {
               updateParams({ q: searchInput.trim() || null });
             }}
           >
-            <Input
-              className="w-64"
-              placeholder="성명(전체) · 감리원증번호"
+            <SearchInput
+              className="w-100"
+              placeholder="성명 (부분검색 불가) · 감리원증번호·수석감리원증번호 · 이메일"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
+              onClear={() => updateParams({ q: null })}
             />
             <Button type="submit" variant="secondary" size="sm">
               검색
@@ -292,25 +360,26 @@ export function TraineeListPage() {
             </Button>
           </form>
         </FilterRow>
-        <FilterRow label="필터">
+        <FilterRow label="감리원">
+          {/* 등급은 enum 고정(감리원/수석감리원) — distinct 조회 대신 상수 옵션 */}
           <Select
-            className="w-36"
-            value={status}
-            onChange={(e) => updateParams({ status: e.target.value || null })}
+            className="w-40"
+            value={supervisorGrade}
+            onChange={(e) => updateParams({ supervisor_grade: e.target.value || null })}
           >
-            <option value="">인증상태 전체</option>
-            {Object.entries(TRAINEE_REVIEW_STATUS_LABELS).map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
+            <option value="">감리원 등급 전체</option>
+            <option value="감리원">감리원</option>
+            <option value="수석감리원">수석감리원</option>
+            <option value="none">미정</option>
           </Select>
+        </FilterRow>
+        <FilterRow label="회원등급">
           <Select
-            className="w-36"
+            className="w-40"
             value={gradeId}
             onChange={(e) => updateParams({ grade: e.target.value || null })}
           >
-            <option value="">등급 전체</option>
+            <option value="">회원등급 전체</option>
             {(grades ?? []).map((g) => (
               <option key={g.id} value={g.id}>
                 {g.name}
@@ -318,11 +387,72 @@ export function TraineeListPage() {
             ))}
           </Select>
         </FilterRow>
+        {isAnnualFilter && (
+          <FilterRow label="만료일 정렬">
+            <Select
+              className="w-40"
+              value={sort === "grade_expires_at" ? order : ""}
+              onChange={(e) =>
+                updateParams({
+                  sort: e.target.value ? "grade_expires_at" : null,
+                  order: e.target.value || null,
+                })
+              }
+            >
+              <option value="">기본순</option>
+              <option value="asc">만료일 임박순</option>
+              <option value="desc">만료일 여유순</option>
+            </Select>
+          </FilterRow>
+        )}
+        <FilterRow label="정렬">
+          <Select
+            className="w-40"
+            value={sort === "created_at" || sort === "updated_at" ? `${sort}:${order}` : ""}
+            onChange={(e) => {
+              const v = e.target.value;
+              if (!v) {
+                updateParams({ sort: null, order: null });
+                return;
+              }
+              const [s = "", o = ""] = v.split(":");
+              updateParams({ sort: s, order: o });
+            }}
+          >
+            <option value="">기본순</option>
+            <option value="created_at:desc">등록일 최신순</option>
+            <option value="created_at:asc">등록일 오래된순</option>
+            <option value="updated_at:desc">수정일 최신순</option>
+            <option value="updated_at:asc">수정일 오래된순</option>
+          </Select>
+        </FilterRow>
+        <FilterRow label="생년월일">
+          <DateField
+            ariaLabel="생년월일 필터"
+            className="w-40"
+            value={birth}
+            onChange={(v) => updateParams({ birth: v || null })}
+          />
+        </FilterRow>
       </FilterBar>
+
+      {/* 연간 필터 안내 — 만료일 확인 방법(ⓘ 아이콘 hover)과 임박 행 강조 규칙 */}
+      {isAnnualFilter && (
+        <div className="flex w-full items-start gap-2.5 rounded-md border-l-4 border-solid border-accent bg-accent-soft px-4 py-2.5">
+          <Info className="mt-0.5 size-4 shrink-0 text-accent" />
+          <div className="flex-1 space-y-0.5 text-13 leading-[1.6] text-ink-2">
+            <p>
+              회원등급 옆 <Info className="inline size-3.5 -translate-y-px text-ink-3" /> 아이콘에
+              마우스를 올리면 <b className="font-semibold text-ink">만료일</b>을 확인할 수 있어요.
+            </p>
+            <p>만료 1주일 전 감리원은 노란색 배경으로 표시돼요.</p>
+          </div>
+        </div>
+      )}
 
       {selectedCount > 0 && (
         <div className="flex items-center gap-2 rounded-lg border border-line bg-panel px-4 py-2.5">
-          <span className="text-[13px] font-medium text-ink">선택 {selectedCount}명</span>
+          <span className="text-13 font-medium text-ink">선택 {selectedCount}명</span>
           <div className="ml-auto flex items-center gap-2">
             <Button variant="outline" size="sm" onClick={() => setSelected({})}>
               선택 해제
@@ -342,6 +472,7 @@ export function TraineeListPage() {
         data={items}
         isLoading={!data}
         onRowClick={toggleRow}
+        getRowClassName={getRowClassName}
         emptyMessage="조건에 맞는 감리원이 없어요"
         page={page}
         totalPages={totalPages}
@@ -385,6 +516,7 @@ export function TraineeListPage() {
       />
 
       <TraineeImportDialog isOpen={importOpen} onClose={() => setImportOpen(false)} />
+      <GradeImportDialog isOpen={gradeImportOpen} onClose={() => setGradeImportOpen(false)} />
 
       <Dialog
         isOpen={deleteTarget !== null}

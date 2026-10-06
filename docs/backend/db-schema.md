@@ -69,8 +69,10 @@ PASS 성공 시 CI로 find-or-create. 재가입 절차 없음 — 같은 CI 재�
 | user_id | uuid UNIQUE FK→users SET NULL | 회원가입 전 NULL 허용 |
 | trainee_no | varchar(100) UNIQUE | 협회 관리 교육생 고유번호 |
 | cert_no | varchar(100) | 감리원증번호 (구 시스템 감리원추가 E열) |
-| supervisor_grade | varchar(50) | 감리원 등급 (감리원/수석감리원) — 확인서 표기용, 회원등급과 별개 |
+| supervisor_grade | varchar(50) | 감리원 등급 (감리원/수석감리원) — 확인서 표기용, 회원등급과 별개. 저장 시 번호 유무에서 파생 |
+| senior_cert_no | varchar(100) | 수석감리원증번호 — 승격 시 새로 부여. cert_no 와 동시 보유 |
 | cert_issued_date | date | 감리원증 발급일자 — 엑셀 일괄 등록에서 받는 참조 정보 |
+| senior_cert_issued_date | date | 수석감리원증 발급일자 — 승격 시 참조 정보 |
 | name_encrypted | text NOT NULL | Fernet 암호화 — 표시 시 복호화 |
 | name_hash | varchar(64) NOT NULL | HMAC blind index — 이름 검색은 '전체 이름 일치'만 지원 (부분 검색 불가) |
 | birth_date | date | 생년월일 (어드민 수정 항목) |
@@ -257,8 +259,8 @@ CI 는 `users.ci_hash` 단일 소스. CI 없는 이관분은 수동 매칭.
 | institution_id | uuid FK→training_institutions SET NULL | |
 | course_name | varchar(255) NOT NULL | 당시 교육명 스냅샷 |
 | institution_name | varchar(255) NOT NULL | 당시 기관명 스냅샷 |
-| supervisor_grade | varchar(50) | 감리원 등급 (예: 정감리원) |
-| supervisor_cert_no | varchar(100) | 감리원증 발급번호 |
+| supervisor_grade | varchar(50) | **레거시 스냅샷** — 새 이력은 채우지 않는다. 응답은 trainees 조인 값(현재 값)을 쓴다(2026-09-30) |
+| supervisor_cert_no | varchar(100) | 〃 동일 — 이관·시드 데이터 원본 보존용 |
 | total_hours | numeric(8,2) NOT NULL DEFAULT 0 | 교육 시간 |
 | completed_hours | numeric(8,2) NOT NULL DEFAULT 0 | 이수 시간 |
 | started_at / ended_at | date | |
@@ -280,9 +282,13 @@ CI 는 `users.ci_hash` 단일 소스. CI 없는 이관분은 수동 매칭.
 ## 5. 확인서 발급 가격
 
 **2026-09-17 폐지** — 발급 단가는 `membership_grades.price_krw` (등급 소속) 로 통합.
-최초발급/재발급 규칙 분리와 유효기간(valid_from/to) 체계를 없앴다. 남는 규칙:
+최초발급/재발급 규칙 분리와 유효기간(valid_from/to) 체계를 없앴다.
 
-- 재발급이 `previous_certificate_id` 로 직전 확인서를 물고, 직전 발급 7일 이내면 무료(0원)
+**2026-09-30 재발급 폐지** — 재발급 개념이 없다. 같은 이력도 매번 새 문서로
+등가 단가 결제 발급하며, 발급된 문서는 환불(revoke) 전까지 모두 유효하다
+(재발급에 의한 폐기 없음 — `issue_source` 로 발급 경로 구분). 남는 규칙:
+
+- `previous_certificate_id` 체인은 레거시(2026-09-30 이전 재발급분) 안내용 — 신규 발급은 세우지 않는다
 - 신청 시점 금액은 `certificate_requests.amount_krw` 스냅샷으로 보존
 
 `certificate_pricing_rules` 테이블은 레거시 — 과거 신청의 `pricing_rule_id` 참조 보존용으로만 남긴다.
@@ -300,9 +306,9 @@ CI 는 `users.ci_hash` 단일 소스. CI 없는 이관분은 수동 매칭.
 | request_no | varchar(100) NOT NULL UNIQUE | |
 | trainee_id | uuid NOT NULL FK→trainees | |
 | training_record_id | uuid NOT NULL FK→training_records | |
-| previous_certificate_id | uuid FK→certificates SET NULL | 재발급 시 기존 확인서 |
+| previous_certificate_id | uuid FK→certificates SET NULL | 레거시 — 구 재발급분 체인. 신규 발급은 NULL |
 | requested_by | uuid FK→users | nullable — 어드민 발급은 회원 신청이 아니다 (trainee.user_id 로 채움 → WEB 노출) |
-| issue_type | varchar(30) NOT NULL DEFAULT 'original' | original / reissue |
+| issue_type | varchar(30) NOT NULL DEFAULT 'original' | original / reissue — 신규는 항상 original (재발급 폐지) |
 | membership_grade_id | uuid NOT NULL FK→membership_grades | 신청 당시 판별 등급 |
 | pricing_rule_id | uuid FK→certificate_pricing_rules SET NULL | 레거시 — 신규 신청은 NULL |
 | amount_krw | int NOT NULL | 신청 당시 확정 금액 스냅샷 |
@@ -408,6 +414,7 @@ CI 는 `users.ci_hash` 단일 소스. CI 없는 이관분은 수동 매칭.
 | issued_at | timestamptz NOT NULL | |
 | expires_at | timestamptz | 유효기간 (없으면 무기한) |
 | status | varchar(30) NOT NULL DEFAULT 'issued' | issued / revoked / superseded |
+| issue_source | varchar(10) NOT NULL DEFAULT 'member' | 발급 경로 — `member`(WEB 신청·결제) / `admin`(어드민 발급 저장). 어드민 발급은 회원 유효본과 무관한 독립 문서다(폐기·권리 판정에서 서로 간섭 없음) |
 | revoked_at / revoked_reason | | |
 | pdf_file_key | text | 비공개 저장소 Key |
 | pdf_sha256 | varchar(64) | PDF 무결성 해시 |
@@ -435,6 +442,7 @@ CI 는 `users.ci_hash` 단일 소스. CI 없는 이관분은 수동 매칭.
 | started_at / ended_at | date | 교육기간 |
 | issued_at | timestamptz NOT NULL | |
 | status | varchar(30) NOT NULL DEFAULT 'issued' | issued / revoked |
+| issue_source | varchar(10) NOT NULL DEFAULT 'member' | 발급 경로 — `member`(WEB 신청) / `admin`(어드민 발급). 1이력=1문서 멱등이라 경로가 달라도 같은 문서를 공유하며 최초 발급 경로만 기록 |
 | created_at / updated_at | timestamptz NOT NULL | |
 
 인덱스: `(certificate_no, issued_at)`, `(trainee_id, issued_at)`

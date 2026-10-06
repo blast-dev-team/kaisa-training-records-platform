@@ -4,6 +4,7 @@ import { toast } from "react-toastify";
 import { Button } from "@/src/shared/ui/button";
 import { Dialog } from "@/src/shared/ui/dialog";
 import { Input } from "@/src/shared/ui/input";
+import { DateField } from "@/src/shared/ui/date-picker/date-field";
 import { Select } from "@/src/shared/ui/select";
 import { SearchableSelect, fetchOptions } from "@/src/shared/ui/searchable-select";
 import {
@@ -31,7 +32,6 @@ interface EditRow {
   startedAt: string;
   endedAt: string;
   totalHours: string;
-  completedHours: string;
 }
 
 function toRow(record: TrainingRecord): EditRow {
@@ -44,7 +44,6 @@ function toRow(record: TrainingRecord): EditRow {
     startedAt: record.startedAt ?? "",
     endedAt: record.endedAt ?? "",
     totalHours: record.totalHours === null ? "" : String(record.totalHours),
-    completedHours: record.completedHours === null ? "" : String(record.completedHours),
   };
 }
 
@@ -66,7 +65,7 @@ function buildUpdates(
         changed = true;
       }
     };
-    const hours = (key: "totalHours" | "completedHours") => {
+    const hours = (key: "totalHours") => {
       const value = row[key].trim();
       const before = orig[key] === null ? "" : String(orig[key]);
       if (value !== before) {
@@ -88,7 +87,6 @@ function buildUpdates(
     date("startedAt");
     date("endedAt");
     hours("totalHours");
-    hours("completedHours");
     // 과정 변경 — 마스터에서만 선택(해제는 스냅샷 정합성 문제로 미지원)
     if (row.courseId !== orig.courseId && row.courseId !== null) {
       patch.courseId = row.courseId;
@@ -109,7 +107,7 @@ interface Props {
 }
 
 const TH =
-  "sticky top-0 z-10 bg-panel-2 px-2 py-2 text-left text-[11px] font-medium text-ink-3 whitespace-nowrap";
+  "sticky top-0 z-10 bg-panel-2 px-2 py-2 text-left text-11 font-medium text-ink-3 whitespace-nowrap";
 const TD = "px-2 py-1.5 align-middle";
 
 export function TrainingRecordBulkEditDialog({ isOpen, onClose, records, onSaved }: Props) {
@@ -158,15 +156,13 @@ export function TrainingRecordBulkEditDialog({ isOpen, onClose, records, onSaved
       ]}
     >
       <div className="max-h-[60vh] overflow-auto rounded-lg border border-line">
-        <table className="w-full min-w-[1060px] text-[13px]" style={{ tableLayout: "fixed" }}>
+        <table className="w-full min-w-[760px] text-13" style={{ tableLayout: "fixed" }}>
           <colgroup>
             <col style={{ width: 110 }} />
-            <col style={{ width: 200 }} />
-            <col style={{ width: 96 }} />
-            <col style={{ width: 130 }} />
-            <col style={{ width: 130 }} />
+            <col className="flex-1" />
+            <col style={{ width: 150 }} />
+            <col style={{ width: 150 }} />
             <col style={{ width: 80 }} />
-            <col style={{ width: 86 }} />
           </colgroup>
           <thead>
             <tr>
@@ -174,8 +170,7 @@ export function TrainingRecordBulkEditDialog({ isOpen, onClose, records, onSaved
               <th className={TH}>과정</th>
               <th className={TH}>시작일</th>
               <th className={TH}>종료일</th>
-              <th className={`${TH} text-right`}>총시수</th>
-              <th className={`${TH} text-right`}>이수시수</th>
+              <th className={`${TH}`}>총시수</th>
             </tr>
           </thead>
           <tbody>
@@ -197,32 +192,26 @@ export function TrainingRecordBulkEditDialog({ isOpen, onClose, records, onSaved
                   />
                 </td>
                 <td className={TD}>
-                  <Select
-                    className="h-8 w-full py-0 text-[13px]"
-                    value={row.completionStatus}
-                    onChange={(e) => setField(row.id, { completionStatus: e.target.value })}
-                  >
-                    {Object.entries(COMPLETION_STATUS_LABELS).map(([value, label]) => (
-                      <option key={value} value={value}>
-                        {label}
-                      </option>
-                    ))}
-                  </Select>
-                </td>
-                <td className={TD}>
-                  <Input
-                    type="date"
-                    className="h-8 w-full px-2 text-[13px]"
+                  <DateField
+                    ariaLabel={`교육 시작일 ${row.id}`}
+                    className="text-13"
                     value={row.startedAt}
-                    onChange={(e) => setField(row.id, { startedAt: e.target.value })}
+                    onChange={(v) => {
+                      setField(row.id, { startedAt: v });
+                      if (v && row.endedAt && v > row.endedAt) setField(row.id, { endedAt: v });
+                    }}
                   />
                 </td>
                 <td className={TD}>
-                  <Input
-                    type="date"
-                    className="h-8 w-full px-2 text-[13px]"
+                  <DateField
+                    ariaLabel={`교육 종료일 ${row.id}`}
+                    className="text-13"
                     value={row.endedAt}
-                    onChange={(e) => setField(row.id, { endedAt: e.target.value })}
+                    onChange={(v) => {
+                      setField(row.id, { endedAt: v });
+                      if (v && row.startedAt && v < row.startedAt)
+                        setField(row.id, { startedAt: v });
+                    }}
                   />
                 </td>
                 <td className={TD}>
@@ -230,19 +219,9 @@ export function TrainingRecordBulkEditDialog({ isOpen, onClose, records, onSaved
                     type="number"
                     step="0.5"
                     min="0"
-                    className="h-8 w-full px-2 text-right text-[13px]"
+                    className="h-8 w-full px-2 text-right text-13"
                     value={row.totalHours}
                     onChange={(e) => setField(row.id, { totalHours: e.target.value })}
-                  />
-                </td>
-                <td className={TD}>
-                  <Input
-                    type="number"
-                    step="0.5"
-                    min="0"
-                    className="h-8 w-full px-2 text-right text-[13px]"
-                    value={row.completedHours}
-                    onChange={(e) => setField(row.id, { completedHours: e.target.value })}
                   />
                 </td>
               </tr>

@@ -151,7 +151,7 @@ export function CourseFormDialog({ isOpen, onClose, course }: Props) {
             onCreate={createSessionName}
             createLabel={(q) => `'${q}' 새 회차명으로 추가`}
           />
-          <p className="text-[11px] text-ink-3">회차명 관리에서 새 회차명을 등록할 수 있어요</p>
+          <p className="text-11 text-ink-3">회차명 관리에서 새 회차명을 등록할 수 있어요</p>
         </div>
         <div className="flex flex-col gap-1.5">
           <div className="flex flex-col gap-1.5">
@@ -200,7 +200,7 @@ export function CourseFormDialog({ isOpen, onClose, course }: Props) {
           />
         </div>
         <div className="flex flex-col gap-2">
-          <label className="flex items-center gap-2 text-[13px] text-ink-2">
+          <label className="flex items-center gap-2 text-13 text-ink-2">
             <input
               type="checkbox"
               className="size-4 accent-[--color-accent] cursor-pointer"

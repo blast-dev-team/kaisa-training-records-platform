@@ -2,23 +2,20 @@
  * 확인서 발급 신청 + 포트원 결제 — 실제 백엔드 연동 (USE_MOCK 예외, 목록 API 참고).
  *
  * ① POST /certificate-requests/batch — 신청 생성. 게이트·가격 판정은 서버가 하고,
- *    유료면 주문번호(order_no)를 돌려준다. 0원(무료 재발급 등)은 즉시 발급.
+ *    유료면 주문번호(order_no)를 돌려준다. 0원(0원 등급)은 즉시 발급.
  * ② 포트원 브라우저 SDK(v2) 결제 — paymentId 는 서버 주문번호를 그대로 쓴다.
  *    (FE가 임의 paymentId 를 만들면 서버가 포트원 단일조회를 할 수 없다)
  * ③ POST /payments/{order_no}/confirm — 서버가 결제 상태·금액을 검증한 뒤 발급.
  */
 import { isPaymentError, requestPayment } from "@portone/browser-sdk/v2";
 
-export type IssueType = "original" | "reissue";
-
 export interface IssuanceRequestItem {
   /** 교육이력 ID */
   recordId: string;
-  issueType: IssueType;
 }
 
 export interface IssuancePaymentResult {
-  /** 주문번호 — 0원 발급(무료 재발급)은 결제 없이 즉시 발급이라 null */
+  /** 주문번호 — 0원 발급(0원 등급)은 결제 없이 즉시 발급이라 null */
   orderId: string | null;
 }
 
@@ -44,10 +41,7 @@ async function createRequests(
       headers: { "Content-Type": "application/json" },
       credentials: "include",
       body: JSON.stringify({
-        items: items.map((item) => ({
-          training_record_id: item.recordId,
-          issue_type: item.issueType,
-        })),
+        items: items.map((item) => ({ training_record_id: item.recordId })),
       }),
     },
   );
@@ -84,7 +78,7 @@ export async function postIssuancePayment(params: {
 
   const requests = await createRequests(params.items);
 
-  // 유료 주문이 없으면 서버가 이미 발급까지 완료했다 (0원 — 무료 재발급 등)
+  // 유료 주문이 없으면 서버가 이미 발급까지 완료했다 (0원 등급)
   const orderNo =
     requests.find((request) => request.order_no !== null)?.order_no ?? null;
   if (orderNo === null) {

@@ -89,7 +89,10 @@ async def list_certificates(
         limit=limit,
     )
     return PagedResponse(
-        items=[CertificateResponse.from_orm(c) for c in certificates],
+        items=[
+            CertificateResponse.from_orm(certificate, record_count=record_count)
+            for certificate, record_count in certificates
+        ],
         total=total,
         page=page,
         limit=limit,

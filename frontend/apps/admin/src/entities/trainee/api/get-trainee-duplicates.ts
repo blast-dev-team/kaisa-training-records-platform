@@ -6,6 +6,8 @@ interface TraineeDto {
   trainee_no: string
   cert_no: string | null
   supervisor_grade: string | null
+  senior_cert_no: string | null
+  senior_cert_issued_date: string | null
   name: string
   birth_date: string | null
   phone_masked?: string
@@ -27,6 +29,8 @@ export const getTraineeDuplicates = async (): Promise<Trainee[]> => {
     traineeNo: d.trainee_no,
     certNo: d.cert_no,
     supervisorGrade: d.supervisor_grade,
+    seniorCertNo: d.senior_cert_no,
+    seniorCertIssuedDate: d.senior_cert_issued_date,
     name: d.name,
     birthDate: d.birth_date,
     phoneMasked: d.phone_masked ?? '',

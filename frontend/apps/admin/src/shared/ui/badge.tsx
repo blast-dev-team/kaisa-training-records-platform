@@ -7,7 +7,7 @@ export function Badge({
   className?: string
   children: React.ReactNode
 }) {
-  const baseClasses = 'inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium'
+  const baseClasses = 'inline-flex items-center gap-1 px-2 py-0.5 rounded text-12 font-medium'
 
   const variantClasses = {
     default: 'bg-accent text-white',

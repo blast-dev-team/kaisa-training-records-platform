@@ -7,7 +7,9 @@ import { AppTable } from "@/src/shared/ui/app-table";
 import { Button } from "@/src/shared/ui/button";
 import { Dialog } from "@/src/shared/ui/dialog";
 import { FilterBar, FilterRow } from "@/src/shared/ui/filter-bar";
-import { Input } from "@/src/shared/ui/input";
+import { DateField } from "@/src/shared/ui/date-picker/date-field";
+import { adjustDateRange } from "@/src/shared/utils/date-range";
+import { SearchInput } from "@/src/shared/ui/search-input";
 import { Label } from "@/src/shared/ui/label";
 import { PageContainer } from "@/src/shared/ui/page-container";
 import { PageHead } from "@/src/shared/ui/page-head";
@@ -69,7 +71,7 @@ export function PaymentOrderListPage() {
         header: "주문번호",
         meta: { width: 170 },
         cell: ({ row }) => (
-          <span className="font-mono text-[12px] font-medium text-ink">{row.original.orderNo}</span>
+          <span className="font-mono text-12 font-medium text-ink">{row.original.orderNo}</span>
         ),
       },
       {
@@ -150,11 +152,12 @@ export function PaymentOrderListPage() {
               updateParams({ q: searchInput.trim() || null });
             }}
           >
-            <Input
+            <SearchInput
               className="w-64"
               placeholder="주문번호 · 감리원 성명(전체)"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
+              onClear={() => updateParams({ q: null })}
             />
             <Button type="submit" variant="secondary" size="sm">
               검색
@@ -163,19 +166,26 @@ export function PaymentOrderListPage() {
         </FilterRow>
         <FilterRow label="기간">
           <div className="flex items-center gap-1.5">
-            <Input
-              type="date"
+            <DateField
+              ariaLabel="시작일"
               className="w-36"
               value={from}
-              onChange={(e) => updateParams({ from: e.target.value || null })}
+              onChange={(v) => {
+                const r = adjustDateRange({ from, to }, "from", v);
+                updateParams({ from: r.from || null, to: r.to || null });
+              }}
+              maxDate={to || undefined}
             />
             <span className="text-ink-3">~</span>
-            <Input
-              type="date"
+            <DateField
+              ariaLabel="종료일"
               className="w-36"
               value={to}
-              min={from || undefined}
-              onChange={(e) => updateParams({ to: e.target.value || null })}
+              onChange={(v) => {
+                const r = adjustDateRange({ from, to }, "to", v);
+                updateParams({ from: r.from || null, to: r.to || null });
+              }}
+              minDate={from || undefined}
             />
           </div>
         </FilterRow>
@@ -231,7 +241,7 @@ export function PaymentOrderListPage() {
         ]}
       >
         <div className="space-y-1.5 pt-1">
-          <p className="rounded-md bg-bg-2 px-3 py-2 text-[12px] leading-[1.5] text-ink-3">
+          <p className="rounded-md bg-bg-2 px-3 py-2 text-12 leading-[1.5] text-ink-3">
             이 결제로 발급된 확인서는 모두 폐기되고, WEB 회원의 결제 내역에는 환불로 표시돼요.
           </p>
           <Label>환불 사유 (필수)</Label>

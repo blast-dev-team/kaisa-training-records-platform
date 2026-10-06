@@ -6,13 +6,15 @@ from pydantic import BaseModel
 
 
 class SessionCreate(BaseModel):
-    """교육 일정 등록 — 과정의 실제 개설 회차. 등록 후 교육생을 연결해 이력을 만든다."""
+    """교육 일정 등록 — 과정의 실제 개설 회차. 등록 후 교육생을 연결해 이력을 만든다.
+
+    시수는 총 시수 하나로 관리한다 — recognized_hours 는 서버가 total_hours 로 채운다.
+    """
 
     course_id: uuid.UUID
     started_at: date | None = None
     ended_at: date | None = None
     total_hours: Decimal = Decimal(0)
-    recognized_hours: Decimal = Decimal(0)
     is_active: bool = True
     # 외부 교육 체크 — 연결된 감리원 내역이 source='external' 로 저장된다
     source: str = "internal"  # internal | external
@@ -23,7 +25,6 @@ class SessionUpdate(BaseModel):
     started_at: date | None = None
     ended_at: date | None = None
     total_hours: Decimal | None = None
-    recognized_hours: Decimal | None = None
     is_active: bool | None = None
     source: str | None = None  # internal | external
     memo: str | None = None
@@ -36,7 +37,6 @@ class SessionBulkUpdateItem(BaseModel):
     started_at: date | None = None
     ended_at: date | None = None
     total_hours: Decimal | None = None
-    recognized_hours: Decimal | None = None
     is_active: bool | None = None
     memo: str | None = None
 

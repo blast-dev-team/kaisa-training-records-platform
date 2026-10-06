@@ -12,7 +12,7 @@ export function DemoSection({
 }) {
   return (
     <section className="flex flex-col gap-4 rounded-2xl bg-white p-6 shadow-[0_2px_4px_0_rgba(16,24,40,0.05)]">
-      <h2 className="text-lg font-semibold tracking-[-0.03em] text-gray-900">
+      <h2 className="text-18 font-semibold tracking-[-0.03em] text-gray-900">
         {title}
       </h2>
       {children}
@@ -33,7 +33,7 @@ export function Demo({
   return (
     <div className={cn("flex flex-col items-start gap-1.5", className)}>
       {label && (
-        <span className="text-xs font-medium tracking-[-0.03em] text-gray-400">
+        <span className="text-12 font-medium tracking-[-0.03em] text-gray-400">
           {label}
         </span>
       )}

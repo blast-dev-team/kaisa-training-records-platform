@@ -46,10 +46,10 @@ export function VerificationNoAuthPage() {
       <div className="mx-auto flex w-full max-w-[1400px] flex-1 flex-col items-center justify-center gap-6 p-10">
         {/* 헤더 — 제목(28px Bold) + 안내문(14px gray-600), gap 12px */}
         <div className="flex w-full flex-col gap-3 text-center">
-          <h1 className="text-[28px] leading-normal font-bold text-gray-900">
+          <h1 className="text-28 leading-normal font-bold text-gray-900">
             확인서 · 수료증 진위확인
           </h1>
-          <p className="text-sm leading-[1.6] text-gray-600">
+          <p className="text-14 leading-[1.6] text-gray-600">
             문서 종류를 선택하고 번호와 발급 대상자의 성명을 입력하시면 해당 문서의 유효 여부를
             확인할 수 있습니다.
           </p>
@@ -115,7 +115,7 @@ export function VerificationNoAuthPage() {
             </Button>
 
             {lookupMutation.isError && (
-              <p className="text-sm text-red-500">
+              <p className="text-14 text-red-500">
                 {lookupMutation.error instanceof Error
                   ? lookupMutation.error.message
                   : '문제가 생겼어요. 잠시 후 다시 시도해 주세요'}
@@ -123,7 +123,7 @@ export function VerificationNoAuthPage() {
             )}
           </form>
 
-          <p className="text-[13px] text-gray-500">
+          <p className="text-13 text-gray-500">
             QR 코드로 접속한 경우 번호가 자동 입력됩니다.
           </p>
         </div>
@@ -132,7 +132,13 @@ export function VerificationNoAuthPage() {
       {result && result.isValid && (
         <VerificationResultModal result={result} onClose={() => setResult(null)} />
       )}
-      {result && !result.isValid && <VerificationFailModal onRetry={() => setResult(null)} />}
+      {result && !result.isValid && (
+        <VerificationFailModal
+          message={result.message}
+          successorNo={result.successorNo}
+          onRetry={() => setResult(null)}
+        />
+      )}
     </section>
   );
 }

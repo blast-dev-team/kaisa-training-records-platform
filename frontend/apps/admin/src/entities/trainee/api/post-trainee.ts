@@ -14,7 +14,12 @@ export const postTrainee = async (input: TraineeCreateInput): Promise<Trainee> =
       id: `tr-${Date.now().toString(36)}`,
       traineeNo: `TR-${now.slice(0, 10).replaceAll('-', '')}-NEW`,
       certNo: input.cert_no ?? null,
-      supervisorGrade: input.supervisor_grade ?? null,
+      // 수석번호 있으면 강제, 없으면 선택값 — BE 파생 규칙과 동일
+      supervisorGrade: input.senior_cert_no
+        ? '수석감리원'
+        : (input.supervisor_grade ?? null),
+      seniorCertNo: input.senior_cert_no ?? null,
+      seniorCertIssuedDate: input.senior_cert_issued_date ?? null,
       name: input.name,
       birthDate: input.birth_date ?? null,
       phoneMasked: input.phone ? `${input.phone.slice(0, 3)}-****-${input.phone.slice(-4)}` : '',

@@ -40,7 +40,7 @@ export function UploadedFile({
       <span className="size-6 shrink-0 text-gray-600">
         <FileArrowDownIcon />
       </span>
-      <div className="flex min-w-0 flex-1 flex-col items-start text-sm leading-normal tracking-[-0.03em]">
+      <div className="flex min-w-0 flex-1 flex-col items-start text-14 leading-normal tracking-[-0.03em]">
         <div className="flex w-full items-start font-semibold text-gray-900">
           <p className="min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap">
             {baseName}

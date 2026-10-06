@@ -29,9 +29,9 @@ export interface ButtonTabProps
 }
 
 const SIZE: Record<ButtonTabSize, string> = {
-  l: "gap-2 px-5 py-3 text-xl",
-  m: "gap-1 px-3 py-2 text-base",
-  s: "gap-1 px-2 py-1 text-xs",
+  l: "gap-2 px-5 py-3 text-20",
+  m: "gap-1 px-3 py-2 text-16",
+  s: "gap-1 px-2 py-1 text-12",
 };
 
 const ICON_SIZE: Record<ButtonTabSize, string> = {
