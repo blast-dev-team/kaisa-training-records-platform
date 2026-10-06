@@ -355,11 +355,15 @@ async def import_legacy_education(xlsx_path: str) -> None:
         # ── 5. 외부교육수강기록 → external 과정 + 이력 ────────────────────
         # 감리원이 개인적으로 수료한 외부 교육. 일정(course_sessions)은 만들지
         # 않고 이력에 기간을 직접 기록한다 — 개설 회차 관리 대상이 아니기 때문.
-        # 교육생 매칭은 감리원증번호(cert_no) 유일 일치로만 한다 — 생일은 원본 전체 결측.
+        # 교육생 매칭은 감리원증번호 유일 일치로만 한다 — 생일은 원본 전체 결측.
+        # 감리원증·수석감리원증 양쪽 번호와 비교한다 — 단일 번호 수석감리원은
+        # 감리원증번호가 NULL이고 수석감리원증번호에만 번호가 있다.
         trainees_by_cert: dict[str, list[Trainee]] = {}
         for t in (await db.execute(select(Trainee))).scalars():
-            if t.deleted_at is None and t.cert_no:
-                trainees_by_cert.setdefault(t.cert_no.strip(), []).append(t)
+            if t.deleted_at is None:
+                for no in (t.cert_no, t.senior_cert_no):
+                    if no:
+                        trainees_by_cert.setdefault(no.strip(), []).append(t)
 
         ext_institutions: dict[str, TrainingInstitution] = {}
         ext_courses: dict[tuple[str, str], TrainingCourse] = {}  # (기관, 과목명)
