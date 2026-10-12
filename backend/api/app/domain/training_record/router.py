@@ -10,6 +10,9 @@ from app.core.response import PagedResponse
 from app.domain.auth.model import AdminUser
 from app.domain.training_record.schema import (
     TraineeMatchPreviewResult,
+    TrainingRecordImportConfirmRequest,
+    TrainingRecordImportPreviewResult,
+    TrainingRecordImportResult,
     TrainingRecordBulkCreate,
     TrainingRecordBulkDelete,
     TrainingRecordBulkResult,
@@ -113,6 +116,36 @@ async def preview_trainee_match(
     """엑셀 행을 교육생과 대조 — 매칭된 교육생 목록을 돌려준다(연결 전 자동 선택용)."""
     content = await file.read()
     return await training_record_service.match_preview(db, content)
+
+
+
+
+@router.post("/import-preview", response_model=TrainingRecordImportPreviewResult)
+async def preview_training_import(
+    file: UploadFile = File(...),
+    db: AsyncSession = Depends(get_db),
+    _: AdminUser = Depends(require_admin),
+):
+    """교육내역 엑셀 파싱 + 감리원 매칭 — 확정 전 프리뷰용."""
+    content = await file.read()
+    return await training_record_service.import_preview(db, content)
+
+
+@router.post("/import-confirm", response_model=TrainingRecordImportResult)
+async def confirm_training_import(
+    body: TrainingRecordImportConfirmRequest,
+    db: AsyncSession = Depends(get_db),
+    actor: AdminUser = Depends(require_admin),
+):
+    """프리뷰에서 확정한 행을 외부 교육 이력으로 일괄 등록 — 중복은 건너뛴다."""
+    created, skipped, failed = await training_record_service.import_confirm(
+        db, body, actor
+    )
+    return TrainingRecordImportResult(
+        created=created,
+        skipped=skipped,
+        failed=[{"row_number": n, "error": msg} for n, msg in failed],
+    )
 
 
 @router.get("/{record_id}", response_model=TrainingRecordResponse)

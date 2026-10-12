@@ -1,11 +1,14 @@
 import io
+import re
 import secrets
 import uuid
 import zipfile
-from decimal import Decimal
+from datetime import date, datetime
+from decimal import Decimal, InvalidOperation
 
 import openpyxl
 from openpyxl.utils.exceptions import InvalidFileException
+from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -16,9 +19,15 @@ from app.core.kst import now_kst
 from app.domain.auth.model import AdminUser
 from app.domain.institution.repository import institution_repository as inst_repo
 from app.domain.trainee.repository import trainee_repository as trainee_repo
+from app.domain.institution.model.training_course import TrainingCourse
+from app.domain.institution.model.training_institution import TrainingInstitution
 from app.domain.training_record.model import TrainingRecord
 from app.domain.training_record.repository import training_record_repository as repo
 from app.domain.training_record.schema import (
+    TrainingRecordImportRow,
+    TrainingRecordImportConfirmRequest,
+    TrainingRecordImportPreviewResult,
+    TrainingRecordImportResult,
     MatchPreviewMatched,
     MatchPreviewUnmatched,
     TraineeMatchPreviewResult,
@@ -470,3 +479,341 @@ async def match_preview(db: AsyncSession, content: bytes) -> TraineeMatchPreview
     return TraineeMatchPreviewResult(
         total_rows=len(parsed), matched=matched, unmatched=unmatched
     )
+
+
+# ── 엑셀 → 교육내역 일괄 등록 ────────────────────────────────────────────────
+
+_IMPORT_HEADERS = {
+    "name": ("교육생명", "감리원명", "성명", "이름", "회원명"),
+    "cert_no": ("감리원증번호", "감리원증 번호", "증번호", "자격번호", "감리원증"),
+    "institution": ("교육기관명", "기관명", "교육기관", "주관기관", "기관"),
+    "subject": ("과목명", "교육과목", "과정명", "교육명", "교육내용", "과목"),
+    "start": ("시작일자", "시작일", "교육시작일", "시작"),
+    "end": ("종료일자", "종료일", "교육종료일", "종료"),
+    "hours_total": ("교육시간", "총시간", "시간"),
+    "hours_recog": ("인정시간", "이수시간", "인정"),
+}
+_IMPORT_MAX_ROWS = 1000
+
+
+def _import_cell(value) -> str | None:
+    if value is None or str(value).strip() == "":
+        return None
+    if isinstance(value, float) and value.is_integer():
+        return str(int(value))
+    return str(value).strip()
+
+
+def _import_date(value) -> date | None:
+    if value is None:
+        return None
+    if isinstance(value, datetime):
+        return value.date()
+    if isinstance(value, date):
+        return value
+    s = str(value).strip()
+    m = re.fullmatch(r"(\d{4})[.\-/\s](\d{1,2})[.\-/\s](\d{1,2})", s)
+    if m:
+        try:
+            return date(int(m[1]), int(m[2]), int(m[3]))
+        except ValueError:
+            return None
+    return None
+
+
+def _import_hours(value) -> Decimal | None:
+    v = _import_cell(value)
+    if v is None:
+        return None
+    try:
+        return Decimal(v)
+    except InvalidOperation:
+        return None
+
+
+async def import_preview(db: AsyncSession, content: bytes) -> TrainingRecordImportPreviewResult:
+    """교육내역 엑셀 파싱 + 감리원 매칭 — 확정 전 프리뷰용.
+
+    감리원 매칭은 감리원증번호(cert_no·senior_cert_no 양쪽) → 이름 순으로 하고,
+    이름은 동명이인이 2명 이상이면 미매칭으로 돌려 사용자가 수동으로 고르게 한다.
+    """
+    try:
+        wb = openpyxl.load_workbook(io.BytesIO(content), data_only=True, read_only=True)
+    except (zipfile.BadZipFile, InvalidFileException):
+        raise api_error(
+            "VALIDATION_ERROR",
+            message="엑셀 파일(.xlsx)을 열 수 없어요. 파일을 확인해 주세요",
+        )
+    ws = wb.worksheets[0]
+    rows = list(ws.iter_rows(values_only=True))
+    wb.close()
+    if not rows:
+        raise api_error("VALIDATION_ERROR", message="엑셀에 데이터가 없어요")
+
+    # 헤더 행 탐색 — 제목·안내 행이 위에 있어도 찾도록 상단 10행을 훑고,
+    # 비교 시 공백을 제거한다("감리원증 번호" == "감리원증번호")
+    def _norm_header(v) -> str:
+        return re.sub(r"\s+", "", str(v)) if v is not None else ""
+
+    best_idx, best_map, best_score = None, None, 0
+    for idx, row in enumerate(rows[:10]):
+        hmap = {_norm_header(c): i for i, c in enumerate(row) if c is not None}
+        score = sum(
+            1
+            for cands in _IMPORT_HEADERS.values()
+            for cand in cands
+            if _norm_header(cand) in hmap
+        )
+        if score > best_score:
+            best_idx, best_map, best_score = idx, hmap, score
+    if best_idx is None or best_score < 2:
+        first = next((r for r in rows if any(c is not None for c in r)), [])
+        preview = [str(c)[:20] for c in first if c is not None][:8]
+        raise api_error(
+            "VALIDATION_ERROR",
+            message=(
+                "엑셀 헤더에서 교육생명·감리원증번호·교육기관명·과목명을 찾지 못했어요 — "
+                f"인식된 첫 행: {preview if preview else '빈 파일'}"
+            ),
+        )
+
+    # 헤더 할당 — 정확 일치 우선, 배정 못 한 필드는 포함 관계(부분 일치)로 보조 매칭.
+    # 한 헤더를 두 필드가 가져가지 않도록 배정된 헤더는 claimed 로 잠근다
+    claimed: set[str] = set()
+    columns: dict[str, str | None] = {}
+    for field, candidates in _IMPORT_HEADERS.items():
+        for cand in candidates:
+            c = _norm_header(cand)
+            if c in best_map and c not in claimed:
+                columns[field] = c
+                claimed.add(c)
+                break
+        else:
+            columns[field] = None
+    for field, candidates in _IMPORT_HEADERS.items():
+        if columns[field] is not None:
+            continue
+        for cand in candidates:
+            c = _norm_header(cand)
+            if len(c) < 2:
+                continue
+            for h in best_map:
+                if h in claimed:
+                    continue
+                if c in h or h in c:
+                    columns[field] = h
+                    claimed.add(h)
+                    break
+            if columns[field] is not None:
+                break
+    header_map = best_map
+
+    parsed: list[dict] = []
+    for offset, row in enumerate(rows[best_idx + 1:], start=best_idx + 2):
+        if offset > best_idx + _IMPORT_MAX_ROWS + 1:
+            raise api_error(
+                "VALIDATION_ERROR",
+                message=f"한 번에 등록할 수 있는 행은 {_IMPORT_MAX_ROWS}개까지예요",
+            )
+        cells = {
+            field: (
+                _import_cell(row[header_map[columns[field]]]) if columns[field] else None
+            )
+            for field in _IMPORT_HEADERS
+        }
+        if not any(cells.values()):
+            continue  # 완전히 빈 행
+        parsed.append({"row_number": offset, **cells})
+
+    candidates = await trainee_repo.find_by_identifiers(
+        db,
+        names=sorted({r["name"] for r in parsed if r["name"]}),
+        cert_nos=sorted({r["cert_no"] for r in parsed if r["cert_no"]}),
+        trainee_nos=[],
+    )
+    by_cert: dict[str, list] = {}
+    by_name: dict[str, list] = {}
+    for t in candidates:
+        for no in (t.cert_no, t.senior_cert_no):
+            if no:
+                by_cert.setdefault(no.strip(), []).append(t)
+        by_name.setdefault(t.name_hash, []).append(t)
+
+    existing_inst_names = {
+        n for (n,) in (await db.execute(
+            select(TrainingInstitution.name)
+        )).fetchall()
+    }
+    existing_course_keys = {
+        (name, iid) for name, iid in (await db.execute(
+            select(TrainingCourse.name, TrainingCourse.institution_id)
+        )).fetchall()
+    }
+    inst_name_to_id: dict[str, str] = {}
+    for iid, name in (await db.execute(
+        select(TrainingInstitution.id, TrainingInstitution.name)
+    )).fetchall():
+        inst_name_to_id[name] = iid
+
+    result_rows: list[TrainingRecordImportRow] = []
+    for r in parsed:
+        errors: list[str] = []
+        institution_exists = r["institution"] in existing_inst_names if r["institution"] else True
+        course_exists = True
+        if r["institution"] and r["subject"]:
+            iid = inst_name_to_id.get(r["institution"])
+            course_exists = iid is not None and (r["subject"], iid) in existing_course_keys
+        trainee_id = trainee_name = None
+        if not r["institution"]:
+            errors.append("교육기관명이 필요해요")
+        if not r["subject"]:
+            errors.append("과목명이 필요해요")
+        if r["start"] and _import_date(r["start"]) is None:
+            errors.append("시작일자를 읽을 수 없어요 (예: 2025.06.01)")
+        if r["end"] and _import_date(r["end"]) is None:
+            errors.append("종료일자를 읽을 수 없어요 (예: 2025.06.30)")
+
+        hit = None
+        if r["cert_no"]:
+            hits = by_cert.get(r["cert_no"].strip(), [])
+            if len(hits) == 1:
+                hit = hits[0]
+            elif len(hits) > 1:
+                errors.append("동일한 감리원증번호의 감리원이 여러 명이에요")
+        if hit is None and r["name"]:
+            hits = by_name.get(name_hash(r["name"]), [])
+            if len(hits) == 1:
+                hit = hits[0]
+            elif len(hits) > 1:
+                errors.append("동일한 이름의 감리원이 여러 명이에요 — 감리원증번호로 구분해 주세요")
+        if hit is None and not any("감리원" in e for e in errors):
+            errors.append("감리원을 찾을 수 없어요")
+
+        if hit is not None and not any("감리원" in e for e in errors):
+            trainee_id = hit.id
+            trainee_name = decrypt_field(hit.name_encrypted)
+
+        result_rows.append(
+            TrainingRecordImportRow(
+                row_number=r["row_number"],
+                name=r["name"],
+                cert_no=r["cert_no"],
+                institution=r["institution"],
+                subject=r["subject"],
+                start_date=r["start"],
+                end_date=r["end"],
+                hours_total=r["hours_total"],
+                hours_recog=r["hours_recog"],
+                institution_exists=institution_exists,
+                course_exists=course_exists,
+                trainee_id=trainee_id,
+                trainee_name=trainee_name,
+                errors=errors,
+            )
+        )
+    return TrainingRecordImportPreviewResult(rows=result_rows, total=len(result_rows))
+
+
+async def import_confirm(
+    db: AsyncSession, data: TrainingRecordImportConfirmRequest, actor: AdminUser
+) -> tuple[int, int, list[tuple[int, str]]]:
+    """프리뷰에서 확정한 행을 교육내역으로 일괄 등록 — 외부 교육 이력(회차 없음)으로 생성.
+
+    같은 감리원·과정·시작일의 기존 이력은 중복으로 건너뛴다.
+    """
+    created = skipped = 0
+    failed: list[tuple[int, str]] = []
+    for item in data.rows:
+        trainee = await trainee_repo.find_by_id(db, item.trainee_id)
+        if trainee is None:
+            failed.append((item.row_number, "감리원을 찾을 수 없어요"))
+            continue
+        if not item.institution or not item.subject:
+            failed.append((item.row_number, "기관명·과목명이 필요해요"))
+            continue
+
+        started = _import_date(item.start_date)
+        ended = _import_date(item.end_date)
+        # 기관 매칭 — 내부 기관(internal)이면 내부 데이터로 그대로 등록하고,
+        # 매칭되지 않으면 외부 기관·외부 교육으로 등록한다.
+        institution = (
+            await db.execute(
+                select(TrainingInstitution).where(
+                    TrainingInstitution.name == item.institution
+                )
+            )
+        ).scalar_one_or_none()
+        if institution is None:
+            institution = TrainingInstitution(
+                name=item.institution, institution_type="external"
+            )
+            db.add(institution)
+            await db.flush()
+        is_internal = institution.institution_type == "internal"
+        course = (
+            await db.execute(
+                select(TrainingCourse).where(
+                    TrainingCourse.institution_id == institution.id,
+                    TrainingCourse.name == item.subject,
+                )
+            )
+        ).scalar_one_or_none()
+        if course is None:
+            course = TrainingCourse(
+                institution_id=institution.id,
+                name=item.subject,
+                is_external=not is_internal,
+            )
+            db.add(course)
+            await db.flush()
+        source = "internal" if is_internal else "external"
+
+        if started is not None:
+            dup = (
+                await db.execute(
+                    select(TrainingRecord.id).where(
+                        TrainingRecord.trainee_id == trainee.id,
+                        TrainingRecord.course_name == item.subject,
+                        TrainingRecord.started_at == started,
+                        TrainingRecord.deleted_at.is_(None),
+                    )
+                )
+            ).scalar_one_or_none()
+            if dup is not None:
+                skipped += 1  # 같은 감리원·과정·시작일 기존 이력
+                continue
+
+        hours = _import_hours(item.hours_recog) or _import_hours(item.hours_total) or Decimal(0)
+        saved = False
+        for _ in range(5):
+            try:
+                async with db.begin_nested():
+                    db.add(
+                        TrainingRecord(
+                            training_record_no=_record_no(),
+                            trainee_id=trainee.id,
+                            course_id=course.id,
+                            institution_id=institution.id,
+                            course_name=course.name,
+                            institution_name=institution.name,
+                            total_hours=hours,
+                            completed_hours=hours,
+                            started_at=started,
+                            ended_at=ended,
+                            source=source,
+                            completion_status="completed",
+                            completed_at=now_kst(),
+                            created_by=actor.id,
+                            updated_by=actor.id,
+                        )
+                    )
+            except IntegrityError:
+                continue  # 번호 충돌 — 재채번
+            saved = True
+            break
+        if saved:
+            created += 1
+        else:
+            failed.append((item.row_number, "이력 번호 채번에 반복 실패했어요"))
+    await db.commit()
+    return created, skipped, failed

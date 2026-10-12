@@ -5,6 +5,9 @@ export { getTrainingRecordDetail } from './api/get-training-record-detail'
 export { postTrainingRecord } from './api/post-training-record'
 export { postTrainingRecordBulk } from './api/post-training-record-bulk'
 export { postTrainingRecordMatchPreview } from './api/post-training-record-match-preview'
+export { postTrainingRecordImportPreview } from './api/post-training-record-import-preview'
+export { postTrainingRecordImportConfirm } from './api/post-training-record-import-confirm'
+export type { TrainingRecordImportRow, TrainingRecordImportPreviewResult, TrainingRecordImportConfirmItem, TrainingRecordImportResult } from './model/training-record'
 export type {
   MatchPreviewMatched,
   MatchPreviewUnmatched,

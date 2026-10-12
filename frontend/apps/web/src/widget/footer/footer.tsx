@@ -36,6 +36,12 @@ export function Footer({ className }: FooterProps) {
         <p className="shrink-0 text-13 mobile:text-12 text-gray-400">
           Copyright © 2025 (사)정보시스템감리협회. All Rights Reserved.
         </p>
+        <div className="flex shrink-0 flex-col items-center gap-y-0.5 text-13 mobile:text-12 text-gray-400">
+          <p>상호명 : (사)정보시스템감리협회</p>
+          <p>사업자등록번호 : 201-82-02820</p>
+          <p>대표자명 : 조병휘</p>
+          <p>대표전화번호 : 02-558-9140, 9150</p>
+        </div>
       </div>
     </footer>
   );
