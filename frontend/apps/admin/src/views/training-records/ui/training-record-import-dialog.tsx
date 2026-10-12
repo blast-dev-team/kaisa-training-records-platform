@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
-import { FileSpreadsheet, Upload, UserPlus } from "lucide-react";
+import { FileSpreadsheet, Search, Upload, UserPlus } from "lucide-react";
 import { Dialog } from "@/src/shared/ui/dialog";
 import { Button } from "@/src/shared/ui/button";
 import { Input } from "@/src/shared/ui/input";
@@ -71,6 +71,8 @@ export function TrainingRecordImportDialog({ isOpen, onClose }: Props) {
     certNo: "",
     phone: "",
   });
+  const [searchingKey, setSearchingKey] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     if (isOpen) return;
@@ -153,6 +155,13 @@ export function TrainingRecordImportDialog({ isOpen, onClose }: Props) {
       toast.success(`'${trainee.name}' 감리원을 새로 등록하고 선택했어요`);
     },
     onError: (e: Error) => toast.error(e.message),
+  });
+
+  // 미매칭 행 감리원 검색 — 이름 또는 감리원증번호로 검색
+  const searchQ = searchQuery.trim();
+  const { data: searchResults } = useQuery({
+    ...traineeQueries.list({ q: searchQ, limit: 5 }),
+    enabled: searchingKey !== null && searchQ.length >= 2,
   });
 
   const confirmMutation = useMutation({
@@ -382,7 +391,7 @@ export function TrainingRecordImportDialog({ isOpen, onClose }: Props) {
                       <p className="pl-10 text-11 text-danger">{d.errors.join(" · ")}</p>
                     )}
                     {!d.traineeId && addingKey !== d.key && (
-                      <p className="pl-10">
+                      <p className="flex items-center gap-2 pl-10">
                         <Button
                           variant="ghost"
                           size="sm"
@@ -394,9 +403,21 @@ export function TrainingRecordImportDialog({ isOpen, onClose }: Props) {
                               phone: "",
                             });
                             setAddingKey(d.key);
+                            setSearchingKey(null);
                           }}
                         >
                           <UserPlus className="size-3.5" /> 교육생 직접 추가
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setSearchQuery(d.name);
+                            setSearchingKey(d.key);
+                            setAddingKey(null);
+                          }}
+                        >
+                          <Search className="size-3.5" /> 기존 감리원 검색
                         </Button>
                       </p>
                     )}
@@ -456,6 +477,37 @@ export function TrainingRecordImportDialog({ isOpen, onClose }: Props) {
                         >
                           취소
                         </Button>
+                      </div>
+                    )}
+                    {!d.traineeId && searchingKey === d.key && (
+                      <div className="ml-10 space-y-1 rounded-lg border border-line bg-bg p-3">
+                        <Input
+                          placeholder="이름 또는 감리원증번호로 검색"
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          autoFocus
+                        />
+                        {searchQ.length >= 2 && (searchResults?.items ?? []).map((t) => (
+                          <button
+                            key={t.id}
+                            type="button"
+                            className="flex w-full items-center gap-2 rounded-md border border-line px-2.5 py-1.5 text-left text-13 hover:bg-panel-2"
+                            onClick={() => {
+                              setDraft(d.key, {
+                                traineeId: t.id,
+                                traineeName: t.name,
+                                errors: [],
+                                include: true,
+                              });
+                              setSearchingKey(null);
+                            }}
+                          >
+                            <span className="font-medium text-ink">{t.name}</span>
+                            <span className="text-ink-3">{t.traineeNo}</span>
+                            <span className="text-ink-3">{t.certNo}</span>
+                            <span className="text-ink-3">{t.supervisorGrade ?? "—"}</span>
+                          </button>
+                        ))}
                       </div>
                     )}
                   </div>
