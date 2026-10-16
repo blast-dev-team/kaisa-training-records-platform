@@ -78,7 +78,8 @@ export function IdentityVerificationModal({ onSuccess, onClose }: IdentityVerifi
         return;
       }
       // 포트원 본인인증 건 ID — 시도별 고유. 서버에 등록 후 SDK 인증창에 전달한다
-      const identityVerificationId = `iv-${Date.now().toString(36)}${Math.random()
+      // KCP 제약: 영문·숫자만, 40자 이하 (포트원 KCP 본인인증 가이드) — 하이픈 금지
+      const identityVerificationId = `iv${Date.now().toString(36)}${Math.random()
         .toString(36)
         .slice(2, 8)}`;
       const { state } = await postPassStart(identityVerificationId);
