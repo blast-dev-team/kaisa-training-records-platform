@@ -42,6 +42,12 @@
 | `CORS_ORIGINS` | `secret manager` | `secret manager` |
 | `ADMIN_EMAIL` | `secret manager` | `secret manager` |
 | `ADMIN_PASSWORD` | `secret manager` | `secret manager` |
+| `PORTONE_API_BASE` | `https://api.portone.io` | (미설정 — 기본값 동일) |
+| `PORTONE_STORE_ID` | 포트원 테스트 스토어 | 포트원 V2 스토어 (`store-7aced5fb-...`) |
+| `PORTONE_API_SECRET` | 테스트용 | 프로덕션 시크릿 (2026-10-14 추가) |
+| `PORTONE_IDENTITY_CHANNEL_KEY` | 테스트 채널 | 프로덕션 본인인증 채널 (KCP, MID PO0AU — 2026-10-14 추가) |
+| `PORTONE_PAYMENT_CHANNEL_KEY` | 테스트 채널 | 프로덕션 결제 채널 (KCP, MID PO0AU — 2026-10-14 추가) |
+| `PORTONE_WEBHOOK_SECRET` | (미설정) | 웹훅 서명 검증용 (2026-10-14 추가 — 콘솔 웹훅 URL `https://api-edu.kaisa.or.kr/api/payments/webhooks/portone`) |
 
 - `DATABASE_URL`은 시크릿에 없음 — compose가 `DB_PASSWORD`로 조립.
 - 값 변경: `aws secretsmanager put-secret-value`로 기존 JSON **병합** 후 재배포 (부팅 시 로드).
