@@ -287,6 +287,8 @@ export function ReviewDialog({ review, onClose }: Props) {
           <div className="space-y-1.5">
             <Label>{mode === "new" ? "확정 등급 (필수)" : "확정 등급 (선택)"}</Label>
             <Select value={gradeId} onChange={(e) => setGradeId(e.target.value)}>
+              {/* 빈 값 옵션이 없으면 첫 등급이 선택된 것처럼 보이지만 state 는 "" — 승인 버튼이 막힌다 */}
+              <option value="">{mode === "new" ? "등급 선택" : "현재 등급 유지"}</option>
               {(grades ?? []).map((g) => (
                 <option key={g.id} value={g.id}>
                   {g.name}

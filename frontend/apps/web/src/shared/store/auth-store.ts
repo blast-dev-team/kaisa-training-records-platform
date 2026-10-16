@@ -48,7 +48,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   isSuper: false,
   isSessionExpired: false,
   expiresAt: null,
-  signIn: (userName, expiresAt, traineeLinked = true, isSuper = false) => {
+  signIn: (userName, expiresAt, traineeLinked, isSuper) => {
     if (expireTimer) clearTimeout(expireTimer);
     const ttlMs =
       expiresAt !== undefined
@@ -58,10 +58,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       get().signOut();
       set({ isSessionExpired: true });
     }, ttlMs);
+    // 미지정이면 현재 값 유지 — 인증 모달이 먼저 setTraineeLinked(false) 한 뒤
+    // 호출부가 signIn(userName) 하면서 true 로 덮어 심사 대기 회원이 목록에 들어가던 문제
     set((state) => ({
       isAuthenticated: true,
-      traineeLinked,
-      isSuper,
+      traineeLinked: traineeLinked ?? state.traineeLinked,
+      isSuper: isSuper ?? state.isSuper,
       userName: userName ?? state.userName,
       expiresAt: expiresAt ?? Date.now() + SESSION_TTL_MINUTES * 60 * 1000,
     }));

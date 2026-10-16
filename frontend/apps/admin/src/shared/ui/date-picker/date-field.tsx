@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 import { cn } from "@/src/shared/utils/cn";
 
@@ -62,16 +63,52 @@ export function DateField({
   // 타이핑 중 임시값 — null이면 편집 중이 아니라 prop 값을 그대로 보여준다
   const [draft, setDraft] = useState<string | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLDivElement>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
+  const [popoverPos, setPopoverPos] = useState<{ top: number; left: number } | null>(null);
 
-  // 열림 상태에서 바깥 클릭 시 닫기 + draft 정리
+  // 열림 상태에서 바깥 클릭 시 닫기 — 팝오버는 body 포털이라 rootRef 밖에 있다
   useEffect(() => {
     if (!open) return;
     const handlePointerDown = (event: MouseEvent) => {
-      if (!rootRef.current?.contains(event.target as Node)) setOpen(false);
+      const target = event.target as Node;
+      if (rootRef.current?.contains(target) || popoverRef.current?.contains(target)) return;
+      setOpen(false);
     };
     document.addEventListener("mousedown", handlePointerDown);
     return () => document.removeEventListener("mousedown", handlePointerDown);
   }, [open]);
+
+  // 팝오버를 body 에 fixed 로 띄운다 — 모달 본문(overflow-y-auto) 안에 absolute 로 두면
+  // 스크롤 영역을 늘리고, 그 스크롤바를 누르면 바깥 클릭으로 닫혀 버린다.
+  // 아래 공간이 모자라면 위로 뒤집고, 스크롤·리사이즈 때 위치를 다시 잡는다.
+  useLayoutEffect(() => {
+    if (!open) {
+      setPopoverPos(null);
+      return;
+    }
+    const GAP = 4;
+    const EDGE = 8;
+    const update = () => {
+      const trigger = triggerRef.current?.getBoundingClientRect();
+      const popover = popoverRef.current;
+      if (!trigger || !popover) return;
+      const { offsetWidth: width, offsetHeight: height } = popover;
+      const fitsBelow = trigger.bottom + GAP + height <= window.innerHeight - EDGE;
+      const fitsAbove = trigger.top - GAP - height >= EDGE;
+      const top = !fitsBelow && fitsAbove ? trigger.top - GAP - height : trigger.bottom + GAP;
+      const rawLeft = popoverAlign === "right" ? trigger.right - width : trigger.left;
+      const left = Math.min(Math.max(rawLeft, EDGE), window.innerWidth - width - EDGE);
+      setPopoverPos({ top, left });
+    };
+    update();
+    window.addEventListener("resize", update);
+    window.addEventListener("scroll", update, true);
+    return () => {
+      window.removeEventListener("resize", update);
+      window.removeEventListener("scroll", update, true);
+    };
+  }, [open, popoverAlign]);
 
   // 'YYYY-MM-DD' → 로컬 자정 Date — 오프셋 없는 파싱으로 하루 어긋남 방지
   const shown = draft ?? value;
@@ -108,6 +145,7 @@ export function DateField({
       className={cn("relative flex w-full flex-col items-start", className)}
     >
       <div
+        ref={triggerRef}
         className={cn(
           "flex h-9 w-full items-center gap-1 rounded-md border bg-panel pl-3 pr-1 text-14 transition-[border-color]",
           "focus-within:border-accent focus-within:ring-[3px] focus-within:ring-accent/20",
@@ -148,29 +186,35 @@ export function DateField({
         </button>
       </div>
 
-      {open && (
-        <div
-          className={cn(
-            "absolute top-full z-30 mt-1 drop-shadow-[0_4px_12px_rgba(82,63,105,0.12)]",
-            popoverAlign === "right" ? "right-0" : "left-0",
-          )}
-        >
-          <DatePicker
-            defaultValue={selectedDate}
-            isDisabledDate={(date) => {
-              if (minDate && date < new Date(`${minDate}T00:00:00`)) return true;
-              if (maxDate && date > new Date(`${maxDate}T00:00:00`)) return true;
-              return false;
+      {open &&
+        createPortal(
+          <div
+            ref={popoverRef}
+            style={{
+              top: popoverPos?.top ?? 0,
+              left: popoverPos?.left ?? 0,
+              // 첫 측정 전에는 숨긴다 — (0,0) 에서 깜빡이지 않게
+              visibility: popoverPos ? "visible" : "hidden",
             }}
-            onConfirm={(date) => {
-              const ymd = formatDate(date);
-              onChange(ymd);
-              setDraft(null);
-              setOpen(false);
-            }}
-          />
-        </div>
-      )}
+            className="fixed z-[1200] drop-shadow-[0_4px_12px_rgba(82,63,105,0.12)]"
+          >
+            <DatePicker
+              defaultValue={selectedDate}
+              isDisabledDate={(date) => {
+                if (minDate && date < new Date(`${minDate}T00:00:00`)) return true;
+                if (maxDate && date > new Date(`${maxDate}T00:00:00`)) return true;
+                return false;
+              }}
+              onConfirm={(date) => {
+                const ymd = formatDate(date);
+                onChange(ymd);
+                setDraft(null);
+                setOpen(false);
+              }}
+            />
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }
