@@ -279,13 +279,10 @@ export function TrainingRecordListPage() {
       },
       {
         id: "hours",
-        header: "시수",
-        meta: { width: 70, align: "right" },
-        cell: ({ row }) => {
-          const { completedHours, totalHours } = row.original;
-          if (completedHours === null && totalHours === null) return "—";
-          return `${completedHours ?? "—"}/${totalHours ?? "—"}`;
-        },
+        header: "이수시수",
+        meta: { width: 80, align: "right" },
+        // 시수는 하나로 관리 — 이수 시수(서버가 total_hours 로 채움)만 노출, 없으면 총 시수로 폴백
+        cell: ({ row }) => row.original.completedHours ?? row.original.totalHours ?? "—",
       },
       {
         id: "period",
