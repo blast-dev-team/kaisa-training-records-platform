@@ -33,6 +33,10 @@ _ERRORS: dict[str, tuple[int, str]] = {
     "IDENTITY_NOT_VERIFIED": (400, "본인인증이 완료되지 않았어요"),
     "IDENTITY_NO_CI": (502, "본인인증 결과에 CI 가 없어요"),
     "TRAINEE_ALREADY_LINKED": (409, "이미 다른 계정에 연결된 교육생이에요"),
+    # 중복 등록 — 감리원증번호 중복만 차단, 나머지 둘은 확인 후 allow_duplicate 로 강제 가능
+    "DUPLICATE_TRAINING_RECORD": (409, "같은 교육내역이 이미 있어요"),
+    "DUPLICATE_TRAINEE": (409, "같은 감리원증번호의 감리원이 이미 있어요"),
+    "DUPLICATE_TRAINEE_SUSPECTED": (409, "같은 이름·생년월일의 감리원이 이미 있어요"),
     "GRADE_NOT_DETERMINED": (409, "회원등급을 확정할 수 없어요"),
     "PORTONE_NOT_CONFIGURED": (503, "결제가 설정되지 않았어요"),
     "PORTONE_API_ERROR": (

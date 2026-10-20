@@ -60,6 +60,8 @@ export interface TrainingRecordInput {
   source: TrainingSource;
   completion_status: CompletionStatus;
   memo?: string | null;
+  /** 같은 교육생·과정명·시작일 내역 경고를 확인한 뒤에만 true (등록 전용) */
+  allow_duplicate?: boolean;
 }
 
 /** 발급된 수료증 — 내부 기관 수료내역 1건당 1장 */
@@ -103,6 +105,8 @@ export interface TrainingRecordImportRow {
   /** 마스터에 없는 기관·과정 — 확정 시 신규 생성됨 */
   institution_exists: boolean
   course_exists: boolean
+  /** 같은 감리원·과정명·시작일 내역이 이미 있음 — 확정해도 건너뛴다 */
+  is_duplicate: boolean
   /** 비어 있어야 등록 가능한 행 (감리원 미매칭, 기관·과목 누락 등) */
   errors: string[]
 }

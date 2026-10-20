@@ -46,6 +46,31 @@ def _record_no() -> str:
     return f"REC-{now_kst().strftime('%Y%m%d')}-{secrets.token_hex(3)}"
 
 
+async def find_duplicate_record(
+    db: AsyncSession,
+    trainee_id: uuid.UUID,
+    course_name: str,
+    started_at: date | None,
+) -> TrainingRecord | None:
+    """중복 판정 — 같은 교육생·과정명·시작일(미정끼리도 같음)의 삭제 안 된 내역.
+
+    수동 등록·엑셀 등록·일정 연결이 모두 이 기준을 쓴다.
+    """
+    return (
+        await db.execute(
+            select(TrainingRecord)
+            .where(
+                TrainingRecord.trainee_id == trainee_id,
+                TrainingRecord.course_name == course_name,
+                TrainingRecord.started_at.is_not_distinct_from(started_at),
+                TrainingRecord.deleted_at.is_(None),
+            )
+            .order_by(TrainingRecord.created_at)
+            .limit(1)
+        )
+    ).scalar_one_or_none()
+
+
 
 
 async def get_record(db: AsyncSession, record_id: uuid.UUID) -> TrainingRecord:
@@ -139,6 +164,16 @@ async def create_record(
         raise api_error(
             "VALIDATION_ERROR", message="기관명 또는 기관 마스터 연결이 필요해요"
         )
+
+    # 중복이면 기존 내역을 알려 주고 막는다 — 관리자가 확인 후 allow_duplicate 로 강제 가능
+    if not data.allow_duplicate:
+        dup = await find_duplicate_record(db, data.trainee_id, course_name, data.started_at)
+        if dup is not None:
+            period = dup.started_at.isoformat() if dup.started_at else "기간 미정"
+            raise api_error(
+                "DUPLICATE_TRAINING_RECORD",
+                message=f"이 감리원에게 같은 교육내역이 이미 있어요 — {dup.course_name} · {period}",
+            )
 
     total_hours = data.total_hours
     if total_hours is None and course is not None:
@@ -711,6 +746,32 @@ async def import_preview(db: AsyncSession, content: bytes) -> TrainingRecordImpo
                 errors=errors,
             )
         )
+    # 중복 표시 — 확정 시 건너뛰는 기준(감리원·과정명·시작일)과 같다
+    matched_ids = {r.trainee_id for r in result_rows if r.trainee_id}
+    existing_keys: set[tuple] = set()
+    if matched_ids:
+        existing_keys = {
+            tuple(row)
+            for row in (
+                await db.execute(
+                    select(
+                        TrainingRecord.trainee_id,
+                        TrainingRecord.course_name,
+                        TrainingRecord.started_at,
+                    ).where(
+                        TrainingRecord.trainee_id.in_(matched_ids),
+                        TrainingRecord.deleted_at.is_(None),
+                    )
+                )
+            ).all()
+        }
+    for row in result_rows:
+        if row.trainee_id is None or not row.subject:
+            continue
+        key = (row.trainee_id, row.subject, _import_date(row.start_date))
+        if key in existing_keys:
+            row.is_duplicate = True
+        existing_keys.add(key)  # 같은 파일 안의 반복 행도 두 번째부터 중복
     return TrainingRecordImportPreviewResult(rows=result_rows, total=len(result_rows))
 
 
@@ -768,20 +829,9 @@ async def import_confirm(
             await db.flush()
         source = "internal" if is_internal else "external"
 
-        if started is not None:
-            dup = (
-                await db.execute(
-                    select(TrainingRecord.id).where(
-                        TrainingRecord.trainee_id == trainee.id,
-                        TrainingRecord.course_name == item.subject,
-                        TrainingRecord.started_at == started,
-                        TrainingRecord.deleted_at.is_(None),
-                    )
-                )
-            ).scalar_one_or_none()
-            if dup is not None:
-                skipped += 1  # 같은 감리원·과정·시작일 기존 이력
-                continue
+        if await find_duplicate_record(db, trainee.id, item.subject, started) is not None:
+            skipped += 1  # 같은 감리원·과정·시작일 기존 이력
+            continue
 
         hours = _import_hours(item.hours_recog) or _import_hours(item.hours_total) or Decimal(0)
         saved = False

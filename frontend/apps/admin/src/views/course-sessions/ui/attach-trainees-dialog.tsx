@@ -8,6 +8,10 @@ import { DateField } from "@/src/shared/ui/date-picker/date-field";
 import { SearchInput } from "@/src/shared/ui/search-input";
 import { Label } from "@/src/shared/ui/label";
 import { Textarea } from "@/src/shared/ui/textarea";
+import {
+  DuplicateCancelledError,
+  useDuplicateConfirm,
+} from "@/src/shared/ui/use-duplicate-confirm";
 import { getTraineeList, postTrainee, traineeQueries } from "@/src/entities/trainee";
 import { useDebouncedValue } from "@/src/shared/hooks/use-debounced-value";
 import { courseSessionQueries, type CourseSession } from "@/src/entities/course-session";
@@ -223,7 +227,7 @@ export function AttachTraineesDialog({ isOpen, onClose, session }: Props) {
       }),
     onSuccess: ({ created, skipped }) => {
       toast.success(
-        `교육 내역 ${created}건을 생성했어요${skipped > 0 ? ` (이미 연결됨 ${skipped}명 제외)` : ""}`,
+        `교육 내역 ${created}건을 생성했어요${skipped > 0 ? ` (이미 같은 교육내역이 있는 ${skipped}명 제외)` : ""}`,
       );
       queryClient.invalidateQueries({ queryKey: trainingRecordQueries.all() });
       queryClient.invalidateQueries({ queryKey: courseSessionQueries.all() });
@@ -257,6 +261,7 @@ export function AttachTraineesDialog({ isOpen, onClose, session }: Props) {
 
   // 미매칭 행 → 이름·전화번호·생년월일·증번호 직접 입력으로 신규 감리원 등록 + 즉시 선택.
   // 엑셀 증번호는 매칭에 실패한 값이라 새 감리원에 자동으로 옮기지 않는다
+  const dupConfirm = useDuplicateConfirm();
   const createMutation = useMutation({
     mutationFn: (vars: {
       rowKey: string;
@@ -265,19 +270,25 @@ export function AttachTraineesDialog({ isOpen, onClose, session }: Props) {
       birthDate: string;
       certNo: string | null;
     }) =>
-      postTrainee({
-        name: vars.name.trim(),
-        phone: vars.phone.trim() || undefined,
-        birth_date: vars.birthDate || undefined,
-        cert_no: vars.certNo,
-      }),
+      dupConfirm.withConfirm((allowDuplicate) =>
+        postTrainee({
+          name: vars.name.trim(),
+          phone: vars.phone.trim() || undefined,
+          birth_date: vars.birthDate || undefined,
+          cert_no: vars.certNo,
+          allow_duplicate: allowDuplicate,
+        }),
+      ),
     onSuccess: (trainee, vars) => {
       queryClient.invalidateQueries({ queryKey: traineeQueries.all() });
       setSelected((prev) => (trainee.id in prev ? prev : { ...prev, [trainee.id]: trainee.name }));
       setAddedRows((prev) => new Set(prev).add(vars.rowKey));
       toast.success(`'${trainee.name}' 감리원을 새로 등록하고 선택했어요`);
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => {
+      if (e instanceof DuplicateCancelledError) return;
+      toast.error(e.message);
+    },
   });
 
   return (
@@ -301,6 +312,8 @@ export function AttachTraineesDialog({ isOpen, onClose, session }: Props) {
         },
       ]}
     >
+      {/* 중복 경고 — 포털로 뜨므로 위치는 무관 */}
+      {dupConfirm.dialog}
       <div className="space-y-3">
         {/* 이미 연결된 감리원 */}
         <div className="space-y-1.5">

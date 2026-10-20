@@ -1,7 +1,7 @@
 import uuid
 from datetime import date
 
-from sqlalchemy import select
+from sqlalchemy import and_, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.audit import record_audit
@@ -231,13 +231,26 @@ async def create_records_for_session(
     session = await get_session(db, session_id)
     course = session.course
 
-    # 이미 이 일정에 연결된 교육생 — 재연결 방지
+    # 같은 일정 동시 연결을 직렬화 — 검사와 저장 사이에 다른 요청이 끼면 중복이 생긴다
+    await db.execute(
+        select(CourseSession.id).where(CourseSession.id == session.id).with_for_update()
+    )
+    # 이미 이 일정에 연결됐거나, 같은 과정명·시작일 내역이 있는 교육생 — 건너뛴다
     existing = set(
         (
             await db.execute(
                 select(TrainingRecord.trainee_id).where(
-                    TrainingRecord.session_id == session.id,
+                    TrainingRecord.trainee_id.in_(trainee_ids),
                     TrainingRecord.deleted_at.is_(None),
+                    or_(
+                        TrainingRecord.session_id == session.id,
+                        and_(
+                            TrainingRecord.course_name == course.name,
+                            TrainingRecord.started_at.is_not_distinct_from(
+                                session.started_at
+                            ),
+                        ),
+                    ),
                 )
             )
         ).scalars()
