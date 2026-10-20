@@ -8,6 +8,10 @@ import { Input } from "@/src/shared/ui/input";
 import { Label } from "@/src/shared/ui/label";
 import { Pill } from "@/src/shared/ui/pill";
 import { DateField } from "@/src/shared/ui/date-picker/date-field";
+import {
+  DuplicateCancelledError,
+  useDuplicateConfirm,
+} from "@/src/shared/ui/use-duplicate-confirm";
 import { postTrainee, traineeQueries } from "@/src/entities/trainee";
 import {
   postTrainingRecordImportConfirm,
@@ -38,6 +42,8 @@ interface ImportDraft {
   traineeName: string | null;
   institutionExists: boolean;
   courseExists: boolean;
+  /** 같은 감리원·과정명·시작일 내역이 이미 있음 — 확정해도 서버가 건너뛰므로 포함 불가 */
+  isDuplicate: boolean;
   errors: string[];
   include: boolean;
 }
@@ -113,9 +119,10 @@ export function TrainingRecordImportDialog({ isOpen, onClose }: Props) {
           traineeName: r.trainee_name ?? null,
           institutionExists: r.institution_exists,
           courseExists: r.course_exists,
+          isDuplicate: r.is_duplicate,
           errors: r.errors,
-          // 감리원 미매칭·오류 행은 기본 제외
-          include: r.trainee_id !== null && r.errors.length === 0,
+          // 감리원 미매칭·오류·중복 행은 기본 제외
+          include: r.trainee_id !== null && r.errors.length === 0 && !r.is_duplicate,
         })),
       ]);
       setStage("preview");
@@ -134,14 +141,18 @@ export function TrainingRecordImportDialog({ isOpen, onClose }: Props) {
   };
 
   // 미매칭 행 → 교육생 직접 추가 (이름·생년월일·증번호·전화)
+  const dupConfirm = useDuplicateConfirm();
   const createTraineeMutation = useMutation({
     mutationFn: (vars: { key: string; form: AddTraineeForm }) =>
-      postTrainee({
-        name: vars.form.name.trim(),
-        birth_date: vars.form.birthDate || undefined,
-        cert_no: vars.form.certNo.trim() || undefined,
-        phone: vars.form.phone.trim() || undefined,
-      }),
+      dupConfirm.withConfirm((allowDuplicate) =>
+        postTrainee({
+          name: vars.form.name.trim(),
+          birth_date: vars.form.birthDate || undefined,
+          cert_no: vars.form.certNo.trim() || undefined,
+          phone: vars.form.phone.trim() || undefined,
+          allow_duplicate: allowDuplicate,
+        }),
+      ),
     onSuccess: (trainee, vars) => {
       setDraft(vars.key, {
         traineeId: trainee.id,
@@ -154,7 +165,10 @@ export function TrainingRecordImportDialog({ isOpen, onClose }: Props) {
       queryClient.invalidateQueries({ queryKey: traineeQueries.all() });
       toast.success(`'${trainee.name}' 감리원을 새로 등록하고 선택했어요`);
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => {
+      if (e instanceof DuplicateCancelledError) return;
+      toast.error(e.message);
+    },
   });
 
   // 미매칭 행 감리원 검색 — 이름 또는 감리원증번호로 검색
@@ -191,6 +205,7 @@ export function TrainingRecordImportDialog({ isOpen, onClose }: Props) {
   });
 
   const matchedCount = drafts.filter((d) => d.traineeId).length;
+  const duplicateCount = drafts.filter((d) => d.isDuplicate).length;
   const unmatchedCount = drafts.length - matchedCount;
   const filtered =
     matchingFilter === "all"
@@ -238,6 +253,8 @@ export function TrainingRecordImportDialog({ isOpen, onClose }: Props) {
       }
       actions={actions}
     >
+      {/* 중복 경고 — 포털로 뜨므로 위치는 무관 */}
+      {dupConfirm.dialog}
       {stage === "select" && (
         <div className="space-y-3">
           <button
@@ -308,13 +325,16 @@ export function TrainingRecordImportDialog({ isOpen, onClose }: Props) {
               <input
                 type="checkbox"
                 className="accent-accent"
-                checked={included.length === drafts.length && drafts.length > 0}
+                checked={
+                  included.length > 0 &&
+                  included.length === drafts.filter((d) => d.traineeId && !d.isDuplicate).length
+                }
                 onChange={(e) =>
                   setDrafts((prev) =>
                     prev.map((d) => ({
                       ...d,
-                      // 미매칭 행은 교육생 추가 전까지 체크 불가
-                      include: d.traineeId ? e.target.checked : false,
+                      // 미매칭 행은 교육생 추가 전까지, 중복 행은 항상 체크 불가
+                      include: d.traineeId && !d.isDuplicate ? e.target.checked : false,
                     })),
                   )
                 }
@@ -352,7 +372,7 @@ export function TrainingRecordImportDialog({ isOpen, onClose }: Props) {
                       <input
                         type="checkbox"
                         className="accent-accent disabled:opacity-40"
-                        disabled={!d.traineeId}
+                        disabled={!d.traineeId || d.isDuplicate}
                         checked={d.include}
                         onChange={(e) => setDraft(d.key, { include: e.target.checked })}
                       />
@@ -382,6 +402,7 @@ export function TrainingRecordImportDialog({ isOpen, onClose }: Props) {
                         ) : (
                           <Pill tone="warn">미매칭</Pill>
                         )}
+                        {d.isDuplicate && <Pill tone="danger">이미 등록됨</Pill>}
                         {!d.institutionExists && <Pill tone="info">기관 신규</Pill>}
                         {!d.courseExists && <Pill tone="info">과정 신규</Pill>}
                       </span>
@@ -517,6 +538,8 @@ export function TrainingRecordImportDialog({ isOpen, onClose }: Props) {
           </div>
           <p className="text-12 text-ink-3">
             감리원이 매칭된 행만 등록돼요 — 미매칭 행은 '교육생 직접 추가'로 감리원을 등록한 뒤 포함할 수 있어요.
+            {duplicateCount > 0 &&
+              ` 같은 감리원·과정명·시작일 내역이 이미 있는 ${duplicateCount}행은 등록에서 빠져요.`}
             마스터에 없는 기관·과정은 등록 시 자동 생성돼요.
           </p>
         </div>

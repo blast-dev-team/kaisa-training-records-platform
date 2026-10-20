@@ -61,6 +61,8 @@ export interface TraineeCreateInput {
   membership_grade_id?: string
   /** 연간 등급 지정 시 만료일 필수(서버 검증) */
   grade_expires_at?: string
+  /** 같은 이름·생년월일 감리원 경고를 확인한 뒤에만 true — 증번호 중복은 항상 차단 */
+  allow_duplicate?: boolean
 }
 
 // ── 일괄 처리 ───────────────────────────────────────────────────────────────────

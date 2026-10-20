@@ -2,6 +2,10 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { Button } from "@/src/shared/ui/button";
+import {
+  DuplicateCancelledError,
+  useDuplicateConfirm,
+} from "@/src/shared/ui/use-duplicate-confirm";
 import { Dialog } from "@/src/shared/ui/dialog";
 import { Input } from "@/src/shared/ui/input";
 import { SearchInput } from "@/src/shared/ui/search-input";
@@ -108,13 +112,17 @@ export function TrainingRecordFormDialog({
   }, [traineeDropdownOpen]);
 
   // 검색 결과 없음 → 그 자리에서 생성하고 바로 선택. 교육생 관리와 같은 수기 등록 경로.
+  const dupConfirm = useDuplicateConfirm();
   const createTraineeMutation = useMutation({
     mutationFn: () =>
-      postTrainee({
-        name: traineeSearch.trim(),
-        birth_date: newTraineeBirth || null,
-        phone: newTraineePhone.trim() || undefined,
-      }),
+      dupConfirm.withConfirm((allowDuplicate) =>
+        postTrainee({
+          name: traineeSearch.trim(),
+          birth_date: newTraineeBirth || null,
+          phone: newTraineePhone.trim() || undefined,
+          allow_duplicate: allowDuplicate,
+        }),
+      ),
     onSuccess: (created) => {
       toast.success(`교육생을 등록했어요 — ${created.name}`);
       setTrainee(created);
@@ -122,7 +130,10 @@ export function TrainingRecordFormDialog({
       setTraineeQuery(null);
       queryClient.invalidateQueries({ queryKey: traineeQueries.all() });
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => {
+      if (e instanceof DuplicateCancelledError) return;
+      toast.error(e.message);
+    },
   });
 
   // 검색 결과에 없는 기관·과정을 그 자리에서 만든다 — 기관·과정 마스터와 연동
@@ -288,14 +299,19 @@ export function TrainingRecordFormDialog({
         memo: memo.trim() || null,
       };
       if (record) return patchTrainingRecord(record.id, input);
-      return postTrainingRecord(input);
+      return dupConfirm.withConfirm((allowDuplicate) =>
+        postTrainingRecord({ ...input, allow_duplicate: allowDuplicate }),
+      );
     },
     onSuccess: () => {
       toast.success(record ? "내역을 수정했어요" : "내역을 등록했어요");
       queryClient.invalidateQueries({ queryKey: trainingRecordQueries.all() });
       onClose();
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => {
+      if (e instanceof DuplicateCancelledError) return;
+      toast.error(e.message);
+    },
   });
 
   const canSubmit = useMemo(
@@ -325,6 +341,8 @@ export function TrainingRecordFormDialog({
         },
       ]}
     >
+      {/* 중복 경고 — 포털로 뜨므로 위치는 무관 */}
+      {dupConfirm.dialog}
       <div className="space-y-4 pt-1">
         {/* 감리원 — 수정 시 고정 */}
         <div className="space-y-1.5">

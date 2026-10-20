@@ -8,6 +8,10 @@ import { DateField } from "@/src/shared/ui/date-picker/date-field";
 import { Label } from "@/src/shared/ui/label";
 import { Select } from "@/src/shared/ui/select";
 import {
+  DuplicateCancelledError,
+  useDuplicateConfirm,
+} from "@/src/shared/ui/use-duplicate-confirm";
+import {
   membershipGradeQueries,
   patchTrainee,
   postTrainee,
@@ -80,6 +84,7 @@ export function TraineeFormDialog({ isOpen, onClose, trainee }: Props) {
     setSupervisorGrade(v);
   };
 
+  const dupConfirm = useDuplicateConfirm();
   const mutation = useMutation({
     mutationFn: () => {
       if (trainee) {
@@ -96,7 +101,8 @@ export function TraineeFormDialog({ isOpen, onClose, trainee }: Props) {
         if (phone.trim()) input.phone = phone.trim();
         return patchTrainee(trainee.id, input);
       }
-      return postTrainee({
+      return dupConfirm.withConfirm((allowDuplicate) => postTrainee({
+        allow_duplicate: allowDuplicate,
         name: name.trim(),
         cert_no: certNo.trim() || null,
         senior_cert_no: effectiveSeniorNo || null,
@@ -108,14 +114,17 @@ export function TraineeFormDialog({ isOpen, onClose, trainee }: Props) {
         memo: memo.trim() || null,
         membership_grade_id: gradeId || undefined,
         grade_expires_at: gradeId && isAnnual ? expiresAt || undefined : undefined,
-      });
+      }));
     },
     onSuccess: (_data, _vars) => {
       toast.success(trainee ? "감리원 정보를 수정했어요" : "감리원을 등록했어요");
       queryClient.invalidateQueries({ queryKey: traineeQueries.all() });
       onClose();
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => {
+      if (e instanceof DuplicateCancelledError) return;
+      toast.error(e.message);
+    },
   });
 
   return (
@@ -139,6 +148,8 @@ export function TraineeFormDialog({ isOpen, onClose, trainee }: Props) {
         },
       ]}
     >
+      {/* 중복 경고 — 포털로 뜨므로 위치는 무관 */}
+      {dupConfirm.dialog}
       <div className="space-y-4 pt-1">
         <div className="flex flex-col gap-1.5">
           <div className="flex flex-col gap-1.5">
