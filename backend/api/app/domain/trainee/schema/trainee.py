@@ -77,6 +77,8 @@ class TraineeCreate(BaseModel):
     membership_grade_id: uuid.UUID | None = None
     # 연간 등급 지정 시 만료일 필수(서버 검증), 그 외 등급은 NULL
     grade_expires_at: date | None = None
+    # 같은 이름·생년월일 감리원이 있어도 등록 — 동명이인 확인 후에만 true (증번호 중복은 항상 차단)
+    allow_duplicate: bool = False
 
 
 class TraineeUpdate(BaseModel):

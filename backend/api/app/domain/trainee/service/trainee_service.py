@@ -130,6 +130,39 @@ async def list_cert_no_duplicates(db: AsyncSession) -> list[Trainee]:
     return await repo.list_cert_no_duplicates(db)
 
 
+async def _check_duplicate_trainee(
+    db: AsyncSession,
+    name: str,
+    birth_date: date | None,
+    cert_no: str | None,
+    senior_cert_no: str | None,
+    allow_duplicate: bool,
+) -> None:
+    """엑셀 일괄 등록과 같은 기준 — 증번호 일치는 차단, 이름+생년월일 일치는 확인 후 허용."""
+    cert_nos = [no for no in (cert_no, senior_cert_no) if no]
+    pairs = [(name, birth_date)] if birth_date else []
+    existing = await repo.find_duplicates_for_import(db, cert_nos, pairs)
+    for t in existing:
+        if {t.cert_no, t.senior_cert_no} & set(cert_nos):
+            raise api_error(
+                "DUPLICATE_TRAINEE",
+                message=(
+                    "같은 감리원증번호의 감리원이 이미 있어요 — "
+                    f"{decrypt_field(t.name_encrypted)} ({t.trainee_no})"
+                ),
+            )
+    if existing and not allow_duplicate:
+        t = existing[0]
+        raise api_error(
+            "DUPLICATE_TRAINEE_SUSPECTED",
+            message=(
+                "같은 이름·생년월일의 감리원이 이미 있어요 — "
+                f"{decrypt_field(t.name_encrypted)} ({t.trainee_no}"
+                f"{', ' + t.cert_no if t.cert_no else ''})"
+            ),
+        )
+
+
 async def create_trainee(
     db: AsyncSession, data: TraineeCreate, actor: AdminUser
 ) -> Trainee:
@@ -143,6 +176,9 @@ async def create_trainee(
 
     cert_no = data.cert_no.strip() if data.cert_no else None
     senior_cert_no = data.senior_cert_no.strip() if data.senior_cert_no else None
+    await _check_duplicate_trainee(
+        db, data.name.strip(), data.birth_date, cert_no, senior_cert_no, data.allow_duplicate
+    )
     trainee = Trainee(
         trainee_no=f"TR-{now_kst().strftime('%Y%m%d')}-{secrets.token_hex(2).upper()}",
         cert_no=cert_no,

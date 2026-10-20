@@ -23,6 +23,8 @@ class TrainingRecordCreate(BaseModel):
     evidence_file_key: str | None = None
     completion_status: str = "completed"  # in_progress | completed | canceled
     memo: str | None = None
+    # 같은 교육생·과정명·시작일 내역이 있어도 등록 — 중복 경고를 확인한 뒤에만 true
+    allow_duplicate: bool = False
 
 
 class TrainingRecordUpdate(BaseModel):
@@ -201,6 +203,8 @@ class TrainingRecordImportRow(BaseModel):
     course_exists: bool = True
     trainee_id: uuid.UUID | None = None
     trainee_name: str | None = None
+    # 같은 감리원·과정명·시작일 내역이 이미 있음 — 확정 시 건너뛴다
+    is_duplicate: bool = False
     errors: list[str] = []
 
 
