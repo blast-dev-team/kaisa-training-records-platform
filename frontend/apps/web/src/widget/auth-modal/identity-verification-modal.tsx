@@ -15,8 +15,8 @@ import { Button, TextField } from "@/src/shared/ui";
  * 성명·생년월일·휴대전화를 받아 PASS 본인인증(포트원) 창을 연다.
  * 흐름: 서버에 인증 건 등록(start) → SDK 인증창 → 완료(complete — 고객 생성·세션 쿠키).
  * 인증 성공 시 onSuccess로 로그인된 고객명을 알린다.
- * 성명이 'KAISA'만 입력되면(지정 번호 없이) 일반 회원 스코프의 KAISA 계정으로
- * 바로 로그인한다 — 연결된 교육이력 1건으로 발급까지 가능 (전 환경 허용).
+ * 성명 KAISA + 생년월일 19900101 + 휴대전화 01012345678 이면 일반 회원 스코프의
+ * KAISA 계정으로 바로 로그인한다 — 연결된 교육이력 1건으로 발급까지 가능 (전 환경 허용).
  * 성명이 '테스트'면 생년월일·휴대전화·PASS 인증을 생략하고 바로 로그인한다
  * (서버가 local·staging 에서만 허용).
  * 기존 모달 관례에 따라 배경 클릭·ESC 로도 닫는다 (인증 진행 중 제외).
@@ -26,6 +26,9 @@ const TEST_LOGIN_NAME = "테스트";
 /** 슈퍼 계정 트리거 — 성명 KAISA + 이 번호면 PASS 인증 없이 전체 조회 모드로 로그인 */
 const SUPER_LOGIN_NAME = "KAISA";
 const SUPER_LOGIN_PHONE = "2018202820";
+/** KAISA 계정 — 성명 KAISA + 이 생년월일·휴대전화면 PASS 인증 없이 로그인 (전 환경) */
+const KAISA_LOGIN_BIRTH = "19900101";
+const KAISA_LOGIN_PHONE = "01012345678";
 
 interface IdentityVerificationModalProps {
   /** PASS 본인인증 성공 — 인증한 성명 전달 */
@@ -49,8 +52,11 @@ export function IdentityVerificationModal({ onSuccess, onClose }: IdentityVerifi
   // 슈퍼 계정 — KAISA + 지정 번호. 생년월일 없이 로그인하고 미리보기 모드로 돌린다
   const isSuperLogin =
     name.trim() === SUPER_LOGIN_NAME && phone === SUPER_LOGIN_PHONE;
-  // KAISA 계정 — 성명 KAISA 만으로 로그인(전 환경). 본인 이력만 보고 발급까지 가능
-  const isKaisaLogin = name.trim() === SUPER_LOGIN_NAME && !isSuperLogin;
+  // KAISA 계정 — KAISA + 지정 생년월일·휴대전화(전 환경). 본인 이력만 보고 발급까지 가능
+  const isKaisaLogin =
+    name.trim() === SUPER_LOGIN_NAME &&
+    birth === KAISA_LOGIN_BIRTH &&
+    phone === KAISA_LOGIN_PHONE;
 
   const canSubmit =
     name.trim().length > 0 &&
@@ -84,7 +90,7 @@ export function IdentityVerificationModal({ onSuccess, onClose }: IdentityVerifi
       }
       if (isKaisaLogin) {
         // PASS 인증 생략 — 일반 회원 스코프. 서버가 세션 쿠키를 내려준다
-        const user = await postPassKaisaLogin(name.trim());
+        const user = await postPassKaisaLogin(name.trim(), birth, phone);
         onSuccess(user.name ?? name.trim());
         return;
       }
