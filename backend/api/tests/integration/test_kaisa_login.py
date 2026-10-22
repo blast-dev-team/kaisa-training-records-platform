@@ -3,7 +3,7 @@
 from sqlalchemy import func, select
 
 from app.core.config import settings
-from app.domain.identity.schema import PassTestLoginRequest
+from app.domain.identity.schema import PassKaisaLoginRequest
 from app.domain.identity.service import identity_service
 from app.domain.trainee.model import Trainee
 from app.domain.training_record.model import TrainingRecord
@@ -14,9 +14,11 @@ from tests.integration.helpers import (
     member_cookie,
 )
 
+KAISA_JSON = {"name": "KAISA", "birth": "19900101", "phone": "01012345678"}
 
-def _body(name: str = "KAISA") -> PassTestLoginRequest:
-    return PassTestLoginRequest(name=name)
+
+def _body(**overrides: str) -> PassKaisaLoginRequest:
+    return PassKaisaLoginRequest(**{**KAISA_JSON, **overrides})
 
 
 async def _kaisa_trainee(db, user_id) -> Trainee:
@@ -36,7 +38,7 @@ class TestKaisaLogin:
 
     async def test_allowed_in_production(self, client, db, monkeypatch):
         monkeypatch.setattr(settings, "ENVIRONMENT", "production")
-        resp = await client.post("/api/auth/pass/kaisa-login", json={"name": "KAISA"})
+        resp = await client.post("/api/auth/pass/kaisa-login", json=KAISA_JSON)
         assert resp.status_code == 200
         assert resp.json()["is_super"] is False
 
@@ -46,9 +48,24 @@ class TestKaisaLogin:
         assert resp.status_code == 200
         assert resp.json()["is_super"] is False
 
-    async def test_other_name_rejected(self, client, db):
-        resp = await client.post("/api/auth/pass/kaisa-login", json={"name": "홍길동"})
-        assert resp.status_code == 404
+    async def test_mismatch_rejected(self, client, db):
+        for override in (
+            {"name": "홍길동"},
+            {"birth": "19900102"},
+            {"phone": "01099999999"},
+            {"birth": "", "phone": ""},
+        ):
+            resp = await client.post(
+                "/api/auth/pass/kaisa-login", json={**KAISA_JSON, **override}
+            )
+            assert resp.status_code == 404, override
+
+    async def test_hyphenated_inputs_accepted(self, client, db):
+        resp = await client.post(
+            "/api/auth/pass/kaisa-login",
+            json={**KAISA_JSON, "birth": "1990-01-01", "phone": "010-1234-5678"},
+        )
+        assert resp.status_code == 200
 
     async def test_super_login_still_hidden_in_production(self, client, db, monkeypatch):
         monkeypatch.setattr(settings, "ENVIRONMENT", "production")
