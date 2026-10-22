@@ -31,6 +31,14 @@ class PassTestLoginRequest(BaseModel):
     name: str = "테스트"
 
 
+class PassKaisaLoginRequest(BaseModel):
+    """KAISA 계정 우회 로그인 — 성명·생년월일·휴대전화가 지정값과 모두 일치해야 한다."""
+
+    name: str = ""
+    birth: str = ""
+    phone: str = ""
+
+
 class PassCompleteResponse(BaseModel):
     account_type: str = "user"
     id: uuid.UUID

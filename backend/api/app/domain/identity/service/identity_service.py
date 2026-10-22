@@ -27,6 +27,7 @@ from app.domain.identity.repository import identity_repository as repo
 from app.domain.identity.schema import (
     NewTraineeCreate,
     PassCompleteResponse,
+    PassKaisaLoginRequest,
     PassStartRequest,
     PassStartResponse,
     PassTestLoginRequest,
@@ -443,6 +444,9 @@ async def super_login(
 
 KAISA_CI = "test:kaisa"
 KAISA_NAME = "KAISA"
+# KAISA 계정 로그인 자격 — 성명과 함께 이 생년월일·휴대전화가 모두 일치해야 한다
+KAISA_BIRTH = "19900101"
+KAISA_PHONE = "01012345678"
 # KAISA 계정 전용 교육이력 — 실제 교육처럼 보이는 고정 내용 (발급 가능: 수료·3년 이내)
 KAISA_RECORD_NO = "KAISA-TR-0001"
 KAISA_COURSE_NAME = "감리원 법정 계속교육 (정기)"
@@ -500,15 +504,21 @@ async def _ensure_kaisa_record(db: AsyncSession, trainee: Trainee) -> None:
 
 
 async def kaisa_login(
-    db: AsyncSession, body: PassTestLoginRequest
+    db: AsyncSession, body: PassKaisaLoginRequest
 ) -> tuple[PassCompleteResponse, str]:
-    """KAISA 계정 로그인 — 성명 KAISA 만으로 PASS 인증 없이 로그인. 전 환경 허용.
+    """KAISA 계정 로그인 — 성명 KAISA + 지정 생년월일·휴대전화로 PASS 없이 로그인. 전 환경 허용.
 
     슈퍼 계정(전 회원 조회)과 달리 일반 회원 스코프다 — 본인 이력만 보고
     발급·결제까지 실제 플로우를 탄다. 고정 CI 로 find-or-create 하고,
     교육생과 발급용 이력 1건(_ensure_kaisa_record)을 연결한다.
     """
-    if body.name.strip() != KAISA_NAME:
+    birth = "".join(ch for ch in body.birth if ch.isdigit())
+    phone = "".join(ch for ch in body.phone if ch.isdigit())
+    if (
+        body.name.strip() != KAISA_NAME
+        or birth != KAISA_BIRTH
+        or phone != KAISA_PHONE
+    ):
         raise api_error("NOT_FOUND", status_code=404, message="리소스를 찾을 수 없어요")
     ci_hash = sha256_hex(KAISA_CI)
     user = await repo.find_user_by_ci_hash(db, ci_hash)

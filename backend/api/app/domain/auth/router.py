@@ -22,6 +22,7 @@ from app.domain.auth.service import auth_service
 from app.domain.identity.schema import (
     PassCompleteRequest,
     PassCompleteResponse,
+    PassKaisaLoginRequest,
     PassStartRequest,
     PassStartResponse,
     PassTestLoginRequest,
@@ -150,9 +151,9 @@ async def super_login_pass(
 
 @router.post("/pass/kaisa-login", response_model=PassCompleteResponse)
 async def kaisa_login_pass(
-    body: PassTestLoginRequest, response: Response, db: AsyncSession = Depends(get_db)
+    body: PassKaisaLoginRequest, response: Response, db: AsyncSession = Depends(get_db)
 ):
-    """KAISA 계정 우회 로그인 — 성명 KAISA 만으로 로그인, 본인 이력 발급 가능. 전 환경."""
+    """KAISA 계정 우회 로그인 — 성명 KAISA + 지정 생년월일·휴대전화, 본인 이력 발급 가능. 전 환경."""
     result, token = await identity_service.kaisa_login(db, body)
     response.set_cookie(**session_cookie_params(token))
     return result
