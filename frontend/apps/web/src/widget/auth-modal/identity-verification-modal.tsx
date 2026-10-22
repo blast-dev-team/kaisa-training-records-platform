@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 
 import { postPassComplete } from "@/src/shared/api/post-pass-complete";
+import { postPassKaisaLogin } from "@/src/shared/api/post-pass-kaisa-login";
 import { useAuthStore } from "@/src/shared/store/auth-store";
 import { postPassStart } from "@/src/shared/api/post-pass-start";
 import { postPassSuperLogin } from "@/src/shared/api/post-pass-super-login";
@@ -14,6 +15,8 @@ import { Button, TextField } from "@/src/shared/ui";
  * 성명·생년월일·휴대전화를 받아 PASS 본인인증(포트원) 창을 연다.
  * 흐름: 서버에 인증 건 등록(start) → SDK 인증창 → 완료(complete — 고객 생성·세션 쿠키).
  * 인증 성공 시 onSuccess로 로그인된 고객명을 알린다.
+ * 성명이 'KAISA'만 입력되면(지정 번호 없이) 일반 회원 스코프의 KAISA 계정으로
+ * 바로 로그인한다 — 연결된 교육이력 1건으로 발급까지 가능 (전 환경 허용).
  * 성명이 '테스트'면 생년월일·휴대전화·PASS 인증을 생략하고 바로 로그인한다
  * (서버가 local·staging 에서만 허용).
  * 기존 모달 관례에 따라 배경 클릭·ESC 로도 닫는다 (인증 진행 중 제외).
@@ -46,10 +49,12 @@ export function IdentityVerificationModal({ onSuccess, onClose }: IdentityVerifi
   // 슈퍼 계정 — KAISA + 지정 번호. 생년월일 없이 로그인하고 미리보기 모드로 돌린다
   const isSuperLogin =
     name.trim() === SUPER_LOGIN_NAME && phone === SUPER_LOGIN_PHONE;
+  // KAISA 계정 — 성명 KAISA 만으로 로그인(전 환경). 본인 이력만 보고 발급까지 가능
+  const isKaisaLogin = name.trim() === SUPER_LOGIN_NAME && !isSuperLogin;
 
   const canSubmit =
     name.trim().length > 0 &&
-    (isTestLogin || isSuperLogin || (birth.length === 8 && phone.length >= 10));
+    (isTestLogin || isSuperLogin || isKaisaLogin || (birth.length === 8 && phone.length >= 10));
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -74,6 +79,12 @@ export function IdentityVerificationModal({ onSuccess, onClose }: IdentityVerifi
         // PASS 인증 생략 — 전체 조회(미리보기) 모드. 서버가 세션 쿠키를 내려준다
         const user = await postPassSuperLogin(name.trim());
         signIn(undefined, undefined, true, true);
+        onSuccess(user.name ?? name.trim());
+        return;
+      }
+      if (isKaisaLogin) {
+        // PASS 인증 생략 — 일반 회원 스코프. 서버가 세션 쿠키를 내려준다
+        const user = await postPassKaisaLogin(name.trim());
         onSuccess(user.name ?? name.trim());
         return;
       }
@@ -140,7 +151,9 @@ export function IdentityVerificationModal({ onSuccess, onClose }: IdentityVerifi
                 ? "테스트 계정으로 본인인증 없이 바로 로그인합니다."
                 : isSuperLogin
                   ? "슈퍼 계정으로 전체 조회(미리보기) 모드로 로그인합니다."
-                  : undefined
+                  : isKaisaLogin
+                    ? "KAISA 계정으로 본인인증 없이 바로 로그인합니다."
+                    : undefined
             }
             onChange={(event) => setName(event.target.value)}
           />
@@ -183,7 +196,7 @@ export function IdentityVerificationModal({ onSuccess, onClose }: IdentityVerifi
             onClick={handleSubmit}
           >
             {isPending
-              ? isTestLogin || isSuperLogin
+              ? isTestLogin || isSuperLogin || isKaisaLogin
                 ? "로그인 중..."
                 : "인증 진행 중..."
               : "본인인증 시작"}

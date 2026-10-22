@@ -39,8 +39,10 @@ export function Footer({ className }: FooterProps) {
         <div className="flex shrink-0 flex-col items-center gap-y-0.5 text-13 mobile:text-12 text-gray-400">
           <p>상호명 : (사)정보시스템감리협회</p>
           <p>사업자등록번호 : 201-82-02820</p>
-          <p>대표자명 : 조병휘</p>
+          <p>통신판매신고번호 : 2022-서울강남-05925</p>
+          <p>대표 : 조병휘</p>
           <p>대표전화번호 : 02-558-9140, 9150</p>
+          <p>사업장주소 : 서울특별시 강남구 강남대로84길 23, 1405호 한라클래식오피스텔 (역삼동)</p>
         </div>
       </div>
     </footer>
