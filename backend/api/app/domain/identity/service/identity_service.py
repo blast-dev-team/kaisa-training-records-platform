@@ -1,6 +1,7 @@
 import secrets
 import uuid
-from datetime import date
+from datetime import date, datetime, time
+from decimal import Decimal
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -16,7 +17,7 @@ from app.core.crypto import (
     sha256_hex,
 )
 from app.core.error_codes import api_error
-from app.core.kst import now_kst
+from app.core.kst import KST, now_kst
 from app.core.rate_limit import is_rate_limited, register_attempt
 from app.core.security import issue_state, read_state
 from app.core.session import create_user_session
@@ -30,7 +31,9 @@ from app.domain.identity.schema import (
     PassStartResponse,
     PassTestLoginRequest,
 )
+from app.domain.institution.model import TrainingInstitution
 from app.domain.trainee.model import MembershipGrade, Trainee
+from app.domain.training_record.model import TrainingRecord
 from app.domain.user.model import User
 from app.integrations import portone
 
@@ -433,6 +436,135 @@ async def super_login(
             matched=True,
             review_status="approved",
             is_super=True,
+        ),
+        token,
+    )
+
+
+KAISA_CI = "test:kaisa"
+KAISA_NAME = "KAISA"
+# KAISA 계정 전용 교육이력 — 실제 교육처럼 보이는 고정 내용 (발급 가능: 수료·3년 이내)
+KAISA_RECORD_NO = "KAISA-TR-0001"
+KAISA_COURSE_NAME = "감리원 법정 계속교육 (정기)"
+KAISA_INSTITUTION_NAME = "협회 본부"
+KAISA_COURSE_HOURS = Decimal("16.00")
+KAISA_COURSE_STARTED = date(2026, 9, 15)
+KAISA_COURSE_ENDED = date(2026, 9, 16)
+
+
+async def _ensure_kaisa_record(db: AsyncSession, trainee: Trainee) -> None:
+    """KAISA 계정에 발급 가능한 교육이력 1건을 보장한다 (전용 이력 생성).
+
+    실제 회원 이력은 건드리지 않고 KAISA 교육생 소유의 이력을 새로 만든다.
+    공용 데모(is_demo)가 아니므로 다른 회원에게는 보이지 않는다.
+    기관은 협회(내부) 기관 마스터가 있으면 연결하고, 없으면 이름만 기록한다
+    — 운영 마스터 목록이 늘지 않게 기관·과정 마스터는 새로 만들지 않는다.
+    """
+    has_record = (
+        await db.execute(
+            select(TrainingRecord.id)
+            .where(
+                TrainingRecord.trainee_id == trainee.id,
+                TrainingRecord.deleted_at.is_(None),
+            )
+            .limit(1)
+        )
+    ).scalar_one_or_none()
+    if has_record is not None:
+        return
+    institution = (
+        await db.execute(
+            select(TrainingInstitution)
+            .where(TrainingInstitution.institution_type == "internal")
+            .order_by(TrainingInstitution.created_at)
+            .limit(1)
+        )
+    ).scalars().first()
+    db.add(
+        TrainingRecord(
+            training_record_no=KAISA_RECORD_NO,
+            trainee_id=trainee.id,
+            institution_id=institution.id if institution else None,
+            course_name=KAISA_COURSE_NAME,
+            institution_name=institution.name if institution else KAISA_INSTITUTION_NAME,
+            total_hours=KAISA_COURSE_HOURS,
+            completed_hours=KAISA_COURSE_HOURS,
+            started_at=KAISA_COURSE_STARTED,
+            ended_at=KAISA_COURSE_ENDED,
+            source="internal",
+            completion_status="completed",
+            completed_at=datetime.combine(KAISA_COURSE_ENDED, time(18, 0), tzinfo=KST),
+        )
+    )
+    await db.flush()
+
+
+async def kaisa_login(
+    db: AsyncSession, body: PassTestLoginRequest
+) -> tuple[PassCompleteResponse, str]:
+    """KAISA 계정 로그인 — 성명 KAISA 만으로 PASS 인증 없이 로그인. 전 환경 허용.
+
+    슈퍼 계정(전 회원 조회)과 달리 일반 회원 스코프다 — 본인 이력만 보고
+    발급·결제까지 실제 플로우를 탄다. 고정 CI 로 find-or-create 하고,
+    교육생과 발급용 이력 1건(_ensure_kaisa_record)을 연결한다.
+    """
+    if body.name.strip() != KAISA_NAME:
+        raise api_error("NOT_FOUND", status_code=404, message="리소스를 찾을 수 없어요")
+    ci_hash = sha256_hex(KAISA_CI)
+    user = await repo.find_user_by_ci_hash(db, ci_hash)
+    matched = user is not None
+    if user is None:
+        name_encrypted, name_hash_value = name_columns(KAISA_NAME)
+        user = User(
+            ci_hash=ci_hash,
+            name_encrypted=name_encrypted,
+            name_hash=name_hash_value,
+        )
+        db.add(user)
+        await db.flush()
+    user.last_login_at = now_kst()
+
+    verified_name_encrypted, verified_name_hash_value = name_columns(KAISA_NAME)
+    verification = IdentityVerification(
+        user_id=user.id,
+        provider_verification_id=f"kaisa-{uuid.uuid4()}",
+        status="verified",
+        verified_name_encrypted=verified_name_encrypted,
+        verified_name_hash=verified_name_hash_value,
+        ci_hash=ci_hash,
+        verified_at=now_kst(),
+    )
+    db.add(verification)
+    await db.flush()
+
+    trainee = await repo.find_trainee_by_user_id(db, user.id)
+    if trainee is None:
+        trainee = await _create_demo_trainee(db, user, KAISA_NAME, None)
+        db.add(
+            IdentityReview(
+                identity_verification_id=verification.id,
+                user_id=user.id,
+                trainee_id=trainee.id,
+                status="approved",
+                matched_by="ci",
+                determined_grade_id=trainee.membership_grade_id,
+                reviewed_at=now_kst(),
+            )
+        )
+    elif trainee.review_status != "approved":
+        trainee.review_status = "approved"
+        trainee.reviewed_at = now_kst()
+    await _ensure_kaisa_record(db, trainee)
+
+    token = await create_user_session(db, user.id, "pass")
+    await db.commit()
+
+    return (
+        PassCompleteResponse(
+            id=user.id,
+            name=decrypt_field(user.name_encrypted),
+            matched=matched,
+            review_status="approved",
         ),
         token,
     )

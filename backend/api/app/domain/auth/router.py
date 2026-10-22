@@ -148,6 +148,16 @@ async def super_login_pass(
     return result
 
 
+@router.post("/pass/kaisa-login", response_model=PassCompleteResponse)
+async def kaisa_login_pass(
+    body: PassTestLoginRequest, response: Response, db: AsyncSession = Depends(get_db)
+):
+    """KAISA 계정 우회 로그인 — 성명 KAISA 만으로 로그인, 본인 이력 발급 가능. 전 환경."""
+    result, token = await identity_service.kaisa_login(db, body)
+    response.set_cookie(**session_cookie_params(token))
+    return result
+
+
 # ── 관리자 계정 관리 (super) ───────────────────────────────────────────────────
 
 
