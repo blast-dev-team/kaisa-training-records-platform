@@ -1,7 +1,7 @@
 /**
  * 계속교육이력확인서 진위확인 조회 API — 실제 백엔드 연동 (공개 엔드포인트, 인증 불필요).
  * POST /api/public/certificate-verifications — 진위확인 ID 는 확인서 번호(certificate_no).
- * 성명은 폼 입력만 있을 뿐 서버가 검증하지 않는다 (데모 단계 — 이름 일치와 무관하게 확인 가능).
+ * 성명도 함께 보내고, 서버가 발급 성명과 일치할 때만 결과를 공개한다 (불일치 = not_found).
  * 결과는 유효(valid)만 상세를 노출하고 expired·revoked·not_found 는 확인 불가로 처리한다.
  * superseded(재발급된 레거시 문서)는 확인 불가이되 새 확인서 번호(successorNo)를 안내한다.
  */
@@ -49,7 +49,7 @@ export interface VerificationResult {
 export interface VerificationLookupParams {
   /** 진위확인 ID — 확인서 번호와 같다 */
   verificationId: string;
-  /** 성명 — 데모 단계에선 서버 검증 없음 (입력 필수는 폼 정책) */
+  /** 성명 — 서버가 발급 성명과 일치하는지 검증한다 */
   applicantName: string;
   /** 문서 종류 — 지정하면 서버가 해당 테이블만 조회 */
   docType: VerificationKind;
@@ -190,6 +190,8 @@ export async function getVerificationResult(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       certificate_no: verificationId,
+      // 서버가 발급 성명과 일치할 때만 결과를 공개한다 — 불일치는 not_found 와 동일 응답
+      name: params.applicantName.trim(),
       doc_type: params.docType,
     }),
   });

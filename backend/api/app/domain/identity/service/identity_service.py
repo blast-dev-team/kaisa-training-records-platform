@@ -1,4 +1,3 @@
-import secrets
 import uuid
 from datetime import date, datetime, time
 from decimal import Decimal
@@ -30,10 +29,10 @@ from app.domain.identity.schema import (
     PassKaisaLoginRequest,
     PassStartRequest,
     PassStartResponse,
-    PassTestLoginRequest,
 )
 from app.domain.institution.model import TrainingInstitution
 from app.domain.trainee.model import MembershipGrade, Trainee
+from app.domain.trainee.service import trainee_service
 from app.domain.training_record.model import TrainingRecord
 from app.domain.user.model import User
 from app.integrations import portone
@@ -97,7 +96,7 @@ async def _create_demo_trainee(
     name_encrypted, name_hash_value = name_columns(demo_name)
     trainee = Trainee(
         user_id=user.id,
-        trainee_no=f"TR-{now_kst().strftime('%Y%m%d')}-{secrets.token_hex(2).upper()}",
+        trainee_no=trainee_service.new_trainee_no(),
         name_encrypted=name_encrypted,
         name_hash=name_hash_value,
         phone_encrypted=encrypt_field(str(phone)) if phone else None,
@@ -306,142 +305,6 @@ async def complete_pass(
     )
 
 
-async def test_login(
-    db: AsyncSession, body: PassTestLoginRequest
-) -> tuple[PassCompleteResponse, str]:
-    """성명 '테스트' 입력 시 PASS 인증 없이 로그인 — local·staging 데모 전용.
-
-    고정 CI 로 find-or-create 하고 데모 교육생을 연결해 발급 플로우까지
-    바로 체험할 수 있게 한다. production 은 404 로 엔드포인트를 숨긴다.
-    """
-    if settings.ENVIRONMENT == "production":
-        raise api_error("NOT_FOUND", status_code=404, message="리소스를 찾을 수 없어요")
-    name = body.name.strip() or "테스트"
-    ci_hash = sha256_hex("test:demo")
-    user = await repo.find_user_by_ci_hash(db, ci_hash)
-    matched = True
-    if user is None:
-        matched = False
-        name_encrypted, name_hash_value = name_columns(name)
-        user = User(
-            ci_hash=ci_hash,
-            name_encrypted=name_encrypted,
-            name_hash=name_hash_value,
-        )
-        db.add(user)
-        await db.flush()
-    user.last_login_at = now_kst()
-    if not user.name_encrypted:
-        user.name_encrypted, user.name_hash = name_columns(name)
-
-    verified_name_encrypted, verified_name_hash_value = name_columns(name)
-    verification = IdentityVerification(
-        user_id=user.id,
-        provider_verification_id=f"test-{uuid.uuid4()}",
-        status="verified",
-        verified_name_encrypted=verified_name_encrypted,
-        verified_name_hash=verified_name_hash_value,
-        ci_hash=ci_hash,
-        verified_at=now_kst(),
-    )
-    db.add(verification)
-    await db.flush()
-
-    trainee = await repo.find_trainee_by_user_id(db, user.id)
-    if trainee is None:
-        trainee = await _create_demo_trainee(db, user, name, None)
-    if trainee.review_status != "approved":
-        # 데모 로그인 반복 시 심사 row 중복 방지 — 승인으로 바뀔 때만 기록
-        trainee.review_status = "approved"
-        trainee.reviewed_at = now_kst()
-        db.add(
-            IdentityReview(
-                identity_verification_id=verification.id,
-                user_id=user.id,
-                trainee_id=trainee.id,
-                status="approved",
-                matched_by="ci",
-                determined_grade_id=trainee.membership_grade_id,
-                reviewed_at=now_kst(),
-            )
-        )
-
-    token = await create_user_session(db, user.id, "pass")
-    await db.commit()
-
-    return (
-        PassCompleteResponse(
-            id=user.id,
-            name=decrypt_field(user.name_encrypted),
-            matched=matched,
-            review_status="approved",
-        ),
-        token,
-    )
-
-
-SUPER_CI = "test:super"
-SUPER_NAME = "KAISA"
-
-
-async def super_login(
-    db: AsyncSession, body: PassTestLoginRequest
-) -> tuple[PassCompleteResponse, str]:
-    """슈퍼 계정 로그인 — 전 회원 교육이력 조회(미리보기). local·staging 전용.
-
-    성명 KAISA + 휴대전화 일치를 FE가 검사하고 여기로 보낸다. 고정 CI 로
-    find-or-create 하고 데모 교육생을 연결해 프로필 화면도 정상 동작하게 한다.
-    발급·결제는 trainee 스코프라 하지 않고, 조회와 문서 미리보기만 허용한다.
-    production 은 404 로 엔드포인트를 숨긴다 (test_login 과 같은 정책).
-    """
-    if settings.ENVIRONMENT == "production":
-        raise api_error("NOT_FOUND", status_code=404, message="리소스를 찾을 수 없어요")
-    name = body.name.strip() or SUPER_NAME
-    ci_hash = sha256_hex(SUPER_CI)
-    user = await repo.find_user_by_ci_hash(db, ci_hash)
-    if user is None:
-        name_encrypted, name_hash_value = name_columns(SUPER_NAME)
-        user = User(
-            ci_hash=ci_hash,
-            name_encrypted=name_encrypted,
-            name_hash=name_hash_value,
-        )
-        db.add(user)
-        await db.flush()
-    user.last_login_at = now_kst()
-
-    verified_name_encrypted, verified_name_hash_value = name_columns(name)
-    verification = IdentityVerification(
-        user_id=user.id,
-        provider_verification_id=f"super-{uuid.uuid4()}",
-        status="verified",
-        verified_name_encrypted=verified_name_encrypted,
-        verified_name_hash=verified_name_hash_value,
-        ci_hash=ci_hash,
-        verified_at=now_kst(),
-    )
-    db.add(verification)
-    await db.flush()
-
-    trainee = await repo.find_trainee_by_user_id(db, user.id)
-    if trainee is None:
-        await _create_demo_trainee(db, user, SUPER_NAME, None)
-
-    token = await create_user_session(db, user.id, "pass")
-    await db.commit()
-
-    return (
-        PassCompleteResponse(
-            id=user.id,
-            name=decrypt_field(user.name_encrypted),
-            matched=True,
-            review_status="approved",
-            is_super=True,
-        ),
-        token,
-    )
-
-
 KAISA_CI = "test:kaisa"
 KAISA_NAME = "KAISA"
 # KAISA 계정 로그인 자격 — 성명과 함께 이 생년월일·휴대전화가 모두 일치해야 한다
@@ -639,7 +502,7 @@ async def approve_review(
         new_name_encrypted, new_name_hash_value = name_columns(name)
         trainee = Trainee(
             user_id=review.user_id,
-            trainee_no=f"TR-{now_kst().strftime('%Y%m%d')}-{secrets.token_hex(2).upper()}",
+            trainee_no=trainee_service.new_trainee_no(),
             name_encrypted=new_name_encrypted,
             name_hash=new_name_hash_value,
             phone_encrypted=encrypt_field(new_trainee.phone)

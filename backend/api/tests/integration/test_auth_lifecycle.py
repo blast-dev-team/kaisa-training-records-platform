@@ -11,28 +11,34 @@ from app.domain.auth.model import AdminAllowedEmail, AdminSession
 from tests.integration.helpers import admin_cookie, member_cookie
 
 
-async def _allow_email(db, email="new@example.com"):
+async def _allow_email(db, email="new@example.com", *, expired=False):
+    """super 의 초대를 흉내 — 화이트리스트 행 + 초대 코드. 평문 코드를 돌려준다."""
+    from app.domain.auth.service import auth_service
     from tests.integration.helpers import make_admin
 
     admin, _ = await make_admin(db, email="inviter@example.com")
-    db.add(AdminAllowedEmail(email=email, status="pending", created_by=admin.id))
+    row = AdminAllowedEmail(email=email, status="pending", created_by=admin.id)
+    code = auth_service._issue_invite(row)
+    if expired:
+        row.invite_expires_at = now_kst() - timedelta(minutes=1)
+    db.add(row)
     await db.commit()
+    return code
+
+
+def _register(email="new@example.com", password="passw0rd123", code="", **extra):
+    return {"email": email, "password": password, "invite_code": code, **extra}
 
 
 class TestRegister:
-    async def test_whitelisted_email_registers(self, client, db):
-        await _allow_email(db)
+    async def test_invited_email_registers_with_code(self, client, db):
+        code = await _allow_email(db)
         resp = await client.post(
-            "/api/auth/register",
-            json={
-                "email": "new@example.com",
-                "password": "passw0rd123",
-                "name": "새관리자",
-            },
+            "/api/auth/register", json=_register(code=code, name="새관리자")
         )
         assert resp.status_code == 201
         assert resp.json()["email"] == "new@example.com"
-        # 화이트리스트 consumed
+        # 화이트리스트 consumed + 코드 1회용
         allowed = (
             await db.execute(
                 select(AdminAllowedEmail).where(
@@ -41,36 +47,103 @@ class TestRegister:
             )
         ).scalar_one()
         assert allowed.status == "joined"
+        assert allowed.invite_code_hash is None
 
-    async def test_not_whitelisted_403(self, client, db):
-        resp = await client.post(
-            "/api/auth/register",
-            json={"email": "stranger@example.com", "password": "passw0rd123"},
-        )
-        assert resp.status_code == 403
-        assert resp.json()["code"] == "EMAIL_NOT_ALLOWED"
+    async def test_code_is_case_and_hyphen_insensitive(self, client, db):
+        code = await _allow_email(db)
+        typed = code.replace("-", "").lower()
+        resp = await client.post("/api/auth/register", json=_register(code=typed))
+        assert resp.status_code == 201
 
-    async def test_weak_password_400(self, client, db):
+    async def test_whitelisted_email_without_valid_code_403(self, client, db):
+        """초대된 이메일을 추측해 먼저 가입하는 탈취를 막는다 — 코드가 없으면 거절."""
         await _allow_email(db)
         resp = await client.post(
+            "/api/auth/register", json=_register(code="AAAA-BBBB-CCCC")
+        )
+        assert resp.status_code == 403
+        assert resp.json()["code"] == "INVITE_INVALID"
+
+    async def test_expired_code_403(self, client, db):
+        code = await _allow_email(db, expired=True)
+        resp = await client.post("/api/auth/register", json=_register(code=code))
+        assert resp.status_code == 403
+        assert resp.json()["code"] == "INVITE_INVALID"
+
+    async def test_not_whitelisted_same_response(self, client, db):
+        """초대 없음도 코드 불일치와 같은 응답 — 화이트리스트 존재 여부를 숨긴다."""
+        resp = await client.post(
             "/api/auth/register",
-            json={"email": "new@example.com", "password": "short1"},
+            json=_register(email="stranger@example.com", code="AAAA-BBBB-CCCC"),
+        )
+        assert resp.status_code == 403
+        assert resp.json()["code"] == "INVITE_INVALID"
+
+    async def test_weak_password_400(self, client, db):
+        code = await _allow_email(db)
+        resp = await client.post(
+            "/api/auth/register", json=_register(password="short1", code=code)
         )
         assert resp.status_code == 400
         assert resp.json()["code"] == "WEAK_PASSWORD"
 
-    async def test_duplicate_email_409(self, client, db):
-        await _allow_email(db)
-        await client.post(
-            "/api/auth/register",
-            json={"email": "new@example.com", "password": "passw0rd123"},
-        )
-        # 이메일 중복은 화이트리스트 상태와 무관하게 409 (duplicate 검사가 먼저)
+    async def test_reused_code_rejected(self, client, db):
+        code = await _allow_email(db)
+        await client.post("/api/auth/register", json=_register(code=code))
+        resp = await client.post("/api/auth/register", json=_register(code=code))
+        assert resp.status_code == 403
+
+
+class TestInviteManagement:
+    async def test_super_invite_returns_code_once(self, client, db):
+        from tests.integration.helpers import make_admin
+
+        _, token = await make_admin(db, email="boss@example.com", role="super")
+        await db.commit()
         resp = await client.post(
-            "/api/auth/register",
-            json={"email": "new@example.com", "password": "passw0rd123"},
+            "/api/admin-allowed-emails",
+            json={"email": "invitee@example.com"},
+            cookies=admin_cookie(token),
         )
-        assert resp.status_code == 409
+        assert resp.status_code == 201, resp.text
+        code = resp.json()["invite_code"]
+        assert len(code) == 14 and resp.json()["invite_expires_at"]
+
+        listed = await client.get(
+            "/api/admin-allowed-emails", cookies=admin_cookie(token)
+        )
+        assert "invite_code" not in listed.json()[0]
+
+        reissued = await client.post(
+            f"/api/admin-allowed-emails/{resp.json()['id']}/invite-code",
+            cookies=admin_cookie(token),
+        )
+        assert reissued.status_code == 200
+        new_code = reissued.json()["invite_code"]
+        assert new_code != code
+        # 이전 코드는 즉시 무효
+        old = await client.post(
+            "/api/auth/register",
+            json=_register(email="invitee@example.com", code=code),
+        )
+        assert old.status_code == 403
+        ok = await client.post(
+            "/api/auth/register",
+            json=_register(email="invitee@example.com", code=new_code),
+        )
+        assert ok.status_code == 201
+
+    async def test_staff_cannot_invite(self, client, db):
+        from tests.integration.helpers import make_admin
+
+        _, token = await make_admin(db, email="staff@example.com", role="staff")
+        await db.commit()
+        resp = await client.post(
+            "/api/admin-allowed-emails",
+            json={"email": "invitee@example.com"},
+            cookies=admin_cookie(token),
+        )
+        assert resp.status_code == 403
 
 
 class TestLoginSession:
@@ -198,34 +271,12 @@ class TestSessionSliding:
 
 
 class TestDemoLogin:
-    async def test_email_test_logs_in_as_admin(self, client, db):
-        """이메일 '테스트' → 데모 관리자 세션 발급. 쿠키로 /me 까지 관리자 확인."""
+    async def test_email_test_no_longer_bypasses_password(self, client, db):
+        """이메일 '테스트' 비밀번호 우회는 삭제됐다 — 일반 로그인 실패로 처리."""
         resp = await client.post(
             "/api/auth/login",
             json={"email": "테스트", "password": ""},
         )
-        assert resp.status_code == 200
-        assert resp.cookies.get(settings.ADMIN_SESSION_COOKIE_NAME)
-
-        me = await client.get("/api/auth/me")
-        assert me.status_code == 200
-        body = me.json()
-        assert body["account_type"] == "admin"
-        assert body["role"] == "super"
-
-    async def test_demo_login_reuses_same_admin(self, client, db):
-        """반복 로그인해도 테스트 관리자 row 는 하나 (find-or-create 멱등)."""
-        from sqlalchemy import func, select
-
-        from app.domain.auth.model import AdminUser
-
-        await client.post("/api/auth/login", json={"email": "테스트", "password": ""})
-        await client.post("/api/auth/login", json={"email": " 테스트 ", "password": ""})
-        count = (
-            await db.execute(
-                select(func.count())
-                .select_from(AdminUser)
-                .where(AdminUser.email == "test-admin@kaisa.or.kr")
-            )
-        ).scalar_one()
-        assert count == 1
+        assert resp.status_code == 401
+        assert resp.json()["code"] == "INVALID_CREDENTIALS"
+        assert not resp.cookies.get(settings.ADMIN_SESSION_COOKIE_NAME)

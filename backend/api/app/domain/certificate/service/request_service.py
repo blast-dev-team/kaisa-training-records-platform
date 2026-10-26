@@ -20,6 +20,7 @@ from app.domain.certificate.schema import (
 )
 from app.domain.certificate.service import issuance_service
 from app.domain.payment.model import PaymentAttempt, PaymentOrder
+from app.domain.payment.service import payment_service
 from app.domain.trainee.model import Trainee
 from app.domain.trainee.service import trainee_service
 from app.domain.training_record.model import TrainingRecord
@@ -29,6 +30,50 @@ async def _expire_then_reload(db: AsyncSession, trainee: Trainee) -> None:
     """단가 산정 전 자동 전환 — 기간 지난 연간 회원은 일반 단가가 적용돼야 한다."""
     if await trainee_service.expire_due_memberships(db):
         await db.refresh(trainee)
+
+
+async def _resolve_open_orders(
+    db: AsyncSession, trainee: Trainee, record_ids: list[uuid.UUID]
+) -> None:
+    """새 결제 신청 직전 — 같은 이력에 걸린 결제 대기 주문을 PortOne 에 확인한다.
+
+    결제창에서 카드 결제까지 끝났는데 confirm 이 실패(브라우저 종료·네트워크·모바일
+    리디렉션)한 주문이 있으면, 사용자는 결제가 안 된 줄 알고 다시 결제한다(이중 결제).
+    - 이미 결제됐으면: 그 주문을 확정·발급하고 새 주문은 만들지 않는다(409 안내).
+    - 결제 안 됐으면(창 미오픈·닫음): 이전 주문을 닫고 새 주문을 만든다.
+    - PG 에서 결제 진행 중(앱카드·ISP 인증 등)이면: 닫지 않고 새 주문을 막는다.
+    - PortOne 을 확인할 수 없으면: 이중 결제 위험이 있으므로 새 주문을 막는다.
+    """
+    open_order_ids = set(
+        (
+            await db.execute(
+                select(CertificateRequest.payment_order_id).where(
+                    CertificateRequest.trainee_id == trainee.id,
+                    CertificateRequest.training_record_id.in_(record_ids),
+                    CertificateRequest.status == "payment_pending",
+                    CertificateRequest.payment_order_id.is_not(None),
+                )
+            )
+        ).scalars()
+    )
+    outcomes = set()
+    for order_id in open_order_ids:
+        order = await db.get(PaymentOrder, order_id)
+        if order is None:
+            continue
+        outcomes.add(
+            await payment_service.reconcile_order(db, order, close_unpaid=True)
+        )
+    if "in_progress" in outcomes:
+        raise api_error(
+            "PAYMENT_IN_PROGRESS",
+            message="이전 결제가 아직 진행 중이에요. 결제를 마쳤다면 잠시 후 발급·결제 내역을 확인해 주세요",
+        )
+    if "issued" in outcomes:
+        raise api_error(
+            "PAYMENT_ALREADY_COMPLETED",
+            message="이전에 결제한 주문이 확인돼 확인서를 발급했어요. 발급·결제 내역에서 확인해 주세요",
+        )
 
 
 def _request_no() -> str:
@@ -129,6 +174,7 @@ async def create_request(
     _require_determined_grade(trainee)
 
     record = await _validate_item(db, trainee, data.training_record_id)
+    await _resolve_open_orders(db, trainee, [record.id])
 
     # 가격 스냅샷 — 항상 등급 단가 (무료 재발급 폐지)
     now = now_kst()
@@ -143,9 +189,7 @@ async def create_request(
         request.status = "paid"
         request.paid_at = now
         # 문서번호는 발급 이벤트당 1회 채번 — 단건 발급도 묶음 1건이라 번호 1개
-        doc_no = issuance_service.format_doc_no(
-            await issuance_service.next_doc_seq(db)
-        )
+        doc_no = await issuance_service.allocate_doc_no(db)
         certificate = await issuance_service.issue_certificate(
             db, request, doc_no=doc_no
         )
@@ -198,6 +242,7 @@ async def create_requests_batch(
     record_ids = [item.training_record_id for item in data.items]
     if len(set(record_ids)) != len(record_ids):
         raise api_error("VALIDATION_ERROR", message="중복된 교육이력이 있어요")
+    await _resolve_open_orders(db, trainee, record_ids)
 
     # 전 건 검증·가격 확정을 먼저 끝낸 뒤 쓴다 — 절반만 반영되지 않게
     now = now_kst()
@@ -219,9 +264,7 @@ async def create_requests_batch(
     total_krw = max(paid_amounts) if paid_amounts else 0
     if total_krw == 0:
         # 한 이벤트에 발급된 N건 = 묶음 확인서 1건 — 문서번호도 1개
-        doc_no = issuance_service.format_doc_no(
-            await issuance_service.next_doc_seq(db)
-        )
+        doc_no = await issuance_service.allocate_doc_no(db)
         certificates = []
         for request in requests:
             request.status = "paid"

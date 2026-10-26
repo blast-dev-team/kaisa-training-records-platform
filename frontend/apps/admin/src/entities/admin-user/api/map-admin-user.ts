@@ -19,6 +19,7 @@ export function mapAllowedEmail(dto: AllowedEmailDto): AllowedEmail {
     email: dto.email,
     note: dto.note,
     status: dto.status,
+    inviteExpiresAt: dto.invite_expires_at ?? null,
     createdAt: dto.created_at,
   }
 }

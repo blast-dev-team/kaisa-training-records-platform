@@ -42,10 +42,10 @@ async def _issued_cert(client, db):
     return cert, token
 
 
-async def _verify(client, no: str):
+async def _verify(client, no: str, name: str = "홍길동"):
     return await client.post(
         "/api/public/certificate-verifications",
-        json={"certificate_no": no},
+        json={"certificate_no": no, "name": name},
     )
 
 
@@ -67,16 +67,46 @@ class TestVerify:
         # 원문 이름 노출 금지
         assert "홍길동" not in resp.text
 
-    async def test_name_not_checked(self, client, db):
-        """데모 단계 — 성명 일치와 무관하게 확인 가능 (요청에 성명 필드가 없다)."""
+    async def test_name_mismatch_looks_like_not_found(self, client, db):
+        """번호가 맞아도 성명이 다르면 없는 번호와 똑같은 응답 — 번호 열거로 정보 수집 차단."""
         cert, _ = await _issued_cert(client, db)
-        for name in ("홍길동", "아무개", "x"):
-            resp = await client.post(
-                "/api/public/certificate-verifications",
-                json={"certificate_no": cert.doc_no, "applicant_name": name},
-            )
+        unknown = (await _verify(client, "26-E9999")).json()
+        for name in ("아무개", "홍길", "x"):
+            resp = await _verify(client, cert.doc_no, name=name)
             assert resp.status_code == 200
-            assert resp.json()["result"] == "valid"
+            assert resp.json() == unknown, name
+            assert "홍" not in resp.text
+
+    async def test_name_required(self, client, db):
+        cert, _ = await _issued_cert(client, db)
+        resp = await client.post(
+            "/api/public/certificate-verifications",
+            json={"certificate_no": cert.doc_no},
+        )
+        assert resp.status_code == 422
+        resp = await _verify(client, cert.doc_no, name="")
+        assert resp.status_code == 422
+
+    async def test_name_whitespace_tolerated(self, client, db):
+        """앞뒤·중간 공백 실수는 같은 성명으로 본다."""
+        cert, _ = await _issued_cert(client, db)
+        for name in (" 홍길동 ", "홍 길동"):
+            resp = await _verify(client, cert.doc_no, name=name)
+            assert resp.json()["result"] == "valid", name
+
+    async def test_revoked_requires_name(self, client, db):
+        """폐기 문서도 성명이 틀리면 폐기 여부조차 알려 주지 않는다."""
+        cert, _ = await _issued_cert(client, db)
+        _, admin_token = await make_admin(db)
+        await db.commit()
+        await client.post(
+            f"/api/certificates/{cert.id}/revoke",
+            json={"reason": "오발급"},
+            cookies=admin_cookie(admin_token),
+        )
+        assert (await _verify(client, cert.doc_no, name="아무개")).json()[
+            "result"
+        ] == "not_found"
 
     async def test_unknown_no_not_found(self, client, db):
         resp = await _verify(client, "26-E9999")
@@ -173,11 +203,12 @@ class TestLogging:
         cert, _ = await _issued_cert(client, db)
         await _verify(client, "CERT-X")  # not_found
         await _verify(client, cert.doc_no)  # valid
+        await _verify(client, cert.doc_no, name="아무개")  # name_mismatch
 
         logs = (await db.execute(select(CertificateVerificationLog))).scalars().all()
-        assert len(logs) == 2
+        assert len(logs) == 3
         results = {log.result for log in logs}
-        assert results == {"not_found", "valid"}
+        assert results == {"not_found", "valid", "name_mismatch"}
         # IP 는 해시로만 보관 — 원문 미저장
         for log in logs:
             assert log.requester_ip_hash

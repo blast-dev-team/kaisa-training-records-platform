@@ -267,7 +267,7 @@ class TestUnifiedVerification:
     async def _verify(self, client, no: str):
         return await client.post(
             "/api/public/certificate-verifications",
-            json={"certificate_no": no},
+            json={"certificate_no": no, "name": "홍길동"},
         )
 
     async def test_verify_completion_certificate(self, client, db):

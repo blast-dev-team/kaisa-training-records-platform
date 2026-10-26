@@ -1,10 +1,11 @@
 import uuid
-from datetime import date, timedelta
+from datetime import date
 
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.crypto import name_hash
+from app.core.kst import kst_range_end, kst_range_start
 from app.domain.certificate.model import Certificate
 from app.domain.payment.model import (
     PaymentAttempt,
@@ -55,10 +56,6 @@ async def find_webhook_event(
     return result.scalar_one_or_none()
 
 
-def date_to_plus_one(d: date) -> date:
-    return d + timedelta(days=1)
-
-
 async def list_orders(
     db: AsyncSession,
     trainee_id: uuid.UUID | None = None,
@@ -78,13 +75,14 @@ async def list_orders(
     if status:
         stmt = stmt.where(PaymentOrder.status == status)
         count_stmt = count_stmt.where(PaymentOrder.status == status)
+    # 날짜 경계는 KST — date 를 timestamptz 와 바로 비교하면 DB 세션 시간대(UTC)로
+    # 해석돼 KST 00:00~08:59 결제가 전날로 집계됐다(정산 어긋남)
     if date_from is not None:
-        cond = PaymentOrder.created_at >= date_from
+        cond = PaymentOrder.created_at >= kst_range_start(date_from)
         stmt = stmt.where(cond)
         count_stmt = count_stmt.where(cond)
     if date_to is not None:
-        # 반열림 — 종료일 하루 전까지 (00:00 기준)
-        cond = PaymentOrder.created_at < date_to_plus_one(date_to)
+        cond = PaymentOrder.created_at < kst_range_end(date_to)
         stmt = stmt.where(cond)
         count_stmt = count_stmt.where(cond)
     if search:

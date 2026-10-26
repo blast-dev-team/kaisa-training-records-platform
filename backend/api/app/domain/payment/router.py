@@ -11,6 +11,7 @@ from app.domain.auth.model import AdminUser
 from app.domain.payment.schema import (
     PaymentConfirmResponse,
     PaymentOrderResponse,
+    PaymentReconcileResponse,
     RefundCreate,
 )
 from app.domain.payment.service import payment_service, refund_service, webhook_service
@@ -40,9 +41,11 @@ async def portone_webhook(
     request: Request,
     db: AsyncSession = Depends(get_db),
 ):
-    signature = request.headers.get("x-portone-signature", "")
+    # PortOne V2 = Standard Webhooks 헤더 (webhook-id / -timestamp / -signature)
     body = await request.body()
-    return await webhook_service.handle_portone_webhook(db, signature, body)
+    return await webhook_service.handle_portone_webhook(
+        db, {k.lower(): v for k, v in request.headers.items()}, body
+    )
 
 
 @admin_router.get("", response_model=PagedResponse[PaymentOrderResponse])
@@ -84,3 +87,34 @@ async def refund_payment_order(
 ):
     order = await refund_service.refund_order(db, order_id, body.reason, admin, body.force)
     return PaymentOrderResponse.model_validate(order)
+
+
+_RECONCILE_MESSAGES = {
+    "issued": "결제가 확인돼 확인서가 발급돼 있어요",
+    "closed": "결제되지 않은 주문이라 닫았어요",
+    "pending": "아직 결제가 완료되지 않았어요",
+    "in_progress": "PG 에서 결제가 진행 중이에요. 잠시 후 다시 확인해 주세요",
+}
+
+
+@admin_router.post("/{order_id}/reconcile", response_model=PaymentReconcileResponse)
+async def reconcile_payment_order(
+    order_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    _: AdminUser = Depends(require_admin),
+):
+    """PortOne 재조회 — '결제했는데 확인서가 안 나왔어요' 문의 대응. 결제됐으면 바로 발급한다.
+
+    운영자가 누르는 버튼이라 30분이 안 된 결제 대기 주문은 닫지 않는다(회원이 결제 중일 수 있음).
+    이미 닫힌(취소·실패) 주문도 PortOne 에서 결제됐으면 발급한다 — 닫은 뒤 결제가 끝난 경우.
+    """
+    order = await refund_service.get_order(db, order_id)
+    outcome, error = await payment_service.reconcile_order_safely(
+        db, order, close_unpaid=False
+    )
+    order = await refund_service.get_order(db, order_id)
+    return PaymentReconcileResponse(
+        outcome=outcome,
+        message=error or _RECONCILE_MESSAGES.get(outcome),
+        order=PaymentOrderResponse.model_validate(order),
+    )

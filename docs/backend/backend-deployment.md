@@ -237,3 +237,17 @@ E         프로덕션 — 실사용자 투입 시점 (스테이징 레시피 �
 - **운영(향후) 마이그레이션은 배포와 틈 없이** — 컬럼 추가는 먼저 돌려도 안전(구버전 코드에 영향 없음), 늦으면 신규 컬럼 참조 API 500
 - 시크릿 변경: Secrets Manager 수정 후 **재배포** (부팅 시 로드)
 - 배포 알림(Slack)은 Phase D 통과 후 추가
+
+
+## 결제 운영 체크리스트 (2026-10-24 추가)
+
+- **`PORTONE_WEBHOOK_SECRET` 필수** — 비어 있으면 웹훅을 전부 거부한다(fail-closed). PortOne 콘솔 웹훅 설정의 시크릿(`whsec_…`)을 Secrets Manager 에 넣는다.
+- **웹훅 URL** — `https://<api 도메인>/api/payments/webhooks/portone`. PortOne V2(Standard Webhooks: `webhook-id`/`webhook-timestamp`/`webhook-signature`) 규격으로 검증한다. 스테이징에서 테스트 결제 1건으로 200(`confirmed: true`)이 오는지 먼저 확인한다.
+- **대사 cron** — 결제는 됐는데 confirm·웹훅이 모두 끊긴 주문을 발급하고, 30분 지난 미결제 주문을 닫는다. EC2 crontab:
+
+  ```
+  */10 * * * * cd /home/ubuntu/kaisa-api/backend/api && docker compose exec -T api python -m app.scripts.reconcile_payments >> /var/log/kaisa-reconcile.log 2>&1
+  ```
+
+- **ENVIRONMENT** — `local` / `staging` / `production` 외의 값이면 서버가 부팅을 거부한다.
+- **관리자 초대** — 기존 가입대기(pending) 초대에는 코드가 없다. 어드민 "초대 이메일" 화면에서 코드를 재발급해 전달한다.

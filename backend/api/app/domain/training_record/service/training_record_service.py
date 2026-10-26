@@ -19,6 +19,7 @@ from app.core.kst import now_kst
 from app.domain.auth.model import AdminUser
 from app.domain.institution.repository import institution_repository as inst_repo
 from app.domain.trainee.repository import trainee_repository as trainee_repo
+from app.domain.trainee.service.trainee_service import _parse_cell_date
 from app.domain.institution.model.training_course import TrainingCourse
 from app.domain.institution.model.training_institution import TrainingInstitution
 from app.domain.training_record.model import TrainingRecord
@@ -42,8 +43,12 @@ ALLOWED_COMPLETION = {"in_progress", "completed", "canceled"}
 
 
 def _record_no() -> str:
-    """REC-{yyyymmdd}-{hex6} — 유니크 확률적 채번, unique 제약이 최종 방어."""
-    return f"REC-{now_kst().strftime('%Y%m%d')}-{secrets.token_hex(3)}"
+    """REC-{yyyymmdd}-{hex12} — 유니크 확률적 채번, unique 제약이 최종 방어.
+
+    hex6(하루 1,677만)은 일정에 500명을 한 번에 연결하면 배치당 ~0.75% 로 충돌해
+    배치 전체가 롤백됐다. hex12 면 같은 날 수십만 건이어도 충돌이 사실상 없다.
+    """
+    return f"REC-{now_kst().strftime('%Y%m%d')}-{secrets.token_hex(6)}"
 
 
 async def find_duplicate_record(
@@ -540,20 +545,16 @@ def _import_cell(value) -> str | None:
 
 
 def _import_date(value) -> date | None:
-    if value is None:
-        return None
-    if isinstance(value, datetime):
-        return value.date()
-    if isinstance(value, date):
-        return value
-    s = str(value).strip()
-    m = re.fullmatch(r"(\d{4})[.\-/\s](\d{1,2})[.\-/\s](\d{1,2})", s)
-    if m:
-        try:
-            return date(int(m[1]), int(m[2]), int(m[3]))
-        except ValueError:
-            return None
-    return None
+    """교육생 import 와 같은 파서 — date 셀, `2025.06.01`, `20250601`, 두 자리 연도."""
+    return _parse_cell_date(value)
+
+
+def _import_date_cell(value) -> str | None:
+    """날짜 열 셀 → 문자열. 엑셀 날짜 서식 셀(datetime)은 `str()` 이 `2025-06-01 00:00:00`
+    이 돼 파서가 못 읽었다 — 날짜 값이면 ISO 날짜로 바꿔 프리뷰·확정이 같은 값을 쓰게 한다."""
+    if isinstance(value, (datetime, date)):
+        return _parse_cell_date(value).isoformat()
+    return _import_cell(value)
 
 
 def _import_hours(value) -> Decimal | None:
@@ -652,7 +653,11 @@ async def import_preview(db: AsyncSession, content: bytes) -> TrainingRecordImpo
             )
         cells = {
             field: (
-                _import_cell(row[header_map[columns[field]]]) if columns[field] else None
+                (_import_date_cell if field in ("start", "end") else _import_cell)(
+                    row[header_map[columns[field]]]
+                )
+                if columns[field]
+                else None
             )
             for field in _IMPORT_HEADERS
         }
@@ -795,6 +800,14 @@ async def import_confirm(
 
         started = _import_date(item.start_date)
         ended = _import_date(item.end_date)
+        # 프리뷰에서 오류였던 행이 그대로 넘어와도 날짜 없이 저장하지 않는다 —
+        # 시작일은 중복 판정 키라 비면 같은 이력이 계속 쌓인다
+        if item.start_date and started is None:
+            failed.append((item.row_number, "시작일자를 읽을 수 없어요"))
+            continue
+        if item.end_date and ended is None:
+            failed.append((item.row_number, "종료일자를 읽을 수 없어요"))
+            continue
         # 기관 매칭 — 내부 기관(internal)이면 내부 데이터로 그대로 등록하고,
         # 매칭되지 않으면 외부 기관·외부 교육으로 등록한다.
         institution = (

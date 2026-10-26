@@ -22,7 +22,6 @@ import {
   CERTIFICATE_STATUS_LABELS,
   ISSUE_SOURCE_LABELS,
   isReissueReplaced,
-  postRevokeCertificate,
   type Certificate,
 } from "@/src/entities/certificate";
 import { paymentOrderQueries, postRefundPaymentOrder } from "@/src/entities/payment";
@@ -54,13 +53,11 @@ export function CertificateListPage() {
     }),
   );
 
-  // 확인서 폐기(철회) → 결제 환불. 폐기 후엔 유효 확인서가 없어 환불 가드를 그대로 통과한다
+  // 결제 환불 — 서버가 PG 취소에 성공한 뒤에만 그 결제의 확인서(묶음 전체)를 폐기한다.
+  // 예전엔 폐기를 먼저 따로 불러, PG 환불이 실패하면 확인서만 폐기되고 돈은 그대로였다
   const refundMutation = useMutation({
-    mutationFn: async () => {
-      // 폐기가 끝난 뒤 환불 — 유효 확인서가 사라져야 환불 가드를 통과한다
-      await postRevokeCertificate(refundTarget!.id, refundReason.trim());
-      return postRefundPaymentOrder(refundTarget!.paymentOrderId!, refundReason.trim());
-    },
+    mutationFn: () =>
+      postRefundPaymentOrder(refundTarget!.paymentOrderId!, refundReason.trim()),
     onSuccess: (order) => {
       toast.success(`확인서를 폐기하고 결제를 환불했어요 — ${formatWon(order.amountKrw)}`);
       setRefundTarget(null);
@@ -68,7 +65,11 @@ export function CertificateListPage() {
       queryClient.invalidateQueries({ queryKey: certificateQueries.all() });
       queryClient.invalidateQueries({ queryKey: paymentOrderQueries.all() });
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => {
+      toast.error(e.message);
+      queryClient.invalidateQueries({ queryKey: certificateQueries.all() });
+      queryClient.invalidateQueries({ queryKey: paymentOrderQueries.all() });
+    },
   });
 
   const updateParams = (patch: Record<string, string | null>, resetPage = true) => {
@@ -277,7 +278,7 @@ export function CertificateListPage() {
         title="결제 환불"
         description={
           refundTarget
-            ? `'${refundTarget.certificateNo}' 확인서를 폐기하고 연결된 결제를 환불해요. 금액은 결제 주문 기준이에요.`
+            ? `'${refundTarget.certificateNo}' 확인서의 결제를 전액 환불해요. 같은 결제로 함께 발급된 확인서도 모두 폐기돼요.`
             : undefined
         }
         actions={[

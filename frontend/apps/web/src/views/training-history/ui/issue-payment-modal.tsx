@@ -13,7 +13,13 @@ import {
 } from "../api/generate-certificate-pdf";
 import { getCertificatePrice } from "../api/get-certificate-price";
 import { getTrainingHistoryDetail, type TrainingHistoryDetail } from "../api/get-training-history-detail";
-import { postIssuancePayment } from "../api/post-issuance-payment";
+import {
+  confirmIssuancePayment,
+  IssuanceError,
+  PaymentConfirmPendingError,
+  postIssuancePayment,
+} from "../api/post-issuance-payment";
+import { postSessionExtend } from "@/src/shared/api/post-session-extend";
 import {
   CertificateDocumentSheet,
   paginateRows,
@@ -29,12 +35,17 @@ export interface IssuePaymentModalProps {
   onIssued?: () => void;
   /** 슈퍼 계정 — 결제·발급 없이 미리보기만 제공한다 */
   previewOnly?: boolean;
+  /** 모바일 리디렉션 결제에서 돌아온 경우 — 발급 완료 화면(PDF 다운로드)으로 바로 연다 */
+  initialPhase?: "preview" | "issued";
 }
 
 const TOAST_DURATION_MS = 3000;
 
-/** 모달 단계 — 발급될 PDF 미리보기·결제 → 신청 내용(발급 완료) */
-type ModalPhase = "preview" | "issued";
+/**
+ * 모달 단계 — 발급될 PDF 미리보기·결제 → 신청 내용(발급 완료).
+ * confirming: 결제창은 끝났는데 서버 확정을 못 받음 — 재결제 대신 재확인만 제공한다.
+ */
+type ModalPhase = "preview" | "confirming" | "issued";
 
 /** 32 → "32", 8.5 → "8.5" — 합계 시간의 소수점 꼬리 정리 */
 function formatHours(value: number): string {
@@ -53,8 +64,24 @@ export function IssuePaymentModal({
   onClose,
   onIssued,
   previewOnly = false,
+  initialPhase = "preview",
 }: IssuePaymentModalProps) {
-  const [phase, setPhase] = useState<ModalPhase>("preview");
+  const [phase, setPhase] = useState<ModalPhase>(initialPhase);
+  /** 확정을 기다리는 주문번호 — confirming 단계에서 재확인에 쓴다 */
+  const [pendingOrderNo, setPendingOrderNo] = useState<string | null>(null);
+  /**
+   * 이번 발급 건의 식별값 — 발급 결과 쿼리키에 넣는다. 같은 이력을 다시 발급해도
+   * 이전 묶음(문서번호·발급일)이 캐시에서 나와 PDF 에 찍히지 않게 한다.
+   */
+  const [issuedKey, setIssuedKey] = useState<string>(
+    initialPhase === "issued" ? `return-${Date.now()}` : "",
+  );
+  const signIn = useAuthStore((state) => state.signIn);
+  /**
+   * 이전 결제가 확인돼 서버가 이미 발급함(409 PAYMENT_ALREADY_COMPLETED) — 실패로 오해해
+   * 다시 누르면 새 주문으로 또 결제된다(재발급 허용 정책). 결제 버튼을 잠근다.
+   */
+  const [isAlreadyIssued, setIsAlreadyIssued] = useState(false);
   const [agreed, setAgreed] = useState(false);
   /** 신청 문서 상세(교육명 목록) 펼침 여부 — 신청 내용 화면에서만 쓴다 */
   const [isDetailOpen, setIsDetailOpen] = useState(false);
@@ -95,9 +122,10 @@ export function IssuePaymentModal({
   // 발급 완료 결과 — 묶음 확인서(한 발급 이벤트 = 확인서 1건). 결제·무료 재발급으로
   // 발급이 확정된 뒤 조회한다. PDF 다운로드에 실제 확인서 번호·발급일이 들어간다
   const issuance = useQuery({
-    queryKey: ["issuance-complete", ...recordIds],
+    queryKey: ["issuance-complete", issuedKey, ...recordIds],
     queryFn: () => getIssuanceBundles(recordIds),
     enabled: phase === "issued",
+    staleTime: 0,
   });
 
   /** 결제 대상 — 전 건. 무료 재발급이 폐지돼 예외 없다 */
@@ -115,17 +143,45 @@ export function IssuePaymentModal({
     0,
   );
 
+  /** 발급 확정 — 목록·결제내역을 갱신하고 같은 모달에서 신청 내용으로 전환한다 */
+  const handleIssued = (orderId: string | null) => {
+    queryClient.invalidateQueries({ queryKey: ["training-history", "list"] });
+    queryClient.invalidateQueries({ queryKey: ["payment-history"] });
+    setIssuedKey(orderId ?? `free-${Date.now()}`);
+    setPendingOrderNo(null);
+    setPhase("issued");
+    onIssued?.();
+  };
+
   const payment = useMutation({
-    mutationFn: () =>
-      postIssuancePayment({
+    mutationFn: async () => {
+      // 결제창을 여는 동안 10분 인증이 끝나면 화면이 튕기고 confirm 이 401 이 된다 —
+      // 결제 직전에 서버 세션을 연장하고 FE 타이머도 새 만료 시각으로 맞춘다
+      const session = await postSessionExtend().catch(() => null);
+      if (session) signIn(session.name, new Date(session.expires_at).getTime());
+      return postIssuancePayment({
         items: recordIds.map((id) => ({ recordId: id })),
-      }),
-    onSuccess: () => {
-      // 발급 가능 상태로 목록을 갱신하고 같은 모달에서 신청 내용으로 전환한다
-      queryClient.invalidateQueries({ queryKey: ["training-history", "list"] });
-      setPhase("issued");
-      onIssued?.();
+      });
     },
+    onSuccess: (result) => handleIssued(result.orderId),
+    onError: (error) => {
+      if (error instanceof PaymentConfirmPendingError) {
+        setPendingOrderNo(error.orderNo);
+        setPhase("confirming");
+        return;
+      }
+      if (error instanceof IssuanceError && error.code === "PAYMENT_ALREADY_COMPLETED") {
+        // 이전 결제로 이미 발급됐다 — 목록을 갱신하고 재결제를 막는다(안내는 에러 문구로)
+        setIsAlreadyIssued(true);
+        queryClient.invalidateQueries({ queryKey: ["training-history", "list"] });
+        queryClient.invalidateQueries({ queryKey: ["payment-history"] });
+      }
+    },
+  });
+
+  const reconfirm = useMutation({
+    mutationFn: () => confirmIssuancePayment(pendingOrderNo ?? ""),
+    onSuccess: () => handleIssued(pendingOrderNo),
   });
 
   useEffect(() => {
@@ -182,8 +238,11 @@ export function IssuePaymentModal({
     }
   };
 
-  // 결제 진행 중에는 닫지 못하게 한다
-  const canClose = !(phase === "preview" && payment.isPending);
+  // 결제·재확인 진행 중에는 닫지 못하게 한다
+  const canClose = !(
+    (phase === "preview" && payment.isPending) ||
+    (phase === "confirming" && reconfirm.isPending)
+  );
 
   /** 미리보기 축소율 — 모달 폭에 맞춰 A4 시트(794px)를 등비 축소한다 */
   const previewRef = useRef<HTMLDivElement | null>(null);
@@ -259,7 +318,12 @@ export function IssuePaymentModal({
     : "—";
   /** 0원 등급 — 결제창 없이 서버 신청만으로 발급된다 */
   const isFree = totalAmount === 0;
-  const canPay = agreed && !payment.isPending && pricesLoaded && (totalAmount > 0 || isFree);
+  const canPay =
+    agreed &&
+    !payment.isPending &&
+    !isAlreadyIssued &&
+    pricesLoaded &&
+    (totalAmount > 0 || isFree);
 
   return (
     <div
@@ -269,7 +333,13 @@ export function IssuePaymentModal({
       <section
         role="dialog"
         aria-modal="true"
-        aria-label={phase === "preview" ? "확인서 발급 미리보기" : "신청 내용"}
+        aria-label={
+          phase === "preview"
+            ? "확인서 발급 미리보기"
+            : phase === "confirming"
+              ? "결제 확인"
+              : "신청 내용"
+        }
         onClick={(event) => event.stopPropagation()}
         className={cn(
           "relative flex max-h-[calc(100dvh-40px)] max-w-full flex-col gap-4 overflow-y-auto overscroll-contain rounded-lg bg-white p-7 font-sans shadow-[0px_4px_24px_0px_rgba(0,0,0,0.15)] mobile:p-4",
@@ -289,7 +359,38 @@ export function IssuePaymentModal({
             <XIcon className="size-6" />
           </button>
         )}
-        {phase === "preview" ? (
+        {phase === "confirming" ? (
+          <div className="flex flex-col gap-4 py-2">
+            <h2 className="text-18 leading-normal font-bold text-gray-900 mobile:text-16">
+              결제를 확인하고 있어요
+            </h2>
+            <p className="text-14 leading-[1.6] text-gray-600">
+              결제창은 끝났지만 아직 서버에서 결제가 확인되지 않았어요. 카드 결제가
+              이미 됐을 수 있으니 <b className="text-gray-900">다시 결제하지 말고</b>{" "}
+              아래 &lsquo;다시 확인&rsquo;을 눌러 주세요. 결제가 확인되면 바로 발급돼요.
+            </p>
+            {(reconfirm.error ?? payment.error) instanceof Error && (
+              <p className="text-12 leading-normal text-red-500" role="alert">
+                {((reconfirm.error ?? payment.error) as Error).message}
+              </p>
+            )}
+            <Button
+              color="black"
+              fullWidth
+              disabled={reconfirm.isPending}
+              onClick={() => reconfirm.mutate()}
+              className="rounded-lg bg-gray-900 py-4 text-16 font-bold hover:bg-gray-800 mobile:py-3 mobile:text-14"
+            >
+              {reconfirm.isPending ? "확인 중..." : "다시 확인"}
+            </Button>
+            <a
+              href="/payment-history"
+              className="text-center text-13 text-gray-500 underline"
+            >
+              발급·결제 내역에서 확인하기
+            </a>
+          </div>
+        ) : phase === "preview" ? (
           isLoading ? (
             <p className="py-20 text-center text-14 text-gray-500">
               미리보기를 불러오고 있어요
@@ -431,6 +532,15 @@ export function IssuePaymentModal({
                       ? payment.error.message
                       : "결제에 실패했어요. 잠시 후 다시 시도해 주세요"}
                   </p>
+                )}
+
+                {isAlreadyIssued && (
+                  <a
+                    href="/payment-history"
+                    className="text-center text-13 text-gray-700 underline"
+                  >
+                    발급·결제 내역에서 확인서 보기
+                  </a>
                 )}
 
                 <p className="text-12 leading-normal text-gray-400">

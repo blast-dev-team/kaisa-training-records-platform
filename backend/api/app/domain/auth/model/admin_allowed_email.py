@@ -23,6 +23,9 @@ class AdminAllowedEmail(Base):
         Uuid, ForeignKey("admin_users.id", ondelete="SET NULL"), nullable=True
     )
     note: Mapped[str | None] = mapped_column(Text)
+    # 가입 초대 코드 — sha256 만 저장. 발급·재발급 시 평문은 응답으로 1회만 내려간다
+    invite_code_hash: Mapped[str | None] = mapped_column(String(64))
+    invite_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_by: Mapped[uuid.UUID] = mapped_column(
         Uuid, ForeignKey("admin_users.id"), nullable=False
     )

@@ -14,6 +14,7 @@ from app.domain.auth.schema import (
     AdminUserResponse,
     AdminUserUpdate,
     AllowedEmailCreate,
+    AllowedEmailInviteResponse,
     AllowedEmailResponse,
     MeResponse,
     PasswordChangeRequest,
@@ -25,7 +26,6 @@ from app.domain.identity.schema import (
     PassKaisaLoginRequest,
     PassStartRequest,
     PassStartResponse,
-    PassTestLoginRequest,
 )
 from app.domain.identity.service import identity_service
 
@@ -115,6 +115,22 @@ async def start_pass(body: PassStartRequest, request: Request):
     return await identity_service.start_pass(body, get_client_ip(request))
 
 
+@router.post("/pass/logout")
+async def logout_pass(
+    request: Request, response: Response, db: AsyncSession = Depends(get_db)
+):
+    """회원 "인증 해제" — 회원 세션만 끊는다 (같은 브라우저의 관리자 세션은 유지).
+
+    `/auth/logout` 은 양쪽 쿠키를 모두 지워, 회원 포털에서 해제하면 어드민까지 로그아웃된다.
+    만료된 세션이어도 200 — 해제는 항상 성공해야 한다.
+    """
+    await auth_service.logout_user_session(
+        db, _session_token(request, settings.SESSION_COOKIE_NAME)
+    )
+    response.set_cookie(**clear_session_cookie_params(settings.SESSION_COOKIE_NAME))
+    return {"ok": True}
+
+
 @router.post("/pass/complete", response_model=PassCompleteResponse)
 async def complete_pass(
     body: PassCompleteRequest,
@@ -125,26 +141,6 @@ async def complete_pass(
     result, token = await identity_service.complete_pass(
         db, body.state, get_client_ip(request)
     )
-    response.set_cookie(**session_cookie_params(token))
-    return result
-
-
-@router.post("/pass/test-login", response_model=PassCompleteResponse)
-async def test_login_pass(
-    body: PassTestLoginRequest, response: Response, db: AsyncSession = Depends(get_db)
-):
-    # 데모용 우회 로그인 — production 에서는 service 가 404 로 숨긴다
-    result, token = await identity_service.test_login(db, body)
-    response.set_cookie(**session_cookie_params(token))
-    return result
-
-
-@router.post("/pass/super-login", response_model=PassCompleteResponse)
-async def super_login_pass(
-    body: PassTestLoginRequest, response: Response, db: AsyncSession = Depends(get_db)
-):
-    """슈퍼 계정 우회 로그인 — 전 회원 이력 조회(미리보기). production 은 404."""
-    result, token = await identity_service.super_login(db, body)
     response.set_cookie(**session_cookie_params(token))
     return result
 
@@ -180,31 +176,55 @@ async def update_admin_user(
     return await auth_service.update_admin_user(db, admin_id, body, actor)
 
 
-# ── 화이트리스트 (admin) ───────────────────────────────────────────────────────
+# ── 화이트리스트 (super) — 관리자 초대는 총관리자만 ───────────────────────────────────────────────────────
 
 
 @allowed_email_router.get("", response_model=list[AllowedEmailResponse])
 async def list_allowed_emails(
     search: str | None = None,
     db: AsyncSession = Depends(get_db),
-    _: AdminUser = Depends(require_admin),
+    _: AdminUser = Depends(require_super),
 ):
     return await auth_service.list_allowed_emails(db, search=search)
 
 
-@allowed_email_router.post("", response_model=AllowedEmailResponse, status_code=201)
+# 초대·삭제·코드 재발급은 super 전용 — staff 계정 하나가 탈취돼도 새 관리자를 만들 수 없게
+
+
+def _invite_response(row, code: str) -> AllowedEmailInviteResponse:
+    return AllowedEmailInviteResponse(
+        **AllowedEmailResponse.model_validate(row).model_dump(), invite_code=code
+    )
+
+
+@allowed_email_router.post(
+    "", response_model=AllowedEmailInviteResponse, status_code=201
+)
 async def create_allowed_email(
     body: AllowedEmailCreate,
     db: AsyncSession = Depends(get_db),
-    actor: AdminUser = Depends(require_admin),
+    actor: AdminUser = Depends(require_super),
 ):
-    return await auth_service.create_allowed_email(db, body, actor)
+    row, code = await auth_service.create_allowed_email(db, body, actor)
+    return _invite_response(row, code)
+
+
+@allowed_email_router.post(
+    "/{allowed_email_id}/invite-code", response_model=AllowedEmailInviteResponse
+)
+async def reissue_invite_code(
+    allowed_email_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    actor: AdminUser = Depends(require_super),
+):
+    row, code = await auth_service.reissue_invite_code(db, allowed_email_id, actor)
+    return _invite_response(row, code)
 
 
 @allowed_email_router.delete("/{allowed_email_id}", status_code=204)
 async def delete_allowed_email(
     allowed_email_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    actor: AdminUser = Depends(require_admin),
+    actor: AdminUser = Depends(require_super),
 ):
     await auth_service.delete_allowed_email(db, allowed_email_id, actor)

@@ -40,6 +40,7 @@ export const MOCK_ALLOWED_EMAILS: AllowedEmail[] = [
     email: 'newstaff@kaisa.or.kr',
     note: '2026년 하반기 입사 예정',
     status: 'pending',
+    inviteExpiresAt: null,
     createdAt: '2026-08-20T11:00:00',
   },
   {
@@ -47,6 +48,7 @@ export const MOCK_ALLOWED_EMAILS: AllowedEmail[] = [
     email: 'staff@kaisa.or.kr',
     note: null,
     status: 'joined',
+    inviteExpiresAt: null,
     createdAt: '2026-01-05T10:00:00',
   },
   {
@@ -54,6 +56,7 @@ export const MOCK_ALLOWED_EMAILS: AllowedEmail[] = [
     email: 'admin@kaisa.or.kr',
     note: '대표 운영 계정',
     status: 'joined',
+    inviteExpiresAt: null,
     createdAt: '2026-01-02T09:00:00',
   },
 ]

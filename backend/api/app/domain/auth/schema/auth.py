@@ -10,10 +10,12 @@ class AdminRegisterRequest(BaseModel):
     email: EmailStr
     password: str
     name: str | None = None
+    # super 가 초대할 때 발급한 1회용 코드 — 이메일 소유 검증을 대신한다
+    invite_code: str
 
 
 class AdminLoginRequest(BaseModel):
-    # EmailStr 미적용 — 데모용 '테스트' 로그인을 허용하기 위함 (실계정 검증은 서비스에서)
+    # EmailStr 미적용 — 형식이 틀려도 422 대신 INVALID_CREDENTIALS 로 같은 응답을 준다
     email: str
     password: str
 
@@ -55,9 +57,16 @@ class AllowedEmailResponse(BaseModel):
     status: str
     note: str | None
     joined_admin_id: uuid.UUID | None
+    invite_expires_at: datetime | None = None
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+class AllowedEmailInviteResponse(AllowedEmailResponse):
+    """초대·재발급 응답 — 평문 코드는 이때 한 번만 내려간다(DB 에는 해시만)."""
+
+    invite_code: str
 
 
 class MeResponse(BaseModel):

@@ -72,3 +72,11 @@ class RefundCreate(BaseModel):
     reason: str
     # 오류 정정 환불 — 발급된 확인서가 있어도 강제 환불 (확인서 폐기는 별도 처리)
     force: bool = False
+
+
+class PaymentReconcileResponse(BaseModel):
+    """관리자 PortOne 재조회 — issued(발급됨) / closed(미결제로 닫음) / pending / error."""
+
+    outcome: str
+    message: str | None = None
+    order: PaymentOrderResponse

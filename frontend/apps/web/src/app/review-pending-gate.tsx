@@ -1,3 +1,4 @@
+import { postPassLogout } from "@/src/shared/api/post-pass-logout";
 import { useAuthStore } from "@/src/shared/store/auth-store";
 
 /**
@@ -41,7 +42,10 @@ export function ReviewPendingGate({ children }: { children: React.ReactNode }) {
         <button
           type="button"
           className="mt-6 w-full rounded-lg bg-gray-900 px-4 py-3 text-14 font-medium text-white hover:bg-gray-800"
-          onClick={() => signOut()}
+          onClick={async () => {
+            await postPassLogout();
+            signOut();
+          }}
         >
           닫기
         </button>

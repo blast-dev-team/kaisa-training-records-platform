@@ -36,3 +36,29 @@ class TestSessionExtend:
         )
         assert resp.status_code == 401
         assert resp.json()["code"] == "SESSION_EXPIRED"
+
+
+class TestMemberLogout:
+    async def test_logout_kills_member_session_only(self, client, db):
+        """회원 인증 해제 — 서버 세션이 사라져 새로고침해도 복구되지 않고,
+        같은 브라우저의 관리자 세션은 그대로 남는다."""
+        from tests.integration.helpers import admin_cookie, make_admin
+
+        _, _, token = await _member(db, ci_raw="ci-logout")
+        _, admin_token = await make_admin(db)
+        await db.commit()
+
+        resp = await client.post(
+            "/api/auth/pass/logout",
+            cookies={**member_cookie(token), **admin_cookie(admin_token)},
+        )
+        assert resp.status_code == 200
+
+        session = await client.get("/api/me/session", cookies=member_cookie(token))
+        assert session.status_code == 401
+        me = await client.get("/api/auth/me", cookies=admin_cookie(admin_token))
+        assert me.status_code == 200
+
+    async def test_logout_without_session_succeeds(self, client, db):
+        resp = await client.post("/api/auth/pass/logout")
+        assert resp.status_code == 200

@@ -58,7 +58,7 @@ async def _issued_certs(db) -> list[Certificate]:
 async def _verify(client, cert_no: str):
     return await client.post(
         "/api/public/certificate-verifications",
-        json={"certificate_no": cert_no},
+        json={"certificate_no": cert_no, "name": "홍길동"},
     )
 
 

@@ -135,3 +135,29 @@ def portone_payment(
         "amount": {"total": total, "currency": "KRW"},
         "storeId": store_id or settings.PORTONE_STORE_ID,
     }
+
+
+def portone_webhook_headers(
+    body: bytes,
+    webhook_id: str,
+    *,
+    secret: str | None = None,
+    timestamp: int | None = None,
+) -> dict[str, str]:
+    """PortOne V2(Standard Webhooks) 서명 헤더 — 테스트에서 실제 PortOne 처럼 서명한다."""
+    import base64
+    import hashlib
+    import hmac
+    import time
+
+    secret = secret if secret is not None else settings.PORTONE_WEBHOOK_SECRET
+    key = base64.b64decode(secret.removeprefix("whsec_"))
+    ts = str(timestamp if timestamp is not None else int(time.time()))
+    signature = base64.b64encode(
+        hmac.new(key, f"{webhook_id}.{ts}.".encode() + body, hashlib.sha256).digest()
+    ).decode()
+    return {
+        "webhook-id": webhook_id,
+        "webhook-timestamp": ts,
+        "webhook-signature": f"v1,{signature}",
+    }

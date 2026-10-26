@@ -17,7 +17,8 @@ os.environ["DATABASE_URL"] = TEST_DATABASE_URL
 os.environ["CRYPTO_KEY"] = "MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDE="
 os.environ.setdefault("ADMIN_EMAIL", "admin@example.com")
 os.environ.setdefault("ADMIN_PASSWORD", "admin-passw0rd")
-os.environ.setdefault("PORTONE_WEBHOOK_SECRET", "test-whsec")
+# Standard Webhooks 형식 — whsec_ + base64(키)
+os.environ.setdefault("PORTONE_WEBHOOK_SECRET", "whsec_dGVzdC13ZWJob29rLXNlY3JldA==")
 os.environ.setdefault("PORTONE_API_SECRET", "test-api-secret")
 os.environ.setdefault("PORTONE_STORE_ID", "test-store")
 os.environ.setdefault("PORTONE_IDENTITY_CHANNEL_KEY", "test-channel")

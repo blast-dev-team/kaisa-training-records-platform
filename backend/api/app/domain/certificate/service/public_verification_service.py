@@ -1,4 +1,4 @@
-"""공개 진위확인 — 인증 없음. 마스킹 응답 + 모든 시도 로그(IP 해시).
+"""공개 진위확인 — 인증 없음. 번호+발급 성명 일치 시에만 마스킹 응답, 모든 시도 로그(IP 해시).
 
 확인서(CERT-… 번호)와 수료증(YYYY-MM-NNN호)을 한 엔드포인트에서 확인한다 —
 WEB 진위확인 화면이 입력창 하나라 번호 형태로 갈리지 않고 둘 다 조회한다.
@@ -6,6 +6,7 @@ WEB 진위확인 화면이 입력창 하나라 번호 형태로 갈리지 않고
 문서번호(정감 제{YY}-E{NNNN}호) 입력도 받는다.
 """
 
+import hmac
 import re
 from decimal import Decimal
 
@@ -13,7 +14,7 @@ from fastapi import Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
-from app.core.crypto import decrypt_field, hash_ip, mask_name
+from app.core.crypto import decrypt_field, hash_ip, mask_name, name_hash
 from app.core.dependencies import get_client_ip
 from app.core.error_codes import api_error
 from app.core.kst import now_kst, to_kst_date
@@ -46,6 +47,29 @@ def canonical_doc_no(raw: str) -> str | None:
     if match is None:
         return None
     return f"정감 제{match.group(1)}-E{int(match.group(2)):04d}호"
+
+
+def _name_matches(input_name: str, stored_hash: str | None) -> bool:
+    """입력 성명이 발급 성명과 일치하는지 — blind index(HMAC) 끼리 비교한다.
+
+    중간 공백 실수('홍 길동')도 허용하도록 공백 제거본도 함께 시도한다.
+    """
+    if not stored_hash:
+        return False
+    candidates = {input_name, re.sub(r"\s+", "", input_name)}
+    return any(
+        hmac.compare_digest(name_hash(candidate), stored_hash)
+        for candidate in candidates
+        if candidate.strip()
+    )
+
+
+def _not_found() -> PublicVerificationResponse:
+    """없는 번호와 성명 불일치를 같은 응답으로 — 번호 존재 여부를 흘리지 않는다."""
+    return PublicVerificationResponse(
+        result="not_found",
+        message="일치하는 문서를 찾을 수 없어요. 번호와 성명을 확인해 주세요",
+    )
 
 
 async def verify_certificate(
@@ -93,6 +117,11 @@ async def verify_certificate(
                 certificate = await repo.find_by_doc_no(db, doc_no)
 
     if certificate is not None:
+        # 성명 불일치 — 폐기·재발급 안내를 포함해 어떤 정보도 주지 않는다
+        if not _name_matches(data.name, certificate.issued_name_hash):
+            await _log("name_mismatch", certificate.id)
+            await db.commit()
+            return _not_found()
         return await _verify_certificate(db, certificate, _log, now)
 
     completion = (
@@ -101,13 +130,15 @@ async def verify_certificate(
         else None
     )
     if completion is not None:
+        if not _name_matches(data.name, completion.issued_name_hash):
+            await _log("name_mismatch", completion_cert_id=completion.id)
+            await db.commit()
+            return _not_found()
         return await _verify_completion(db, completion, _log)
 
     await _log("not_found")
     await db.commit()
-    return PublicVerificationResponse(
-        result="not_found", message="등록되지 않은 번호예요"
-    )
+    return _not_found()
 
 
 async def _find_completion(db: AsyncSession, input_no: str):

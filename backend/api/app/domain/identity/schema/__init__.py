@@ -6,7 +6,6 @@ from app.domain.identity.schema.identity import (
     PassKaisaLoginRequest,
     PassStartRequest,
     PassStartResponse,
-    PassTestLoginRequest,
     ReviewApproveRequest,
     ReviewRejectRequest,
 )
@@ -19,7 +18,6 @@ __all__ = [
     "PassKaisaLoginRequest",
     "PassStartRequest",
     "PassStartResponse",
-    "PassTestLoginRequest",
     "ReviewApproveRequest",
     "ReviewRejectRequest",
 ]
