@@ -18,6 +18,7 @@ export function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [inviteCode, setInviteCode] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -43,9 +44,9 @@ export function LoginPage() {
       setMode("login");
     },
     onError: (e: Error) => {
-      // 화이트리스트·비밀번호 규칙 위반은 서버 메시지 그대로 안내
-      if (e instanceof ApiError && e.code === "EMAIL_NOT_ALLOWED") {
-        setError("초대되지 않은 이메일이에요. 관리자에게 문의해 주세요");
+      // 초대 없음·코드 불일치·만료는 서버가 같은 코드로 내려준다 (이메일 존재 여부 숨김)
+      if (e instanceof ApiError && e.code === "INVITE_INVALID") {
+        setError("초대 코드가 올바르지 않거나 만료됐어요. 관리자에게 코드 재발급을 요청해 주세요");
         return;
       }
       setError(e.message);
@@ -58,11 +59,6 @@ export function LoginPage() {
     e.preventDefault();
     setError(null);
     setNotice(null);
-    // 테스트 편의 — 이메일 '테스트' 입력 시 비밀번호 없이 데모 관리자로 로그인
-    if (mode === "login" && email.trim() === "테스트") {
-      loginMutation.mutate({ email: "테스트", password: "테스트" });
-      return;
-    }
     if (!email.trim() || !password) {
       setError("이메일과 비밀번호를 입력해 주세요");
       return;
@@ -76,7 +72,11 @@ export function LoginPage() {
         setError("비밀번호가 일치하지 않아요. 다시 확인해 주세요");
         return;
       }
-      registerMutation.mutate({ email: email.trim(), password });
+      if (!inviteCode.trim()) {
+        setError("관리자에게 받은 초대 코드를 입력해 주세요");
+        return;
+      }
+      registerMutation.mutate({ email: email.trim(), password, inviteCode: inviteCode.trim() });
     } else {
       loginMutation.mutate({ email: email.trim(), password });
     }
@@ -85,6 +85,7 @@ export function LoginPage() {
   const switchMode = (next: "login" | "register") => {
     setMode(next);
     setConfirmPassword("");
+    setInviteCode("");
     setShowPassword(false);
     setError(null);
     setNotice(null);
@@ -115,7 +116,7 @@ export function LoginPage() {
           <p className="mt-2 text-14 text-ink-3">
             {mode === "login"
               ? "관리자 계정으로 로그인하세요"
-              : "초대받은 이메일로만 가입할 수 있어요"}
+              : "초대받은 이메일과 초대 코드로 가입할 수 있어요"}
           </p>
 
           {notice && (
@@ -159,6 +160,18 @@ export function LoginPage() {
                 </button>
               </div>
             </div>
+            {mode === "register" && (
+              <div className="space-y-1.5">
+                <Label htmlFor="invite-code">초대 코드</Label>
+                <Input
+                  id="invite-code"
+                  autoComplete="one-time-code"
+                  placeholder="XXXX-XXXX-XXXX"
+                  value={inviteCode}
+                  onChange={(e) => setInviteCode(e.target.value)}
+                />
+              </div>
+            )}
             {mode === "register" && (
               <div className="space-y-1.5">
                 <Label htmlFor="confirm-password">비밀번호 확인</Label>

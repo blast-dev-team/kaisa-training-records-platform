@@ -20,9 +20,11 @@ import { formatDateTime, formatWon } from "@/src/shared/utils/format";
 import {
   paymentOrderQueries,
   PAYMENT_STATUS_LABELS,
+  postReconcilePaymentOrder,
   postRefundPaymentOrder,
   type PaymentOrder,
 } from "@/src/entities/payment";
+import { certificateQueries } from "@/src/entities/certificate";
 
 export function PaymentOrderListPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -40,7 +42,15 @@ export function PaymentOrderListPage() {
 
   const queryClient = useQueryClient();
   const { data } = useQuery(
-    paymentOrderQueries.list({ status, search: q || undefined, page, limit }),
+    paymentOrderQueries.list({
+      status,
+      search: q || undefined,
+      // 기간 필터 — UI 는 있었는데 쿼리에 안 실려 동작하지 않았다
+      dateFrom: from || undefined,
+      dateTo: to || undefined,
+      page,
+      limit,
+    }),
   );
 
   const refundMutation = useMutation({
@@ -50,6 +60,25 @@ export function PaymentOrderListPage() {
       toast.success("확인서를 폐기하고 환불을 처리했어요");
       setRefundTarget(null);
       queryClient.invalidateQueries({ queryKey: paymentOrderQueries.all() });
+      queryClient.invalidateQueries({ queryKey: certificateQueries.all() });
+    },
+    onError: (e: Error) => {
+      toast.error(e.message);
+      // 실패해도 서버 상태(환불 실패 기록 등)를 다시 읽는다
+      queryClient.invalidateQueries({ queryKey: paymentOrderQueries.all() });
+    },
+  });
+
+  const reconcileMutation = useMutation({
+    mutationFn: (orderId: string) => postReconcilePaymentOrder(orderId),
+    onSuccess: (result) => {
+      const message = result.message ?? "PortOne 결제 상태를 다시 확인했어요";
+      if (result.outcome === "error") toast.error(message);
+      else toast.success(message);
+      queryClient.invalidateQueries({ queryKey: paymentOrderQueries.all() });
+      if (result.outcome === "issued") {
+        queryClient.invalidateQueries({ queryKey: certificateQueries.all() });
+      }
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -115,9 +144,20 @@ export function PaymentOrderListPage() {
       {
         id: "actions",
         header: "",
-        meta: { width: 90, align: "right" },
+        meta: { width: 120, align: "right" },
         cell: ({ row }) =>
-          row.original.status === "paid" ? (
+          // 대기·취소·실패 주문 — 회원이 결제했는데 확인서가 안 나왔다면 PortOne 에 다시 묻는다
+          // (취소·실패로 닫힌 뒤 결제가 끝난 경우도 여기서 발급된다)
+          ["ready", "pending", "canceled", "failed"].includes(row.original.status) ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              disabled={reconcileMutation.isPending}
+              onClick={() => reconcileMutation.mutate(row.original.id)}
+            >
+              결제 재조회
+            </Button>
+          ) : row.original.status === "paid" ? (
             <Button
               variant="ghost"
               size="sm"
@@ -132,7 +172,7 @@ export function PaymentOrderListPage() {
           ) : null,
       },
     ],
-    [],
+    [reconcileMutation],
   );
 
   const items = data?.items ?? [];

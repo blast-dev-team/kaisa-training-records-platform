@@ -58,7 +58,7 @@ const NAV_GROUPS: { title: string; items: NavItem[] }[] = [
     title: "운영",
     items: [
       { to: "/admin-users", label: "관리자 계정", icon: UserCog, superOnly: true },
-      { to: "/allowed-emails", label: "초대 이메일", icon: MailPlus },
+      { to: "/allowed-emails", label: "초대 이메일", icon: MailPlus, superOnly: true },
       { to: "/audit-logs", label: "감사 로그", icon: ScrollText },
     ],
   },

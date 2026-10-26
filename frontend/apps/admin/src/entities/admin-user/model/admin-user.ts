@@ -45,7 +45,14 @@ export interface AllowedEmail {
   email: string
   note: string | null
   status: AllowedEmailStatus
+  /** 초대 코드 만료 시각 — 가입대기 건만 의미가 있다 */
+  inviteExpiresAt: string | null
   createdAt: string
+}
+
+/** 초대·재발급 직후에만 받는 평문 초대 코드 (서버엔 해시만 남는다) */
+export interface AllowedEmailInvite extends AllowedEmail {
+  inviteCode: string
 }
 
 export interface AllowedEmailInput {
