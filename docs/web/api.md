@@ -145,7 +145,8 @@ POST /api/public/certificate-verifications { certificate_no, issue_date: "YYYY-M
 |---|---|---|---|
 | POST | `/api/auth/pass` | 없음 | PASS 인증 시작 → `redirect_url`, `state` |
 | POST | `/api/auth/pass/complete` | 없음 | `{state}` 복귀 처리 → 세션 쿠키 발급 |
-| POST | `/api/auth/logout` | 없음 | 세션 종료 → `{ok: true}` |
+| POST | `/api/auth/logout` | 없음 | 세션 종료 → `{ok: true}` (관리자·회원 쿠키 모두) |
+| POST | `/api/auth/pass/logout` | 없음 | 회원 "인증 해제" — 회원 세션만 종료(관리자 세션 유지). 만료 세션이어도 200 |
 | GET | `/api/auth/me` | 세션 | 현재 계정 (`account_type` 분기) |
 
 ### 내 정보 (me — 회원 세션)

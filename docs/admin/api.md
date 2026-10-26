@@ -63,8 +63,8 @@
 ### 2.1 최초 가입 · 로그인
 
 ```
-POST /api/admin-allowed-emails   (super 또는 기존 admin)  ← 화이트리스트 등록 (초대)
-POST /api/auth/register { email, password }                ← 화이트리스트 pending 이메일만 가입 가능
+POST /api/admin-allowed-emails   (super 전용)  ← 화이트리스트 등록 + 1회용 초대 코드 발급(응답 invite_code, 7일 유효)
+POST /api/auth/register { email, password, invite_code }  ← 초대된 이메일 + 맞는 초대 코드만 가입 가능
 POST /api/auth/login { email, password }                   → 세션 쿠키
 GET  /api/auth/me                                          → { account_type, id, email, name, role }
 ```
@@ -122,7 +122,7 @@ PATCH /api/certificate-pricing-rules/{rule_id} { price_krw | valid_to | is_activ
 
 | Method | Path | 인증 | 설명 |
 |---|---|---|---|
-| POST | `/api/auth/register` | 없음 (화이트리스트 검증) | 최초 가입 (201) |
+| POST | `/api/auth/register` | 없음 (화이트리스트 + 초대 코드 검증) | 최초 가입 (201). 초대 없음·코드 불일치·만료는 모두 403 `INVITE_INVALID` |
 | POST | `/api/auth/login` | 없음 | 로그인 → 세션 쿠키 |
 | POST | `/api/auth/logout` | 없음 | `{ok: true}` |
 | GET | `/api/auth/me` | 세션 | 현재 계정 |
@@ -139,8 +139,9 @@ PATCH /api/certificate-pricing-rules/{rule_id} { price_krw | valid_to | is_activ
 | Method | Path | 설명 |
 |---|---|---|
 | GET | `/api/admin-allowed-emails` | 초대 이메일 목록 (배열) |
-| POST | `/api/admin-allowed-emails` | `{email, note}` 등록 (201) |
-| DELETE | `/api/admin-allowed-emails/{allowed_email_id}` | 삭제 (204) |
+| POST | `/api/admin-allowed-emails` | `{email, note}` 등록 (201, super) — 응답에 평문 `invite_code` 1회만 포함 |
+| POST | `/api/admin-allowed-emails/{allowed_email_id}/invite-code` | 초대 코드 재발급 (super) — 이전 코드 즉시 무효 |
+| DELETE | `/api/admin-allowed-emails/{allowed_email_id}` | 삭제 (204, super) |
 
 ### 교육생 (admin)
 
@@ -243,8 +244,9 @@ POST /api/training-records/bulk
 
 | Method | Path | Body | 설명 |
 |---|---|---|---|
-| GET | `/api/payment-orders` | `trainee_id`,`status`,`page`,`limit` | 목록 (Paged) |
-| POST | `/api/payment-orders/{order_id}/refunds` | `{reason}` | 환불 |
+| GET | `/api/payment-orders` | `trainee_id`,`status`,`date_from`,`date_to`(KST),`search`,`page`,`limit` | 목록 (Paged) |
+| POST | `/api/payment-orders/{order_id}/refunds` | `{reason}` | 환불 — 주문 전액, 그 결제의 확인서 전부 폐기. PG 실패 시 502 + 주문·확인서 유지, 처리 중이면 409 |
+| POST | `/api/payment-orders/{order_id}/reconcile` | — | PortOne 재조회 → `{outcome: issued\|closed\|pending\|error, message, order}`. 결제됐으면 즉시 발급 |
 
 ### 감사 로그 (admin)
 
