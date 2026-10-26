@@ -50,6 +50,23 @@ export const router = createBrowserRouter([
           return { Component: VerificationNoAuthPage };
         }),
       },
+      // 모바일 결제 복귀 — PortOne redirectUrl. confirm 후 교육이력으로 보낸다.
+      // 인증 가드가 있는 MainLayout 밖에 둔다 — 카드앱 인증 중 세션이 끝나도 안내를 보여 준다
+      {
+        path: 'payment/complete',
+        lazy: lazyPage(async () => {
+          const { PaymentCompletePage } = await import('@/src/views/training-history');
+          return { Component: PaymentCompletePage };
+        }),
+      },
+      // 모바일 본인인증 복귀 — PortOne redirectUrl
+      {
+        path: 'auth/pass/complete',
+        lazy: lazyPage(async () => {
+          const { PassCompletePage } = await import('@/src/views/pass-complete');
+          return { Component: PassCompletePage };
+        }),
+      },
       // 이용약관 — 별도 좌측 탭, ?tab= 으로 문서 전환
       {
         path: 'terms',

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Navigate, NavLink, Outlet, useNavigate } from "react-router";
 import { useMutation } from "@tanstack/react-query";
 
+import { postPassLogout } from "@/src/shared/api/post-pass-logout";
 import { postSessionExtend } from "@/src/shared/api/post-session-extend";
 import { formatAuthCountdown, useAuthCountdown } from "@/src/shared/hooks/use-auth-countdown";
 import { useAuthStore } from "@/src/shared/store/auth-store";
@@ -50,8 +51,9 @@ export function MainLayout() {
   }
 
   /** 「인증해제」 모달 확인 — 모달 닫고 인증 해제 후 intro로 이동 */
-  const handleConfirmRelease = () => {
+  const handleConfirmRelease = async () => {
     setIsReleaseModalOpen(false);
+    await postPassLogout();
     signOut();
     navigate("/");
   };

@@ -2,6 +2,7 @@ import {
   QueryClient,
   QueryClientProvider,
   useQuery,
+  useQueryClient,
 } from "@tanstack/react-query";
 import { useEffect, useState, type ReactNode } from "react";
 
@@ -19,7 +20,23 @@ import { useAuthStore } from "@/src/shared/store/auth-store";
  */
 function SessionGate({ children }: { children: ReactNode }) {
   const signIn = useAuthStore((state) => state.signIn);
+  const queryClient = useQueryClient();
   const [isRestored, setIsRestored] = useState(false);
+
+  // 인증 해제·만료 시 이전 사람의 서버 데이터를 캐시에서 비운다 — 목록 쿼리키에
+  // 사용자 식별자가 없어, 같은 탭에서 다음 사람이 인증하면 staleTime 동안
+  // 이전 사람의 교육이력·결제내역이 그대로 보였다.
+  useEffect(
+    () =>
+      useAuthStore.subscribe((state, prev) => {
+        if (!prev.isAuthenticated || state.isAuthenticated) return;
+        queryClient.setQueryData(["session"], null);
+        queryClient.removeQueries({
+          predicate: (query) => query.queryKey[0] !== "session",
+        });
+      }),
+    [queryClient],
+  );
   const { data, isPending } = useQuery({
     queryKey: ["session"],
     queryFn: getSession,

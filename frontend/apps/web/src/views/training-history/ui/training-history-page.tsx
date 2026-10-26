@@ -1,6 +1,6 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
-import { useSearchParams } from "react-router";
+import { useLocation, useNavigate, useSearchParams } from "react-router";
 
 import { WarningCircleIcon } from "@/src/shared/icon";
 import { Button, Pagination } from "@/src/shared/ui";
@@ -78,8 +78,21 @@ export function TrainingHistoryPage() {
   const [selectedCategory, setSelectedCategory] = useState<SelectionCategory | null>(null);
   /** 선택 중 수료증 대상이 아닌 건(외부 기관 등) 수 — 수료증 버튼 활성 판정용 */
   const [selectedNotCertEligible, setSelectedNotCertEligible] = useState(0);
+  /**
+   * 모바일 리디렉션 결제에서 돌아와 발급이 끝난 이력 — /payment/complete 가 넘겨준다.
+   * 이 경우 결제 모달을 발급 완료 화면(PDF 다운로드)으로 바로 연다.
+   */
+  const location = useLocation();
+  const navigate = useNavigate();
+  const returnedIssued = (location.state as { issuedRecordIds?: string[] } | null)
+    ?.issuedRecordIds; // /payment/complete 가 넣는 state 만 읽는다
   /** 발급 대상 — 설정 시 결제 모달이 열린다 */
-  const [issueTarget, setIssueTarget] = useState<string[] | null>(null);
+  const [issueTarget, setIssueTarget] = useState<string[] | null>(
+    returnedIssued && returnedIssued.length > 0 ? returnedIssued : null,
+  );
+  const [issueOpensIssued, setIssueOpensIssued] = useState(
+    Boolean(returnedIssued && returnedIssued.length > 0),
+  );
   /** 수료증 대상 — 설정 시 무료 발급·미리보기 모달이 열린다 */
   const [certTarget, setCertTarget] = useState<string[] | null>(null);
 
@@ -463,7 +476,21 @@ export function TrainingHistoryPage() {
         <IssuePaymentModal
           recordIds={issueTarget}
           previewOnly={isSuper}
-          onClose={() => setIssueTarget(null)}
+          initialPhase={issueOpensIssued ? "issued" : "preview"}
+          onClose={() => {
+            setIssueTarget(null);
+            if (issueOpensIssued) {
+              setIssueOpensIssued(false);
+              // 새로고침 때 다시 열리지 않게 복귀 state 를 지운다
+              navigate(`${location.pathname}${location.search}`, { replace: true, state: null });
+            }
+          }}
+          onIssued={() => {
+            // 발급이 끝난 선택을 비운다 — 남겨 두면 같은 건을 실수로 또 결제하기 쉽다
+            setSelectedIds([]);
+            setSelectedCategory(null);
+            setSelectedNotCertEligible(0);
+          }}
         />
       )}
 
