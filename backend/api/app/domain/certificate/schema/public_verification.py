@@ -2,11 +2,13 @@ from datetime import date
 from decimal import Decimal
 from typing import Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class PublicVerificationRequest(BaseModel):
     certificate_no: str
+    # 발급 성명 — 번호와 함께 일치해야 결과를 공개한다 (번호 열거 수집 방지)
+    name: str = Field(min_length=1, max_length=50)
     # 문서 종류 — 지정하면 해당 테이블만 조회. None 은 둘 다(기존 동작, 하위 호환)
     doc_type: Literal["certificate", "completion_certificate"] | None = None
 

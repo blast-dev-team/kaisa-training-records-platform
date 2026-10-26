@@ -1,4 +1,8 @@
+import hashlib
+import hmac
+import secrets
 import uuid
+from datetime import timedelta
 
 from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -30,34 +34,27 @@ from app.domain.auth.schema import (
 
 # ── 관리자 가입·로그인 ─────────────────────────────────────────────────────────
 
-TEST_ADMIN_EMAIL = "test-admin@kaisa.or.kr"
+INVITE_TTL_DAYS = 7
+# 혼동되는 글자(0/O, 1/I/L) 제외 — 전화·메신저로 불러줘도 틀리지 않게
+_INVITE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"
 
 
-async def _login_test_admin(db: AsyncSession, user_agent: str | None) -> tuple[AdminUser, str]:
-    """이메일 '테스트' 입력 시 실계정 없이 관리자 로그인 — local·staging 데모 전용.
+def _new_invite_code() -> str:
+    """`XXXX-XXXX-XXXX` (31^12 ≈ 7.9e17) — 가입 시도는 IP 당 rate limit 이 걸린다."""
+    chars = "".join(secrets.choice(_INVITE_ALPHABET) for _ in range(12))
+    return f"{chars[:4]}-{chars[4:8]}-{chars[8:]}"
 
-    고정 테스트 관리자를 find-or-create 해 세션을 발급한다. 비밀번호는 랜덤 해시라
-    이 계정으로는 직접 로그인할 수 없다. production 은 INVALID_CREDENTIALS 로 숨긴다.
-    """
-    if settings.ENVIRONMENT == "production":
-        raise api_error("INVALID_CREDENTIALS")
-    admin = await repo.find_admin_by_email(db, TEST_ADMIN_EMAIL)
-    if admin is None:
-        admin = AdminUser(
-            email=TEST_ADMIN_EMAIL,
-            password_hash=hash_password(uuid.uuid4().hex),
-            name="테스트 관리자",
-            role="super",
-        )
-        db.add(admin)
-        await db.flush()
-    if admin.status != "active":
-        raise api_error("ACCOUNT_DISABLED")
-    admin.last_login_at = now_kst()
-    await db.commit()
-    await db.refresh(admin)
-    token = await create_admin_session(db, admin.id, user_agent)
-    return admin, token
+
+def _hash_invite_code(code: str) -> str:
+    normalized = code.strip().upper().replace("-", "").replace(" ", "")
+    return hashlib.sha256(normalized.encode()).hexdigest()
+
+
+def _issue_invite(row: AdminAllowedEmail) -> str:
+    code = _new_invite_code()
+    row.invite_code_hash = _hash_invite_code(code)
+    row.invite_expires_at = now_kst() + timedelta(days=INVITE_TTL_DAYS)
+    return code
 
 
 async def register_admin(
@@ -76,11 +73,22 @@ async def register_admin(
     register_attempt(key, settings.RATE_LIMIT_REGISTER_WINDOW)
     if not validate_password(data.password):
         raise api_error("WEAK_PASSWORD")
+    # 초대 코드 = 이메일 소유 증명. 초대 없음·불일치·만료는 같은 응답으로 돌려
+    # 화이트리스트에 어떤 이메일이 있는지 추리할 수 없게 한다
+    allowed = await repo.find_allowed_email_by_email(db, data.email)
+    if (
+        allowed is None
+        or allowed.status != "pending"
+        or allowed.invite_code_hash is None
+        or allowed.invite_expires_at is None
+        or allowed.invite_expires_at < now_kst()
+        or not hmac.compare_digest(
+            allowed.invite_code_hash, _hash_invite_code(data.invite_code)
+        )
+    ):
+        raise api_error("INVITE_INVALID")
     if await repo.find_admin_by_email(db, data.email):
         raise api_error("DUPLICATE_EMAIL")
-    allowed = await repo.find_allowed_email_by_email(db, data.email)
-    if allowed is None or allowed.status != "pending":
-        raise api_error("EMAIL_NOT_ALLOWED")
 
     admin = AdminUser(
         email=data.email.lower(),
@@ -91,6 +99,7 @@ async def register_admin(
     await db.flush()
     allowed.status = "joined"
     allowed.joined_admin_id = admin.id
+    allowed.invite_code_hash = None  # 1회용
     record_audit(
         db,
         actor_admin_id=admin.id,
@@ -108,10 +117,6 @@ async def login_admin(
     db: AsyncSession, email: str, password: str, ip: str, user_agent: str | None
 ) -> tuple[AdminUser, str]:
     """검증 → 세션 발급. 실패 5회/5분 초과 시 429. 세션 토큰 반환(Set-Cookie 용)."""
-    # 데모 편의 — 이메일에 '테스트' 입력 시 비밀번호 검증 없이 통과 (production 제외)
-    if email.strip() == "테스트":
-        return await _login_test_admin(db, user_agent)
-
     key = f"login:{email.lower()}:{hash_ip(ip)}"
     if is_rate_limited(
         key, settings.RATE_LIMIT_LOGIN_MAX, settings.RATE_LIMIT_LOGIN_WINDOW
@@ -321,7 +326,8 @@ async def list_allowed_emails(
 
 async def create_allowed_email(
     db: AsyncSession, data: AllowedEmailCreate, actor: AdminUser
-) -> AdminAllowedEmail:
+) -> tuple[AdminAllowedEmail, str]:
+    """초대 — 화이트리스트 등록 + 1회용 가입 코드 발급. 평문 코드는 반환값으로만 나간다."""
     if await repo.find_allowed_email_by_email(db, data.email):
         raise api_error("DUPLICATE_EMAIL")
     row = AdminAllowedEmail(
@@ -329,6 +335,7 @@ async def create_allowed_email(
         note=data.note,
         created_by=actor.id,
     )
+    code = _issue_invite(row)
     db.add(row)
     await db.flush()
     record_audit(
@@ -341,7 +348,32 @@ async def create_allowed_email(
     )
     await db.commit()
     await db.refresh(row)
-    return row
+    return row, code
+
+
+async def reissue_invite_code(
+    db: AsyncSession, allowed_email_id: uuid.UUID, actor: AdminUser
+) -> tuple[AdminAllowedEmail, str]:
+    """초대 코드 재발급 — 분실·만료 대응. 이전 코드는 즉시 무효가 된다."""
+    row = await repo.find_allowed_email_by_id(db, allowed_email_id)
+    if row is None:
+        raise api_error("NOT_FOUND")
+    if row.status != "pending":
+        raise api_error(
+            "INVALID_STATUS_TRANSITION", message="이미 가입한 이메일이에요"
+        )
+    code = _issue_invite(row)
+    record_audit(
+        db,
+        actor_admin_id=actor.id,
+        action="allowed_email.invite_reissued",
+        entity_type="admin_allowed_email",
+        entity_id=row.id,
+        after={"email": row.email},
+    )
+    await db.commit()
+    await db.refresh(row)
+    return row, code
 
 
 async def delete_allowed_email(

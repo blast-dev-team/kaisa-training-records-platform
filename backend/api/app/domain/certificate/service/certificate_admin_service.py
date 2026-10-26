@@ -100,9 +100,7 @@ async def issue_certificates(
                 message="회원등급이 판별되지 않은 교육생이에요",
             )
 
-        doc_no = issuance_service.format_doc_no(
-            await issuance_service.next_doc_seq(db)
-        )
+        doc_no = await issuance_service.allocate_doc_no(db)
         certificates: list[Certificate] = []
         for record_id in dict.fromkeys(record_ids):  # 요청 내 중복 제거
             record = await db.get(TrainingRecord, record_id)

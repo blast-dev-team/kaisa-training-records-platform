@@ -21,6 +21,8 @@ _ERRORS: dict[str, tuple[int, str]] = {
     "DUPLICATE_EMAIL": (409, "이미 등록된 이메일이에요"),
     "WEAK_PASSWORD": (400, "비밀번호는 10자 이상의 영문+숫자 조합이어야 해요"),
     "EMAIL_NOT_ALLOWED": (403, "초대되지 않은 이메일이에요"),
+    # 초대 없음·코드 불일치·만료를 한 응답으로 — 화이트리스트 이메일 존재 여부를 숨긴다
+    "INVITE_INVALID": (403, "초대 코드가 올바르지 않거나 만료됐어요"),
     "ACCOUNT_DISABLED": (403, "비활성화된 계정이에요"),
     "TOO_MANY_ATTEMPTS": (429, "시도가 잦아요. 잠시 후 다시 시도해 주세요"),
     "TRAINEE_NOT_LINKED": (403, "교육생 정보가 연결되지 않았어요"),
@@ -39,6 +41,10 @@ _ERRORS: dict[str, tuple[int, str]] = {
     "DUPLICATE_TRAINEE_SUSPECTED": (409, "같은 이름·생년월일의 감리원이 이미 있어요"),
     "GRADE_NOT_DETERMINED": (409, "회원등급을 확정할 수 없어요"),
     "PORTONE_NOT_CONFIGURED": (503, "결제가 설정되지 않았어요"),
+    # 결제 대기 주문이 실제로는 결제돼 있었음 — 그 주문으로 발급하고 새 결제는 막는다
+    "PAYMENT_ALREADY_COMPLETED": (409, "이전 결제가 확인돼 확인서를 발급했어요"),
+    # 이전 주문이 PG 에서 결제 진행 중 — 닫고 새로 받으면 이중 결제가 될 수 있다
+    "PAYMENT_IN_PROGRESS": (409, "이전 결제가 아직 진행 중이에요"),
     "PORTONE_API_ERROR": (
         502,
         "결제대행사 API 호출이 실패했어요. 잠시 후 다시 시도해 주세요",

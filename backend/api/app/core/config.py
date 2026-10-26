@@ -139,6 +139,15 @@ settings = Settings()
 # 서버 배포(compose)는 Secrets Manager 로 시크릿을 주입한다. 시크릿에 ENVIRONMENT
 # 가 빠져 있으면 기본값 "local" 로 부팅돼 테스트 로그인·비secure 쿠키가 열린다.
 # 그래서 Secrets Manager 를 쓰는데 ENVIRONMENT 가 local 이면 부팅을 거부한다.
+#
+# 우회 로그인·디버그 경로는 `ENVIRONMENT != "production"` 으로 열리므로, 값에 오타
+# (`prod`, `Production`)가 나면 운영에서 그 경로들이 전부 열린다. 허용값 밖이면 거부한다.
+_ALLOWED_ENVIRONMENTS = ("local", "staging", "production")
+if settings.ENVIRONMENT not in _ALLOWED_ENVIRONMENTS:
+    raise ValueError(
+        f"ENVIRONMENT={settings.ENVIRONMENT!r} 는 허용되지 않습니다. "
+        f"{' / '.join(_ALLOWED_ENVIRONMENTS)} 중 하나로 설정하세요."
+    )
 if settings.AWS_SECRETS_NAME and settings.ENVIRONMENT == "local":
     raise ValueError(
         "ENVIRONMENT 가 설정되지 않았습니다. 서버 배포 시 Secrets Manager 시크릿에 "

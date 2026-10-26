@@ -49,6 +49,15 @@ AUTO_DOWNGRADE_REASON = "연간 회원 기간 만료 — 자동 전환"
 _UNSET = object()
 
 
+def new_trainee_no() -> str:
+    """TR-{yyyymmdd}-{HEX12} — 확률적 채번, unique 제약이 최종 방어.
+
+    예전 HEX4(하루 65,536)는 엑셀로 500명을 한 번에 넣으면 ~85% 확률로 충돌해
+    배치 전체가 롤백됐다. HEX12 면 같은 날 수십만 명이어도 충돌이 사실상 없다.
+    """
+    return f"TR-{now_kst().strftime('%Y%m%d')}-{secrets.token_hex(6).upper()}"
+
+
 def _derive_supervisor_grade(
     cert_no: str | None,
     senior_cert_no: str | None,
@@ -180,7 +189,7 @@ async def create_trainee(
         db, data.name.strip(), data.birth_date, cert_no, senior_cert_no, data.allow_duplicate
     )
     trainee = Trainee(
-        trainee_no=f"TR-{now_kst().strftime('%Y%m%d')}-{secrets.token_hex(2).upper()}",
+        trainee_no=new_trainee_no(),
         cert_no=cert_no,
         senior_cert_no=senior_cert_no,
         supervisor_grade=_derive_supervisor_grade(
@@ -738,7 +747,7 @@ async def confirm_import(
                 skipped += 1  # 이름+생년월일 중복(이미 수석이거나 등급이 감리원)
             continue
         trainee = Trainee(
-            trainee_no=f"TR-{now_kst().strftime('%Y%m%d')}-{secrets.token_hex(2).upper()}",
+            trainee_no=new_trainee_no(),
             cert_no=item.cert_no,
             supervisor_grade=item.supervisor_grade,
             cert_issued_date=item.cert_issued_date,

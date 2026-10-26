@@ -67,10 +67,11 @@ class TestKaisaLogin:
         )
         assert resp.status_code == 200
 
-    async def test_super_login_still_hidden_in_production(self, client, db, monkeypatch):
-        monkeypatch.setattr(settings, "ENVIRONMENT", "production")
-        resp = await client.post("/api/auth/pass/super-login", json={"name": "KAISA"})
-        assert resp.status_code == 404
+    async def test_removed_bypass_logins_are_gone(self, client, db):
+        """staging 테스트 우회(test-login·super-login)는 삭제됐다 — 전 환경 404."""
+        for path in ("/api/auth/pass/test-login", "/api/auth/pass/super-login"):
+            resp = await client.post(path, json={"name": "KAISA"})
+            assert resp.status_code == 404, path
 
 
 class TestKaisaRecord:

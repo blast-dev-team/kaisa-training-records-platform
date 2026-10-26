@@ -41,6 +41,7 @@ class TestRegisterRateLimit:
                     "email": f"not-allowed-{i}@example.com",
                     "password": "weak",
                     "name": "관리자",
+                    "invite_code": "AAAA-BBBB-CCCC",
                 },
             )
             assert resp.status_code != 429
@@ -51,6 +52,7 @@ class TestRegisterRateLimit:
                 "email": "not-allowed-final@example.com",
                 "password": "weak",
                 "name": "관리자",
+                "invite_code": "AAAA-BBBB-CCCC",
             },
         )
         assert resp.status_code == 429

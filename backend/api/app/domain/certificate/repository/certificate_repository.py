@@ -1,10 +1,11 @@
 import uuid
-from datetime import date, timedelta
+from datetime import date
 
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.crypto import name_hash
+from app.core.kst import kst_range_end, kst_range_start
 from app.domain.certificate.model import Certificate, CertificateRequest
 
 
@@ -107,10 +108,11 @@ async def list_certificates(
             stmt = stmt.where(Certificate.trainee_id == trainee_id)
         if status:
             stmt = stmt.where(Certificate.status == status)
+        # KST 경계 — date 를 그대로 비교하면 UTC 로 해석돼 9시간 어긋난다
         if date_from is not None:
-            stmt = stmt.where(Certificate.issued_at >= date_from)
+            stmt = stmt.where(Certificate.issued_at >= kst_range_start(date_from))
         if date_to is not None:
-            stmt = stmt.where(Certificate.issued_at < date_to + timedelta(days=1))
+            stmt = stmt.where(Certificate.issued_at < kst_range_end(date_to))
         if search:
             pattern = f"%{search}%"
             stmt = stmt.where(

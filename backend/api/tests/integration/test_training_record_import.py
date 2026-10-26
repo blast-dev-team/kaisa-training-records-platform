@@ -126,3 +126,56 @@ async def test_preview_reports_unmatched_and_missing_fields(client, db):
     row = rows[0]
     assert row["trainee_id"] is None
     assert any("감리원" in e for e in row["errors"])
+
+
+async def test_preview_reads_excel_date_cells(client, db):
+    """엑셀 날짜 서식 셀(datetime)과 8자리 숫자 날짜를 읽는다 — 예전엔 모든 행이
+    "시작일자를 읽을 수 없어요" 였다."""
+    from datetime import date
+
+    grade = await make_grade(db, code="g-tdate", name="일반")
+    await make_trainee(db, grade.id, ci_raw="ci-tdate", trainee_no="TR-I-300", name="이날짜")
+    _, admin_token = await make_admin(db)
+    await db.commit()
+
+    content = make_xlsx([
+        ["이날짜", "", "한국정보화진흥원", "보안감리", date(2025, 6, 1), date(2025, 6, 30), 8, 8],
+        ["이날짜", "", "한국정보화진흥원", "품질감리", 20250702, "20250703", 8, 8],
+    ])
+    resp = await preview(client, admin_token, content)
+    assert resp.status_code == 200, resp.text
+    rows = resp.json()["rows"]
+    assert [r["errors"] for r in rows] == [[], []]
+    assert (rows[0]["start_date"], rows[0]["end_date"]) == ("2025-06-01", "2025-06-30")
+    assert (rows[1]["start_date"], rows[1]["end_date"]) == ("20250702", "20250703")
+
+
+async def test_confirm_rejects_unreadable_date(client, db):
+    """프리뷰 오류 행이 확정으로 넘어와도 날짜 없이 저장하지 않는다."""
+    grade = await make_grade(db, code="g-tbad", name="일반")
+    _, trainee = await make_trainee(
+        db, grade.id, ci_raw="ci-tbad", trainee_no="TR-I-400", name="오날짜"
+    )
+    _, admin_token = await make_admin(db)
+    await db.commit()
+
+    resp = await client.post(
+        "/api/training-records/import-confirm",
+        json={"rows": [{
+            "row_number": 2,
+            "name": "오날짜",
+            "cert_no": None,
+            "institution": "한국정보화진흥원",
+            "subject": "보안감리",
+            "start_date": "6월 1일",
+            "end_date": None,
+            "hours_total": "8",
+            "hours_recog": "8",
+            "trainee_id": str(trainee.id),
+        }]},
+        cookies=admin_cookie(admin_token),
+    )
+    assert resp.status_code == 200, resp.text
+    body = resp.json()
+    assert body["created"] == 0
+    assert len(body["failed"]) == 1

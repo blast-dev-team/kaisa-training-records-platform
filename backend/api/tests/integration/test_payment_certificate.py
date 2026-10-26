@@ -1,9 +1,6 @@
 """통합 — 확인서 신청 → 결제 confirm → 발급 + 웹훅 멱등 + 반복 발급."""
 
-import hashlib
-import hmac
 import json
-import time
 import uuid
 
 from sqlalchemy import select
@@ -19,6 +16,7 @@ from tests.integration.helpers import (
     member_cookie,
     member_token,
     portone_payment,
+    portone_webhook_headers,
 )
 
 
@@ -42,14 +40,23 @@ async def _request(client, token, record_id):
     )
 
 
-def _webhook_headers(body: bytes) -> dict[str, str]:
-    ts = str(int(time.time()))
-    digest = hmac.new(
-        settings.PORTONE_WEBHOOK_SECRET.encode(),
-        f"{ts}.".encode() + body,
-        hashlib.sha256,
-    ).hexdigest()
-    return {"x-portone-signature": f"t={ts},v1={digest}"}
+def _webhook_body(event_type: str, payment_id: str) -> bytes:
+    """PortOne V2 웹훅 본문 (2024-04-25 형식)."""
+    return json.dumps(
+        {
+            "type": event_type,
+            "timestamp": "2026-10-24T03:00:00Z",
+            "data": {"paymentId": payment_id, "storeId": settings.PORTONE_STORE_ID},
+        }
+    ).encode()
+
+
+async def _post_webhook(client, body: bytes, webhook_id: str):
+    return await client.post(
+        "/api/payments/webhooks/portone",
+        content=body,
+        headers=portone_webhook_headers(body, webhook_id),
+    )
 
 
 class TestFreeIssue:
@@ -174,33 +181,112 @@ class TestWebhook:
         monkeypatch.setattr(portone, "get_payment", fake_get)
         _, token, req_body = await self._mk_request(client, db)
 
-        payload = {
-            "webhookId": "wh-test-1",
-            "type": "Transaction.Paid",
-            "data": {"paymentId": req_body["order_no"]},
-        }
-        body = json.dumps(payload).encode()
-        first = await client.post(
-            "/api/payments/webhooks/portone",
-            content=body,
-            headers=_webhook_headers(body),
-        )
+        body = _webhook_body("Transaction.Paid", req_body["order_no"])
+        first = await _post_webhook(client, body, "msg-test-1")
         assert first.status_code == 200
         assert first.json() == {"ok": True, "order_found": True, "confirmed": True}
 
         certs = await client.get("/api/me/certificates", cookies=member_cookie(token))
         assert len(certs.json()) == 1
 
-        replay = await client.post(
-            "/api/payments/webhooks/portone",
-            content=body,
-            headers=_webhook_headers(body),
-        )
+        replay = await _post_webhook(client, body, "msg-test-1")
         assert replay.status_code == 200
         assert replay.json() == {"ok": True, "duplicate": True}
         # 리플레이로 이중 발급 없음
         certs = await client.get("/api/me/certificates", cookies=member_cookie(token))
         assert len(certs.json()) == 1
+
+    async def test_transient_failure_is_retried(self, client, db, monkeypatch):
+        """PortOne 조회가 잠깐 실패하면 5xx 로 재전송을 받고, 재전송은 중복으로 버리지 않는다.
+
+        예전엔 실패한 이벤트를 같은 ID 로 저장해 재전송을 '중복'으로 무시했다 —
+        카드 결제는 끝났는데 확인서가 영영 안 나오는 경로였다.
+        """
+        from app.core.error_codes import api_error
+
+        calls = {"n": 0}
+
+        async def flaky_get(payment_id):
+            calls["n"] += 1
+            if calls["n"] == 1:
+                raise api_error("PORTONE_API_ERROR")
+            return portone_payment(payment_id, total=5000)
+
+        monkeypatch.setattr(portone, "get_payment", flaky_get)
+        _, token, req_body = await self._mk_request(client, db)
+        body = _webhook_body("Transaction.Paid", req_body["order_no"])
+
+        first = await _post_webhook(client, body, "msg-flaky")
+        assert first.status_code == 503
+        certs = await client.get("/api/me/certificates", cookies=member_cookie(token))
+        assert certs.json() == []
+
+        retry = await _post_webhook(client, body, "msg-flaky")
+        assert retry.status_code == 200, retry.json()
+        assert retry.json()["confirmed"] is True
+        certs = await client.get("/api/me/certificates", cookies=member_cookie(token))
+        assert len(certs.json()) == 1
+
+    async def test_business_rejection_is_not_retried(self, client, db, monkeypatch):
+        """결제 미완료처럼 다시 해도 소용없는 거절은 200 — PortOne 이 계속 재전송하지 않게."""
+
+        async def fake_get(payment_id):
+            return portone_payment(payment_id, total=5000, status="READY")
+
+        monkeypatch.setattr(portone, "get_payment", fake_get)
+        _, _, req_body = await self._mk_request(client, db)
+        body = _webhook_body("Transaction.Paid", req_body["order_no"])
+        resp = await _post_webhook(client, body, "msg-unpaid")
+        assert resp.status_code == 200
+        assert resp.json()["confirmed"] is False
+
+    async def test_cancel_event_refunds_and_revokes(self, client, db, monkeypatch):
+        """PortOne 콘솔에서 직접 취소 → 주문 환불 처리, 확인서 폐기(진위확인 무효)."""
+        from app.domain.payment.model import PaymentOrder
+
+        state = {"status": "PAID"}
+
+        async def fake_get(payment_id):
+            return portone_payment(payment_id, total=5000, status=state["status"])
+
+        monkeypatch.setattr(portone, "get_payment", fake_get)
+        _, _, req_body = await self._mk_request(client, db)
+        order_no = req_body["order_no"]
+        paid = await _post_webhook(
+            client, _webhook_body("Transaction.Paid", order_no), "msg-pay"
+        )
+        assert paid.json()["confirmed"] is True
+
+        state["status"] = "CANCELLED"
+        resp = await _post_webhook(
+            client, _webhook_body("Transaction.Cancelled", order_no), "msg-cancel"
+        )
+        assert resp.status_code == 200
+        assert resp.json()["cancellation"] == "refunded"
+
+        db.expire_all()
+        order = (
+            await db.execute(select(PaymentOrder).where(PaymentOrder.order_no == order_no))
+        ).scalar_one()
+        assert order.status == "refunded"
+        cert = (
+            await db.execute(
+                select(Certificate).where(Certificate.payment_order_id == order.id)
+            )
+        ).scalar_one()
+        assert cert.status == "revoked"
+
+    async def test_non_payment_events_ignored(self, client, db, monkeypatch):
+        async def must_not_call(payment_id):
+            raise AssertionError("Ready 이벤트로 확정을 시도하면 안 된다")
+
+        monkeypatch.setattr(portone, "get_payment", must_not_call)
+        _, _, req_body = await self._mk_request(client, db)
+        resp = await _post_webhook(
+            client, _webhook_body("Transaction.Ready", req_body["order_no"]), "msg-ready"
+        )
+        assert resp.status_code == 200
+        assert resp.json()["ignored"] is True
 
     async def _mk_request(self, client, db):
         grade = await make_grade(db, code="g-wh", name="웹훅등급")
@@ -215,27 +301,28 @@ class TestWebhook:
         return trainee, token, resp.json()
 
     async def test_webhook_bad_signature_400(self, client, db):
-        body = json.dumps({"webhookId": "wh-bad", "type": "t"}).encode()
+        body = _webhook_body("Transaction.Paid", "ORD-XX")
+        headers = portone_webhook_headers(body, "msg-bad")
+        headers["webhook-signature"] = "v1,deadbeef"
+        resp = await client.post(
+            "/api/payments/webhooks/portone", content=body, headers=headers
+        )
+        assert resp.status_code == 400
+        assert resp.json()["code"] == "WEBHOOK_SIGNATURE_INVALID"
+
+    async def test_old_header_format_rejected(self, client, db):
+        """구 `x-portone-signature` 형식은 더 이상 받지 않는다."""
+        body = _webhook_body("Transaction.Paid", "ORD-XX")
         resp = await client.post(
             "/api/payments/webhooks/portone",
             content=body,
             headers={"x-portone-signature": "t=1,v1=deadbeef"},
         )
         assert resp.status_code == 400
-        assert resp.json()["code"] == "WEBHOOK_SIGNATURE_INVALID"
 
     async def test_webhook_unknown_order_200(self, client, db):
-        payload = {
-            "webhookId": "wh-unknown",
-            "type": "t",
-            "data": {"paymentId": "ORD-XX"},
-        }
-        body = json.dumps(payload).encode()
-        resp = await client.post(
-            "/api/payments/webhooks/portone",
-            content=body,
-            headers=_webhook_headers(body),
-        )
+        body = _webhook_body("Transaction.Paid", "ORD-XX")
+        resp = await _post_webhook(client, body, "msg-unknown")
         assert resp.status_code == 200
         assert resp.json() == {"ok": True, "order_found": False}
 

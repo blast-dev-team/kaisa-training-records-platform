@@ -97,6 +97,25 @@ class TestIssuanceEventNumbering:
         first, second = [c.doc_no for c in await _issued_certs(db)]
         assert _seq(second) == _seq(first) + 1
 
+    async def test_concurrent_issues_get_distinct_numbers(self, client, db):
+        """서로 다른 회원이 같은 순간 발급해도 문서번호가 겹치지 않는다 —
+        겹치면 진위확인에서 한 사람만 조회돼 다른 사람 확인서를 검증할 수 없다."""
+        import asyncio
+
+        _, _, records_a, token_a = await _member(db, code="g-race-a", seq=11)
+        _, _, records_b, token_b = await _member(db, code="g-race-b", seq=12)
+
+        resp_a, resp_b = await asyncio.gather(
+            _batch_request(client, token_a, records_a),
+            _batch_request(client, token_b, records_b),
+        )
+        assert resp_a.status_code == 201, resp_a.json()
+        assert resp_b.status_code == 201, resp_b.json()
+
+        certs = await _issued_certs(db)
+        assert len(certs) == 2
+        assert sorted(_seq(cert.doc_no) for cert in certs) == [1, 2]
+
     async def test_record_has_no_doc_no(self, client, db):
         """내역엔 문서번호가 없다 — 등록 응답에도 키가 없다."""
         _, admin_token = await make_admin(db, email="norec-admin@example.com")
@@ -281,7 +300,7 @@ class TestDocNoVerification:
         (doc_no,) = {c.doc_no for c in certs}
         verify = await client.post(
             "/api/public/certificate-verifications",
-            json={"certificate_no": doc_no},
+            json={"certificate_no": doc_no, "name": "홍길동"},
         )
         assert verify.status_code == 200
         body = verify.json()
@@ -300,7 +319,7 @@ class TestDocNoVerification:
         bare = doc_no.removeprefix("정감 제").removesuffix("호")
         verify = await client.post(
             "/api/public/certificate-verifications",
-            json={"certificate_no": bare},
+            json={"certificate_no": bare, "name": "홍길동"},
         )
         assert verify.status_code == 200
         body = verify.json()
@@ -315,7 +334,7 @@ class TestDocNoVerification:
         certs = await _issued_certs(db)
         verify = await client.post(
             "/api/public/certificate-verifications",
-            json={"certificate_no": certs[0].certificate_no},
+            json={"certificate_no": certs[0].certificate_no, "name": "홍길동"},
         )
         assert verify.status_code == 200
         body = verify.json()

@@ -72,6 +72,20 @@ async def next_doc_seq(db: AsyncSession, yy: str | None = None) -> int:
     return (last or 0) + 1
 
 
+async def allocate_doc_no(db: AsyncSession) -> str:
+    """발급 이벤트 1건의 문서번호를 확정한다 — 동시 발급끼리 같은 번호를 받지 않게.
+
+    문서번호는 묶음 멤버가 공유하므로 unique 제약을 걸 수 없다. 그래서 연도별
+    트랜잭션 advisory lock 으로 MAX+1 ~ 커밋 구간을 직렬화한다 (커밋·롤백 시 자동 해제).
+    연도는 한 번만 계산해 순번과 접두어가 12/31 자정 경계에서 갈리지 않게 한다.
+    """
+    yy = now_kst().strftime("%y")
+    await db.execute(
+        select(func.pg_advisory_xact_lock(func.hashtext(f"certificate_doc_no:{yy}")))
+    )
+    return format_doc_no(await next_doc_seq(db, yy), yy)
+
+
 async def issue_certificate(
     db: AsyncSession,
     request: CertificateRequest,

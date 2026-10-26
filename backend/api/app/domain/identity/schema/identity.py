@@ -25,12 +25,6 @@ class PassCompleteRequest(BaseModel):
     state: str
 
 
-class PassTestLoginRequest(BaseModel):
-    """테스트 본인인증 우회 로그인 — local·staging 전용 (identity_service.test_login)."""
-
-    name: str = "테스트"
-
-
 class PassKaisaLoginRequest(BaseModel):
     """KAISA 계정 우회 로그인 — 성명·생년월일·휴대전화가 지정값과 모두 일치해야 한다."""
 

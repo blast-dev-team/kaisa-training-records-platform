@@ -1,5 +1,13 @@
-"""결제 확인 — single-fetch 검증 후 발급까지 동일 트랜잭션."""
+"""결제 확인 — single-fetch 검증 후 발급까지 동일 트랜잭션.
 
+확정(confirm_order)은 멱등이라 여러 경로에서 부른다: 브라우저 confirm, 모바일 복귀
+화면, 웹훅, 관리자 재조회, 주기 대사 스크립트, 새 결제 신청 직전의 이전 주문 확인.
+결제는 됐는데 어느 한 경로가 끊겨도 다른 경로가 발급까지 이어 준다.
+"""
+
+from datetime import timedelta
+
+from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -23,13 +31,15 @@ async def _find_certificates(db: AsyncSession, order_id) -> list[Certificate]:
     return list(result.scalars().all())
 
 
-def _validate_payment(result: dict, order: PaymentOrder) -> None:
+def _validate_payment(result: dict | None, order: PaymentOrder) -> None:
     """PortOne 결제 단일조회 결과 검증 — 상태·금액·통화·스토어."""
-    if result.get("status") != "PAID":
+    if result is None or result.get("status") != "PAID":
         raise api_error("PAYMENT_NOT_PAID", message="결제가 완료되지 않았어요")
     amount = result.get("amount") or {}
     total = amount.get("total") or amount.get("paid") or amount.get("amount")
-    if total != order.amount_krw or (amount.get("currency") or "KRW") != "KRW":
+    # V2 응답의 currency 는 최상위 필드다 (amount 안이 아님) — 둘 다 보고, 없으면 KRW
+    currency = result.get("currency") or amount.get("currency") or "KRW"
+    if total != order.amount_krw or currency != "KRW":
         raise api_error(
             "PAYMENT_AMOUNT_MISMATCH",
             status_code=409,
@@ -111,9 +121,7 @@ async def confirm_order(
 
     requests = await _find_requests(db, order)
     # 결제 1건으로 발급된 N건 = 묶음 확인서 1건 — 문서번호도 이벤트당 1개
-    doc_no = issuance_service.format_doc_no(
-        await issuance_service.next_doc_seq(db)
-    )
+    doc_no = await issuance_service.allocate_doc_no(db)
     certificates = []
     for request in requests:
         request.status = "paid"
@@ -145,3 +153,91 @@ async def confirm_payment(
     if order is None:
         raise api_error("NOT_FOUND", message="결제 주문을 찾을 수 없어요")
     return await confirm_order(db, order)
+
+
+# ── 결제 대기 주문 정리 — 대사(reconcile) ───────────────────────────────────────
+
+# 결제 대기 주문의 수명. 이 시간이 지나도록 PortOne 에서 결제되지 않은 주문은 닫는다.
+ORDER_TTL = timedelta(minutes=30)
+
+# PortOne V2 결제 상태 중 다시는 결제될 수 없는 것
+_PORTONE_CLOSED_STATUSES = {"FAILED", "CANCELLED"}
+
+
+async def close_order(db: AsyncSession, order: PaymentOrder, status: str = "canceled") -> None:
+    """미결제 주문을 닫는다 — 묶인 신청도 취소해 교육생 삭제 등을 막지 않게.
+
+    닫은 뒤에 결제가 들어와도(웹훅·대사) confirm_order 는 주문 상태와 무관하게
+    PortOne 결과로 발급한다 — 돈을 냈으면 확인서를 받는다.
+    """
+    order.status = status
+    attempt = await repo.latest_attempt(db, order.id)
+    if attempt is not None and attempt.status == "ready":
+        attempt.status = status
+    for request in await _find_requests(db, order):
+        if request.status == "payment_pending":
+            request.status = "canceled"
+
+
+async def reconcile_order(
+    db: AsyncSession, order: PaymentOrder, *, close_unpaid: bool
+) -> str:
+    """PortOne 에 다시 물어 주문을 실제 상태에 맞춘다. 커밋까지 한다.
+
+    반환: issued(발급됨·이미 발급) / closed(닫음·닫혀 있음) / pending(아직 결제 대기)
+          / in_progress(PG 에서 결제 진행 중 — 닫으면 이중 결제가 될 수 있음).
+    close_unpaid=True 면 결제창을 안 열었거나(404) 열었다 닫은(READY) 주문을 나이와
+    무관하게 닫는다(새 결제 신청 직전). False 면 ORDER_TTL 이 지난 것만 닫는다(주기 대사).
+    이미 닫힌 주문(canceled/failed)도 다시 확인한다 — 닫은 뒤 결제가 끝났을 수 있다.
+    """
+    if await _find_certificates(db, order.id):
+        return "issued"
+    if order.status not in ("ready", "pending", "paid", "canceled", "failed"):
+        return "closed"  # refunded 등 — 대사 대상 아님
+    is_open = order.status in ("ready", "pending")
+    if not settings.PORTONE_API_SECRET:
+        # 로컬 — 실제 결제가 일어날 수 없으므로 확인 없이 닫아도 안전하다
+        if is_open and (close_unpaid or _is_stale(order)):
+            await close_order(db, order)
+            await db.commit()
+            return "closed"
+        return "pending" if is_open else "closed"
+
+    result = await portone.get_payment(order.order_no)
+    status = (result or {}).get("status")
+    if status == "PAID":
+        await confirm_order(db, order)  # 금액·스토어 검증 포함, 커밋
+        return "issued"
+    if order.status == "paid":
+        return "pending"  # 우리 쪽은 결제 완료인데 PG 가 PAID 가 아님 — 사람이 볼 일
+    if not is_open:
+        return "closed"
+    if status in _PORTONE_CLOSED_STATUSES:
+        await close_order(db, order, "failed" if status == "FAILED" else "canceled")
+        await db.commit()
+        return "closed"
+    if status not in (None, "READY"):
+        # PAY_PENDING·PENDING·VIRTUAL_ACCOUNT_ISSUED 등 — 앱카드·ISP 인증처럼 결제가
+        # 진행 중이다. 닫고 새 주문을 만들면 둘 다 결제될 수 있으므로 닫지 않는다
+        return "in_progress"
+    if close_unpaid or _is_stale(order):
+        await close_order(db, order)
+        await db.commit()
+        return "closed"
+    return "pending"
+
+
+def _is_stale(order: PaymentOrder) -> bool:
+    return order.created_at is not None and order.created_at < now_kst() - ORDER_TTL
+
+
+async def reconcile_order_safely(
+    db: AsyncSession, order: PaymentOrder, *, close_unpaid: bool
+) -> tuple[str, str | None]:
+    """대사 배치·관리자 화면용 — 한 주문의 실패가 다른 주문을 막지 않게 오류를 돌려준다."""
+    try:
+        return await reconcile_order(db, order, close_unpaid=close_unpaid), None
+    except HTTPException as exc:
+        await db.rollback()
+        detail = exc.detail if isinstance(exc.detail, dict) else {"message": exc.detail}
+        return "error", str(detail.get("message") or detail)
