@@ -179,3 +179,30 @@ async def test_confirm_rejects_unreadable_date(client, db):
     body = resp.json()
     assert body["created"] == 0
     assert len(body["failed"]) == 1
+
+
+async def test_preview_reads_record_sheet_when_it_is_not_first(client, db):
+    """감리원 시트가 1번, 교육내역 시트가 2번인 파일 — 헤더가 더 많이 맞는 2번 시트를 읽는다."""
+    grade = await make_grade(db, code="g-tsheet", name="일반")
+    await make_trainee(db, grade.id, ci_raw="ci-tsheet", trainee_no="TR-I-500", name="김시트")
+    _, admin_token = await make_admin(db)
+    await db.commit()
+    wb = openpyxl.Workbook()
+    members = wb.active
+    members.title = "회원추가"
+    members.append(["감리원명", "전화번호", "생년월일", "감리원증번호", "감리원등급명", "감리원증발급일자"])
+    members.append(["김시트", "01012345678", "1985.03.15", "TR-TEST-1", "감리원", ""])
+    records = wb.create_sheet("교육내역")
+    records.append([
+        "교육생명", "감리원증번호", "교육기관명", "과목명",
+        "시작일자", "종료일자", "교육시간", "인정시간",
+    ])
+    records.append(["김시트", "TR-TEST-1", "한국정보화진흥원", "보안감리", "2025.06.01", "2025.06.30", 8, 8])
+    buf = io.BytesIO()
+    wb.save(buf)
+
+    resp = await preview(client, admin_token, buf.getvalue())
+    assert resp.status_code == 200, resp.text
+    body = resp.json()
+    assert body["total"] == 1
+    assert body["rows"][0]["subject"] == "보안감리"

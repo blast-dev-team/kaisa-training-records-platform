@@ -321,3 +321,24 @@ class TestImportPromotion:
         assert row.senior_cert_no == "협회 수석 제900호"
         assert str(row.senior_cert_issued_date) == "2024-02-01"
         assert row.supervisor_grade == "수석감리원"
+
+
+async def test_preview_reads_member_sheet_when_it_is_not_first(client, db):
+    """교육내역 시트가 1번, 감리원 시트가 2번인 파일 — 헤더가 맞는 2번 시트를 읽는다."""
+    _, admin_token = await make_admin(db)
+    await db.commit()
+    wb = openpyxl.Workbook()
+    records = wb.active
+    records.title = "교육내역"
+    records.append(["교육생명", "감리원증번호", "교육기관명", "과목명"])
+    records.append(["김감리", "협회 제300호", "한국정보화진흥원", "보안감리"])
+    members = wb.create_sheet("회원추가")
+    members.append(HEADERS)
+    members.append(["김감리", "01012345678", "1985.03.15", "협회 제300호", "감리원", ""])
+    buf = io.BytesIO()
+    wb.save(buf)
+
+    resp = await preview(client, admin_token, buf.getvalue())
+    assert resp.status_code == 200, resp.text
+    rows = resp.json()["rows"]
+    assert [(r["name"], r["supervisor_grade"]) for r in rows] == [("김감리", "감리원")]
