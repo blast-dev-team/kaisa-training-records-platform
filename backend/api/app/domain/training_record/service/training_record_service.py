@@ -403,19 +403,31 @@ async def match_preview(db: AsyncSession, content: bytes) -> TraineeMatchPreview
             "VALIDATION_ERROR",
             message="엑셀 파일(.xlsx)을 열 수 없어요. 파일을 확인해 주세요",
         )
-    ws = wb.worksheets[0]
-    rows = list(ws.iter_rows(values_only=True))
+    sheets = [list(ws.iter_rows(values_only=True)) for ws in wb.worksheets]
     wb.close()
-    if not rows:
+    if not any(sheets):
         raise api_error("VALIDATION_ERROR", message="엑셀에 데이터가 없어요")
 
-    header_map = {
-        str(cell).strip(): idx for idx, cell in enumerate(rows[0]) if cell is not None
-    }
-    columns = {
-        field: next((label for label in candidates if label in header_map), None)
-        for field, candidates in _MATCH_HEADERS.items()
-    }
+    # 한 파일에 여러 시트가 있을 수 있다 — 대조 헤더가 가장 많이 맞는 시트를 읽는다(동점이면 앞 시트)
+    rows: list[tuple] = []
+    header_map: dict[str, int] = {}
+    columns: dict[str, str | None] = dict.fromkeys(_MATCH_HEADERS)
+    best_found = -1
+    for sheet_rows in sheets:
+        if not sheet_rows:
+            continue
+        sheet_map = {
+            str(cell).strip(): idx
+            for idx, cell in enumerate(sheet_rows[0])
+            if cell is not None
+        }
+        sheet_columns = {
+            field: next((label for label in candidates if label in sheet_map), None)
+            for field, candidates in _MATCH_HEADERS.items()
+        }
+        found = sum(1 for c in sheet_columns.values() if c is not None)
+        if found > best_found:
+            rows, header_map, columns, best_found = sheet_rows, sheet_map, sheet_columns, found
     if columns["name"] is None and columns["cert_no"] is None and columns["trainee_no"] is None:
         raise api_error(
             "VALIDATION_ERROR",

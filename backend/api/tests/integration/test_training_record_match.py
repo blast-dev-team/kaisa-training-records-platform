@@ -149,3 +149,25 @@ class TestMatchFallbackAndReject:
             make_xlsx([["아무개", "1", "2"]], headers=["이상한컬럼", "A", "B"]),
         )
         assert resp.status_code == 422
+
+
+async def test_reads_sheet_with_match_headers_when_not_first(client, db):
+    """첫 시트가 안내문이고 2번 시트에 감리원 명단이 있으면 2번 시트를 대조한다."""
+    _, token = await make_admin(db)
+    await seed(db, 900, name="박시트", cert="협회 제900호")
+    await db.commit()
+    wb = openpyxl.Workbook()
+    guide = wb.active
+    guide.title = "안내"
+    guide.append(["업로드 안내"])
+    guide.append(["2번 시트에 명단을 넣어 주세요"])
+    roster = wb.create_sheet("명단")
+    roster.append(["감리원명", "감리원증번호"])
+    roster.append(["박시트", "협회 제900호"])
+    buf = io.BytesIO()
+    wb.save(buf)
+
+    resp = await preview(client, token, buf.getvalue())
+    assert resp.status_code == 200, resp.text
+    body = resp.json()
+    assert [m["matched_by"] for m in body["matched"]] == ["cert_no"]
