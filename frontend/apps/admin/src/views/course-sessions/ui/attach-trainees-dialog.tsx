@@ -2,11 +2,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
-import { Check, ChevronDown, ChevronUp, FileSpreadsheet, X } from "lucide-react";
+import { Check, ChevronDown, ChevronUp, X } from "lucide-react";
 import { Dialog } from "@/src/shared/ui/dialog";
 import { DateField } from "@/src/shared/ui/date-picker/date-field";
 import { SearchInput } from "@/src/shared/ui/search-input";
 import { Label } from "@/src/shared/ui/label";
+import { FileDropZone } from "@/src/shared/ui/file-drop-zone";
 import { Textarea } from "@/src/shared/ui/textarea";
 import {
   DuplicateCancelledError,
@@ -531,20 +532,17 @@ export function AttachTraineesDialog({ isOpen, onClose, session }: Props) {
               )}
             </div>
           ) : (
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
+            <FileDropZone
+              className="gap-1.5 py-6"
               disabled={matchMutation.isPending}
-              className="flex w-full flex-col items-center gap-1.5 rounded-xl border border-dashed border-line px-4 py-6 text-ink-3 transition-colors hover:border-accent hover:text-accent cursor-pointer"
+              onClick={() => fileInputRef.current?.click()}
+              onFiles={(picked) => picked[0] && matchMutation.mutate(picked[0])}
+              hint="헤더: 감리원명 · 감리원증번호 (순서 무관, 이름만 있어도 가능)"
             >
-              <FileSpreadsheet className="size-7" />
-              <span className="text-13">
-                {matchMutation.isPending ? "대조 중..." : "클릭해서 엑셀 파일 선택 · 즉시 대조"}
-              </span>
-              <span className="text-11 text-ink-3">
-                헤더: 감리원명 · 감리원증번호 (순서 무관, 이름만 있어도 가능)
-              </span>
-            </button>
+              {matchMutation.isPending
+                ? "대조 중..."
+                : "클릭하거나 엑셀 파일을 끌어다 놓으면 즉시 대조"}
+            </FileDropZone>
           )}
           <input
             ref={fileInputRef}

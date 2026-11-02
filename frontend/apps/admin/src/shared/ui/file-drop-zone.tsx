@@ -10,13 +10,25 @@ interface Props {
   onFiles: (files: File[]) => void;
   /** false 면 첫 파일 하나만 넘긴다 */
   multiple?: boolean;
+  disabled?: boolean;
+  /** 본문 아래 보조 안내 (헤더 형식 등) */
+  hint?: ReactNode;
+  className?: string;
   children: ReactNode;
 }
 
 const isXlsx = (f: File) => f.name.toLowerCase().endsWith(".xlsx");
 
 /** 엑셀 업로드 영역 — 클릭해서 고르거나 파일을 끌어다 놓는다 */
-export function FileDropZone({ onClick, onFiles, multiple = false, children }: Props) {
+export function FileDropZone({
+  onClick,
+  onFiles,
+  multiple = false,
+  disabled = false,
+  hint,
+  className,
+  children,
+}: Props) {
   const [isDragging, setIsDragging] = useState(false);
   // 자식 요소로 들어갈 때도 dragleave 가 터지므로 깊이로 진입 여부를 센다
   const depthRef = useRef(0);
@@ -30,6 +42,7 @@ export function FileDropZone({ onClick, onFiles, multiple = false, children }: P
     <button
       type="button"
       onClick={onClick}
+      disabled={disabled}
       onDragEnter={(e) => {
         e.preventDefault();
         depthRef.current += 1;
@@ -47,6 +60,7 @@ export function FileDropZone({ onClick, onFiles, multiple = false, children }: P
       onDrop={(e) => {
         e.preventDefault();
         reset();
+        if (disabled) return;
         const dropped = Array.from(e.dataTransfer.files);
         const xlsx = dropped.filter(isXlsx);
         if (xlsx.length === 0) {
@@ -59,10 +73,12 @@ export function FileDropZone({ onClick, onFiles, multiple = false, children }: P
       className={cn(
         "flex w-full cursor-pointer flex-col items-center gap-2 rounded-xl border border-dashed px-4 py-10 transition-colors hover:border-accent hover:text-accent",
         isDragging ? "border-accent bg-accent-soft text-accent" : "border-line text-ink-3",
+        className,
       )}
     >
       <FileSpreadsheet className="size-8" />
       <span className="text-14">{isDragging ? "여기에 놓으세요" : children}</span>
+      {hint && !isDragging && <span className="text-11 text-ink-3">{hint}</span>}
     </button>
   );
 }
