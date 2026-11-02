@@ -580,28 +580,30 @@ async def import_preview(db: AsyncSession, content: bytes) -> TrainingRecordImpo
             "VALIDATION_ERROR",
             message="엑셀 파일(.xlsx)을 열 수 없어요. 파일을 확인해 주세요",
         )
-    ws = wb.worksheets[0]
-    rows = list(ws.iter_rows(values_only=True))
+    sheets = [list(ws.iter_rows(values_only=True)) for ws in wb.worksheets]
     wb.close()
-    if not rows:
+    if not any(sheets):
         raise api_error("VALIDATION_ERROR", message="엑셀에 데이터가 없어요")
 
-    # 헤더 행 탐색 — 제목·안내 행이 위에 있어도 찾도록 상단 10행을 훑고,
+    # 헤더 행 탐색 — 한 파일에 회원 명단 등 다른 시트가 섞여 있을 수 있어 모든 시트의
+    # 상단 10행을 훑어 헤더가 가장 많이 맞는 시트·행을 고른다(동점이면 앞 시트).
     # 비교 시 공백을 제거한다("감리원증 번호" == "감리원증번호")
     def _norm_header(v) -> str:
         return re.sub(r"\s+", "", str(v)) if v is not None else ""
 
+    rows: list[tuple] = next(r for r in sheets if r)
     best_idx, best_map, best_score = None, None, 0
-    for idx, row in enumerate(rows[:10]):
-        hmap = {_norm_header(c): i for i, c in enumerate(row) if c is not None}
-        score = sum(
-            1
-            for cands in _IMPORT_HEADERS.values()
-            for cand in cands
-            if _norm_header(cand) in hmap
-        )
-        if score > best_score:
-            best_idx, best_map, best_score = idx, hmap, score
+    for sheet_rows in sheets:
+        for idx, row in enumerate(sheet_rows[:10]):
+            hmap = {_norm_header(c): i for i, c in enumerate(row) if c is not None}
+            score = sum(
+                1
+                for cands in _IMPORT_HEADERS.values()
+                for cand in cands
+                if _norm_header(cand) in hmap
+            )
+            if score > best_score:
+                rows, best_idx, best_map, best_score = sheet_rows, idx, hmap, score
     if best_idx is None or best_score < 2:
         first = next((r for r in rows if any(c is not None for c in r)), [])
         preview = [str(c)[:20] for c in first if c is not None][:8]

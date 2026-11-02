@@ -592,16 +592,30 @@ def parse_import_file(content: bytes) -> list[TraineeImportRow]:
             "VALIDATION_ERROR",
             message="엑셀 파일(.xlsx)을 열 수 없어요. 파일을 확인해 주세요",
         )
-    ws = wb.worksheets[0]
-    rows = list(ws.iter_rows(values_only=True))
+    # 한 파일에 교육내역 등 다른 시트가 섞여 있을 수 있다 — 헤더가 모두 맞는 첫 시트를 읽는다.
+    # 맞는 시트가 없으면 가장 많이 맞은 시트 기준으로 빠진 헤더를 알려준다
+    rows: list[tuple] = []
+    header_map: dict[str, int] = {}
+    missing: list[str] = list(_IMPORT_HEADERS.values())
+    for ws in wb.worksheets:
+        sheet_rows = list(ws.iter_rows(values_only=True))
+        if not sheet_rows:
+            continue
+        sheet_map = {
+            str(cell).strip(): idx
+            for idx, cell in enumerate(sheet_rows[0])
+            if cell is not None
+        }
+        sheet_missing = [
+            label for label in _IMPORT_HEADERS.values() if label not in sheet_map
+        ]
+        if not rows or len(sheet_missing) < len(missing):
+            rows, header_map, missing = sheet_rows, sheet_map, sheet_missing
+        if not sheet_missing:
+            break
     wb.close()
     if not rows:
         raise api_error("VALIDATION_ERROR", message="엑셀에 데이터가 없어요")
-
-    header_map = {
-        str(cell).strip(): idx for idx, cell in enumerate(rows[0]) if cell is not None
-    }
-    missing = [label for label in _IMPORT_HEADERS.values() if label not in header_map]
     if missing:
         raise api_error(
             "VALIDATION_ERROR",

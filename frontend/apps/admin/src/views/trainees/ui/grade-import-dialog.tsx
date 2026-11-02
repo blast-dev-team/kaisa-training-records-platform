@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
-import { FileSpreadsheet, Pencil, Upload } from "lucide-react";
+import { Pencil, Upload } from "lucide-react";
 import { Dialog } from "@/src/shared/ui/dialog";
 import { Input } from "@/src/shared/ui/input";
 import { DateField } from "@/src/shared/ui/date-picker/date-field";
 import { Label } from "@/src/shared/ui/label";
 import { Pill } from "@/src/shared/ui/pill";
 import { Button } from "@/src/shared/ui/button";
+import { FileDropZone } from "@/src/shared/ui/file-drop-zone";
 import {
   GRADE_IMPORT_CATEGORY_META,
   postTraineeGradeImportConfirm,
@@ -328,14 +329,12 @@ export function GradeImportDialog({ isOpen, onClose }: Props) {
               있는 감리원에만 채워져요
             </p>
           </div>
-          <button
-            type="button"
+          <FileDropZone
             onClick={() => fileInputRef.current?.click()}
-            className="flex w-full flex-col items-center gap-2 rounded-xl border border-dashed border-line px-4 py-10 text-ink-3 transition-colors hover:border-accent hover:text-accent cursor-pointer"
+            onFiles={(picked) => setFile(picked[0] ?? null)}
           >
-            <FileSpreadsheet className="size-8" />
-            <span className="text-14">{file ? file.name : "클릭해서 엑셀 파일 선택"}</span>
-          </button>
+            {file ? file.name : "클릭하거나 엑셀 파일을 끌어다 놓으세요"}
+          </FileDropZone>
           <input
             ref={fileInputRef}
             type="file"
