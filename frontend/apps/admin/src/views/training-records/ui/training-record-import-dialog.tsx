@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
-import { FileSpreadsheet, Search, Upload, UserPlus } from "lucide-react";
+import { Search, Upload, UserPlus } from "lucide-react";
 import { Dialog } from "@/src/shared/ui/dialog";
 import { Button } from "@/src/shared/ui/button";
+import { FileDropZone } from "@/src/shared/ui/file-drop-zone";
 import { Input } from "@/src/shared/ui/input";
 import { Label } from "@/src/shared/ui/label";
 import { Pill } from "@/src/shared/ui/pill";
@@ -257,20 +258,17 @@ export function TrainingRecordImportDialog({ isOpen, onClose }: Props) {
       {dupConfirm.dialog}
       {stage === "select" && (
         <div className="space-y-3">
-          <button
-            type="button"
+          <FileDropZone
+            multiple
             onClick={() => fileInputRef.current?.click()}
-            className="flex w-full flex-col items-center gap-2 rounded-xl border border-dashed border-line px-4 py-10 text-ink-3 transition-colors hover:border-accent hover:text-accent cursor-pointer"
+            onFiles={setFiles}
           >
-            <FileSpreadsheet className="size-8" />
-            <span className="text-14">
-              {files.length === 0
-                ? "클릭해서 엑셀 파일 선택"
-                : files.length === 1
-                  ? files[0]?.name
-                  : `${files[0]?.name} 외 ${files.length - 1}개`}
-            </span>
-          </button>
+            {files.length === 0
+              ? "클릭하거나 엑셀 파일을 끌어다 놓으세요"
+              : files.length === 1
+                ? files[0]?.name
+                : `${files[0]?.name} 외 ${files.length - 1}개`}
+          </FileDropZone>
           <input
             ref={fileInputRef}
             type="file"
