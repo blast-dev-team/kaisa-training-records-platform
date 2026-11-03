@@ -3,5 +3,6 @@ Allow: /
 Disallow: /training-history
 Disallow: /payment-history
 Disallow: /verify
+Disallow: /inquiries
 Disallow: /design-system
 Sitemap: https://edu.kaisa.or.kr/sitemap.xml
