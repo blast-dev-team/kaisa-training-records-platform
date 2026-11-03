@@ -55,7 +55,7 @@ _EMAIL_RE = re.compile(r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$")
 _HEADER_ALIASES: dict[str, tuple[str, ...]] = {
     "name": ("성명", "감리원명", "이름"),
     "birth_date": ("생년월일",),
-    "cert_no": ("감리원증번호",),
+    "cert_no": ("감리원증번호", "감리원번호"),
     "phone": ("연락처", "전화번호", "휴대전화"),
     "email": ("e-mail", "email", "이메일"),
     "member_type": ("회원구분",),

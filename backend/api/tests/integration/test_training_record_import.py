@@ -206,3 +206,61 @@ async def test_preview_reads_record_sheet_when_it_is_not_first(client, db):
     body = resp.json()
     assert body["total"] == 1
     assert body["rows"][0]["subject"] == "보안감리"
+
+
+async def test_confirm_with_duplicate_institution_and_course_names(client, db):
+    """같은 이름의 기관·과정이 여럿 있어도 500 없이 등록한다 — 내부 기관을 우선 고른다."""
+    from app.domain.institution.model import TrainingCourse, TrainingInstitution
+
+    grade = await make_grade(db, code="g-tdup", name="일반")
+    _, trainee = await make_trainee(
+        db, grade.id, ci_raw="ci-tdup", trainee_no="TR-I-600", name="중복기관"
+    )
+    external = TrainingInstitution(name="중복기관교육원", institution_type="external")
+    internal = TrainingInstitution(name="중복기관교육원", institution_type="internal")
+    db.add_all([external, internal])
+    await db.flush()
+    db.add_all([
+        TrainingCourse(institution_id=internal.id, name="보안감리"),
+        TrainingCourse(institution_id=internal.id, name="보안감리"),
+    ])
+    _, admin_token = await make_admin(db)
+    await db.commit()
+
+    resp = await client.post(
+        "/api/training-records/import-confirm",
+        json={"rows": [{
+            "row_number": 2,
+            "name": "중복기관",
+            "cert_no": None,
+            "institution": "중복기관교육원",
+            "subject": "보안감리",
+            "start_date": "2025-06-01",
+            "end_date": "2025-06-30",
+            "hours_total": "8",
+            "hours_recog": "8",
+            "trainee_id": str(trainee.id),
+        }]},
+        cookies=admin_cookie(admin_token),
+    )
+    assert resp.status_code == 200, resp.text
+    assert resp.json()["created"] == 1
+
+
+async def test_preview_matches_cert_no_ignoring_spaces(client, db):
+    """엑셀 감리원증번호에 띄어쓰기가 더 있어도 번호로 매칭한다 — 이름이 달라도(개명) 찾는다."""
+    grade = await make_grade(db, code="g-tsp", name="일반")
+    _, trainee = await make_trainee(
+        db, grade.id, ci_raw="ci-tsp", trainee_no="TR-I-700", name="문명철"
+    )
+    trainee.cert_no = "부산 제11호"
+    _, admin_token = await make_admin(db)
+    await db.commit()
+
+    resp = await preview(client, admin_token, make_xlsx([
+        ["문영철", "부산 제 11 호", "한국정보화진흥원", "보안감리", "2025.06.01", "2025.06.30", 8, 8],
+    ]))
+    assert resp.status_code == 200, resp.text
+    row = resp.json()["rows"][0]
+    assert row["trainee_id"] == str(trainee.id)
+    assert row["errors"] == []

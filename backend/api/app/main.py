@@ -1,4 +1,5 @@
 import logging
+import uuid
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, Request
@@ -104,10 +105,18 @@ async def validation_exception_handler(
 
 @app.exception_handler(Exception)
 async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
-    logger.exception("Unhandled error: %s %s", request.method, request.url.path)
+    # 화면에 보인 오류 코드로 서버 로그의 traceback 을 바로 찾을 수 있게 같은 id 를 남긴다
+    error_id = uuid.uuid4().hex[:8]
+    logger.exception(
+        "Unhandled error [%s]: %s %s", error_id, request.method, request.url.path
+    )
     return JSONResponse(
         status_code=500,
-        content={"code": "INTERNAL_ERROR", "message": "잠시 후 다시 시도해 주세요"},
+        content={
+            "code": "INTERNAL_ERROR",
+            "message": f"잠시 후 다시 시도해 주세요 (오류 코드: {error_id})",
+            "error_id": error_id,
+        },
     )
 
 

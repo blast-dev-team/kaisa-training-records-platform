@@ -342,3 +342,83 @@ async def test_preview_reads_member_sheet_when_it_is_not_first(client, db):
     assert resp.status_code == 200, resp.text
     rows = resp.json()["rows"]
     assert [(r["name"], r["supervisor_grade"]) for r in rows] == [("김감리", "감리원")]
+
+
+async def test_preview_handles_rows_shorter_than_header(client, db):
+    """시트 크기 정보(dimension)가 없는 엑셀 — 끝 칸이 빈 행이 짧게 읽혀도 500 없이 파싱한다."""
+    import re
+    import zipfile
+
+    _, admin_token = await make_admin(db)
+    await db.commit()
+    src = zipfile.ZipFile(io.BytesIO(make_xlsx([["김감리", "01012345678"]])))
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w") as out:
+        for item in src.infolist():
+            data = src.read(item.filename)
+            if item.filename.startswith("xl/worksheets/sheet"):
+                data = re.sub(rb"<dimension[^>]*/>", b"", data)
+            out.writestr(item, data)
+
+    resp = await preview(client, admin_token, buf.getvalue())
+    assert resp.status_code == 200, resp.text
+    row = resp.json()["rows"][0]
+    assert (row["name"], row["phone"], row["birth_date"]) == ("김감리", "01012345678", None)
+
+
+async def test_preview_reads_roster_header_below_title_rows_with_aliases(client, db):
+    """협회 회원 명부 양식 — 제목 행 아래 헤더, 성명·연락처·감리원등급 별칭, 발급일자 컬럼 없음."""
+    _, admin_token = await make_admin(db)
+    await db.commit()
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.append(["회원 추가 인원 명단"])
+    ws.append(["2026.10.13 ~10.27"])
+    ws.append(["번호", "회원구분", "성명", "생년월일", "감리원등급", "감리원증번호", "연락처", "e-mail"])
+    ws.append([1, "평생회원", "박명부", date(1978, 2, 8), "수석감리원", "협회 제6159호", "010-5145-6660", "a@b.c"])
+    ws.append([2])  # 번호만 있는 빈 행
+    buf = io.BytesIO()
+    wb.save(buf)
+
+    resp = await preview(client, admin_token, buf.getvalue())
+    assert resp.status_code == 200, resp.text
+    rows = resp.json()["rows"]
+    assert len(rows) == 1
+    row = rows[0]
+    assert (row["row_number"], row["name"], row["phone"]) == (4, "박명부", "01051456660")
+    assert (row["supervisor_grade"], row["cert_issued_date"]) == ("수석감리원", None)
+
+
+async def test_duplicate_cert_no_ignores_spaces(client, db):
+    """감리원증번호는 띄어쓰기가 달라도 같은 번호로 보고 중복 처리한다(프리뷰·확정 모두)."""
+    grade = await make_grade(db, code="g-imp-sp", name="일반")
+    _, existing = await make_trainee(
+        db, grade.id, ci_raw="ci-imp-sp", trainee_no="TR-I-0900", name="기존공백"
+    )
+    existing.cert_no = "정보시스템감리협회 제6144호"
+    _, admin_token = await make_admin(db)
+    await db.commit()
+
+    resp = await preview(
+        client,
+        admin_token,
+        make_xlsx([["새이름", "01012341234", "", "정보시스템감리협회 제 6144호", "감리원", ""]]),
+    )
+    assert resp.status_code == 200, resp.text
+    assert resp.json()["rows"][0]["is_duplicate"] is True
+
+    confirm = await client.post(
+        "/api/trainees/import-confirm",
+        json={"items": [{
+            "row_number": 2,
+            "name": "새이름",
+            "phone": None,
+            "birth_date": None,
+            "cert_no": "정보시스템감리협회 제 6144호",
+            "supervisor_grade": "감리원",
+            "cert_issued_date": None,
+        }]},
+        cookies=admin_cookie(admin_token),
+    )
+    assert confirm.status_code == 200, confirm.text
+    assert confirm.json()["created"] == 0
