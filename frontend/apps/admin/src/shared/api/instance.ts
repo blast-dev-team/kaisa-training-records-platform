@@ -1,4 +1,5 @@
 import axios, { AxiosError } from 'axios'
+import * as Sentry from '@sentry/react'
 
 import type { ApiErrorBody } from './types'
 
@@ -33,6 +34,37 @@ apiClient.interceptors.response.use(
     const url = axios.isAxiosError(error) ? error.config?.url ?? '' : ''
     const isAuthEndpoint = url.startsWith('/auth/login') || url.startsWith('/auth/register')
     const status = axios.isAxiosError(error) ? error.response?.status : undefined
+
+    // Sentry 브레드크럼 — "어떤 요청에 어떤 값을 보냈길래" 터졌는지.
+    // sentry.ts의 beforeBreadcrumb이 본문이 없는 기본 xhr 브레드크럼을 버리므로 여기 것만 남는다.
+    if (axios.isAxiosError(error)) {
+      const requestData = error.config?.data
+      let responseData: string | undefined
+      try {
+        responseData = error.response?.data
+          ? JSON.stringify(error.response.data).slice(0, 1000)
+          : undefined
+      } catch {
+        responseData = undefined
+      }
+      Sentry.addBreadcrumb({
+        category: 'xhr',
+        type: 'http',
+        level: 'error',
+        data: {
+          url: `${error.config?.baseURL ?? ''}${url}`,
+          method: error.config?.method?.toUpperCase() ?? 'GET',
+          status_code: status,
+          request_body:
+            typeof requestData === 'string'
+              ? requestData.slice(0, 2000)
+              : requestData !== undefined
+                ? JSON.stringify(requestData)?.slice(0, 2000)
+                : undefined,
+          response_body: responseData,
+        },
+      })
+    }
 
     if (status === 401 && !isAuthEndpoint) {
       // 세션 만료 — 이미 로그인 화면이면 무시(루프 방지), 아니면 로그인으로 보낸다.

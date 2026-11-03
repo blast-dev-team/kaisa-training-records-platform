@@ -57,7 +57,8 @@ class PaymentOrderResponse(BaseModel):
             trainee_id=o.trainee_id,
             trainee_name=decrypt_field(o.trainee.name_encrypted) if o.trainee else None,
             grade_name=o.trainee.grade.name if o.trainee and o.trainee.grade else None,
-            cert_no=o.trainee.cert_no if o.trainee else None,
+            # 표기 우선순위 — 수석감리원증번호 → 감리원증번호 (수석감리원은 cert_no 가 NULL)
+            cert_no=(o.trainee.senior_cert_no or o.trainee.cert_no) if o.trainee else None,
             doc_count=doc_count,
             first_course_name=first_course_name,
             amount_krw=o.amount_krw,

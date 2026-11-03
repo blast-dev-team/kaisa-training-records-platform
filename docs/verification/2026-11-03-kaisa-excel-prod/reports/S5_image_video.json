@@ -1,0 +1,55 @@
+{
+ "canonical_courses": [
+  {
+   "sn": 490,
+   "institution": "한국지능정보사회진흥원",
+   "session_name": "이미지 / 영상",
+   "subject": "이미지 / 영상 입문 과정",
+   "edu_div": 1
+  }
+ ],
+ "db_courses": [
+  {
+   "course_code": "EDC-490",
+   "name": "이미지 / 영상 이미지 / 영상 입문 과정",
+   "institution_id": "ca495d3e-f10e-480f-85a3-cb0a706774ae",
+   "category": "온라인",
+   "total_hours": "1.00"
+  }
+ ],
+ "canonical_sessions": [
+  {
+   "edc_sn": 490,
+   "schdl_sn": 581,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 0,
+   "recognized": 1.0
+  }
+ ],
+ "canonical_enrollments": 1,
+ "db_records": [
+  {
+   "excel": {
+    "row": 5447,
+    "schdl_raw": "582",
+    "partc_raw": "262",
+    "schdl_sn": 582,
+    "partc_no": 262,
+    "hours": 1.0,
+    "recognized": 1.0,
+    "session_name": "이미지 / 영상",
+    "subject": "이미지 / 영상 입문 과정",
+    "cert_no": "정보시스템감리협회 제262호",
+    "name": "박윤재",
+    "birth": "1959-07-02"
+   },
+   "db_record_no": "LEG-EDC-582-262",
+   "db_start": "",
+   "db_end": "",
+   "db_hours": "1.00"
+  }
+ ]
+}

@@ -80,11 +80,49 @@ def _parse_hours(value) -> Decimal:
         return Decimal(0)
 
 
+def _as_int(value) -> int | None:
+    """엑셀 숫자 셀 → int. float(1.0) 도 허용 — 셀 서식에 따라 같은 값이 float 로 저장된다."""
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, int):
+        return value
+    if isinstance(value, float) and value.is_integer():
+        return int(value)
+    return None
+
+
 def _course_name(session_name: str | None, subject_name: str) -> str:
     """과정명 규칙 — 회차명이 과목명을 이미 담고 있으면(외부기관 과정) 회차명만."""
     if session_name and _norm(subject_name) in _norm(session_name):
         return session_name
     return f"{session_name} {subject_name}" if session_name else subject_name
+
+
+def _resolve_existing_trainee(
+    by_cert: dict[str, list[Trainee]],
+    by_identity: dict[tuple[str, str], Trainee],
+    cert_no: str | None,
+    name: str,
+    birth: date | None,
+) -> Trainee | None:
+    """EDU-{no} 로 못 찾은 감리원의 기존 행 수렴 — 어드민 수동 생성분(TR-) 포함.
+
+    ① 증번호 정확 일치(cert·senior 양축) ② 이름+생년. 증번호가 여러 행에
+    걸치면(미통합 중복 쌍) 이름+생년으로 유일하게 좁혀질 때만 수렴한다.
+    """
+    if cert_no:
+        candidates = by_cert.get(cert_no.strip(), [])
+        if candidates:
+            if birth is None:
+                # 생년 없이는 좁힐 수 없다 — 증번호는 유일 식별자라 첫 행으로 수렴
+                return candidates[0]
+            narrowed = [c for c in candidates if str(c.birth_date) == str(birth)]
+            if narrowed:
+                return narrowed[0]
+            # 전원 생년 불일치 — 다른 사람 가능성, 이름+생년으로 재판정
+    if birth is not None:
+        return by_identity.get((name_columns(name)[1], str(birth)))
+    return None
 
 
 async def import_legacy_education(xlsx_path: str) -> None:
@@ -98,18 +136,27 @@ async def import_legacy_education(xlsx_path: str) -> None:
             for t in (await db.execute(select(Trainee))).scalars()
             if t.trainee_no
         }
-        # (이름, 생일) → 교육생 — 재실행 시에도 같은 사람이 새로 생성되지 않도록
-        # DB 의 이관분 전체로 인덱스를 만든다 (NO 가 여러 개인 인물 병합)
+        # 동일인 수렴 인덱스 — 어드민 수동 생성분(TR-)도 포함한다. 마스터 갱신분은
+        # 추가입력 명단(어드민 등록)과 같은 사람을 담고 있어 EDU 번호만으로
+        # 새 행을 만들면 동일인이 2행이 된다 (2026-11-03).
+        # 수렴 순서: ① EDU-{no} ② 증번호(cert·senior 양축) ③ 이름+생년.
         by_identity: dict[tuple[str, str], Trainee] = {}
+        by_cert: dict[str, list[Trainee]] = {}
         for t in existing_trainees.values():
-            if t.trainee_no and (t.trainee_no.startswith("EDU-") or t.trainee_no.startswith("LEG-")) and t.birth_date:
+            if t.deleted_at is not None:
+                continue  # 삭제분 — 여기에 붙으면 화면에 안 보인다
+            if t.birth_date:
                 by_identity.setdefault((t.name_hash, str(t.birth_date)), t)
+            for axis_no in (t.cert_no, t.senior_cert_no):
+                if axis_no:
+                    by_cert.setdefault(axis_no.strip(), []).append(t)
         created = 0
-        filled_cert = filled_grade = 0
+        reused_cert = reused_identity = 0
+        filled_cert = filled_grade = filled_senior = 0
         for row in wb["감리원추가"].iter_rows(min_row=2, values_only=True):
-            no = row[2]
+            no = _as_int(row[2])
             name = _clean(row[3])
-            if not isinstance(no, int) or not name:
+            if no is None or not name:
                 continue  # 정크 행
             birth = _parse_date(row[6])
             cert_no = _clean(row[4])
@@ -117,40 +164,59 @@ async def import_legacy_education(xlsx_path: str) -> None:
             trainee_no = f"EDU-{no}"
             found = existing_trainees.get(trainee_no)
             if found is None:
-                ident = (name, str(birth))
-                found = by_identity.get(ident)
-                if found is None:
-                    found = Trainee(
-                        trainee_no=trainee_no,
-                        name_encrypted=name_columns(name)[0],
-                        name_hash=name_columns(name)[1],
-                        cert_no=cert_no,
-                        supervisor_grade=supervisor_grade,
-                        birth_date=birth,
-                        review_status="approved",
-                    )
-                    db.add(found)
-                    created += 1
-                    by_identity[ident] = found
-                    existing_trainees[trainee_no] = found
-            # 백필 — 기존 이관분도 증번호·감리원등급을 채운다
+                found = _resolve_existing_trainee(
+                    by_cert, by_identity, cert_no, name, birth
+                )
+                if found is not None:
+                    if cert_no and (
+                        found.cert_no == cert_no or found.senior_cert_no == cert_no
+                    ):
+                        reused_cert += 1
+                    else:
+                        reused_identity += 1
+                    existing_trainees[trainee_no] = found  # 이후 행도 같은 번호로 수렴
+            if found is None:
+                name_key = name_columns(name)[1]
+                found = Trainee(
+                    trainee_no=trainee_no,
+                    name_encrypted=name_columns(name)[0],
+                    name_hash=name_key,
+                    cert_no=cert_no,
+                    supervisor_grade=supervisor_grade,
+                    birth_date=birth,
+                    review_status="approved",
+                )
+                db.add(found)
+                created += 1
+                by_identity[(name_key, str(birth))] = found
+                if cert_no:
+                    by_cert.setdefault(cert_no.strip(), []).append(found)
+            # 백필 — 기존 행도 증번호·감리원등급을 채운다. 번호 축은 등급이 가르는
+            # 이원 체계(B방식)라, 기존 cert_no 와 다른 번호는 senior 축으로 보완한다
             if cert_no and not found.cert_no:
                 found.cert_no = cert_no
                 filled_cert += 1
+                by_cert.setdefault(cert_no.strip(), []).append(found)
+            elif cert_no and cert_no != found.cert_no and not found.senior_cert_no:
+                found.senior_cert_no = cert_no
+                filled_senior += 1
+                by_cert.setdefault(cert_no.strip(), []).append(found)
             if supervisor_grade and not found.supervisor_grade:
                 found.supervisor_grade = supervisor_grade
                 filled_grade += 1
             supervisors[no] = found
         await db.flush()
         logger.info(
-            "[감리원] %s행 → 교육생 신규 %s (증번호 백필 %s · 등급 배정 %s)",
-            len(supervisors), created, filled_cert, filled_grade,
+            "[감리원] %s행 → 신규 %s (증번호 수렴 %s · 이름+생년 수렴 %s · "
+            "증번호 백필 %s · senior 백필 %s · 등급 배정 %s)",
+            len(supervisors), created, reused_cert, reused_identity,
+            filled_cert, filled_senior, filled_grade,
         )
         # 감리원등급·증번호 — 이력 생성 시 스냅샷으로 주입
         supervisor_meta: dict[int, tuple[str | None, str | None]] = {}
         for row in wb["감리원추가"].iter_rows(min_row=2, values_only=True):
-            no = row[2]
-            if isinstance(no, int):
+            no = _as_int(row[2])
+            if no is not None:
                 supervisor_meta[no] = (_clean(row[4]), _clean(row[5]))  # 증번호, 등급명
 
         # ── 2. 계속교육과목 → institutions + courses ────────────────────
@@ -172,6 +238,7 @@ async def import_legacy_education(xlsx_path: str) -> None:
         }
         created_session_name = 0
         created_inst = created_course = 0
+        adopted_course = 0
         skipped_subject = 0
         for row in wb["계속교육과목"].iter_rows(min_row=2, values_only=True):
             sn = row[2]
@@ -206,6 +273,27 @@ async def import_legacy_education(xlsx_path: str) -> None:
                 await db.flush()  # course FK 에 id 필요
                 existing_institutions[institution_name] = institution
                 created_inst += 1
+            # 어드민 수동 임포트가 이름 기반(external)으로 만들어둔 같은 과정이
+            # 있으면 새 행을 만들지 않고 그 행에 EDC 코드를 부여해 재사용한다 —
+            # 코드 키가 달라도 원본 자연 키(기관+과목명)로 수렴시키는 것 (2026-11-03)
+            adopted = (
+                await db.execute(
+                    select(TrainingCourse).where(
+                        TrainingCourse.institution_id == institution.id,
+                        TrainingCourse.name == subject_name,
+                        TrainingCourse.is_external.is_(True),
+                        TrainingCourse.course_code.is_(None),
+                    )
+                )
+            ).scalar_one_or_none()
+            if adopted is not None:
+                adopted.course_code = course_code
+                if session_name and not adopted.session_name_id:
+                    adopted.session_name_id = session_name.id
+                existing_courses[course_code] = adopted
+                courses[sn] = course = adopted
+                adopted_course += 1
+                continue
             name = _course_name(session_name_str, subject_name)
             course = TrainingCourse(
                 course_code=course_code,
@@ -220,8 +308,9 @@ async def import_legacy_education(xlsx_path: str) -> None:
             courses[sn] = course
         await db.flush()
         logger.info(
-            "[과목] 신규 기관 %s · 신규 과정 %s · 회차명 마스터 %s (제외 %s)",
-            created_inst, created_course, created_session_name, skipped_subject,
+            "[과목] 신규 기관 %s · 신규 과정 %s · external 수렴 %s · 회차명 마스터 %s (제외 %s)",
+            created_inst, created_course, adopted_course, created_session_name,
+            skipped_subject,
         )
 
         # ── 3. 계속교육과목상세 → course_sessions ────────────────────────
@@ -233,8 +322,9 @@ async def import_legacy_education(xlsx_path: str) -> None:
         created_session = 0
         skipped_session = 0
         for row in wb["계속교육과목상세"].iter_rows(min_row=2, values_only=True):
-            edc_sn, schedule_no = row[0], row[2]
-            if not isinstance(edc_sn, int) or not isinstance(schedule_no, int):
+            edc_sn = _as_int(row[0])
+            schedule_no = _as_int(row[2])
+            if edc_sn is None or schedule_no is None:
                 skipped_session += 1
                 continue
             course = courses.get(edc_sn)
@@ -285,20 +375,19 @@ async def import_legacy_education(xlsx_path: str) -> None:
         )
         created_record = skipped_enroll = fallback = no_session = 0
         for row in wb["수강신청"].iter_rows(min_row=2, values_only=True):
-            schedule_no, partc_no = row[1], row[2]
-            if schedule_no == "#N/A" or partc_no == "#N/A":
-                skipped_enroll += 1
+            schedule_no = _as_int(row[1])
+            partc_no = _as_int(row[2])
+            if schedule_no is None or partc_no is None:
+                skipped_enroll += 1  # #N/A·비수치 셀
                 continue
-            trainee = supervisors.get(partc_no) if isinstance(partc_no, int) else None
+            trainee = supervisors.get(partc_no)
             if trainee is None:
                 skipped_enroll += 1  # 감리원 미스 3종 (#N/A, 0, None)
                 continue
             record_no = f"LEG-EDC-{schedule_no}-{partc_no}"
             if record_no in existing_record_nos:
                 continue  # 이미 이관됨 — (일정, 감리원) 중복 등록도 여기서 흡수
-            session = None
-            if isinstance(schedule_no, int):
-                session = session_by_no.get(schedule_no)
+            session = session_by_no.get(schedule_no)
             course = session.course if session else None
             if session is None:
                 # fallback — 회차명+과목명으로 course 역조회

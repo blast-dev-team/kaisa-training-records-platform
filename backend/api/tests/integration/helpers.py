@@ -1,11 +1,12 @@
 """통합 테스트 데이터 팩토리 + 인증 헬퍼."""
 
 import uuid
+from datetime import timedelta
 from decimal import Decimal
 
 from app.core.config import settings
 from app.core.crypto import encrypt_field, name_columns, sha256_hex
-from app.core.kst import now_kst
+from app.core.kst import now_kst, today_kst
 from app.core.security import hash_password
 from app.core.session import create_admin_session, create_user_session
 from app.domain.auth.model import AdminUser
@@ -89,7 +90,14 @@ async def make_record(
     *,
     completion_status: str = "completed",
     record_no: str = "TRN-2026-0001",
+    with_period: bool = True,
 ) -> TrainingRecord:
+    """with_period=True 기본 — 3년 발급 창 이내 수강 기간이 있는 이력.
+
+    with_period=False 는 기간 미기재 이력(레거시 원본에 날짜가 없는 케이스) 재현.
+    """
+    ended_at = today_kst() if with_period else None
+    started_at = ended_at - timedelta(days=30) if ended_at else None
     record = TrainingRecord(
         training_record_no=record_no,
         trainee_id=trainee_id,
@@ -99,6 +107,8 @@ async def make_record(
         completed_hours=Decimal("16.00"),
         completion_status=completion_status,
         completed_at=now_kst() if completion_status == "completed" else None,
+        started_at=started_at,
+        ended_at=ended_at,
     )
     db.add(record)
     await db.flush()

@@ -48,9 +48,9 @@ describe("Checkbox", () => {
 
     const { input, box } = getParts("약관 동의");
     expect(input.disabled).toBe(true);
-    expect(box.className).toContain("group-disabled:bg-gray-200");
+    expect(box.className).toContain("peer-disabled:bg-gray-200");
     expect(screen.getByText("약관 동의").className).toContain(
-      "group-disabled:text-gray-300",
+      "peer-disabled:text-gray-300",
     );
   });
 
@@ -59,11 +59,11 @@ describe("Checkbox", () => {
 
     const { input, box, check } = getParts("약관 동의");
     expect(input.checked).toBe(true);
-    expect(box.className).toContain("group-checked:bg-primary-700");
-    expect(check.className).toContain("group-checked:block");
+    expect(box.className).toContain("peer-checked:bg-primary-700");
+    expect(box.className).toContain("peer-checked:[&>svg]:block");
     expect(check.className).toContain("text-white");
-    expect(check.querySelector("svg")).toBeTruthy();
-    expect(box.className).toContain("group-checked:group-disabled:bg-gray-600");
+    expect(box.querySelector("svg")).toBeTruthy();
+    expect(box.className).toContain("peer-checked:peer-disabled:bg-gray-600");
   });
 
   it("outline 변형은 카드형 외곽선(m 12px radius·10px gap)을 가진다", () => {

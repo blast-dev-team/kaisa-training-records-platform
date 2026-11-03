@@ -1,3 +1,5 @@
+import * as Sentry from '@sentry/react'
+
 import { apiClient } from '@/src/shared/api'
 import type { LoginInput, Me } from '../model/auth'
 import { getMe } from './get-me'
@@ -12,5 +14,8 @@ export const postLogin = async (input: LoginInput): Promise<Me> => {
     return MOCK_ME
   }
   await apiClient.post('/auth/login', input)
-  return getMe()
+  const me = await getMe()
+  // Sentry 이슈별 "어떤 관리자" 식별 — 로그인 성공 시점에 사용자 태그 부착
+  Sentry.setUser({ id: me.id, email: me.email, username: me.name })
+  return me
 }

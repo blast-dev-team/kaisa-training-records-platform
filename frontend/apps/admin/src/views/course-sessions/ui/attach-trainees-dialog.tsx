@@ -615,7 +615,9 @@ export function AttachTraineesDialog({ isOpen, onClose, session }: Props) {
                             onChange={() => toggle(t.id, t.name)}
                           />
                           <span className="text-ink">{t.name}</span>
-                          <span className="text-11 text-ink-3">{t.traineeNo}</span>
+                          <span className="text-11 text-ink-3">
+                            {t.seniorCertNo ?? t.certNo ?? t.traineeNo}
+                          </span>
                           {already && (
                             <span className="ml-auto text-11 text-ink-3">연결됨</span>
                           )}

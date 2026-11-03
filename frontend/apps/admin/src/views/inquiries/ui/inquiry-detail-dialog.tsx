@@ -92,7 +92,7 @@ function InquiryDetailBody({ detail, onClose }: { detail: InquiryDetail; onClose
             <dd className="text-ink">{detail.authorName}</dd>
             <dt className="text-ink-3">연락처</dt>
             <dd className="text-ink">{detail.authorPhone ? formatPhone(detail.authorPhone) : "—"}</dd>
-            <dt className="text-ink-3">감리원번호</dt>
+            <dt className="text-ink-3">자격증번호</dt>
             <dd className="text-ink">{detail.authorCertNo ?? "—"}</dd>
             <dt className="text-ink-3">이메일</dt>
             <dd className="text-ink">{detail.authorEmail ?? "—"}</dd>

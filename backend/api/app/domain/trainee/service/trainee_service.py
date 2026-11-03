@@ -166,12 +166,13 @@ async def _check_duplicate_trainee(
             )
     if existing and not allow_duplicate:
         t = existing[0]
+        t_cert = t.senior_cert_no or t.cert_no
         raise api_error(
             "DUPLICATE_TRAINEE_SUSPECTED",
             message=(
                 "같은 이름·생년월일의 감리원이 이미 있어요 — "
                 f"{decrypt_field(t.name_encrypted)} ({t.trainee_no}"
-                f"{', ' + t.cert_no if t.cert_no else ''})"
+                f"{', ' + t_cert if t_cert else ''})"
             ),
         )
 

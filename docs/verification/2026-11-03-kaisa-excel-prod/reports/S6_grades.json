@@ -1,0 +1,822 @@
+{
+ "sup_grade_ok": 7597,
+ "sup_grade_diffs": [
+  {
+   "no": 33,
+   "name": "김은정",
+   "excel_grade": "감리원",
+   "excel_cert": "정보시스템감리협회 제33호",
+   "db_grade": "수석감리원",
+   "db_cert": "정보시스템감리협회 제33호",
+   "db_senior": "정보시스템감리협회 제2130호",
+   "cert_axis_ok": true
+  },
+  {
+   "no": 44,
+   "name": "이강희",
+   "excel_grade": "감리원",
+   "excel_cert": "정보시스템감리협회 제44호",
+   "db_grade": "수석감리원",
+   "db_cert": "정보시스템감리협회 제44호",
+   "db_senior": "정보시스템감리협회 제371호",
+   "cert_axis_ok": true
+  },
+  {
+   "no": 56,
+   "name": "김은향",
+   "excel_grade": "감리원",
+   "excel_cert": "정보시스템감리협회 제56호",
+   "db_grade": "수석감리원",
+   "db_cert": "정보시스템감리협회 제56호",
+   "db_senior": "정보시스템감리협회 제2804호",
+   "cert_axis_ok": true
+  },
+  {
+   "no": 72,
+   "name": "지광준",
+   "excel_grade": "감리원",
+   "excel_cert": "정보시스템감리협회 제72호",
+   "db_grade": "수석감리원",
+   "db_cert": "정보시스템감리협회 제72호",
+   "db_senior": "정보시스템감리협회 제3065호",
+   "cert_axis_ok": true
+  },
+  {
+   "no": 330,
+   "name": "정용국",
+   "excel_grade": "감리원",
+   "excel_cert": "정보시스템감리협회 제330호",
+   "db_grade": "수석감리원",
+   "db_cert": "정보시스템감리협회 제330호",
+   "db_senior": "정보시스템감리협회 제627호",
+   "cert_axis_ok": true
+  },
+  {
+   "no": 422,
+   "name": "이규섭",
+   "excel_grade": "감리원",
+   "excel_cert": "정보시스템감리협회 제422호",
+   "db_grade": "수석감리원",
+   "db_cert": "정보시스템감리협회 제422호",
+   "db_senior": "정보시스템감리협회 제1118호",
+   "cert_axis_ok": true
+  },
+  {
+   "no": 525,
+   "name": "윤상인",
+   "excel_grade": "감리원",
+   "excel_cert": "정보시스템감리협회 제525호",
+   "db_grade": "수석감리원",
+   "db_cert": "정보시스템감리협회 제525호",
+   "db_senior": "정보시스템감리협회 제2002호",
+   "cert_axis_ok": true
+  },
+  {
+   "no": 575,
+   "name": "박범진",
+   "excel_grade": "감리원",
+   "excel_cert": "정보시스템감리협회 제575호",
+   "db_grade": "수석감리원",
+   "db_cert": "정보시스템감리협회 제575호",
+   "db_senior": "정보시스템감리협회 제887호",
+   "cert_axis_ok": true
+  },
+  {
+   "no": 584,
+   "name": "정갑규",
+   "excel_grade": "감리원",
+   "excel_cert": "정보시스템감리협회 제584호",
+   "db_grade": "수석감리원",
+   "db_cert": "정보시스템감리협회 제584호",
+   "db_senior": "정보시스템감리협회 제1620호",
+   "cert_axis_ok": true
+  },
+  {
+   "no": 731,
+   "name": "이구성",
+   "excel_grade": "감리원",
+   "excel_cert": "정보시스템감리협회 제731호",
+   "db_grade": "수석감리원",
+   "db_cert": "정보시스템감리협회 제731호",
+   "db_senior": "정보시스템감리협회 제1417호",
+   "cert_axis_ok": true
+  },
+  {
+   "no": 738,
+   "name": "황정연",
+   "excel_grade": "감리원",
+   "excel_cert": "정보시스템감리협회 제738호",
+   "db_grade": "수석감리원",
+   "db_cert": "정보시스템감리협회 제738호",
+   "db_senior": "정보시스템감리협회 제1137호",
+   "cert_axis_ok": true
+  },
+  {
+   "no": 847,
+   "name": "김윤경",
+   "excel_grade": "감리원",
+   "excel_cert": "정보시스템감리협회 제847호",
+   "db_grade": "수석감리원",
+   "db_cert": "정보시스템감리협회 제847호",
+   "db_senior": "정보시스템감리협회 제1497호",
+   "cert_axis_ok": true
+  },
+  {
+   "no": 848,
+   "name": "김춘규",
+   "excel_grade": "감리원",
+   "excel_cert": "정보시스템감리협회 제848호",
+   "db_grade": "수석감리원",
+   "db_cert": "정보시스템감리협회 제848호",
+   "db_senior": "정보시스템감리협회 제2810호",
+   "cert_axis_ok": true
+  },
+  {
+   "no": 869,
+   "name": "조중근",
+   "excel_grade": "감리원",
+   "excel_cert": "정보시스템감리협회 제869호",
+   "db_grade": "수석감리원",
+   "db_cert": "정보시스템감리협회 제869호",
+   "db_senior": "정보시스템감리협회 제1357호",
+   "cert_axis_ok": true
+  },
+  {
+   "no": 922,
+   "name": "김영범",
+   "excel_grade": "감리원",
+   "excel_cert": "정보시스템감리협회 제922호",
+   "db_grade": "수석감리원",
+   "db_cert": "정보시스템감리협회 제922호",
+   "db_senior": "정보시스템감리협회 제1987호",
+   "cert_axis_ok": true
+  },
+  {
+   "no": 923,
+   "name": "김영자",
+   "excel_grade": "감리원",
+   "excel_cert": "정보시스템감리협회 제923호",
+   "db_grade": "수석감리원",
+   "db_cert": "정보시스템감리협회 제923호",
+   "db_senior": "정보시스템감리협회 제1586호",
+   "cert_axis_ok": true
+  },
+  {
+   "no": 936,
+   "name": "이영태",
+   "excel_grade": "감리원",
+   "excel_cert": "정보시스템감리협회 제936호",
+   "db_grade": "수석감리원",
+   "db_cert": "정보시스템감리협회 제936호",
+   "db_senior": "정보시스템감리협회 제1347호",
+   "cert_axis_ok": true
+  },
+  {
+   "no": 941,
+   "name": "조기범",
+   "excel_grade": "감리원",
+   "excel_cert": "정보시스템감리협회 제941호",
+   "db_grade": "수석감리원",
+   "db_cert": "정보시스템감리협회 제941호",
+   "db_senior": "정보시스템감리협회 제1131호",
+   "cert_axis_ok": true
+  },
+  {
+   "no": 960,
+   "name": "이한근",
+   "excel_grade": "감리원",
+   "excel_cert": "정보시스템감리협회 제960호",
+   "db_grade": "수석감리원",
+   "db_cert": "정보시스템감리협회 제960호",
+   "db_senior": "정보시스템감리협회 제1617호",
+   "cert_axis_ok": true
+  },
+  {
+   "no": 1002,
+   "name": "박경미",
+   "excel_grade": "감리원",
+   "excel_cert": "정보시스템감리협회 제1002호",
+   "db_grade": "수석감리원",
+   "db_cert": "정보시스템감리협회 제1002호",
+   "db_senior": "정보시스템감리협회 제1333호",
+   "cert_axis_ok": true
+  },
+  {
+   "no": 1007,
+   "name": "이선준",
+   "excel_grade": "감리원",
+   "excel_cert": "정보시스템감리협회 제1007호",
+   "db_grade": "수석감리원",
+   "db_cert": "정보시스템감리협회 제1007호",
+   "db_senior": "정보시스템감리협회 제1346호",
+   "cert_axis_ok": true
+  },
+  {
+   "no": 1012,
+   "name": "이차준",
+   "excel_grade": "감리원",
+   "excel_cert": "정보시스템감리협회 제1012호",
+   "db_grade": "수석감리원",
+   "db_cert": "정보시스템감리협회 제1012호",
+   "db_senior": "정보시스템감리협회 제1615호",
+   "cert_axis_ok": true
+  },
+  {
+   "no": 1089,
+   "name": "최문봉",
+   "excel_grade": "감리원",
+   "excel_cert": "정보시스템감리협회 제1089호",
+   "db_grade": "수석감리원",
+   "db_cert": "정보시스템감리협회 제1089호",
+   "db_senior": "정보시스템감리협회 제1361호",
+   "cert_axis_ok": true
+  },
+  {
+   "no": 1172,
+   "name": "정태영",
+   "excel_grade": "감리원",
+   "excel_cert": "정보시스템감리협회 제1172호",
+   "db_grade": "수석감리원",
+   "db_cert": "정보시스템감리협회 제1172호",
+   "db_senior": "정보시스템감리협회 제1352호",
+   "cert_axis_ok": true
+  },
+  {
+   "no": 1286,
+   "name": "김용백",
+   "excel_grade": "감리원",
+   "excel_cert": "정보시스템감리협회 제1286호",
+   "db_grade": "수석감리원",
+   "db_cert": "정보시스템감리협회 제1286호",
+   "db_senior": "정보시스템감리협회 제1587호",
+   "cert_axis_ok": true
+  },
+  {
+   "no": 1292,
+   "name": "박재찬",
+   "excel_grade": "감리원",
+   "excel_cert": "정보시스템감리협회 제1292호",
+   "db_grade": "수석감리원",
+   "db_cert": "정보시스템감리협회 제1292호",
+   "db_senior": "정보시스템감리협회 제1594호",
+   "cert_axis_ok": true
+  },
+  {
+   "no": 1300,
+   "name": "오병두",
+   "excel_grade": "감리원",
+   "excel_cert": "정보시스템감리협회 제1300호",
+   "db_grade": "수석감리원",
+   "db_cert": "정보시스템감리협회 제1300호",
+   "db_senior": "정보시스템감리협회 제3664호",
+   "cert_axis_ok": true
+  },
+  {
+   "no": 1314,
+   "name": "천명수",
+   "excel_grade": "감리원",
+   "excel_cert": "정보시스템감리협회 제1314호",
+   "db_grade": "수석감리원",
+   "db_cert": "정보시스템감리협회 제1314호",
+   "db_senior": "정보시스템감리협회 제2841호",
+   "cert_axis_ok": true
+  },
+  {
+   "no": 1386,
+   "name": "안옥정",
+   "excel_grade": "감리원",
+   "excel_cert": "정보시스템감리협회 제1386호",
+   "db_grade": "수석감리원",
+   "db_cert": "정보시스템감리협회 제1386호",
+   "db_senior": "정보시스템감리협회 제1602호",
+   "cert_axis_ok": true
+  },
+  {
+   "no": 1450,
+   "name": "이은옥",
+   "excel_grade": "감리원",
+   "excel_cert": "정보시스템감리협회 제1450호",
+   "db_grade": "수석감리원",
+   "db_cert": "정보시스템감리협회 제1450호",
+   "db_senior": "정보시스템감리협회 제1673호",
+   "cert_axis_ok": true
+  },
+  {
+   "no": 1562,
+   "name": "백준환",
+   "excel_grade": "감리원",
+   "excel_cert": "정보시스템감리협회 제1562호",
+   "db_grade": "수석감리원",
+   "db_cert": "정보시스템감리협회 제1562호",
+   "db_senior": "정보시스템감리협회 제1789호",
+   "cert_axis_ok": true
+  },
+  {
+   "no": 1644,
+   "name": "배헌진",
+   "excel_grade": "감리원",
+   "excel_cert": "정보시스템감리협회 제1644호",
+   "db_grade": "수석감리원",
+   "db_cert": "정보시스템감리협회 제1644호",
+   "db_senior": "정보시스템감리협회 제4009호",
+   "cert_axis_ok": true
+  },
+  {
+   "no": 1729,
+   "name": "박재영",
+   "excel_grade": "감리원",
+   "excel_cert": "정보시스템감리협회 제1729호",
+   "db_grade": "수석감리원",
+   "db_cert": "정보시스템감리협회 제1729호",
+   "db_senior": "정보시스템감리협회 제1785호",
+   "cert_axis_ok": true
+  },
+  {
+   "no": 1904,
+   "name": "김경안",
+   "excel_grade": "감리원",
+   "excel_cert": "정보시스템감리협회 제1904호",
+   "db_grade": "수석감리원",
+   "db_cert": "정보시스템감리협회 제1904호",
+   "db_senior": "정보시스템감리협회 제2226호",
+   "cert_axis_ok": true
+  },
+  {
+   "no": 1916,
+   "name": "손창호",
+   "excel_grade": "감리원",
+   "excel_cert": "정보시스템감리협회 제1916호",
+   "db_grade": "수석감리원",
+   "db_cert": "정보시스템감리협회 제1916호",
+   "db_senior": "정보시스템감리협회 제2817호",
+   "cert_axis_ok": true
+  },
+  {
+   "no": 1928,
+   "name": "정원옥",
+   "excel_grade": "감리원",
+   "excel_cert": "정보시스템감리협회 제1928호",
+   "db_grade": "수석감리원",
+   "db_cert": "정보시스템감리협회 제1928호",
+   "db_senior": "정보시스템감리협회 제5149호",
+   "cert_axis_ok": true
+  },
+  {
+   "no": 2082,
+   "name": "양승훈",
+   "excel_grade": "감리원",
+   "excel_cert": "정보시스템감리협회 제2082호",
+   "db_grade": "수석감리원",
+   "db_cert": "정보시스템감리협회 제2082호",
+   "db_senior": "정보시스템감리협회 제2248호",
+   "cert_axis_ok": true
+  },
+  {
+   "no": 2211,
+   "name": "이정빈",
+   "excel_grade": "감리원",
+   "excel_cert": "정보시스템감리협회 제2211호",
+   "db_grade": "수석감리원",
+   "db_cert": "정보시스템감리협회 제2211호",
+   "db_senior": "정보시스템감리협회 제2826호",
+   "cert_axis_ok": true
+  },
+  {
+   "no": 2212,
+   "name": "이정일",
+   "excel_grade": "감리원",
+   "excel_cert": "정보시스템감리협회 제2212호",
+   "db_grade": "수석감리원",
+   "db_cert": "정보시스템감리협회 제2212호",
+   "db_senior": "정보시스템감리협회 제2827호",
+   "cert_axis_ok": true
+  },
+  {
+   "no": 2215,
+   "name": "임대용",
+   "excel_grade": "감리원",
+   "excel_cert": "정보시스템감리협회 제2215호",
+   "db_grade": "수석감리원",
+   "db_cert": "정보시스템감리협회 제2215호",
+   "db_senior": "정보시스템감리협회 제2495호",
+   "cert_axis_ok": true
+  },
+  {
+   "no": 2217,
+   "name": "정동경",
+   "excel_grade": "감리원",
+   "excel_cert": "정보시스템감리협회 제2217호",
+   "db_grade": "수석감리원",
+   "db_cert": "정보시스템감리협회 제2217호",
+   "db_senior": "정보시스템감리협회 제3449호",
+   "cert_axis_ok": true
+  },
+  {
+   "no": 2390,
+   "name": "임지영",
+   "excel_grade": "감리원",
+   "excel_cert": "정보시스템감리협회 제2390호",
+   "db_grade": "수석감리원",
+   "db_cert": "정보시스템감리협회 제2390호",
+   "db_senior": "정보시스템감리협회 제6175호",
+   "cert_axis_ok": true
+  },
+  {
+   "no": 2544,
+   "name": "장승한",
+   "excel_grade": "감리원",
+   "excel_cert": "정보시스템감리협회 제2544호",
+   "db_grade": "수석감리원",
+   "db_cert": "정보시스템감리협회 제2544호",
+   "db_senior": "정보시스템감리협회 제3445호",
+   "cert_axis_ok": true
+  },
+  {
+   "no": 3001,
+   "name": "박경용",
+   "excel_grade": "감리원",
+   "excel_cert": "서울 제454호",
+   "db_grade": "수석감리원",
+   "db_cert": "서울 제454호",
+   "db_senior": "행정안전부 제517호",
+   "cert_axis_ok": true
+  },
+  {
+   "no": 3067,
+   "name": "안대영",
+   "excel_grade": "감리원",
+   "excel_cert": "서울 제520호",
+   "db_grade": "수석감리원",
+   "db_cert": "서울 제520호",
+   "db_senior": "행정안전부 제526호",
+   "cert_axis_ok": true
+  },
+  {
+   "no": 3096,
+   "name": "권용명",
+   "excel_grade": "감리원",
+   "excel_cert": "서울 제549호",
+   "db_grade": "수석감리원",
+   "db_cert": "서울 제549호",
+   "db_senior": "정보시스템감리협회 제3332호",
+   "cert_axis_ok": true
+  },
+  {
+   "no": 3108,
+   "name": "신현천",
+   "excel_grade": "감리원",
+   "excel_cert": "서울 제561호",
+   "db_grade": "수석감리원",
+   "db_cert": "서울 제561호",
+   "db_senior": "행정안전부 제278호",
+   "cert_axis_ok": true
+  },
+  {
+   "no": 3124,
+   "name": "조일권",
+   "excel_grade": "감리원",
+   "excel_cert": "서울 제577호",
+   "db_grade": "수석감리원",
+   "db_cert": "서울 제577호",
+   "db_senior": "행정안전부 제59호",
+   "cert_axis_ok": true
+  },
+  {
+   "no": 3376,
+   "name": "이직",
+   "excel_grade": "감리원",
+   "excel_cert": "서울 제829호",
+   "db_grade": "수석감리원",
+   "db_cert": "서울 제829호",
+   "db_senior": "행정안전부 제279호",
+   "cert_axis_ok": true
+  },
+  {
+   "no": 3552,
+   "name": "조범순",
+   "excel_grade": "감리원",
+   "excel_cert": "행정안전부 제32호",
+   "db_grade": "수석감리원",
+   "db_cert": "행정안전부 제32호",
+   "db_senior": "행정안전부 제277호",
+   "cert_axis_ok": true
+  },
+  {
+   "no": 3590,
+   "name": "조준영",
+   "excel_grade": "감리원",
+   "excel_cert": "행정안전부 제70호",
+   "db_grade": "수석감리원",
+   "db_cert": "행정안전부 제70호",
+   "db_senior": "행정안전부 제205호",
+   "cert_axis_ok": true
+  },
+  {
+   "no": 3611,
+   "name": "이동호",
+   "excel_grade": "감리원",
+   "excel_cert": "행정안전부 제91호",
+   "db_grade": "수석감리원",
+   "db_cert": "행정안전부 제91호",
+   "db_senior": "행정안전부 제208호",
+   "cert_axis_ok": true
+  },
+  {
+   "no": 3695,
+   "name": "김용갑",
+   "excel_grade": "감리원",
+   "excel_cert": "행정안전부 제175호",
+   "db_grade": "수석감리원",
+   "db_cert": "행정안전부 제175호",
+   "db_senior": "행정안전부 제509호",
+   "cert_axis_ok": true
+  },
+  {
+   "no": 3893,
+   "name": "이영화",
+   "excel_grade": "감리원",
+   "excel_cert": "행정안전부 제373호",
+   "db_grade": "수석감리원",
+   "db_cert": "행정안전부 제373호",
+   "db_senior": "행정안전부 제533호",
+   "cert_axis_ok": true
+  },
+  {
+   "no": 4379,
+   "name": "김상곤",
+   "excel_grade": "감리원",
+   "excel_cert": "정보시스템감리협회 제2635호",
+   "db_grade": "수석감리원",
+   "db_cert": "정보시스템감리협회 제2635호",
+   "db_senior": "정보시스템감리협회 제5457호",
+   "cert_axis_ok": true
+  },
+  {
+   "no": 4593,
+   "name": "김영빈",
+   "excel_grade": "감리원",
+   "excel_cert": "정보시스템감리협회 제2849호",
+   "db_grade": "수석감리원",
+   "db_cert": "정보시스템감리협회 제2849호",
+   "db_senior": "정보시스템감리협회 제3427호",
+   "cert_axis_ok": true
+  },
+  {
+   "no": 4839,
+   "name": "윤용하",
+   "excel_grade": "감리원",
+   "excel_cert": "정보시스템감리협회 제3094호",
+   "db_grade": "수석감리원",
+   "db_cert": "정보시스템감리협회 제3094호",
+   "db_senior": "정보시스템감리협회 제5471호",
+   "cert_axis_ok": true
+  },
+  {
+   "no": 5143,
+   "name": "이설웅",
+   "excel_grade": "감리원",
+   "excel_cert": "정보시스템감리협회 제3398호",
+   "db_grade": "수석감리원",
+   "db_cert": "정보시스템감리협회 제3398호",
+   "db_senior": "정보시스템감리협회 제4014호",
+   "cert_axis_ok": true
+  },
+  {
+   "no": 5156,
+   "name": "정재훈",
+   "excel_grade": "감리원",
+   "excel_cert": "정보시스템감리협회 제3411호",
+   "db_grade": "수석감리원",
+   "db_cert": "정보시스템감리협회 제3411호",
+   "db_senior": "정보시스템감리협회 제4711호",
+   "cert_axis_ok": true
+  },
+  {
+   "no": 5869,
+   "name": "김송준",
+   "excel_grade": "감리원",
+   "excel_cert": "정보시스템감리협회 제4123호",
+   "db_grade": "수석감리원",
+   "db_cert": "정보시스템감리협회 제4123호",
+   "db_senior": "정보시스템감리협회 제4683호",
+   "cert_axis_ok": true
+  },
+  {
+   "no": 5973,
+   "name": "김주일",
+   "excel_grade": "감리원",
+   "excel_cert": "정보시스템감리협회 제4227호",
+   "db_grade": "수석감리원",
+   "db_cert": "정보시스템감리협회 제4227호",
+   "db_senior": "정보시스템감리협회 제4688호",
+   "cert_axis_ok": true
+  },
+  {
+   "no": 6131,
+   "name": "염주일",
+   "excel_grade": "감리원",
+   "excel_cert": "정보시스템감리협회 제4384호",
+   "db_grade": "수석감리원",
+   "db_cert": "정보시스템감리협회 제4384호",
+   "db_senior": "정보시스템감리협회 제4696호",
+   "cert_axis_ok": true
+  },
+  {
+   "no": 6175,
+   "name": "전경일",
+   "excel_grade": "감리원",
+   "excel_cert": "정보시스템감리협회 제4428호",
+   "db_grade": "수석감리원",
+   "db_cert": "정보시스템감리협회 제4428호",
+   "db_senior": "정보시스템감리협회 제5482호",
+   "cert_axis_ok": true
+  },
+  {
+   "no": 6921,
+   "name": "송인규",
+   "excel_grade": "감리원",
+   "excel_cert": "정보시스템감리협회 제5176호",
+   "db_grade": "수석감리원",
+   "db_cert": "정보시스템감리협회 제5176호",
+   "db_senior": "정보시스템감리협회 제6162호",
+   "cert_axis_ok": true
+  },
+  {
+   "no": 6996,
+   "name": "김정희",
+   "excel_grade": "감리원",
+   "excel_cert": "정보시스템감리협회 제5251호",
+   "db_grade": "수석감리원",
+   "db_cert": "정보시스템감리협회 제5251호",
+   "db_senior": "정보시스템감리협회 제6149호",
+   "cert_axis_ok": true
+  },
+  {
+   "no": 7169,
+   "name": "신규석",
+   "excel_grade": "감리원",
+   "excel_cert": "정보시스템감리협회 제5423호",
+   "db_grade": "감리원",
+   "db_cert": "정보시스템감리협회 제5614호",
+   "db_senior": "",
+   "cert_axis_ok": false
+  }
+ ],
+ "membership_grades_master": [
+  {
+   "id": "11ac94e7-56a4-4460-8153-c0431fe20f0c",
+   "name": "연간"
+  },
+  {
+   "id": "38a26d73-d825-4dea-8709-3afad2534e5a",
+   "name": "일반"
+  },
+  {
+   "id": "abc7fc33-33c5-4690-a4af-807f2075e063",
+   "name": "평생"
+  }
+ ],
+ "member_grade_histories": 7,
+ "trainees_with_membership_grade": 7690,
+ "lifetime_sheet": 922,
+ "lifetime_with_grade_in_db": 918,
+ "annual_sheet": 165,
+ "annual_with_grade_in_db": 161,
+ "member_not_found_in_db": [
+  {
+   "no": 83,
+   "member_grade": "평생회원",
+   "name": "김영남",
+   "birth": "1956-04-29T00:00:00",
+   "sup_grade": "수석감리원",
+   "cert_no": "서울 제652호",
+   "phone": "010-7739-5692",
+   "email": "kimyn0101@hanmail.net"
+  },
+  {
+   "no": 474,
+   "member_grade": "평생회원",
+   "name": "김은오",
+   "birth": "1963-03-09T00:00:00",
+   "sup_grade": "수석감리원",
+   "cert_no": "정보시스테감리협회 제3122호",
+   "phone": "010-3017-7175",
+   "email": "keoking@naver.com"
+  },
+  {
+   "no": 834,
+   "member_grade": "평생회원",
+   "name": "이금섭",
+   "birth": "1963-03-11T00:00:00",
+   "sup_grade": "감리원",
+   "cert_no": "정보시스템감리협회 제46660호",
+   "phone": "010-3042-2901",
+   "email": "kumsup.lee@gmail.com"
+  },
+  {
+   "no": 921,
+   "member_grade": "평생회원",
+   "name": "이숙희",
+   "birth": "1968-06-25T00:00:00",
+   "sup_grade": null,
+   "cert_no": "감리원번호 나올 예정",
+   "phone": "010-2694-3386",
+   "email": "esuki0625@naver.com"
+  },
+  {
+   "no": 63,
+   "member_grade": "연간회원",
+   "name": "이형준",
+   "birth": "1967-11-04T00:00:00",
+   "sup_grade": "감리원",
+   "cert_no": "감리협회 제1084호",
+   "phone": null,
+   "email": null,
+   "pay26": null
+  },
+  {
+   "no": 94,
+   "member_grade": "연간회원",
+   "name": "신영기",
+   "birth": "1962-11-16T00:00:00",
+   "sup_grade": "감리원",
+   "cert_no": "행정안정부 제369호",
+   "phone": "010-5623-2256",
+   "email": "yksin6211@ naver.com",
+   "pay26": "2026-04-15T00:00:00"
+  },
+  {
+   "no": 192,
+   "member_grade": "연간회원",
+   "name": "정원우",
+   "birth": "1969-01-22T00:00:00",
+   "sup_grade": null,
+   "cert_no": "감리원번호 나올예정",
+   "phone": "010-4242-8696",
+   "email": "jww0122@naver.com",
+   "pay26": "2026-09-17T00:00:00"
+  },
+  {
+   "no": 193,
+   "member_grade": "연간회원",
+   "name": "이용훈",
+   "birth": "1968-07-08T00:00:00",
+   "sup_grade": null,
+   "cert_no": "감리원번호 나올예정",
+   "phone": "010-8258-1383",
+   "email": "stmlyhg@naver.com",
+   "pay26": "2026-09-17T00:00:00"
+  }
+ ],
+ "grade_hist_detail": [
+  {
+   "trainee_id": "2b12d66f-f741-46c1-8491-c78f2889c963",
+   "previous_grade_id": "38a26d73-d825-4dea-8709-3afad2534e5a",
+   "new_grade_id": "11ac94e7-56a4-4460-8153-c0431fe20f0c",
+   "change_reason": "",
+   "changed_at": "2026-10-06T10:07:57.013385+00:00"
+  },
+  {
+   "trainee_id": "2d0ee7c6-6acc-4366-8cea-139b1f5d7d51",
+   "previous_grade_id": "",
+   "new_grade_id": "38a26d73-d825-4dea-8709-3afad2534e5a",
+   "change_reason": "",
+   "changed_at": "2026-10-16T02:30:44.599732+00:00"
+  },
+  {
+   "trainee_id": "778a1d42-22a6-4b72-856b-3d4a028a91e2",
+   "previous_grade_id": "",
+   "new_grade_id": "abc7fc33-33c5-4690-a4af-807f2075e063",
+   "change_reason": "",
+   "changed_at": "2026-11-03T03:27:32.857388+00:00"
+  },
+  {
+   "trainee_id": "4aa9c636-5ca2-4000-b5e0-cc6b1319aff6",
+   "previous_grade_id": "38a26d73-d825-4dea-8709-3afad2534e5a",
+   "new_grade_id": "abc7fc33-33c5-4690-a4af-807f2075e063",
+   "change_reason": "",
+   "changed_at": "2026-11-03T03:27:43.767842+00:00"
+  },
+  {
+   "trainee_id": "33f29440-2254-4a6d-9bec-a093e68403a6",
+   "previous_grade_id": "",
+   "new_grade_id": "11ac94e7-56a4-4460-8153-c0431fe20f0c",
+   "change_reason": "",
+   "changed_at": "2026-11-03T03:28:06.995760+00:00"
+  },
+  {
+   "trainee_id": "34ae0e0f-f5fc-4f1e-a64c-4300912ad648",
+   "previous_grade_id": "",
+   "new_grade_id": "abc7fc33-33c5-4690-a4af-807f2075e063",
+   "change_reason": "",
+   "changed_at": "2026-11-03T03:28:26.829729+00:00"
+  },
+  {
+   "trainee_id": "8dd2fab0-3c8c-4bd0-907b-00c5bba38e98",
+   "previous_grade_id": "38a26d73-d825-4dea-8709-3afad2534e5a",
+   "new_grade_id": "11ac94e7-56a4-4460-8153-c0431fe20f0c",
+   "change_reason": "",
+   "changed_at": "2026-11-03T04:04:41.223464+00:00"
+  }
+ ]
+}

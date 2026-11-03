@@ -8,6 +8,7 @@
 클라이언트가 보낸 trainee_id 는 절대 신뢰하지 않는다.
 """
 
+import sentry_sdk
 from fastapi import Depends, Request
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -62,6 +63,8 @@ async def get_current_user(
     user = await resolve_user_session(db, token)
     if user is None:
         raise api_error("SESSION_EXPIRED")
+    # Sentry 이슈별 회원 식별 — 개인회원 이름은 암호화 저장이라 id 만 실는다
+    sentry_sdk.set_user({"id": str(user.id)})
     return user
 
 
@@ -81,6 +84,9 @@ async def require_admin(
         raise api_error("UNAUTHORIZED")
     if admin.status != "active":
         raise api_error("ACCOUNT_DISABLED")
+    sentry_sdk.set_user(
+        {"id": str(admin.id), "email": admin.email, "username": admin.name}
+    )
     return admin
 
 
@@ -105,4 +111,6 @@ async def get_current_trainee(
     ).scalar_one_or_none()
     if trainee is None:
         raise api_error("TRAINEE_NOT_LINKED")
+    # 어떤 교육생 이력에서 터졌는지 — 이슈 필터용
+    sentry_sdk.set_tag("trainee_id", str(trainee.id))
     return trainee

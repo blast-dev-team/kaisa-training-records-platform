@@ -9,6 +9,10 @@ interface ImportMetaEnv {
   readonly VITE_PORTONE_CHANNEL_KEY?: string;
   /** 포트원 본인인증 채널 키 — 결제 채널과 별개 */
   readonly VITE_PORTONE_IDENTITY_CHANNEL_KEY?: string;
+  /** Sentry DSN — 비우면 Sentry 비활성화 (로컬 기본) */
+  readonly VITE_SENTRY_DSN?: string;
+  /** Sentry 릴리즈 식별자 (선택) — 비우면 릴리즈 미지정 */
+  readonly VITE_RELEASE?: string;
 }
 
 interface ImportMeta {

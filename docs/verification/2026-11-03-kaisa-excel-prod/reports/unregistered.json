@@ -1,0 +1,7728 @@
+{
+ "수강신청": {
+  "총행": 13007,
+  "유효": 9416,
+  "R1_비유효_등록불가": {
+   "count": 3591,
+   "breakdown": {
+    "#N/A": 3564,
+    "비수치": 27
+   }
+  },
+  "R2_중복흡수_1행만등록": {
+   "dup_keys": 30,
+   "absorbed_rows": 30
+  },
+  "R3_신규분_미반영": {
+   "count": 122,
+   "rows": [
+    {
+     "row": 12878,
+     "schdl_raw": "2382",
+     "partc_raw": "5395",
+     "schdl_sn": 2382,
+     "partc_no": 5395,
+     "hours": 14.0,
+     "recognized": 14.0,
+     "session_name": "컨소시엄",
+     "subject": "개인정보 보호관리체계 전문가 양성과정",
+     "cert_no": "정보시스템감리협회 제3649호",
+     "name": "최해형",
+     "birth": "1968-06-07"
+    },
+    {
+     "row": 12879,
+     "schdl_raw": "2384",
+     "partc_raw": "2242",
+     "schdl_sn": 2384,
+     "partc_no": 2242,
+     "hours": 4.0,
+     "recognized": 4.0,
+     "session_name": "SW보안약점",
+     "subject": "2026년 SW보안약점 진단원 보수교육(4차)",
+     "cert_no": "정보시스템감리협회 제2242호",
+     "name": "방성훈",
+     "birth": "1969-01-23"
+    },
+    {
+     "row": 12880,
+     "schdl_raw": "2385",
+     "partc_raw": "2493",
+     "schdl_sn": 2385,
+     "partc_no": 2493,
+     "hours": 16.0,
+     "recognized": 16.0,
+     "session_name": "감리원특급",
+     "subject": "감리원특급(온라인집합)",
+     "cert_no": "정보시스템감리협회 제2493호",
+     "name": "이철",
+     "birth": "1965-02-02"
+    },
+    {
+     "row": 12881,
+     "schdl_raw": "2386",
+     "partc_raw": "6563",
+     "schdl_sn": 2386,
+     "partc_no": 6563,
+     "hours": 4.0,
+     "recognized": 4.0,
+     "session_name": "Agentic AI",
+     "subject": "기업용 자율 에이전트 개발",
+     "cert_no": "정보시스템감리협회 제4815호",
+     "name": "김영상",
+     "birth": "1964-07-08"
+    },
+    {
+     "row": 12882,
+     "schdl_raw": "2387",
+     "partc_raw": "2253",
+     "schdl_sn": 2387,
+     "partc_no": 2253,
+     "hours": 4.0,
+     "recognized": 4.0,
+     "session_name": "SW보안약점",
+     "subject": "2026년 SW보안약점 진단원 보수교육(4차)",
+     "cert_no": "정보시스템감리협회 제2253호",
+     "name": "윤성태",
+     "birth": "1974-05-01"
+    },
+    {
+     "row": 12883,
+     "schdl_raw": "2389",
+     "partc_raw": "2118",
+     "schdl_sn": 2389,
+     "partc_no": 2118,
+     "hours": 16.0,
+     "recognized": 16.0,
+     "session_name": "인공지능 중급(일반)",
+     "subject": "인공지능 중급(일반)",
+     "cert_no": "정보시스템감리협회 제2118호",
+     "name": "이화숙",
+     "birth": "1954-12-01"
+    },
+    {
+     "row": 12884,
+     "schdl_raw": "2390",
+     "partc_raw": "3670",
+     "schdl_sn": 2390,
+     "partc_no": 3670,
+     "hours": 16.0,
+     "recognized": 16.0,
+     "session_name": "[컨소시엄] 초거대 AI(생성형AI) 이해 및 활용 과정",
+     "subject": "[컨소시엄] 초거대 AI(생성형AI) 이해 및 활용 과정",
+     "cert_no": "행정안전부 제150호",
+     "name": "장중훈",
+     "birth": "1957-04-27"
+    },
+    {
+     "row": 12885,
+     "schdl_raw": "2393",
+     "partc_raw": "7785",
+     "schdl_sn": 2393,
+     "partc_no": 7785,
+     "hours": 1.0,
+     "recognized": 1.0,
+     "session_name": "공공데이터 품질관리",
+     "subject": "공공데이터 품질관리",
+     "cert_no": "정보시스템감리협회 제6036호",
+     "name": "우석근",
+     "birth": "1969-10-25"
+    },
+    {
+     "row": 12886,
+     "schdl_raw": "2394",
+     "partc_raw": "7785",
+     "schdl_sn": 2394,
+     "partc_no": 7785,
+     "hours": 1.0,
+     "recognized": 1.0,
+     "session_name": "코딩으로 AI 인공지능 배우기 (햄스터S활용)",
+     "subject": "코딩으로 AI 인공지능 배우기 (햄스터S활용)",
+     "cert_no": "정보시스템감리협회 제6036호",
+     "name": "우석근",
+     "birth": "1969-10-25"
+    },
+    {
+     "row": 12887,
+     "schdl_raw": "2395",
+     "partc_raw": "7785",
+     "schdl_sn": 2395,
+     "partc_no": 7785,
+     "hours": 1.0,
+     "recognized": 1.0,
+     "session_name": "2026 AI 리터러시와 업무 활용과정",
+     "subject": "2026 AI 리터러시와 업무 활용과정",
+     "cert_no": "정보시스템감리협회 제6036호",
+     "name": "우석근",
+     "birth": "1969-10-25"
+    },
+    {
+     "row": 12888,
+     "schdl_raw": "2397",
+     "partc_raw": "7112",
+     "schdl_sn": 2397,
+     "partc_no": 7112,
+     "hours": 7.0,
+     "recognized": 7.0,
+     "session_name": "IT프로젝트 성과관리",
+     "subject": "IT프로젝트 성과관리",
+     "cert_no": "정보시스템감리협회 제5366호",
+     "name": "박재현",
+     "birth": "1964-05-04"
+    },
+    {
+     "row": 12889,
+     "schdl_raw": "2399",
+     "partc_raw": "7112",
+     "schdl_sn": 2399,
+     "partc_no": 7112,
+     "hours": 8.0,
+     "recognized": 8.0,
+     "session_name": "[K-디지털] 클라우드 인프라 아키텍처 설계",
+     "subject": "[K-디지털] 클라우드 인프라 아키텍처 설계",
+     "cert_no": "정보시스템감리협회 제5366호",
+     "name": "박재현",
+     "birth": "1964-05-04"
+    },
+    {
+     "row": 12890,
+     "schdl_raw": "2400",
+     "partc_raw": "7112",
+     "schdl_sn": 2400,
+     "partc_no": 7112,
+     "hours": 5.0,
+     "recognized": 5.0,
+     "session_name": "인공지능(AI) 서비스 목표 수립(이해와 방향 설정)",
+     "subject": "인공지능(AI) 서비스 목표 수립(이해와 방향 설정)",
+     "cert_no": "정보시스템감리협회 제5366호",
+     "name": "박재현",
+     "birth": "1964-05-04"
+    },
+    {
+     "row": 12891,
+     "schdl_raw": "2402",
+     "partc_raw": "3670",
+     "schdl_sn": 2402,
+     "partc_no": 3670,
+     "hours": 4.0,
+     "recognized": 4.0,
+     "session_name": "[컨소시엄] 멀티모달(Multimodal) 프롬프트 과정",
+     "subject": "[컨소시엄] 멀티모달(Multimodal) 프롬프트 과정",
+     "cert_no": "행정안전부 제150호",
+     "name": "장중훈",
+     "birth": "1957-04-27"
+    },
+    {
+     "row": 12892,
+     "schdl_raw": "2403",
+     "partc_raw": "4698",
+     "schdl_sn": 2403,
+     "partc_no": 4698,
+     "hours": 7.0,
+     "recognized": 7.0,
+     "session_name": "코드품질 향상을 위한 SonarQube 활용",
+     "subject": "코드품질 향상을 위한 SonarQube 활용",
+     "cert_no": "정보시스템감리협회 제2953호",
+     "name": "안영근",
+     "birth": "1966-12-12"
+    },
+    {
+     "row": 12893,
+     "schdl_raw": "2405",
+     "partc_raw": "4698",
+     "schdl_sn": 2405,
+     "partc_no": 4698,
+     "hours": 7.0,
+     "recognized": 7.0,
+     "session_name": "클라우드 환경하에서 소프트웨어 테스트기법",
+     "subject": "클라우드 환경하에서 소프트웨어 테스트기법",
+     "cert_no": "정보시스템감리협회 제2953호",
+     "name": "안영근",
+     "birth": "1966-12-12"
+    },
+    {
+     "row": 12894,
+     "schdl_raw": "2406",
+     "partc_raw": "3667",
+     "schdl_sn": 2406,
+     "partc_no": 3667,
+     "hours": 16.0,
+     "recognized": 16.0,
+     "session_name": "(2026년) 감리원 중급이하 비대면 실시간 화상교육 제8기(2차)",
+     "subject": "(2026년) 감리원 중급이하 비대면 실시간 화상교육 제8기(2차)",
+     "cert_no": "행정안전부 제147호",
+     "name": "정회영",
+     "birth": "1970-07-20"
+    },
+    {
+     "row": 12895,
+     "schdl_raw": "2407",
+     "partc_raw": "7785",
+     "schdl_sn": 2407,
+     "partc_no": 7785,
+     "hours": 16.0,
+     "recognized": 16.0,
+     "session_name": "2026년 개인정보 영향평가 전군교육(하반기,1차)",
+     "subject": "2026년 개인정보 영향평가 전군교육(하반기,1차)",
+     "cert_no": "정보시스템감리협회 제6036호",
+     "name": "우석근",
+     "birth": "1969-10-25"
+    },
+    {
+     "row": 12896,
+     "schdl_raw": "2409",
+     "partc_raw": "3670",
+     "schdl_sn": 2409,
+     "partc_no": 3670,
+     "hours": 2.0,
+     "recognized": 2.0,
+     "session_name": "[컨소시엄] 초거대 AI 트렌드 이해 과정",
+     "subject": "[컨소시엄] 초거대 AI 트렌드 이해 과정",
+     "cert_no": "행정안전부 제150호",
+     "name": "장중훈",
+     "birth": "1957-04-27"
+    },
+    {
+     "row": 12897,
+     "schdl_raw": "2411",
+     "partc_raw": "3670",
+     "schdl_sn": 2411,
+     "partc_no": 3670,
+     "hours": 8.0,
+     "recognized": 8.0,
+     "session_name": "[컨소시엄] 현장 중심의 PM(Project Manager) 양성 과정",
+     "subject": "[컨소시엄] 현장 중심의 PM(Project Manager) 양성 과정",
+     "cert_no": "행정안전부 제150호",
+     "name": "장중훈",
+     "birth": "1957-04-27"
+    },
+    {
+     "row": 12898,
+     "schdl_raw": "2413",
+     "partc_raw": "3670",
+     "schdl_sn": 2413,
+     "partc_no": 3670,
+     "hours": 4.0,
+     "recognized": 4.0,
+     "session_name": "[컨소시엄] 생성형 AI를 활용한 업무혁신 과정",
+     "subject": "[컨소시엄] 생성형 AI를 활용한 업무혁신 과정",
+     "cert_no": "행정안전부 제150호",
+     "name": "장중훈",
+     "birth": "1957-04-27"
+    },
+    {
+     "row": 12899,
+     "schdl_raw": "2415",
+     "partc_raw": "3667",
+     "schdl_sn": 2415,
+     "partc_no": 3667,
+     "hours": 3.0,
+     "recognized": 3.0,
+     "session_name": "2026년 7월 스마트공장 수준확인 심사원 정기 교육",
+     "subject": "2026년 7월 스마트공장 수준확인 심사원 정기 교육",
+     "cert_no": "행정안전부 제147호",
+     "name": "정회영",
+     "birth": "1970-07-20"
+    },
+    {
+     "row": 12900,
+     "schdl_raw": "2416",
+     "partc_raw": "3667",
+     "schdl_sn": 2416,
+     "partc_no": 3667,
+     "hours": 4.0,
+     "recognized": 4.0,
+     "session_name": "2026년 SW보안약점 진단원 보수교육(1차)",
+     "subject": "2026년 SW보안약점 진단원 보수교육(1차)",
+     "cert_no": "행정안전부 제147호",
+     "name": "정회영",
+     "birth": "1970-07-20"
+    },
+    {
+     "row": 12901,
+     "schdl_raw": "2416",
+     "partc_raw": "4698",
+     "schdl_sn": 2416,
+     "partc_no": 4698,
+     "hours": 4.0,
+     "recognized": 4.0,
+     "session_name": "2026년 SW보안약점 진단원 보수교육(1차)",
+     "subject": "2026년 SW보안약점 진단원 보수교육(1차)",
+     "cert_no": "정보시스템감리협회 제2953호",
+     "name": "안영근",
+     "birth": "1966-12-12"
+    },
+    {
+     "row": 12902,
+     "schdl_raw": "2417",
+     "partc_raw": "4698",
+     "schdl_sn": 2417,
+     "partc_no": 4698,
+     "hours": 4.0,
+     "recognized": 4.0,
+     "session_name": "SW보안약점 진단원 보수교육[1차]",
+     "subject": "SW보안약점 진단원 보수교육[1차]",
+     "cert_no": "정보시스템감리협회 제2953호",
+     "name": "안영근",
+     "birth": "1966-12-12"
+    },
+    {
+     "row": 12903,
+     "schdl_raw": "2083",
+     "partc_raw": "4698",
+     "schdl_sn": 2083,
+     "partc_no": 4698,
+     "hours": 8.0,
+     "recognized": 8.0,
+     "session_name": "개발보안 및 소스코드 품질",
+     "subject": "개발보안 및 소스코드 품질",
+     "cert_no": "정보시스템감리협회 제2953호",
+     "name": "안영근",
+     "birth": "1966-12-12"
+    },
+    {
+     "row": 12904,
+     "schdl_raw": "2418",
+     "partc_raw": "3670",
+     "schdl_sn": 2418,
+     "partc_no": 3670,
+     "hours": 16.0,
+     "recognized": 16.0,
+     "session_name": "감리원 중급이하(온라인집합)",
+     "subject": "감리원 중급이하(온라인집합)",
+     "cert_no": "행정안전부 제150호",
+     "name": "장중훈",
+     "birth": "1957-04-27"
+    },
+    {
+     "row": 12905,
+     "schdl_raw": "2083",
+     "partc_raw": "6126",
+     "schdl_sn": 2083,
+     "partc_no": 6126,
+     "hours": 8.0,
+     "recognized": 8.0,
+     "session_name": "개발보안 및 소스코드 품질",
+     "subject": "개발보안 및 소스코드 품질",
+     "cert_no": "정보시스템감리협회 제4379호",
+     "name": "백승원",
+     "birth": "1997-08-23"
+    },
+    {
+     "row": 12906,
+     "schdl_raw": "2083",
+     "partc_raw": "5616",
+     "schdl_sn": 2083,
+     "partc_no": 5616,
+     "hours": 8.0,
+     "recognized": 8.0,
+     "session_name": "개발보안 및 소스코드 품질",
+     "subject": "개발보안 및 소스코드 품질",
+     "cert_no": "정보시스템감리협회 제3870호",
+     "name": "유진영",
+     "birth": "1968-09-05"
+    },
+    {
+     "row": 12907,
+     "schdl_raw": "2083",
+     "partc_raw": "4996",
+     "schdl_sn": 2083,
+     "partc_no": 4996,
+     "hours": 8.0,
+     "recognized": 8.0,
+     "session_name": "개발보안 및 소스코드 품질",
+     "subject": "개발보안 및 소스코드 품질",
+     "cert_no": "정보시스템감리협회 제3251호",
+     "name": "권혁천",
+     "birth": "1959-11-02"
+    },
+    {
+     "row": 12908,
+     "schdl_raw": "2083",
+     "partc_raw": "3678",
+     "schdl_sn": 2083,
+     "partc_no": 3678,
+     "hours": 8.0,
+     "recognized": 8.0,
+     "session_name": "개발보안 및 소스코드 품질",
+     "subject": "개발보안 및 소스코드 품질",
+     "cert_no": "행정안전부 제158호",
+     "name": "김성경",
+     "birth": "1964-09-03"
+    },
+    {
+     "row": 12909,
+     "schdl_raw": "2083",
+     "partc_raw": "1588",
+     "schdl_sn": 2083,
+     "partc_no": 1588,
+     "hours": 8.0,
+     "recognized": 8.0,
+     "session_name": "개발보안 및 소스코드 품질",
+     "subject": "개발보안 및 소스코드 품질",
+     "cert_no": "정보시스템감리협회 제1588호",
+     "name": "김욱환",
+     "birth": "1972-06-27"
+    },
+    {
+     "row": 12910,
+     "schdl_raw": "2083",
+     "partc_raw": "5278",
+     "schdl_sn": 2083,
+     "partc_no": 5278,
+     "hours": 8.0,
+     "recognized": 8.0,
+     "session_name": "개발보안 및 소스코드 품질",
+     "subject": "개발보안 및 소스코드 품질",
+     "cert_no": "정보시스템감리협회 제3532호",
+     "name": "김제유",
+     "birth": "1965-02-22"
+    },
+    {
+     "row": 12911,
+     "schdl_raw": "2083",
+     "partc_raw": "5797",
+     "schdl_sn": 2083,
+     "partc_no": 5797,
+     "hours": 8.0,
+     "recognized": 8.0,
+     "session_name": "개발보안 및 소스코드 품질",
+     "subject": "개발보안 및 소스코드 품질",
+     "cert_no": "정보시스템감리협회 제4051호",
+     "name": "김주홍",
+     "birth": "1968-04-01"
+    },
+    {
+     "row": 12912,
+     "schdl_raw": "2083",
+     "partc_raw": "2279",
+     "schdl_sn": 2083,
+     "partc_no": 2279,
+     "hours": 8.0,
+     "recognized": 8.0,
+     "session_name": "개발보안 및 소스코드 품질",
+     "subject": "개발보안 및 소스코드 품질",
+     "cert_no": "정보시스템감리협회 제2279호",
+     "name": "남재근",
+     "birth": "1957-10-27"
+    },
+    {
+     "row": 12913,
+     "schdl_raw": "2083",
+     "partc_raw": "4037",
+     "schdl_sn": 2083,
+     "partc_no": 4037,
+     "hours": 8.0,
+     "recognized": 8.0,
+     "session_name": "개발보안 및 소스코드 품질",
+     "subject": "개발보안 및 소스코드 품질",
+     "cert_no": "행정안전부 제 517호",
+     "name": "박경용",
+     "birth": "1959-11-15"
+    },
+    {
+     "row": 12914,
+     "schdl_raw": "2083",
+     "partc_raw": "4434",
+     "schdl_sn": 2083,
+     "partc_no": 4434,
+     "hours": 8.0,
+     "recognized": 8.0,
+     "session_name": "개발보안 및 소스코드 품질",
+     "subject": "개발보안 및 소스코드 품질",
+     "cert_no": "정보시스템감리협회 제2690호",
+     "name": "박명수",
+     "birth": "1962-05-22"
+    },
+    {
+     "row": 12915,
+     "schdl_raw": "2083",
+     "partc_raw": "2168",
+     "schdl_sn": 2083,
+     "partc_no": 2168,
+     "hours": 8.0,
+     "recognized": 8.0,
+     "session_name": "개발보안 및 소스코드 품질",
+     "subject": "개발보안 및 소스코드 품질",
+     "cert_no": "정보시스템감리협회 제2168호",
+     "name": "박용진",
+     "birth": "1961-08-14"
+    },
+    {
+     "row": 12916,
+     "schdl_raw": "2083",
+     "partc_raw": "3389",
+     "schdl_sn": 2083,
+     "partc_no": 3389,
+     "hours": 8.0,
+     "recognized": 8.0,
+     "session_name": "개발보안 및 소스코드 품질",
+     "subject": "개발보안 및 소스코드 품질",
+     "cert_no": "서울 제 842호",
+     "name": "박을용",
+     "birth": "1963-01-05"
+    },
+    {
+     "row": 12917,
+     "schdl_raw": "2083",
+     "partc_raw": "5303",
+     "schdl_sn": 2083,
+     "partc_no": 5303,
+     "hours": 8.0,
+     "recognized": 8.0,
+     "session_name": "개발보안 및 소스코드 품질",
+     "subject": "개발보안 및 소스코드 품질",
+     "cert_no": "정보시스템감리협회 제3557호",
+     "name": "신태갑",
+     "birth": "1962-08-05"
+    },
+    {
+     "row": 12918,
+     "schdl_raw": "2083",
+     "partc_raw": "3809",
+     "schdl_sn": 2083,
+     "partc_no": 3809,
+     "hours": 8.0,
+     "recognized": 8.0,
+     "session_name": "개발보안 및 소스코드 품질",
+     "subject": "개발보안 및 소스코드 품질",
+     "cert_no": "행정안전부 제289호",
+     "name": "원종빈",
+     "birth": "1961-01-27"
+    },
+    {
+     "row": 12919,
+     "schdl_raw": "2083",
+     "partc_raw": "6324",
+     "schdl_sn": 2083,
+     "partc_no": 6324,
+     "hours": 8.0,
+     "recognized": 8.0,
+     "session_name": "개발보안 및 소스코드 품질",
+     "subject": "개발보안 및 소스코드 품질",
+     "cert_no": "정보시스템감리협회 제4576호",
+     "name": "이동욱",
+     "birth": "1965-08-01"
+    },
+    {
+     "row": 12920,
+     "schdl_raw": "2083",
+     "partc_raw": "3280",
+     "schdl_sn": 2083,
+     "partc_no": 3280,
+     "hours": 8.0,
+     "recognized": 8.0,
+     "session_name": "개발보안 및 소스코드 품질",
+     "subject": "개발보안 및 소스코드 품질",
+     "cert_no": "서울 제 733호",
+     "name": "전재영",
+     "birth": "1957-09-22"
+    },
+    {
+     "row": 12921,
+     "schdl_raw": "2083",
+     "partc_raw": "3019",
+     "schdl_sn": 2083,
+     "partc_no": 3019,
+     "hours": 8.0,
+     "recognized": 8.0,
+     "session_name": "개발보안 및 소스코드 품질",
+     "subject": "개발보안 및 소스코드 품질",
+     "cert_no": "서울 제 472호",
+     "name": "정은주",
+     "birth": "1959-01-24"
+    },
+    {
+     "row": 12922,
+     "schdl_raw": "2083",
+     "partc_raw": "4912",
+     "schdl_sn": 2083,
+     "partc_no": 4912,
+     "hours": 8.0,
+     "recognized": 8.0,
+     "session_name": "개발보안 및 소스코드 품질",
+     "subject": "개발보안 및 소스코드 품질",
+     "cert_no": "정보시스템감리협회 제3167호",
+     "name": "정하영",
+     "birth": "1956-02-13"
+    },
+    {
+     "row": 12923,
+     "schdl_raw": "2083",
+     "partc_raw": "564",
+     "schdl_sn": 2083,
+     "partc_no": 564,
+     "hours": 8.0,
+     "recognized": 8.0,
+     "session_name": "개발보안 및 소스코드 품질",
+     "subject": "개발보안 및 소스코드 품질",
+     "cert_no": "정보시스템감리협회 제564호",
+     "name": "정현욱",
+     "birth": "1962-11-21"
+    },
+    {
+     "row": 12924,
+     "schdl_raw": "2083",
+     "partc_raw": "6535",
+     "schdl_sn": 2083,
+     "partc_no": 6535,
+     "hours": 8.0,
+     "recognized": 8.0,
+     "session_name": "개발보안 및 소스코드 품질",
+     "subject": "개발보안 및 소스코드 품질",
+     "cert_no": "정보시스템감리협회 제4787호",
+     "name": "조민진",
+     "birth": "1964-04-01"
+    },
+    {
+     "row": 12925,
+     "schdl_raw": "2083",
+     "partc_raw": "2464",
+     "schdl_sn": 2083,
+     "partc_no": 2464,
+     "hours": 8.0,
+     "recognized": 8.0,
+     "session_name": "개발보안 및 소스코드 품질",
+     "subject": "개발보안 및 소스코드 품질",
+     "cert_no": "정보시스템감리협회 제2464호",
+     "name": "최원영",
+     "birth": "1962-04-29"
+    },
+    {
+     "row": 12926,
+     "schdl_raw": "2083",
+     "partc_raw": "4857",
+     "schdl_sn": 2083,
+     "partc_no": 4857,
+     "hours": 8.0,
+     "recognized": 8.0,
+     "session_name": "개발보안 및 소스코드 품질",
+     "subject": "개발보안 및 소스코드 품질",
+     "cert_no": "정보시스템감리협회 제3112호",
+     "name": "한경훈",
+     "birth": "1969-09-14"
+    },
+    {
+     "row": 12927,
+     "schdl_raw": "2083",
+     "partc_raw": "3330",
+     "schdl_sn": 2083,
+     "partc_no": 3330,
+     "hours": 8.0,
+     "recognized": 8.0,
+     "session_name": "개발보안 및 소스코드 품질",
+     "subject": "개발보안 및 소스코드 품질",
+     "cert_no": "서울 제 783호",
+     "name": "홍기선",
+     "birth": "1963-07-27"
+    },
+    {
+     "row": 12928,
+     "schdl_raw": "2083",
+     "partc_raw": "3458",
+     "schdl_sn": 2083,
+     "partc_no": 3458,
+     "hours": 8.0,
+     "recognized": 8.0,
+     "session_name": "개발보안 및 소스코드 품질",
+     "subject": "개발보안 및 소스코드 품질",
+     "cert_no": "서울 제 911호",
+     "name": "홍대기",
+     "birth": "1963-10-29"
+    },
+    {
+     "row": 12929,
+     "schdl_raw": "2083",
+     "partc_raw": "6284",
+     "schdl_sn": 2083,
+     "partc_no": 6284,
+     "hours": 8.0,
+     "recognized": 8.0,
+     "session_name": "개발보안 및 소스코드 품질",
+     "subject": "개발보안 및 소스코드 품질",
+     "cert_no": "정보시스템감리협회 제 4536호",
+     "name": "황선환",
+     "birth": "1969-07-01"
+    },
+    {
+     "row": 12930,
+     "schdl_raw": "2419",
+     "partc_raw": "7785",
+     "schdl_sn": 2419,
+     "partc_no": 7785,
+     "hours": 3.0,
+     "recognized": 3.0,
+     "session_name": "HCI와 함께하는 소프트웨어 공학",
+     "subject": "HCI와 함께하는 소프트웨어 공학",
+     "cert_no": "정보시스템감리협회 제6036호",
+     "name": "우석근",
+     "birth": "1969-10-25"
+    },
+    {
+     "row": 12931,
+     "schdl_raw": "2420",
+     "partc_raw": "7785",
+     "schdl_sn": 2420,
+     "partc_no": 7785,
+     "hours": 3.0,
+     "recognized": 3.0,
+     "session_name": "코팅의 기술 실습편",
+     "subject": "코팅의 기술 실습편",
+     "cert_no": "정보시스템감리협회 제6036호",
+     "name": "우석근",
+     "birth": "1969-10-25"
+    },
+    {
+     "row": 12932,
+     "schdl_raw": "2421",
+     "partc_raw": "4698",
+     "schdl_sn": 2421,
+     "partc_no": 4698,
+     "hours": 16.0,
+     "recognized": 16.0,
+     "session_name": "데이터거래사 교육 12기",
+     "subject": "데이터거래사 교육 12기",
+     "cert_no": "정보시스템감리협회 제2953호",
+     "name": "안영근",
+     "birth": "1966-12-12"
+    },
+    {
+     "row": 12933,
+     "schdl_raw": "2422",
+     "partc_raw": "4214",
+     "schdl_sn": 2422,
+     "partc_no": 4214,
+     "hours": 7.0,
+     "recognized": 7.0,
+     "session_name": "MDD 방법론 / 오픈소스 기반 개발 방법론",
+     "subject": "MDD 방법론 / 오픈소스 기반 개발 방법론",
+     "cert_no": "충주 제47호",
+     "name": "김재춘",
+     "birth": "1962-10-14"
+    },
+    {
+     "row": 12934,
+     "schdl_raw": "2423",
+     "partc_raw": "1717",
+     "schdl_sn": 2423,
+     "partc_no": 1717,
+     "hours": 7.0,
+     "recognized": 7.0,
+     "session_name": "웹 개발 기술 / EVM",
+     "subject": "웹 개발 기술 / EVM",
+     "cert_no": "정보시스템감리협회 제1717호",
+     "name": "고용진",
+     "birth": "1965-02-16"
+    },
+    {
+     "row": 12935,
+     "schdl_raw": "2424",
+     "partc_raw": "2464",
+     "schdl_sn": 2424,
+     "partc_no": 2464,
+     "hours": 7.0,
+     "recognized": 7.0,
+     "session_name": "감리 프레임워크 아키텍처 / ITA & ISP 감리",
+     "subject": "감리 프레임워크 아키텍처 / ITA & ISP 감리",
+     "cert_no": "정보시스템감리협회 제2464호",
+     "name": "최원영",
+     "birth": "1962-04-29"
+    },
+    {
+     "row": 12936,
+     "schdl_raw": "2425",
+     "partc_raw": "3203",
+     "schdl_sn": 2425,
+     "partc_no": 3203,
+     "hours": 8.0,
+     "recognized": 8.0,
+     "session_name": "전자정부프레임워크 전문과정",
+     "subject": "전자정부프레임워크 전문과정",
+     "cert_no": "서울 제656호",
+     "name": "김미령",
+     "birth": "1952-06-05"
+    },
+    {
+     "row": 12937,
+     "schdl_raw": "2425",
+     "partc_raw": "2088",
+     "schdl_sn": 2425,
+     "partc_no": 2088,
+     "hours": 8.0,
+     "recognized": 8.0,
+     "session_name": "전자정부프레임워크 전문과정",
+     "subject": "전자정부프레임워크 전문과정",
+     "cert_no": "정보시스템감리협회 제2088호",
+     "name": "이재원",
+     "birth": "1963-03-12"
+    },
+    {
+     "row": 12938,
+     "schdl_raw": "2425",
+     "partc_raw": "6411",
+     "schdl_sn": 2425,
+     "partc_no": 6411,
+     "hours": 8.0,
+     "recognized": 8.0,
+     "session_name": "전자정부프레임워크 전문과정",
+     "subject": "전자정부프레임워크 전문과정",
+     "cert_no": "정보시스템감리협회 제4663호",
+     "name": "이창희",
+     "birth": "1965-03-22"
+    },
+    {
+     "row": 12939,
+     "schdl_raw": "2425",
+     "partc_raw": "915",
+     "schdl_sn": 2425,
+     "partc_no": 915,
+     "hours": 8.0,
+     "recognized": 8.0,
+     "session_name": "전자정부프레임워크 전문과정",
+     "subject": "전자정부프레임워크 전문과정",
+     "cert_no": "정보시스템감리협회 제915호",
+     "name": "이수석",
+     "birth": "1967-09-13"
+    },
+    {
+     "row": 12940,
+     "schdl_raw": "2426",
+     "partc_raw": "3203",
+     "schdl_sn": 2426,
+     "partc_no": 3203,
+     "hours": 8.0,
+     "recognized": 8.0,
+     "session_name": "정보시스템감리원을 위한 논리적 글쓰기",
+     "subject": "정보시스템감리원을 위한 논리적 글쓰기",
+     "cert_no": "서울 제656호",
+     "name": "김미령",
+     "birth": "1952-06-05"
+    },
+    {
+     "row": 12941,
+     "schdl_raw": "2426",
+     "partc_raw": "345",
+     "schdl_sn": 2426,
+     "partc_no": 345,
+     "hours": 8.0,
+     "recognized": 8.0,
+     "session_name": "정보시스템감리원을 위한 논리적 글쓰기",
+     "subject": "정보시스템감리원을 위한 논리적 글쓰기",
+     "cert_no": "정보시스템감리협회 제345호",
+     "name": "강신학",
+     "birth": "1966-05-07"
+    },
+    {
+     "row": 12942,
+     "schdl_raw": "2426",
+     "partc_raw": "2464",
+     "schdl_sn": 2426,
+     "partc_no": 2464,
+     "hours": 8.0,
+     "recognized": 8.0,
+     "session_name": "정보시스템감리원을 위한 논리적 글쓰기",
+     "subject": "정보시스템감리원을 위한 논리적 글쓰기",
+     "cert_no": "정보시스템감리협회 제2464호",
+     "name": "최원영",
+     "birth": "1962-04-29"
+    },
+    {
+     "row": 12943,
+     "schdl_raw": "2426",
+     "partc_raw": "2088",
+     "schdl_sn": 2426,
+     "partc_no": 2088,
+     "hours": 8.0,
+     "recognized": 8.0,
+     "session_name": "정보시스템감리원을 위한 논리적 글쓰기",
+     "subject": "정보시스템감리원을 위한 논리적 글쓰기",
+     "cert_no": "정보시스템감리협회 제2088호",
+     "name": "이재원",
+     "birth": "1963-03-12"
+    },
+    {
+     "row": 12944,
+     "schdl_raw": "2426",
+     "partc_raw": "6378",
+     "schdl_sn": 2426,
+     "partc_no": 6378,
+     "hours": 8.0,
+     "recognized": 8.0,
+     "session_name": "정보시스템감리원을 위한 논리적 글쓰기",
+     "subject": "정보시스템감리원을 위한 논리적 글쓰기",
+     "cert_no": "정보시스템감리협회 제4630호",
+     "name": "장정화",
+     "birth": "1963-01-21"
+    },
+    {
+     "row": 12945,
+     "schdl_raw": "2426",
+     "partc_raw": "6002",
+     "schdl_sn": 2426,
+     "partc_no": 6002,
+     "hours": 8.0,
+     "recognized": 8.0,
+     "session_name": "정보시스템감리원을 위한 논리적 글쓰기",
+     "subject": "정보시스템감리원을 위한 논리적 글쓰기",
+     "cert_no": "정보시스템감리협회 제4256호",
+     "name": "황동환",
+     "birth": "1970-10-27"
+    },
+    {
+     "row": 12946,
+     "schdl_raw": "2426",
+     "partc_raw": "915",
+     "schdl_sn": 2426,
+     "partc_no": 915,
+     "hours": 8.0,
+     "recognized": 8.0,
+     "session_name": "정보시스템감리원을 위한 논리적 글쓰기",
+     "subject": "정보시스템감리원을 위한 논리적 글쓰기",
+     "cert_no": "정보시스템감리협회 제915호",
+     "name": "이수석",
+     "birth": "1967-09-13"
+    },
+    {
+     "row": 12947,
+     "schdl_raw": "2427",
+     "partc_raw": "7105",
+     "schdl_sn": 2427,
+     "partc_no": 7105,
+     "hours": 8.0,
+     "recognized": 8.0,
+     "session_name": "PMO 1차 과정",
+     "subject": "PMO 1차 과정",
+     "cert_no": "정보시스템감리협회 제5359호",
+     "name": "김영민",
+     "birth": "1977-01-14"
+    },
+    {
+     "row": 12948,
+     "schdl_raw": "2427",
+     "partc_raw": "3780",
+     "schdl_sn": 2427,
+     "partc_no": 3780,
+     "hours": 8.0,
+     "recognized": 8.0,
+     "session_name": "PMO 1차 과정",
+     "subject": "PMO 1차 과정",
+     "cert_no": "행정안전부 제260호",
+     "name": "이광인",
+     "birth": "1971-11-09"
+    },
+    {
+     "row": 12949,
+     "schdl_raw": "2427",
+     "partc_raw": "736",
+     "schdl_sn": 2427,
+     "partc_no": 736,
+     "hours": 8.0,
+     "recognized": 8.0,
+     "session_name": "PMO 1차 과정",
+     "subject": "PMO 1차 과정",
+     "cert_no": "정보시스템감리협회 제736호",
+     "name": "정현수",
+     "birth": "1959-01-22"
+    },
+    {
+     "row": 12950,
+     "schdl_raw": "2427",
+     "partc_raw": "6905",
+     "schdl_sn": 2427,
+     "partc_no": 6905,
+     "hours": 8.0,
+     "recognized": 8.0,
+     "session_name": "PMO 1차 과정",
+     "subject": "PMO 1차 과정",
+     "cert_no": "정보시스템감리협회 제5160호",
+     "name": "김병권",
+     "birth": "1969-10-30"
+    },
+    {
+     "row": 12951,
+     "schdl_raw": "2427",
+     "partc_raw": "915",
+     "schdl_sn": 2427,
+     "partc_no": 915,
+     "hours": 8.0,
+     "recognized": 8.0,
+     "session_name": "PMO 1차 과정",
+     "subject": "PMO 1차 과정",
+     "cert_no": "정보시스템감리협회 제915호",
+     "name": "이수석",
+     "birth": "1967-09-13"
+    },
+    {
+     "row": 12952,
+     "schdl_raw": "2428",
+     "partc_raw": "3780",
+     "schdl_sn": 2428,
+     "partc_no": 3780,
+     "hours": 8.0,
+     "recognized": 8.0,
+     "session_name": "PMO 2차 과정",
+     "subject": "PMO 2차 과정",
+     "cert_no": "행정안전부 제260호",
+     "name": "이광인",
+     "birth": "1971-11-09"
+    },
+    {
+     "row": 12953,
+     "schdl_raw": "2428",
+     "partc_raw": "6541",
+     "schdl_sn": 2428,
+     "partc_no": 6541,
+     "hours": 8.0,
+     "recognized": 8.0,
+     "session_name": "PMO 2차 과정",
+     "subject": "PMO 2차 과정",
+     "cert_no": "정보시스템감리협회 제4793호",
+     "name": "안희학",
+     "birth": "1956-09-21"
+    },
+    {
+     "row": 12954,
+     "schdl_raw": "2428",
+     "partc_raw": "1022",
+     "schdl_sn": 2428,
+     "partc_no": 1022,
+     "hours": 8.0,
+     "recognized": 8.0,
+     "session_name": "PMO 2차 과정",
+     "subject": "PMO 2차 과정",
+     "cert_no": "정보시스템감리협회 제1022호",
+     "name": "박정욱",
+     "birth": "1973-06-29"
+    },
+    {
+     "row": 12955,
+     "schdl_raw": "2428",
+     "partc_raw": "915",
+     "schdl_sn": 2428,
+     "partc_no": 915,
+     "hours": 8.0,
+     "recognized": 8.0,
+     "session_name": "PMO 2차 과정",
+     "subject": "PMO 2차 과정",
+     "cert_no": "정보시스템감리협회 제915호",
+     "name": "이수석",
+     "birth": "1967-09-13"
+    },
+    {
+     "row": 12956,
+     "schdl_raw": "2429",
+     "partc_raw": "915",
+     "schdl_sn": 2429,
+     "partc_no": 915,
+     "hours": 8.0,
+     "recognized": 8.0,
+     "session_name": "PMO 3차 과정",
+     "subject": "PMO 3차 과정",
+     "cert_no": "정보시스템감리협회 제915호",
+     "name": "이수석",
+     "birth": "1967-09-13"
+    },
+    {
+     "row": 12957,
+     "schdl_raw": "2364",
+     "partc_raw": "3203",
+     "schdl_sn": 2364,
+     "partc_no": 3203,
+     "hours": 24.0,
+     "recognized": 24.0,
+     "session_name": "PMO 통합과정",
+     "subject": "PMO 통합과정",
+     "cert_no": "서울 제656호",
+     "name": "김미령",
+     "birth": "1952-06-05"
+    },
+    {
+     "row": 12958,
+     "schdl_raw": "2364",
+     "partc_raw": "6002",
+     "schdl_sn": 2364,
+     "partc_no": 6002,
+     "hours": 24.0,
+     "recognized": 24.0,
+     "session_name": "PMO 통합과정",
+     "subject": "PMO 통합과정",
+     "cert_no": "정보시스템감리협회 제4256호",
+     "name": "황동환",
+     "birth": "1970-10-27"
+    },
+    {
+     "row": 12959,
+     "schdl_raw": "2430",
+     "partc_raw": "4574",
+     "schdl_sn": 2430,
+     "partc_no": 4574,
+     "hours": 16.0,
+     "recognized": 16.0,
+     "session_name": "2026년 SW개발보안 진단원 기본과정(1차)",
+     "subject": "2026년 SW개발보안 진단원 기본과정(1차)",
+     "cert_no": "정보시스템감리협회 제2830호",
+     "name": "이태현",
+     "birth": "1972-06-05"
+    },
+    {
+     "row": 12960,
+     "schdl_raw": "2431",
+     "partc_raw": "7234",
+     "schdl_sn": 2431,
+     "partc_no": 7234,
+     "hours": 16.0,
+     "recognized": 16.0,
+     "session_name": "SW보안약점 진단원 기(양성)본과정 [오프라인][3차]",
+     "subject": "SW보안약점 진단원 기(양성)본과정 [오프라인][3차]",
+     "cert_no": "정보시스템감리협회 제5488호",
+     "name": "하영석",
+     "birth": "1966-07-06"
+    },
+    {
+     "row": 12961,
+     "schdl_raw": "2432",
+     "partc_raw": "3599",
+     "schdl_sn": 2432,
+     "partc_no": 3599,
+     "hours": 7.0,
+     "recognized": 7.0,
+     "session_name": "웹 개발 기술 / EVM",
+     "subject": "웹 개발 기술 / EVM",
+     "cert_no": "행정안전부 제79호",
+     "name": "류경창",
+     "birth": "1970-11-01"
+    },
+    {
+     "row": 12962,
+     "schdl_raw": "2433",
+     "partc_raw": "5754",
+     "schdl_sn": 2433,
+     "partc_no": 5754,
+     "hours": 8.0,
+     "recognized": 8.0,
+     "session_name": "정보시스템감리원을 위한 논리적 글쓰기",
+     "subject": "정보시스템감리원을 위한 논리적 글쓰기",
+     "cert_no": "정보시스템감리협회 제4008호",
+     "name": "배상호",
+     "birth": "1963-11-14"
+    },
+    {
+     "row": 12963,
+     "schdl_raw": "2434",
+     "partc_raw": "3599",
+     "schdl_sn": 2434,
+     "partc_no": 3599,
+     "hours": 24.0,
+     "recognized": 24.0,
+     "session_name": "PMO 통합과정",
+     "subject": "PMO 통합과정",
+     "cert_no": "행정안전부 제79호",
+     "name": "류경창",
+     "birth": "1970-11-01"
+    },
+    {
+     "row": 12964,
+     "schdl_raw": "2434",
+     "partc_raw": "4610",
+     "schdl_sn": 2434,
+     "partc_no": 4610,
+     "hours": 24.0,
+     "recognized": 24.0,
+     "session_name": "PMO 통합과정",
+     "subject": "PMO 통합과정",
+     "cert_no": "정보시스템감리협회 제2866호",
+     "name": "송맹규",
+     "birth": "1967-08-15"
+    },
+    {
+     "row": 12965,
+     "schdl_raw": "2435",
+     "partc_raw": "6563",
+     "schdl_sn": 2435,
+     "partc_no": 6563,
+     "hours": 3.0,
+     "recognized": 3.0,
+     "session_name": "[온라인] 클라우드와 클라우드 네이티브를 위한 기본 기술과정",
+     "subject": "[온라인] 클라우드와 클라우드 네이티브를 위한 기본 기술과정",
+     "cert_no": "정보시스템감리협회 제4815호",
+     "name": "김영상",
+     "birth": "1964-07-08"
+    },
+    {
+     "row": 12966,
+     "schdl_raw": "2436",
+     "partc_raw": "5791",
+     "schdl_sn": 2436,
+     "partc_no": 5791,
+     "hours": 2.0,
+     "recognized": 2.0,
+     "session_name": "인공지능 신뢰성 인증을 통한 AI 품질 향상 방법론 과정",
+     "subject": "인공지능 신뢰성 인증을 통한 AI 품질 향상 방법론 과정",
+     "cert_no": "정보시스템감리협회 제4045호",
+     "name": "김성갑",
+     "birth": "1959-11-01"
+    },
+    {
+     "row": 12967,
+     "schdl_raw": "2437",
+     "partc_raw": "5791",
+     "schdl_sn": 2437,
+     "partc_no": 5791,
+     "hours": 7.0,
+     "recognized": 7.0,
+     "session_name": "CSTS 품질 전문가 양성 심화",
+     "subject": "CSTS 품질 전문가 양성 심화",
+     "cert_no": "정보시스템감리협회 제4045호",
+     "name": "김성갑",
+     "birth": "1959-11-01"
+    },
+    {
+     "row": 12968,
+     "schdl_raw": "2438",
+     "partc_raw": "5791",
+     "schdl_sn": 2438,
+     "partc_no": 5791,
+     "hours": 7.0,
+     "recognized": 7.0,
+     "session_name": "JMeter 기반 실전 성능테스트",
+     "subject": "JMeter 기반 실전 성능테스트",
+     "cert_no": "정보시스템감리협회 제4045호",
+     "name": "김성갑",
+     "birth": "1959-11-01"
+    },
+    {
+     "row": 12969,
+     "schdl_raw": "2439",
+     "partc_raw": "6563",
+     "schdl_sn": 2439,
+     "partc_no": 6563,
+     "hours": 16.0,
+     "recognized": 16.0,
+     "session_name": "데이터거래사 교육 15기",
+     "subject": "데이터거래사 교육 15기",
+     "cert_no": "정보시스템감리협회 제4815호",
+     "name": "김영상",
+     "birth": "1964-07-08"
+    },
+    {
+     "row": 12970,
+     "schdl_raw": "2440",
+     "partc_raw": "2118",
+     "schdl_sn": 2440,
+     "partc_no": 2118,
+     "hours": 3.0,
+     "recognized": 3.0,
+     "session_name": "제 2차 기업 실무자 대상 인공지능 신뢰성 및 인증 교육",
+     "subject": "제 2차 기업 실무자 대상 인공지능 신뢰성 및 인증 교육",
+     "cert_no": "정보시스템감리협회 제2118호",
+     "name": "이화숙",
+     "birth": "1954-12-01"
+    },
+    {
+     "row": 12971,
+     "schdl_raw": "2441",
+     "partc_raw": "783",
+     "schdl_sn": 2441,
+     "partc_no": 783,
+     "hours": 8.0,
+     "recognized": 8.0,
+     "session_name": "정보통신설비 유지보수 관리자",
+     "subject": "정보통신설비 유지보수 관리자",
+     "cert_no": "정보시스템감리협회 제783호",
+     "name": "김문기",
+     "birth": "1963-08-12"
+    },
+    {
+     "row": 12972,
+     "schdl_raw": "2442",
+     "partc_raw": "783",
+     "schdl_sn": 2442,
+     "partc_no": 783,
+     "hours": 8.0,
+     "recognized": 8.0,
+     "session_name": "AI훈련코치 역량 강화 교육_기본과정",
+     "subject": "AI훈련코치 역량 강화 교육_기본과정",
+     "cert_no": "정보시스템감리협회 제783호",
+     "name": "김문기",
+     "birth": "1963-08-12"
+    },
+    {
+     "row": 12973,
+     "schdl_raw": "2443",
+     "partc_raw": "783",
+     "schdl_sn": 2443,
+     "partc_no": 783,
+     "hours": 6.0,
+     "recognized": 6.0,
+     "session_name": "[빅데이터분석] 파이썬 웹 데이터 수집(웹API/웹스크래핑)",
+     "subject": "[빅데이터분석] 파이썬 웹 데이터 수집(웹API/웹스크래핑)",
+     "cert_no": "정보시스템감리협회 제783호",
+     "name": "김문기",
+     "birth": "1963-08-12"
+    },
+    {
+     "row": 12974,
+     "schdl_raw": "2444",
+     "partc_raw": "783",
+     "schdl_sn": 2444,
+     "partc_no": 783,
+     "hours": 3.0,
+     "recognized": 3.0,
+     "session_name": "(특별교육)[인공지능] 효율적인 LLM 서비스 개발를 위한 LangChain 입문",
+     "subject": "(특별교육)[인공지능] 효율적인 LLM 서비스 개발를 위한 LangChain 입문",
+     "cert_no": "정보시스템감리협회 제783호",
+     "name": "김문기",
+     "birth": "1963-08-12"
+    },
+    {
+     "row": 12975,
+     "schdl_raw": "2447",
+     "partc_raw": "783",
+     "schdl_sn": 2447,
+     "partc_no": 783,
+     "hours": 3.0,
+     "recognized": 3.0,
+     "session_name": "한국기술교육대학교 능력개발교육원",
+     "subject": "(특별교육)온디바이스 LLM 앱 개발 - Local LLM 의 장점 이해와 이를 활용한 온디바이스 앱 개발",
+     "cert_no": "정보시스템감리협회 제783호",
+     "name": "김문기",
+     "birth": "1963-08-12"
+    },
+    {
+     "row": 12976,
+     "schdl_raw": "2448",
+     "partc_raw": "783",
+     "schdl_sn": 2448,
+     "partc_no": 783,
+     "hours": 3.0,
+     "recognized": 3.0,
+     "session_name": "한국기술교육대학교 능력개발교육원",
+     "subject": "(특별교육) 생성형 AI(diffusion)를 활용한 영상 콘텐츠 제작",
+     "cert_no": "정보시스템감리협회 제783호",
+     "name": "김문기",
+     "birth": "1963-08-12"
+    },
+    {
+     "row": 12977,
+     "schdl_raw": "2449",
+     "partc_raw": "2903",
+     "schdl_sn": 2449,
+     "partc_no": 2903,
+     "hours": 1.0,
+     "recognized": 1.0,
+     "session_name": "(스마트제조)디지털전환(DX)멘토단 사업성실수행 교육(코칭단)",
+     "subject": "(스마트제조)디지털전환(DX)멘토단 사업성실수행 교육(코칭단)",
+     "cert_no": "서울 제356호",
+     "name": "리강민",
+     "birth": "1962-10-18"
+    },
+    {
+     "row": 12978,
+     "schdl_raw": "2450",
+     "partc_raw": "2864",
+     "schdl_sn": 2450,
+     "partc_no": 2864,
+     "hours": 2.0,
+     "recognized": 2.0,
+     "session_name": "정보보호 및 개인정보보호 관리체계(ISMS-P) 구축운영",
+     "subject": "정보보호 및 개인정보보호 관리체계(ISMS-P) 구축운영",
+     "cert_no": "서울 제317호",
+     "name": "황철구",
+     "birth": "1956-10-03"
+    },
+    {
+     "row": 12979,
+     "schdl_raw": "2451",
+     "partc_raw": "2864",
+     "schdl_sn": 2451,
+     "partc_no": 2864,
+     "hours": 1.0,
+     "recognized": 1.0,
+     "session_name": "CPO 제도 시행령,고시 개정 및 주요내용 안내",
+     "subject": "CPO 제도 시행령,고시 개정 및 주요내용 안내",
+     "cert_no": "서울 제317호",
+     "name": "황철구",
+     "birth": "1956-10-03"
+    },
+    {
+     "row": 12980,
+     "schdl_raw": "2452",
+     "partc_raw": "2864",
+     "schdl_sn": 2452,
+     "partc_no": 2864,
+     "hours": 2.0,
+     "recognized": 2.0,
+     "session_name": "해킹과 정보보안",
+     "subject": "해킹과 정보보안",
+     "cert_no": "서울 제317호",
+     "name": "황철구",
+     "birth": "1956-10-03"
+    },
+    {
+     "row": 12981,
+     "schdl_raw": "2453",
+     "partc_raw": "2864",
+     "schdl_sn": 2453,
+     "partc_no": 2864,
+     "hours": 2.0,
+     "recognized": 2.0,
+     "session_name": "SWA와 AA, 개발자에서 아키텍트되기",
+     "subject": "SWA와 AA, 개발자에서 아키텍트되기",
+     "cert_no": "서울 제317호",
+     "name": "황철구",
+     "birth": "1956-10-03"
+    },
+    {
+     "row": 12982,
+     "schdl_raw": "2457",
+     "partc_raw": "2864",
+     "schdl_sn": 2457,
+     "partc_no": 2864,
+     "hours": 1.0,
+     "recognized": 1.0,
+     "session_name": "IT인프라스트럭처 가상화 및 클라우드 컴퓨팅",
+     "subject": "IT인프라스트럭처 가상화 및 클라우드 컴퓨팅",
+     "cert_no": "서울 제317호",
+     "name": "황철구",
+     "birth": "1956-10-03"
+    },
+    {
+     "row": 12983,
+     "schdl_raw": "2459",
+     "partc_raw": "1336",
+     "schdl_sn": 2459,
+     "partc_no": 1336,
+     "hours": 16.0,
+     "recognized": 16.0,
+     "session_name": "SW보안약점 진단원 양성과정(오프라인) [3차]",
+     "subject": "SW보안약점 진단원 양성과정(오프라인) [3차]",
+     "cert_no": "정보시스템감리협회 제1336호",
+     "name": "변상선",
+     "birth": "1970-01-08"
+    },
+    {
+     "row": 12984,
+     "schdl_raw": "2467",
+     "partc_raw": "7150",
+     "schdl_sn": 2467,
+     "partc_no": 7150,
+     "hours": 7.0,
+     "recognized": 7.0,
+     "session_name": "정보보호 관리 운영 및 보안성 검토",
+     "subject": "정보보호 관리 운영 및 보안성 검토",
+     "cert_no": "정보시스템감리협회 제5404호",
+     "name": "강영원",
+     "birth": "1966-02-10"
+    },
+    {
+     "row": 12985,
+     "schdl_raw": "2468",
+     "partc_raw": "7150",
+     "schdl_sn": 2468,
+     "partc_no": 7150,
+     "hours": 7.0,
+     "recognized": 7.0,
+     "session_name": "정보보안을 위한 모델링 및 시뮬레이션",
+     "subject": "정보보안을 위한 모델링 및 시뮬레이션",
+     "cert_no": "정보시스템감리협회 제5404호",
+     "name": "강영원",
+     "birth": "1966-02-10"
+    },
+    {
+     "row": 12986,
+     "schdl_raw": "2469",
+     "partc_raw": "7150",
+     "schdl_sn": 2469,
+     "partc_no": 7150,
+     "hours": 2.0,
+     "recognized": 2.0,
+     "session_name": "[기초직업능력] 정보처리능력",
+     "subject": "[기초직업능력] 정보처리능력",
+     "cert_no": "정보시스템감리협회 제5404호",
+     "name": "강영원",
+     "birth": "1966-02-10"
+    },
+    {
+     "row": 12987,
+     "schdl_raw": "2471",
+     "partc_raw": "7150",
+     "schdl_sn": 2471,
+     "partc_no": 7150,
+     "hours": 7.0,
+     "recognized": 7.0,
+     "session_name": "정보보호 관리 운영 및 보안성 검토",
+     "subject": "정보보호 관리 운영 및 보안성 검토",
+     "cert_no": "정보시스템감리협회 제5404호",
+     "name": "강영원",
+     "birth": "1966-02-10"
+    },
+    {
+     "row": 12988,
+     "schdl_raw": "2472",
+     "partc_raw": "7150",
+     "schdl_sn": 2472,
+     "partc_no": 7150,
+     "hours": 2.0,
+     "recognized": 2.0,
+     "session_name": "[기초직업능력] 정보처리능력",
+     "subject": "[기초직업능력] 정보처리능력",
+     "cert_no": "정보시스템감리협회 제5404호",
+     "name": "강영원",
+     "birth": "1966-02-10"
+    },
+    {
+     "row": 12990,
+     "schdl_raw": "2476",
+     "partc_raw": "7150",
+     "schdl_sn": 2476,
+     "partc_no": 7150,
+     "hours": 7.0,
+     "recognized": 7.0,
+     "session_name": "정보보호 관리 운영 및 보안성 검토",
+     "subject": "정보보호 관리 운영 및 보안성 검토",
+     "cert_no": "정보시스템감리협회 제5404호",
+     "name": "강영원",
+     "birth": "1966-02-10"
+    },
+    {
+     "row": 12991,
+     "schdl_raw": "2477",
+     "partc_raw": "7150",
+     "schdl_sn": 2477,
+     "partc_no": 7150,
+     "hours": 7.0,
+     "recognized": 7.0,
+     "session_name": "정보보안을 위한 모델링 및 시뮬레이션",
+     "subject": "정보보안을 위한 모델링 및 시뮬레이션",
+     "cert_no": "정보시스템감리협회 제5404호",
+     "name": "강영원",
+     "birth": "1966-02-10"
+    },
+    {
+     "row": 12992,
+     "schdl_raw": "2478",
+     "partc_raw": "7150",
+     "schdl_sn": 2478,
+     "partc_no": 7150,
+     "hours": 2.0,
+     "recognized": 2.0,
+     "session_name": "[기초직업능력] 정보처리능력",
+     "subject": "[기초직업능력] 정보처리능력",
+     "cert_no": "정보시스템감리협회 제5404호",
+     "name": "강영원",
+     "birth": "1966-02-10"
+    },
+    {
+     "row": 12993,
+     "schdl_raw": "2480",
+     "partc_raw": "783",
+     "schdl_sn": 2480,
+     "partc_no": 783,
+     "hours": 6.0,
+     "recognized": 6.0,
+     "session_name": "[정보기술전략계획] Power BI를 활용한 데이터 분석과 시각화(기본)",
+     "subject": "[정보기술전략계획] Power BI를 활용한 데이터 분석과 시각화(기본)",
+     "cert_no": "정보시스템감리협회 제783호",
+     "name": "김문기",
+     "birth": "1963-08-12"
+    },
+    {
+     "row": 12994,
+     "schdl_raw": "2481",
+     "partc_raw": "783",
+     "schdl_sn": 2481,
+     "partc_no": 783,
+     "hours": 3.0,
+     "recognized": 3.0,
+     "session_name": "(특별교육)[인공지능] 라마인덱스(LLAMA INDEX) 활용 실습",
+     "subject": "(특별교육)[인공지능] 라마인덱스(LLAMA INDEX) 활용 실습",
+     "cert_no": "정보시스템감리협회 제783호",
+     "name": "김문기",
+     "birth": "1963-08-12"
+    },
+    {
+     "row": 12995,
+     "schdl_raw": "2482",
+     "partc_raw": "783",
+     "schdl_sn": 2482,
+     "partc_no": 783,
+     "hours": 6.0,
+     "recognized": 6.0,
+     "session_name": "(스마트공장)온디바이스 기반 인공지능 비전인식 모델 학습",
+     "subject": "(스마트공장)온디바이스 기반 인공지능 비전인식 모델 학습",
+     "cert_no": "정보시스템감리협회 제783호",
+     "name": "김문기",
+     "birth": "1963-08-12"
+    },
+    {
+     "row": 12996,
+     "schdl_raw": "2484",
+     "partc_raw": "557",
+     "schdl_sn": 2484,
+     "partc_no": 557,
+     "hours": 3.0,
+     "recognized": 3.0,
+     "session_name": "ChatGTP활용한 빅데이터분석",
+     "subject": "ChatGTP활용한 빅데이터분석",
+     "cert_no": "정보시스템감리협회 제557호",
+     "name": "홍종권",
+     "birth": "1956-08-25"
+    },
+    {
+     "row": 12997,
+     "schdl_raw": "2485",
+     "partc_raw": "557",
+     "schdl_sn": 2485,
+     "partc_no": 557,
+     "hours": 7.0,
+     "recognized": 7.0,
+     "session_name": "자율 이동체 시뮬레이션 프로그래밍",
+     "subject": "자율 이동체 시뮬레이션 프로그래밍",
+     "cert_no": "정보시스템감리협회 제557호",
+     "name": "홍종권",
+     "birth": "1956-08-25"
+    },
+    {
+     "row": 12998,
+     "schdl_raw": "2486",
+     "partc_raw": "557",
+     "schdl_sn": 2486,
+     "partc_no": 557,
+     "hours": 4.0,
+     "recognized": 4.0,
+     "session_name": "생성형 AI를 활용한 비즈니스 서비스 개발",
+     "subject": "생성형 AI를 활용한 비즈니스 서비스 개발",
+     "cert_no": "정보시스템감리협회 제557호",
+     "name": "홍종권",
+     "birth": "1956-08-25"
+    },
+    {
+     "row": 12999,
+     "schdl_raw": "2488",
+     "partc_raw": "2497",
+     "schdl_sn": 2488,
+     "partc_no": 2497,
+     "hours": 4.0,
+     "recognized": 4.0,
+     "session_name": "2026년 SW보안약점 진단원 보수교육(4차)",
+     "subject": "2026년 SW보안약점 진단원 보수교육(4차)",
+     "cert_no": "정보시스템감리협회 제2497호",
+     "name": "장지숙",
+     "birth": "1971-07-01"
+    },
+    {
+     "row": 13000,
+     "schdl_raw": "2490",
+     "partc_raw": "1336",
+     "schdl_sn": 2490,
+     "partc_no": 1336,
+     "hours": 13.0,
+     "recognized": 13.0,
+     "session_name": "개인정보 보호책임자(CPO) 기본교육 - 1회차",
+     "subject": "개인정보 보호책임자(CPO) 기본교육 - 1회차",
+     "cert_no": "정보시스템감리협회 제1336호",
+     "name": "변상선",
+     "birth": "1970-01-08"
+    }
+   ]
+  },
+  "R4_기간NULL_등록됨": {
+   "count": 2710
+  },
+  "기간미기재_세션_원본": {
+   "count": 784
+  }
+ },
+ "과정": {
+  "총": 2586,
+  "미이관_결측": {
+   "count": 199,
+   "rows": [
+    {
+     "sn": 48,
+     "institution": "(사)정보시스템감리협회",
+     "session_name": "2018년 1차 전문교육 강의",
+     "subject": null,
+     "edu_div": 2
+    },
+    {
+     "sn": 49,
+     "institution": "(사)정보시스템감리협회",
+     "session_name": "2018년 2차 전문교육 강의",
+     "subject": null,
+     "edu_div": 2
+    },
+    {
+     "sn": 50,
+     "institution": "(사)정보시스템감리협회",
+     "session_name": "2018년 1차 기본교육 강의",
+     "subject": null,
+     "edu_div": 2
+    },
+    {
+     "sn": 51,
+     "institution": "(사)정보시스템감리협회",
+     "session_name": "2018년 5차 기본교육 강의",
+     "subject": null,
+     "edu_div": 2
+    },
+    {
+     "sn": 52,
+     "institution": "(사)정보시스템감리협회",
+     "session_name": "2018년 6차 기본교육 강의",
+     "subject": null,
+     "edu_div": 2
+    },
+    {
+     "sn": 1478,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 1479,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 1480,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 1481,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2140,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2141,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2196,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2197,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2198,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2199,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2218,
+     "institution": "x",
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2219,
+     "institution": "x",
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2220,
+     "institution": "x",
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2222,
+     "institution": "x",
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2223,
+     "institution": "x",
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2224,
+     "institution": "x",
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2225,
+     "institution": "x",
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2226,
+     "institution": "x",
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2227,
+     "institution": "x",
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2259,
+     "institution": "ㅡ",
+     "session_name": "ㅡ",
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2260,
+     "institution": "ㅡ",
+     "session_name": "ㅡ",
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2261,
+     "institution": "ㅡ",
+     "session_name": "ㅡ",
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2474,
+     "institution": "ㅡ",
+     "session_name": "ㅡ",
+     "subject": "ㅡ",
+     "edu_div": 1
+    },
+    {
+     "sn": 2475,
+     "institution": "ㅡ",
+     "session_name": "ㅡ",
+     "subject": "ㅡ",
+     "edu_div": 1
+    },
+    {
+     "sn": 2476,
+     "institution": "ㅡ",
+     "session_name": "ㅡ",
+     "subject": "ㅡ",
+     "edu_div": 1
+    },
+    {
+     "sn": 2477,
+     "institution": "ㅡ",
+     "session_name": "ㅡ",
+     "subject": "ㅡ",
+     "edu_div": 1
+    },
+    {
+     "sn": 2478,
+     "institution": "ㅡ",
+     "session_name": "ㅡ",
+     "subject": "ㅡ",
+     "edu_div": 1
+    },
+    {
+     "sn": 2479,
+     "institution": "ㅡ",
+     "session_name": "ㅡ",
+     "subject": "ㅡ",
+     "edu_div": 1
+    },
+    {
+     "sn": 2480,
+     "institution": "ㅡ",
+     "session_name": "ㅡ",
+     "subject": "ㅡ",
+     "edu_div": 1
+    },
+    {
+     "sn": 2481,
+     "institution": "ㅡ",
+     "session_name": "ㅡ",
+     "subject": "ㅡ",
+     "edu_div": 1
+    },
+    {
+     "sn": 2482,
+     "institution": "ㅡ",
+     "session_name": "ㅡ",
+     "subject": "ㅡ",
+     "edu_div": 1
+    },
+    {
+     "sn": 2483,
+     "institution": "ㅡ",
+     "session_name": "ㅡ",
+     "subject": "ㅡ",
+     "edu_div": 1
+    },
+    {
+     "sn": 2484,
+     "institution": "ㅡ",
+     "session_name": "ㅡ",
+     "subject": "ㅡ",
+     "edu_div": 1
+    },
+    {
+     "sn": 2485,
+     "institution": "ㅡ",
+     "session_name": "ㅡ",
+     "subject": "ㅡ",
+     "edu_div": 1
+    },
+    {
+     "sn": 2486,
+     "institution": "ㅡ",
+     "session_name": "ㅡ",
+     "subject": "ㅡ",
+     "edu_div": 1
+    },
+    {
+     "sn": 2492,
+     "institution": "ㅡ",
+     "session_name": "ㅡ",
+     "subject": "ㅡ",
+     "edu_div": 1
+    },
+    {
+     "sn": 2493,
+     "institution": "정보통신산업진흥원",
+     "session_name": "인공지능 중급(일반)",
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2495,
+     "institution": "ㅡ",
+     "session_name": "ㅡ",
+     "subject": "ㅡ",
+     "edu_div": 1
+    },
+    {
+     "sn": 2496,
+     "institution": "ㅡ",
+     "session_name": "ㅡ",
+     "subject": "ㅡ",
+     "edu_div": 1
+    },
+    {
+     "sn": 2500,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2502,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2508,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2512,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2514,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2516,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2518,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2523,
+     "institution": "경기도평생학습포털",
+     "session_name": "HCI와 함께하는 소프트웨어 공학",
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2524,
+     "institution": "울산대학교",
+     "session_name": "코팅의 기술 실습편",
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2525,
+     "institution": "한국데이터산업협회",
+     "session_name": "데이터거래사 교육 12기",
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2526,
+     "institution": "(사)정보시스템감리협회",
+     "session_name": "MDD 방법론 / 오픈소스 기반 개발 방법론",
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2527,
+     "institution": "(사)정보시스템감리협회",
+     "session_name": "웹 개발 기술 / EVM",
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2528,
+     "institution": "(사)정보시스템감리협회",
+     "session_name": "감리 프레임워크 아키텍처 / ITA & ISP 감리",
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2529,
+     "institution": "(사)정보시스템감리협회",
+     "session_name": "전자정부프레임워크 전문과정",
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2530,
+     "institution": "(사)정보시스템감리협회",
+     "session_name": "정보시스템감리원을 위한 논리적 글쓰기",
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2531,
+     "institution": "(사)정보시스템감리협회",
+     "session_name": "PMO 1차 과정",
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2532,
+     "institution": "(사)정보시스템감리협회",
+     "session_name": "PMO 2차 과정",
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2533,
+     "institution": "(사)정보시스템감리협회",
+     "session_name": "PMO 3차 과정",
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2534,
+     "institution": "한국인터넷진흥원",
+     "session_name": "2026년 SW개발보안 진단원 기본과정(1차)",
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2535,
+     "institution": "한국인터넷진흥원",
+     "session_name": "SW보안약점 진단원 기(양성)본과정 [오프라인][3차]",
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2536,
+     "institution": "(사)정보시스템감리협회",
+     "session_name": "웹 개발 기술 / EVM",
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2537,
+     "institution": "(사)정보시스템감리협회",
+     "session_name": "정보시스템감리원을 위한 논리적 글쓰기",
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2538,
+     "institution": "(사)정보시스템감리협회",
+     "session_name": "PMO 통합과정",
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2539,
+     "institution": "한국클라우드컴퓨팅연구조합",
+     "session_name": "[온라인] 클라우드와 클라우드 네이티브를 위한 기본 기술과정",
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2540,
+     "institution": "한국정보통신기술협회",
+     "session_name": "인공지능 신뢰성 인증을 통한 AI 품질 향상 방법론 과정",
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2541,
+     "institution": "한국정보통신기술협회",
+     "session_name": "CSTS 품질 전문가 양성 심화",
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2542,
+     "institution": "한국정보통신기술협회",
+     "session_name": "JMeter 기반 실전 성능테스트",
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2543,
+     "institution": "한국데이터산업협회",
+     "session_name": "데이터거래사 교육 15기",
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2544,
+     "institution": "한국정보통신기술협회",
+     "session_name": "제 2차 기업 실무자 대상 인공지능 신뢰성 및 인증 교육",
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2545,
+     "institution": "ICT폴리텍대학",
+     "session_name": "정보통신설비 유지보수 관리자",
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2546,
+     "institution": "한국표준협회",
+     "session_name": "AI훈련코치 역량 강화 교육_기본과정",
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2547,
+     "institution": "한국기술교육대학교 능력개발교육원",
+     "session_name": "[빅데이터분석] 파이썬 웹 데이터 수집(웹API/웹스크래핑)",
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2548,
+     "institution": "한국기술교육대학교 능력개발교육원",
+     "session_name": "(특별교육)[인공지능] 효율적인 LLM 서비스 개발를 위한 LangChain 입문",
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2551,
+     "institution": "한국기술교육대학교 능력개발교육원",
+     "session_name": "(특별교육)온디바이스 LLM 앱 개발",
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2552,
+     "institution": "한국기술교육대학교 능력개발교육원",
+     "session_name": "(특별교육) 생성형 AI(diffusion)를 활용한 영상 콘텐츠 제작",
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2553,
+     "institution": "중소벤처기업진흥공단",
+     "session_name": "(스마트제조)디지털전환(DX)멘토단 사업성실수행 교육(코칭단)",
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2554,
+     "institution": "한국인터넷진흥원",
+     "session_name": "정보보호 및 개인정보보호 관리체계(ISMS-P) 구축운영",
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2555,
+     "institution": "개인정보보호위원회",
+     "session_name": "CPO 제도 시행령,고시 개정 및 주요내용 안내",
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2557,
+     "institution": "한국기술사회",
+     "session_name": "해킹과 정보보안",
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2558,
+     "institution": "한국기술사회",
+     "session_name": "SWA와 AA, 개발자에서 아키텍트되기",
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2562,
+     "institution": "한국기술사회",
+     "session_name": "IT인프라스트럭처 가상화 및 클라우드 컴퓨팅",
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2564,
+     "institution": "한국인터넷진흥원",
+     "session_name": "SW보안약점 진단원 양성과정(오프라인) [3차]",
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2565,
+     "institution": "한국기술교육대학원 온라인평생교육원",
+     "session_name": "정보보호 관리 운영 및 보안성 검토",
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2566,
+     "institution": "한국기술교육대학원 온라인평생교육원",
+     "session_name": "정보보안을 위한 모델링 및 시뮬레이션",
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2567,
+     "institution": "한국기술교육대학원 온라인평생교육원",
+     "session_name": "[기초직업능력] 정보처리능력",
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2568,
+     "institution": "한국기술교육대학원 온라인평생교육원",
+     "session_name": "정보보호 관리 운영 및 보안성 검토",
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2569,
+     "institution": "한국기술교육대학원 온라인평생교육원",
+     "session_name": "정보보안을 위한 모델링 및 시뮬레이션",
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2570,
+     "institution": "한국기술교육대학원 온라인평생교육원",
+     "session_name": "[기초직업능력] 정보처리능력",
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2571,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2572,
+     "institution": "한국기술교육대학원 온라인평생교육원",
+     "session_name": "정보보호 관리 운영 및 보안성 검토",
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2573,
+     "institution": "한국기술교육대학원 온라인평생교육원",
+     "session_name": "정보보안을 위한 모델링 및 시뮬레이션",
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2574,
+     "institution": "한국기술교육대학원 온라인평생교육원",
+     "session_name": "[기초직업능력] 정보처리능력",
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2575,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2576,
+     "institution": "한국기술교육대학원 온라인평생교육원",
+     "session_name": "정보보호 관리 운영 및 보안성 검토",
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2577,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2578,
+     "institution": "한국기술교육대학원 온라인평생교육원",
+     "session_name": "[기초직업능력] 정보처리능력",
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2579,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2580,
+     "institution": "한국기술교육대학원 온라인평생교육원",
+     "session_name": "정보보호 관리 운영 및 보안성 검토",
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2581,
+     "institution": "한국기술교육대학원 온라인평생교육원",
+     "session_name": "정보보안을 위한 모델링 및 시뮬레이션",
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2582,
+     "institution": "한국기술교육대학원 온라인평생교육원",
+     "session_name": "[기초직업능력] 정보처리능력",
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2583,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2584,
+     "institution": "한국기술교육대학교 능력개발교육원",
+     "session_name": "[정보기술전략계획] Power BI를 활용한 데이터 분석과 시각화(기본)",
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2585,
+     "institution": "한국기술교육대학교 능력개발교육원",
+     "session_name": "(특별교육)[인공지능] 라마인덱스(LLAMA INDEX) 활용 실습",
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2586,
+     "institution": "한국기술교육대학교 능력개발교육원",
+     "session_name": "(스마트공장)온디바이스 기반 인공지능 비전인식 모델 학습",
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2587,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2588,
+     "institution": "한국지능형사물인터넷협회",
+     "session_name": "ChatGTP활용한 빅데이터분석",
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2589,
+     "institution": "한국지능형사물인터넷협회",
+     "session_name": "자율 이동체 시뮬레이션 프로그래밍",
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2590,
+     "institution": "한국지능형사물인터넷협회",
+     "session_name": "생성형 AI를 활용한 비즈니스 서비스 개발",
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2591,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2592,
+     "institution": "한국인터넷진흥원",
+     "session_name": "2026년 SW보안약점 진단원 보수교육(4차)",
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2593,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2594,
+     "institution": "개인정보보호위원회",
+     "session_name": "개인정보 보호책임자(CPO) 기본교육 - 1회차",
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2595,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2596,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2597,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2598,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2599,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2600,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2601,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2602,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2603,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2604,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2605,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2606,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2607,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2608,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2609,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2610,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2611,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2612,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2613,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2614,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2615,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2616,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2617,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2618,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2619,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2620,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2621,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2622,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2623,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2624,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2625,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2626,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2627,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2628,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2629,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2630,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2631,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2632,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2633,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2634,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2635,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2636,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2637,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2638,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2639,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2640,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2641,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2642,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2643,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2644,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2645,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2646,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2647,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2648,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2649,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2650,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2651,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2652,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2653,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2654,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2655,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2656,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2657,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2658,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2659,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2660,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2661,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2662,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2663,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2664,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2665,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2666,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2667,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2668,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2669,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2670,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2671,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2672,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2673,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2674,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2675,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2676,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    },
+    {
+     "sn": 2677,
+     "institution": null,
+     "session_name": null,
+     "subject": null,
+     "edu_div": 1
+    }
+   ]
+  },
+  "미이관_신규": {
+   "count": 25,
+   "rows": [
+    {
+     "sn": 2487,
+     "institution": "한국인공지능·소프트웨어산업협회",
+     "session_name": "컨소시엄",
+     "subject": "개인정보 보호관리체계 전문가 양성과정",
+     "edu_div": 1
+    },
+    {
+     "sn": 2488,
+     "institution": "한국인터넷진흥원",
+     "session_name": "SW보안약점",
+     "subject": "2026년 SW보안약점 진단원 보수교육(4차)",
+     "edu_div": 1
+    },
+    {
+     "sn": 2489,
+     "institution": "ICT폴리텍대학",
+     "session_name": "감리원특급",
+     "subject": "감리원특급(온라인집합)",
+     "edu_div": 1
+    },
+    {
+     "sn": 2490,
+     "institution": "한국소프트웨어기술진흥협회",
+     "session_name": "Agentic AI",
+     "subject": "기업용 자율 에이전트 개발",
+     "edu_div": 1
+    },
+    {
+     "sn": 2491,
+     "institution": "한국인터넷진흥원",
+     "session_name": "SW보안약점",
+     "subject": "2026년 SW보안약점 진단원 보수교육(4차)",
+     "edu_div": 1
+    },
+    {
+     "sn": 2494,
+     "institution": "한국인공지능·소프트웨어산업협회",
+     "session_name": "[컨소시엄] 초거대 AI(생성형AI) 이해 및 활용 과정",
+     "subject": "[컨소시엄] 초거대 AI(생성형AI) 이해 및 활용 과정",
+     "edu_div": 1
+    },
+    {
+     "sn": 2497,
+     "institution": "행정안전부",
+     "session_name": "공공데이터 품질관리",
+     "subject": "공공데이터 품질관리",
+     "edu_div": 1
+    },
+    {
+     "sn": 2498,
+     "institution": "경기도평생학습포털",
+     "session_name": "코딩으로 AI 인공지능 배우기 (햄스터S활용)",
+     "subject": "코딩으로 AI 인공지능 배우기 (햄스터S활용)",
+     "edu_div": 1
+    },
+    {
+     "sn": 2499,
+     "institution": "행정안전부",
+     "session_name": "2026 AI 리터러시와 업무 활용과정",
+     "subject": "2026 AI 리터러시와 업무 활용과정",
+     "edu_div": 1
+    },
+    {
+     "sn": 2501,
+     "institution": "한국기술교육대학교",
+     "session_name": "IT프로젝트 성과관리",
+     "subject": "IT프로젝트 성과관리",
+     "edu_div": 1
+    },
+    {
+     "sn": 2503,
+     "institution": "한국기술교육대학교",
+     "session_name": "[K-디지털] 클라우드 인프라 아키텍처 설계",
+     "subject": "[K-디지털] 클라우드 인프라 아키텍처 설계",
+     "edu_div": 1
+    },
+    {
+     "sn": 2504,
+     "institution": "한국기술교육대학교",
+     "session_name": "인공지능(AI) 서비스 목표 수립(이해와 방향 설정)",
+     "subject": "인공지능(AI) 서비스 목표 수립(이해와 방향 설정)",
+     "edu_div": 1
+    },
+    {
+     "sn": 2505,
+     "institution": "한국인공지능·소프트웨어산업협회",
+     "session_name": "[컨소시엄] 현장 중심의 PM(Project Manager) 양성 과정",
+     "subject": "[컨소시엄] 현장 중심의 PM(Project Manager) 양성 과정",
+     "edu_div": 1
+    },
+    {
+     "sn": 2506,
+     "institution": "한국인공지능·소프트웨어산업협회",
+     "session_name": "[컨소시엄] 멀티모달(Multimodal) 프롬프트 과정",
+     "subject": "[컨소시엄] 멀티모달(Multimodal) 프롬프트 과정",
+     "edu_div": 1
+    },
+    {
+     "sn": 2507,
+     "institution": "한국정보통신기술협회",
+     "session_name": "코드품질 향상을 위한 SonarQube 활용",
+     "subject": "코드품질 향상을 위한 SonarQube 활용",
+     "edu_div": 1
+    },
+    {
+     "sn": 2509,
+     "institution": "한국정보통신기술협회",
+     "session_name": "클라우드 환경하에서 소프트웨어 테스트기법",
+     "subject": "클라우드 환경하에서 소프트웨어 테스트기법",
+     "edu_div": 1
+    },
+    {
+     "sn": 2510,
+     "institution": "ICT폴리텍대학",
+     "session_name": "(2026년) 감리원 중급이하 비대면 실시간 화상교육 제8기(2차)",
+     "subject": "(2026년) 감리원 중급이하 비대면 실시간 화상교육 제8기(2차)",
+     "edu_div": 1
+    },
+    {
+     "sn": 2511,
+     "institution": "한국인터넷진흥원",
+     "session_name": "2026년 개인정보 영향평가 전군교육(하반기,1차)",
+     "subject": "2026년 개인정보 영향평가 전군교육(하반기,1차)",
+     "edu_div": 1
+    },
+    {
+     "sn": 2513,
+     "institution": "한국인공지능·소프트웨어산업협회",
+     "session_name": "[컨소시엄] 초거대 AI 트렌드 이해 과정",
+     "subject": "[컨소시엄] 초거대 AI 트렌드 이해 과정",
+     "edu_div": 1
+    },
+    {
+     "sn": 2515,
+     "institution": "한국인공지능·소프트웨어산업협회",
+     "session_name": "[컨소시엄] 현장 중심의 PM(Project Manager) 양성 과정",
+     "subject": "[컨소시엄] 현장 중심의 PM(Project Manager) 양성 과정",
+     "edu_div": 1
+    },
+    {
+     "sn": 2517,
+     "institution": "한국인공지능·소프트웨어산업협회",
+     "session_name": "[컨소시엄] 생성형 AI를 활용한 업무혁신 과정",
+     "subject": "[컨소시엄] 생성형 AI를 활용한 업무혁신 과정",
+     "edu_div": 1
+    },
+    {
+     "sn": 2519,
+     "institution": "한국표준협회",
+     "session_name": "2026년 7월 스마트공장 수준확인 심사원 정기 교육",
+     "subject": "2026년 7월 스마트공장 수준확인 심사원 정기 교육",
+     "edu_div": 1
+    },
+    {
+     "sn": 2520,
+     "institution": "한국인터넷진흥원",
+     "session_name": "2026년 SW보안약점 진단원 보수교육(1차)",
+     "subject": "2026년 SW보안약점 진단원 보수교육(1차)",
+     "edu_div": 1
+    },
+    {
+     "sn": 2521,
+     "institution": "한국인터넷진흥원",
+     "session_name": "SW보안약점 진단원 보수교육[1차]",
+     "subject": "SW보안약점 진단원 보수교육[1차]",
+     "edu_div": 1
+    },
+    {
+     "sn": 2522,
+     "institution": "ICT폴리텍대학",
+     "session_name": "감리원 중급이하(온라인집합)",
+     "subject": "감리원 중급이하(온라인집합)",
+     "edu_div": 1
+    }
+   ]
+  }
+ },
+ "일정": {
+  "총": 2569,
+  "미이관_과정결측연쇄": {
+   "count": 189,
+   "rows": [
+    {
+     "edc_sn": 735,
+     "schdl_sn": 826,
+     "session_name": "[2024-2차 계속교육]",
+     "subject": "LLM의 이해와 활용",
+     "start": "2024-05-18",
+     "end": "2024-05-18",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 736,
+     "schdl_sn": 827,
+     "session_name": "[2024-2차 계속교육]",
+     "subject": "LLM의 이해와 활용",
+     "start": null,
+     "end": null,
+     "hours": 0,
+     "recognized": 0
+    },
+    {
+     "edc_sn": 1478,
+     "schdl_sn": 1492,
+     "session_name": "0",
+     "subject": "0",
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2140,
+     "schdl_sn": 2036,
+     "session_name": "정보보호",
+     "subject": "정보보호관리체계(ISMS-P) 구축 및 운영실무",
+     "start": "2024-04-08",
+     "end": "2024-04-09",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2141,
+     "schdl_sn": 2037,
+     "session_name": "인공지능",
+     "subject": "인공지능(AI) 전문가 1급",
+     "start": "2025-09-01",
+     "end": "2025-09-30",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2196,
+     "schdl_sn": 2092,
+     "session_name": "인공지능데이터",
+     "subject": "인공지능데이터전문가",
+     "start": "2026-01-01",
+     "end": "2026-01-19",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2197,
+     "schdl_sn": 2093,
+     "session_name": "Docker 기반 환경 구축",
+     "subject": "Docker 기반 환경 구축 및 웹 서비스 테스트",
+     "start": "2025-09-15",
+     "end": "2025-09-16",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2198,
+     "schdl_sn": 2094,
+     "session_name": "API 테스트 개념",
+     "subject": "API 테스트 개념 및 실행 실습",
+     "start": "2026-01-12",
+     "end": "2026-01-13",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2199,
+     "schdl_sn": 2095,
+     "session_name": "DB 성능품질 향상",
+     "subject": "DB 성능품질 향상을 위한 모니터링 및 통제",
+     "start": "2026-02-23",
+     "end": "2026-02-24",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2218,
+     "schdl_sn": 2114,
+     "session_name": "x",
+     "subject": "x",
+     "start": "2024-06-19",
+     "end": "2024-06-19",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2219,
+     "schdl_sn": 2115,
+     "session_name": "x",
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2220,
+     "schdl_sn": 2116,
+     "session_name": "x",
+     "subject": "x",
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2222,
+     "schdl_sn": 2118,
+     "session_name": "x",
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2223,
+     "schdl_sn": 2119,
+     "session_name": "x",
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2224,
+     "schdl_sn": 2120,
+     "session_name": "x",
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2225,
+     "schdl_sn": 2121,
+     "session_name": "x",
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2226,
+     "schdl_sn": 2122,
+     "session_name": "Python과 딥러닝을 활용한 자연어처리",
+     "subject": "Python과 딥러닝을 활용한 자연어처리",
+     "start": "2025-07-14",
+     "end": "2025-07-17",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2227,
+     "schdl_sn": 2123,
+     "session_name": "Kubernetes",
+     "subject": "컨테이너 오케스트레이션",
+     "start": "2025-01-22",
+     "end": "2025-01-24",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2259,
+     "schdl_sn": 2155,
+     "session_name": "ㅡ",
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2260,
+     "schdl_sn": 2156,
+     "session_name": "ㅡ",
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2261,
+     "schdl_sn": 2157,
+     "session_name": "ㅡ",
+     "subject": "ㅡ",
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2474,
+     "schdl_sn": 2370,
+     "session_name": "ㅡ",
+     "subject": "ㅡ",
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2475,
+     "schdl_sn": 2371,
+     "session_name": "ㅡ",
+     "subject": "ㅡ",
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2476,
+     "schdl_sn": 2372,
+     "session_name": "ㅡ",
+     "subject": "ㅡ",
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2477,
+     "schdl_sn": 2373,
+     "session_name": "ㅡ",
+     "subject": "ㅡ",
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2478,
+     "schdl_sn": 2374,
+     "session_name": "ㅡ",
+     "subject": "ㅡ",
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2479,
+     "schdl_sn": 2375,
+     "session_name": "ㅡ",
+     "subject": "ㅡ",
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2480,
+     "schdl_sn": 2376,
+     "session_name": "ㅡ",
+     "subject": "ㅡ",
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2481,
+     "schdl_sn": 2377,
+     "session_name": "ㅡ",
+     "subject": "ㅡ",
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2482,
+     "schdl_sn": 2378,
+     "session_name": "ㅡ",
+     "subject": "ㅡ",
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2483,
+     "schdl_sn": 2379,
+     "session_name": "ㅡ",
+     "subject": "ㅡ",
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2484,
+     "schdl_sn": 2380,
+     "session_name": "ㅡ",
+     "subject": "ㅡ",
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2485,
+     "schdl_sn": 2381,
+     "session_name": "ㅡ",
+     "subject": "ㅡ",
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2486,
+     "schdl_sn": 2382,
+     "session_name": "컨소시엄",
+     "subject": "개인정보 보호관리체계 전문가 양성과정",
+     "start": "2026-09-07",
+     "end": "2026-09-10",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2492,
+     "schdl_sn": 2388,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2493,
+     "schdl_sn": 2389,
+     "session_name": "인공지능 중급(일반)",
+     "subject": "인공지능 중급(일반)",
+     "start": "2026-05-11",
+     "end": "2026-07-08",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2495,
+     "schdl_sn": 2391,
+     "session_name": "ㅡ",
+     "subject": "ㅡ",
+     "start": "2026-10-02",
+     "end": "2026-10-02",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2496,
+     "schdl_sn": 2392,
+     "session_name": "ㅡ",
+     "subject": "ㅡ",
+     "start": "2026-08-27",
+     "end": "2026-08-27",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2500,
+     "schdl_sn": 2396,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2502,
+     "schdl_sn": 2398,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2508,
+     "schdl_sn": 2404,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2512,
+     "schdl_sn": 2408,
+     "session_name": null,
+     "subject": null,
+     "start": "2026-01-30",
+     "end": "2026-01-30",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2514,
+     "schdl_sn": 2410,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2516,
+     "schdl_sn": 2412,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2523,
+     "schdl_sn": 2419,
+     "session_name": "HCI와 함께하는 소프트웨어 공학",
+     "subject": "HCI와 함께하는 소프트웨어 공학",
+     "start": "2026-09-22",
+     "end": "2026-11-30",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2524,
+     "schdl_sn": 2420,
+     "session_name": "코팅의 기술 실습편",
+     "subject": "코팅의 기술 실습편",
+     "start": "2026-10-06",
+     "end": "2026-10-06",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2525,
+     "schdl_sn": 2421,
+     "session_name": "데이터거래사 교육 12기",
+     "subject": "데이터거래사 교육 12기",
+     "start": "2025-07-07",
+     "end": "2025-07-11",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2526,
+     "schdl_sn": 2422,
+     "session_name": "MDD 방법론 / 오픈소스 기반 개발 방법론",
+     "subject": "MDD 방법론 / 오픈소스 기반 개발 방법론",
+     "start": "2026-09-01",
+     "end": "2026-09-30",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2527,
+     "schdl_sn": 2423,
+     "session_name": "웹 개발 기술 / EVM",
+     "subject": "웹 개발 기술 / EVM",
+     "start": "2026-09-01",
+     "end": "2026-09-30",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2528,
+     "schdl_sn": 2424,
+     "session_name": "감리 프레임워크 아키텍처 / ITA & ISP 감리",
+     "subject": "감리 프레임워크 아키텍처 / ITA & ISP 감리",
+     "start": "2026-09-01",
+     "end": "2026-09-30",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2529,
+     "schdl_sn": 2425,
+     "session_name": "전자정부프레임워크 전문과정",
+     "subject": "전자정부프레임워크 전문과정",
+     "start": "2026-09-01",
+     "end": "2026-09-30",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2530,
+     "schdl_sn": 2426,
+     "session_name": "정보시스템감리원을 위한 논리적 글쓰기",
+     "subject": "정보시스템감리원을 위한 논리적 글쓰기",
+     "start": "2026-09-01",
+     "end": "2026-09-30",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2531,
+     "schdl_sn": 2427,
+     "session_name": "PMO 1차 과정",
+     "subject": "PMO 1차 과정",
+     "start": "2026-09-01",
+     "end": "2026-09-30",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2532,
+     "schdl_sn": 2428,
+     "session_name": "PMO 2차 과정",
+     "subject": "PMO 2차 과정",
+     "start": "2026-09-01",
+     "end": "2026-09-30",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2533,
+     "schdl_sn": 2429,
+     "session_name": "PMO 3차 과정",
+     "subject": "PMO 3차 과정",
+     "start": "2026-09-01",
+     "end": "2026-09-30",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2534,
+     "schdl_sn": 2430,
+     "session_name": "2026년 SW개발보안 진단원 기본과정(1차)",
+     "subject": "2026년 SW개발보안 진단원 기본과정(1차)",
+     "start": "2026-06-22",
+     "end": "2026-06-26",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2535,
+     "schdl_sn": 2431,
+     "session_name": "SW보안약점 진단원 기(양성)본과정 [오프라인][3차]",
+     "subject": "SW보안약점 진단원 기(양성)본과정 [오프라인][3차]",
+     "start": "2025-09-01",
+     "end": "2025-09-05",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2536,
+     "schdl_sn": 2432,
+     "session_name": "웹 개발 기술 / EVM",
+     "subject": "웹 개발 기술 / EVM",
+     "start": "2026-10-01",
+     "end": "2026-10-31",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2537,
+     "schdl_sn": 2433,
+     "session_name": "정보시스템감리원을 위한 논리적 글쓰기",
+     "subject": "정보시스템감리원을 위한 논리적 글쓰기",
+     "start": "2026-10-01",
+     "end": "2026-10-31",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2538,
+     "schdl_sn": 2434,
+     "session_name": "PMO 통합과정",
+     "subject": "PMO 통합과정",
+     "start": "2026-10-01",
+     "end": "2026-10-31",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2539,
+     "schdl_sn": 2435,
+     "session_name": "[온라인] 클라우드와 클라우드 네이티브를 위한 기본 기술과정",
+     "subject": "[온라인] 클라우드와 클라우드 네이티브를 위한 기본 기술과정",
+     "start": "2025-02-07",
+     "end": "2025-12-12",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2540,
+     "schdl_sn": 2436,
+     "session_name": "인공지능 신뢰성 인증을 통한 AI 품질 향상 방법론 과정",
+     "subject": "인공지능 신뢰성 인증을 통한 AI 품질 향상 방법론 과정",
+     "start": "2026-02-27",
+     "end": "2026-02-27",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2541,
+     "schdl_sn": 2437,
+     "session_name": "CSTS 품질 전문가 양성 심화",
+     "subject": "CSTS 품질 전문가 양성 심화",
+     "start": "2025-09-03",
+     "end": "2025-09-04",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2542,
+     "schdl_sn": 2438,
+     "session_name": "JMeter 기반 실전 성능테스트",
+     "subject": "JMeter 기반 실전 성능테스트",
+     "start": "2025-09-08",
+     "end": "2025-09-09",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2543,
+     "schdl_sn": 2439,
+     "session_name": "데이터거래사 교육 15기",
+     "subject": "데이터거래사 교육 15기",
+     "start": "2025-11-10",
+     "end": "2025-11-14",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2544,
+     "schdl_sn": 2440,
+     "session_name": "제 2차 기업 실무자 대상 인공지능 신뢰성 및 인증 교육",
+     "subject": "제 2차 기업 실무자 대상 인공지능 신뢰성 및 인증 교육",
+     "start": "2026-10-22",
+     "end": "2026-10-22",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2545,
+     "schdl_sn": 2441,
+     "session_name": "정보통신설비 유지보수 관리자",
+     "subject": "정보통신설비 유지보수 관리자",
+     "start": "2025-07-28",
+     "end": "2025-07-30",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2546,
+     "schdl_sn": 2442,
+     "session_name": "AI훈련코치 역량 강화 교육_기본과정",
+     "subject": "AI훈련코치 역량 강화 교육_기본과정",
+     "start": "2026-04-23",
+     "end": "2026-04-24",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2547,
+     "schdl_sn": 2443,
+     "session_name": "[빅데이터분석] 파이썬 웹 데이터 수집(웹API/웹스크래핑)",
+     "subject": "[빅데이터분석] 파이썬 웹 데이터 수집(웹API/웹스크래핑)",
+     "start": "2024-03-23",
+     "end": "2024-03-24",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2548,
+     "schdl_sn": 2444,
+     "session_name": "(특별교육)[인공지능] 효율적인 LLM 서비스 개발를 위한 LangChain 입문",
+     "subject": "(특별교육)[인공지능] 효율적인 LLM 서비스 개발를 위한 LangChain 입문",
+     "start": "2024-05-28",
+     "end": "2024-05-28",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2551,
+     "schdl_sn": 2447,
+     "session_name": "한국기술교육대학교 능력개발교육원",
+     "subject": "(특별교육)온디바이스 LLM 앱 개발 - Local LLM 의 장점 이해와 이를 활용한 온디바이스 앱 개발",
+     "start": "2024-07-18",
+     "end": "2024-07-18",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2552,
+     "schdl_sn": 2448,
+     "session_name": "한국기술교육대학교 능력개발교육원",
+     "subject": "(특별교육) 생성형 AI(diffusion)를 활용한 영상 콘텐츠 제작",
+     "start": "2024-07-23",
+     "end": "2024-07-23",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2553,
+     "schdl_sn": 2449,
+     "session_name": "(스마트제조)디지털전환(DX)멘토단 사업성실수행 교육(코칭단)",
+     "subject": "(스마트제조)디지털전환(DX)멘토단 사업성실수행 교육(코칭단)",
+     "start": "2024-06-30",
+     "end": "2024-07-29",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2554,
+     "schdl_sn": 2450,
+     "session_name": "정보보호 및 개인정보보호 관리체계(ISMS-P) 구축운영",
+     "subject": "정보보호 및 개인정보보호 관리체계(ISMS-P) 구축운영",
+     "start": "2025-07-30",
+     "end": "2025-07-30",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2555,
+     "schdl_sn": 2451,
+     "session_name": "CPO 제도 시행령,고시 개정 및 주요내용 안내",
+     "subject": "CPO 제도 시행령,고시 개정 및 주요내용 안내",
+     "start": "2025-01-01",
+     "end": "2025-12-31",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2557,
+     "schdl_sn": 2453,
+     "session_name": "SWA와 AA, 개발자에서 아키텍트되기",
+     "subject": "SWA와 AA, 개발자에서 아키텍트되기",
+     "start": "2024-11-18",
+     "end": "2024-12-15",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2564,
+     "schdl_sn": 2460,
+     "session_name": "정보보호 관리 운영 및 보안성 검토",
+     "subject": "정보보호 관리 운영 및 보안성 검토",
+     "start": "2025-08-28",
+     "end": "2025-09-26",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2565,
+     "schdl_sn": 2461,
+     "session_name": "정보보안을 위한 모델링 및 시뮬레이션",
+     "subject": "정보보안을 위한 모델링 및 시뮬레이션",
+     "start": "2025-08-20",
+     "end": "2025-09-18",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2566,
+     "schdl_sn": 2462,
+     "session_name": "[기초직업능력] 정보처리능력",
+     "subject": "[기초직업능력] 정보처리능력",
+     "start": "2025-08-19",
+     "end": "2025-09-17",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2567,
+     "schdl_sn": 2463,
+     "session_name": "정보보호 관리 운영 및 보안성 검토",
+     "subject": "정보보호 관리 운영 및 보안성 검토",
+     "start": "2025-08-28",
+     "end": "2025-09-26",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2568,
+     "schdl_sn": 2464,
+     "session_name": "정보보안을 위한 모델링 및 시뮬레이션",
+     "subject": "정보보안을 위한 모델링 및 시뮬레이션",
+     "start": "2025-08-20",
+     "end": "2025-09-18",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2569,
+     "schdl_sn": 2465,
+     "session_name": "[기초직업능력] 정보처리능력",
+     "subject": "[기초직업능력] 정보처리능력",
+     "start": "2025-08-19",
+     "end": "2025-09-17",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2570,
+     "schdl_sn": 2466,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2571,
+     "schdl_sn": 2467,
+     "session_name": "정보보호 관리 운영 및 보안성 검토",
+     "subject": "정보보호 관리 운영 및 보안성 검토",
+     "start": "2025-08-28",
+     "end": "2025-09-26",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2572,
+     "schdl_sn": 2468,
+     "session_name": "정보보안을 위한 모델링 및 시뮬레이션",
+     "subject": "정보보안을 위한 모델링 및 시뮬레이션",
+     "start": "2025-08-20",
+     "end": "2025-09-18",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2573,
+     "schdl_sn": 2469,
+     "session_name": "[기초직업능력] 정보처리능력",
+     "subject": "[기초직업능력] 정보처리능력",
+     "start": "2025-08-19",
+     "end": "2025-09-17",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2574,
+     "schdl_sn": 2470,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2575,
+     "schdl_sn": 2471,
+     "session_name": "정보보호 관리 운영 및 보안성 검토",
+     "subject": "정보보호 관리 운영 및 보안성 검토",
+     "start": "2025-08-28",
+     "end": "2025-09-26",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2576,
+     "schdl_sn": 2472,
+     "session_name": "[기초직업능력] 정보처리능력",
+     "subject": "[기초직업능력] 정보처리능력",
+     "start": "2025-08-19",
+     "end": "2025-09-17",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2577,
+     "schdl_sn": 2473,
+     "session_name": "[기초직업능력] 정보처리능력",
+     "subject": "[기초직업능력] 정보처리능력",
+     "start": "2025-08-19",
+     "end": "2025-09-17",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2578,
+     "schdl_sn": 2474,
+     "session_name": "[기초직업능력] 정보처리능력",
+     "subject": "[기초직업능력] 정보처리능력",
+     "start": "2025-08-19",
+     "end": "2025-09-17",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2579,
+     "schdl_sn": 2475,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2580,
+     "schdl_sn": 2476,
+     "session_name": "정보보호 관리 운영 및 보안성 검토",
+     "subject": "정보보호 관리 운영 및 보안성 검토",
+     "start": "2025-08-28",
+     "end": "2025-09-26",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2581,
+     "schdl_sn": 2477,
+     "session_name": "정보보안을 위한 모델링 및 시뮬레이션",
+     "subject": "정보보안을 위한 모델링 및 시뮬레이션",
+     "start": "2025-08-20",
+     "end": "2025-09-18",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2582,
+     "schdl_sn": 2478,
+     "session_name": "[기초직업능력] 정보처리능력",
+     "subject": "[기초직업능력] 정보처리능력",
+     "start": "2025-08-19",
+     "end": "2025-09-17",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2583,
+     "schdl_sn": 2479,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2584,
+     "schdl_sn": 2480,
+     "session_name": "[정보기술전략계획] Power BI를 활용한 데이터 분석과 시각화(기본)",
+     "subject": "[정보기술전략계획] Power BI를 활용한 데이터 분석과 시각화(기본)",
+     "start": "2024-08-17",
+     "end": "2024-08-18",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2585,
+     "schdl_sn": 2481,
+     "session_name": "(특별교육)[인공지능] 라마인덱스(LLAMA INDEX) 활용 실습",
+     "subject": "(특별교육)[인공지능] 라마인덱스(LLAMA INDEX) 활용 실습",
+     "start": "2024-10-07",
+     "end": "2024-10-07",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2586,
+     "schdl_sn": 2482,
+     "session_name": "(스마트공장)온디바이스 기반 인공지능 비전인식 모델 학습",
+     "subject": "(스마트공장)온디바이스 기반 인공지능 비전인식 모델 학습",
+     "start": "2024-08-24",
+     "end": "2024-08-25",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2587,
+     "schdl_sn": 2483,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2588,
+     "schdl_sn": 2484,
+     "session_name": "ChatGTP활용한 빅데이터분석",
+     "subject": "ChatGTP활용한 빅데이터분석",
+     "start": "2024-10-31",
+     "end": "2024-10-31",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2589,
+     "schdl_sn": 2485,
+     "session_name": "자율 이동체 시뮬레이션 프로그래밍",
+     "subject": "자율 이동체 시뮬레이션 프로그래밍",
+     "start": "2025-02-24",
+     "end": "2025-02-25",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2590,
+     "schdl_sn": 2486,
+     "session_name": "생성형 AI를 활용한 비즈니스 서비스 개발",
+     "subject": "생성형 AI를 활용한 비즈니스 서비스 개발",
+     "start": "2025-02-28",
+     "end": "2025-02-28",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2591,
+     "schdl_sn": 2487,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2592,
+     "schdl_sn": 2488,
+     "session_name": "2026년 SW보안약점 진단원 보수교육(4차)",
+     "subject": "2026년 SW보안약점 진단원 보수교육(4차)",
+     "start": "2026-09-10",
+     "end": "2026-09-10",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2593,
+     "schdl_sn": 2489,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2594,
+     "schdl_sn": 2490,
+     "session_name": "개인정보 보호책임자(CPO) 기본교육 - 1회차",
+     "subject": "개인정보 보호책임자(CPO) 기본교육 - 1회차",
+     "start": "2026-04-22",
+     "end": "2026-05-05",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2595,
+     "schdl_sn": 2491,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2596,
+     "schdl_sn": 2492,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2597,
+     "schdl_sn": 2493,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2598,
+     "schdl_sn": 2494,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2599,
+     "schdl_sn": 2495,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2600,
+     "schdl_sn": 2496,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2601,
+     "schdl_sn": 2497,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2602,
+     "schdl_sn": 2498,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2603,
+     "schdl_sn": 2499,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2604,
+     "schdl_sn": 2500,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2605,
+     "schdl_sn": 2501,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2606,
+     "schdl_sn": 2502,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2607,
+     "schdl_sn": 2503,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2608,
+     "schdl_sn": 2504,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2609,
+     "schdl_sn": 2505,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2610,
+     "schdl_sn": 2506,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2611,
+     "schdl_sn": 2507,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2612,
+     "schdl_sn": 2508,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2613,
+     "schdl_sn": 2509,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2614,
+     "schdl_sn": 2510,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2615,
+     "schdl_sn": 2511,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2616,
+     "schdl_sn": 2512,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2617,
+     "schdl_sn": 2513,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2618,
+     "schdl_sn": 2514,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2619,
+     "schdl_sn": 2515,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2620,
+     "schdl_sn": 2516,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2621,
+     "schdl_sn": 2517,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2622,
+     "schdl_sn": 2518,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2623,
+     "schdl_sn": 2519,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2624,
+     "schdl_sn": 2520,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2625,
+     "schdl_sn": 2521,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2626,
+     "schdl_sn": 2522,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2627,
+     "schdl_sn": 2523,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2628,
+     "schdl_sn": 2524,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2629,
+     "schdl_sn": 2525,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2630,
+     "schdl_sn": 2526,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2631,
+     "schdl_sn": 2527,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2632,
+     "schdl_sn": 2528,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2633,
+     "schdl_sn": 2529,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2634,
+     "schdl_sn": 2530,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2635,
+     "schdl_sn": 2531,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2636,
+     "schdl_sn": 2532,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2637,
+     "schdl_sn": 2533,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2638,
+     "schdl_sn": 2534,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2639,
+     "schdl_sn": 2535,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2640,
+     "schdl_sn": 2536,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2641,
+     "schdl_sn": 2537,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2642,
+     "schdl_sn": 2538,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2643,
+     "schdl_sn": 2539,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2644,
+     "schdl_sn": 2540,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2645,
+     "schdl_sn": 2541,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2646,
+     "schdl_sn": 2542,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2647,
+     "schdl_sn": 2543,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2648,
+     "schdl_sn": 2544,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2649,
+     "schdl_sn": 2545,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2650,
+     "schdl_sn": 2546,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2651,
+     "schdl_sn": 2547,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2652,
+     "schdl_sn": 2548,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2653,
+     "schdl_sn": 2549,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2654,
+     "schdl_sn": 2550,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2655,
+     "schdl_sn": 2551,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2656,
+     "schdl_sn": 2552,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2657,
+     "schdl_sn": 2553,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2658,
+     "schdl_sn": 2554,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2659,
+     "schdl_sn": 2555,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2660,
+     "schdl_sn": 2556,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2661,
+     "schdl_sn": 2557,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2662,
+     "schdl_sn": 2558,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2663,
+     "schdl_sn": 2559,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2664,
+     "schdl_sn": 2560,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2665,
+     "schdl_sn": 2561,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2666,
+     "schdl_sn": 2562,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2667,
+     "schdl_sn": 2563,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2668,
+     "schdl_sn": 2564,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2669,
+     "schdl_sn": 2565,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2670,
+     "schdl_sn": 2566,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2671,
+     "schdl_sn": 2567,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2672,
+     "schdl_sn": 2568,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2673,
+     "schdl_sn": 2569,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2674,
+     "schdl_sn": 2570,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2675,
+     "schdl_sn": 2571,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2676,
+     "schdl_sn": 2572,
+     "session_name": null,
+     "subject": null,
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    }
+   ]
+  },
+  "미이관_NEW신규연쇄": {
+   "count": 25,
+   "rows": [
+    {
+     "edc_sn": 2487,
+     "schdl_sn": 2383,
+     "session_name": "ㅡ",
+     "subject": "ㅡ",
+     "start": null,
+     "end": null,
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2488,
+     "schdl_sn": 2384,
+     "session_name": "SW보안약점",
+     "subject": "2026년 SW보안약점 진단원 보수교육(4차)",
+     "start": "2026-09-10",
+     "end": "2026-09-10",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2489,
+     "schdl_sn": 2385,
+     "session_name": "감리원특급",
+     "subject": "감리원특급(온라인집합)",
+     "start": "2025-04-14",
+     "end": "2025-04-18",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2490,
+     "schdl_sn": 2386,
+     "session_name": "Agentic AI",
+     "subject": "기업용 자율 에이전트 개발",
+     "start": "2026-09-22",
+     "end": "2026-09-22",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2491,
+     "schdl_sn": 2387,
+     "session_name": "SW보안약점",
+     "subject": "2026년 SW보안약점 진단원 보수교육(4차)",
+     "start": "2026-09-10",
+     "end": "2026-09-10",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2494,
+     "schdl_sn": 2390,
+     "session_name": "[컨소시엄] 초거대 AI(생성형AI) 이해 및 활용 과정",
+     "subject": "[컨소시엄] 초거대 AI(생성형AI) 이해 및 활용 과정",
+     "start": "2025-07-01",
+     "end": "2025-07-04",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2497,
+     "schdl_sn": 2393,
+     "session_name": "공공데이터 품질관리",
+     "subject": "공공데이터 품질관리",
+     "start": "2026-08-26",
+     "end": "2026-10-25",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2498,
+     "schdl_sn": 2394,
+     "session_name": "코딩으로 AI 인공지능 배우기 (햄스터S활용)",
+     "subject": "코딩으로 AI 인공지능 배우기 (햄스터S활용)",
+     "start": "2026-10-02",
+     "end": "2026-10-02",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2499,
+     "schdl_sn": 2395,
+     "session_name": "2026 AI 리터러시와 업무 활용과정",
+     "subject": "2026 AI 리터러시와 업무 활용과정",
+     "start": "2026-08-27",
+     "end": "2026-08-27",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2501,
+     "schdl_sn": 2397,
+     "session_name": "IT프로젝트 성과관리",
+     "subject": "IT프로젝트 성과관리",
+     "start": "2026-10-04",
+     "end": "2026-11-02",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2503,
+     "schdl_sn": 2399,
+     "session_name": "[K-디지털] 클라우드 인프라 아키텍처 설계",
+     "subject": "[K-디지털] 클라우드 인프라 아키텍처 설계",
+     "start": "2026-10-01",
+     "end": "2026-10-30",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2504,
+     "schdl_sn": 2400,
+     "session_name": "인공지능(AI) 서비스 목표 수립(이해와 방향 설정)",
+     "subject": "인공지능(AI) 서비스 목표 수립(이해와 방향 설정)",
+     "start": "2026-10-01",
+     "end": "2026-10-30",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2505,
+     "schdl_sn": 2401,
+     "session_name": "[컨소시엄] 현장 중심의 PM(Project Manager) 양성 과정",
+     "subject": "[컨소시엄] 현장 중심의 PM(Project Manager) 양성 과정",
+     "start": "2025-06-18",
+     "end": "2025-06-19",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2506,
+     "schdl_sn": 2402,
+     "session_name": "[컨소시엄] 멀티모달(Multimodal) 프롬프트 과정",
+     "subject": "[컨소시엄] 멀티모달(Multimodal) 프롬프트 과정",
+     "start": "2025-05-23",
+     "end": "2025-05-23",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2507,
+     "schdl_sn": 2403,
+     "session_name": "코드품질 향상을 위한 SonarQube 활용",
+     "subject": "코드품질 향상을 위한 SonarQube 활용",
+     "start": "2026-03-05",
+     "end": "2026-03-06",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2509,
+     "schdl_sn": 2405,
+     "session_name": "클라우드 환경하에서 소프트웨어 테스트기법",
+     "subject": "클라우드 환경하에서 소프트웨어 테스트기법",
+     "start": "2026-03-03",
+     "end": "2026-03-04",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2510,
+     "schdl_sn": 2406,
+     "session_name": "(2026년) 감리원 중급이하 비대면 실시간 화상교육 제8기(2차)",
+     "subject": "(2026년) 감리원 중급이하 비대면 실시간 화상교육 제8기(2차)",
+     "start": "2026-08-14",
+     "end": "2026-10-02",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2511,
+     "schdl_sn": 2407,
+     "session_name": "2026년 개인정보 영향평가 전군교육(하반기,1차)",
+     "subject": "2026년 개인정보 영향평가 전군교육(하반기,1차)",
+     "start": "2026-09-14",
+     "end": "2026-09-18",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2513,
+     "schdl_sn": 2409,
+     "session_name": "[컨소시엄] 초거대 AI 트렌드 이해 과정",
+     "subject": "[컨소시엄] 초거대 AI 트렌드 이해 과정",
+     "start": "2026-01-23",
+     "end": "2026-01-23",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2515,
+     "schdl_sn": 2411,
+     "session_name": "[컨소시엄] 현장 중심의 PM(Project Manager) 양성 과정",
+     "subject": "[컨소시엄] 현장 중심의 PM(Project Manager) 양성 과정",
+     "start": "2025-06-18",
+     "end": "2025-06-19",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2517,
+     "schdl_sn": 2413,
+     "session_name": "[컨소시엄] 생성형 AI를 활용한 업무혁신 과정",
+     "subject": "[컨소시엄] 생성형 AI를 활용한 업무혁신 과정",
+     "start": "2026-01-30",
+     "end": "2026-01-30",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2519,
+     "schdl_sn": 2415,
+     "session_name": "2026년 7월 스마트공장 수준확인 심사원 정기 교육",
+     "subject": "2026년 7월 스마트공장 수준확인 심사원 정기 교육",
+     "start": "2026-07-01",
+     "end": "2026-07-31",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2520,
+     "schdl_sn": 2416,
+     "session_name": "2026년 SW보안약점 진단원 보수교육(1차)",
+     "subject": "2026년 SW보안약점 진단원 보수교육(1차)",
+     "start": "2026-07-02",
+     "end": "2026-07-02",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2521,
+     "schdl_sn": 2417,
+     "session_name": "SW보안약점 진단원 보수교육[1차]",
+     "subject": "SW보안약점 진단원 보수교육[1차]",
+     "start": "2025-06-19",
+     "end": "2025-06-19",
+     "hours": 1.0,
+     "recognized": 1.0
+    },
+    {
+     "edc_sn": 2522,
+     "schdl_sn": 2418,
+     "session_name": "감리원 중급이하(온라인집합)",
+     "subject": "감리원 중급이하(온라인집합)",
+     "start": "2025-05-07",
+     "end": "2025-05-09",
+     "hours": 1.0,
+     "recognized": 1.0
+    }
+   ]
+  },
+  "기간미기재_세션": {
+   "count": 784
+  }
+ },
+ "감리원추가": {
+  "총유효": 7981,
+  "P1_신규_미반영": {
+   "count": 225,
+   "rows": [
+    {
+     "no": 7759,
+     "name": "김기원",
+     "cert_no": "정보시스템감리협회 제6010호",
+     "grade": "감리원",
+     "birth": "1969-02-15",
+     "issued": "2026-06-17"
+    },
+    {
+     "no": 7760,
+     "name": "김문영",
+     "cert_no": "정보시스템감리협회 제6011호",
+     "grade": "수석감리원",
+     "birth": "1970-02-22",
+     "issued": "2026-06-26"
+    },
+    {
+     "no": 7761,
+     "name": "김수민",
+     "cert_no": "정보시스템감리협회 제6012호",
+     "grade": "수석감리원",
+     "birth": "1991-09-20",
+     "issued": "2026-06-26"
+    },
+    {
+     "no": 7762,
+     "name": "박종환",
+     "cert_no": "정보시스템감리협회 제6013호",
+     "grade": "수석감리원",
+     "birth": "1982-08-28",
+     "issued": "2026-06-26"
+    },
+    {
+     "no": 7763,
+     "name": "방대한",
+     "cert_no": "정보시스템감리협회 제6014호",
+     "grade": "수석감리원",
+     "birth": "1991-02-27",
+     "issued": "2026-06-26"
+    },
+    {
+     "no": 7764,
+     "name": "변근수",
+     "cert_no": "정보시스템감리협회 제6015호",
+     "grade": "수석감리원",
+     "birth": "1979-07-03",
+     "issued": "2026-06-26"
+    },
+    {
+     "no": 7765,
+     "name": "서용욱",
+     "cert_no": "정보시스템감리협회 제6016호",
+     "grade": "수석감리원",
+     "birth": "1987-07-12",
+     "issued": "2026-06-26"
+    },
+    {
+     "no": 7766,
+     "name": "송정기",
+     "cert_no": "정보시스템감리협회 제6017호",
+     "grade": "수석감리원",
+     "birth": "1974-10-28",
+     "issued": "2026-06-26"
+    },
+    {
+     "no": 7767,
+     "name": "이경민",
+     "cert_no": "정보시스템감리협회 제6018호",
+     "grade": "수석감리원",
+     "birth": "1986-08-25",
+     "issued": "2026-06-26"
+    },
+    {
+     "no": 7768,
+     "name": "이경희",
+     "cert_no": "정보시스템감리협회 제6019호",
+     "grade": "수석감리원",
+     "birth": "1977-08-20",
+     "issued": "2026-06-26"
+    },
+    {
+     "no": 7769,
+     "name": "이다연",
+     "cert_no": "정보시스템감리협회 제6020호",
+     "grade": "수석감리원",
+     "birth": "1987-01-31",
+     "issued": "2026-06-26"
+    },
+    {
+     "no": 7770,
+     "name": "이성로",
+     "cert_no": "정보시스템감리협회 제6021호",
+     "grade": "수석감리원",
+     "birth": "1985-09-17",
+     "issued": "2026-06-26"
+    },
+    {
+     "no": 7771,
+     "name": "이성제",
+     "cert_no": "정보시스템감리협회 제6022호",
+     "grade": "수석감리원",
+     "birth": "1982-08-24",
+     "issued": "2026-06-26"
+    },
+    {
+     "no": 7772,
+     "name": "전종명",
+     "cert_no": "정보시스템감리협회 제6023호",
+     "grade": "수석감리원",
+     "birth": "1984-03-17",
+     "issued": "2026-06-26"
+    },
+    {
+     "no": 7773,
+     "name": "차명호",
+     "cert_no": "정보시스템감리협회 제6024호",
+     "grade": "수석감리원",
+     "birth": "1980-12-25",
+     "issued": "2026-06-26"
+    },
+    {
+     "no": 7774,
+     "name": "최치림",
+     "cert_no": "정보시스템감리협회 제6025호",
+     "grade": "수석감리원",
+     "birth": "1968-11-25",
+     "issued": "2026-06-26"
+    },
+    {
+     "no": 7775,
+     "name": "김경한",
+     "cert_no": "정보시스템감리협회 제6026호",
+     "grade": "감리원",
+     "birth": "1972-12-05",
+     "issued": "2026-07-10"
+    },
+    {
+     "no": 7776,
+     "name": "김동근",
+     "cert_no": "정보시스템감리협회 제6027호",
+     "grade": "감리원",
+     "birth": "1975-12-18",
+     "issued": "2026-07-10"
+    },
+    {
+     "no": 7777,
+     "name": "김성훈",
+     "cert_no": "정보시스템감리협회 제6028호",
+     "grade": "감리원",
+     "birth": "1980-12-05",
+     "issued": "2026-07-10"
+    },
+    {
+     "no": 7778,
+     "name": "김희정",
+     "cert_no": "정보시스템감리협회 제6029호",
+     "grade": "감리원",
+     "birth": "1987-10-12",
+     "issued": "2026-07-10"
+    },
+    {
+     "no": 7779,
+     "name": "마문희",
+     "cert_no": "정보시스템감리협회 제6030호",
+     "grade": "감리원",
+     "birth": "1976-06-19",
+     "issued": "2026-07-10"
+    },
+    {
+     "no": 7780,
+     "name": "박내권",
+     "cert_no": "정보시스템감리협회 제6031호",
+     "grade": "감리원",
+     "birth": "1966-01-15",
+     "issued": "2026-07-10"
+    },
+    {
+     "no": 7781,
+     "name": "변용완",
+     "cert_no": "정보시스템감리협회 제6032호",
+     "grade": "감리원",
+     "birth": "1971-03-20",
+     "issued": "2026-07-10"
+    },
+    {
+     "no": 7782,
+     "name": "신인철",
+     "cert_no": "정보시스템감리협회 제6033호",
+     "grade": "감리원",
+     "birth": "1969-05-13",
+     "issued": "2026-07-10"
+    },
+    {
+     "no": 7783,
+     "name": "안성진",
+     "cert_no": "정보시스템감리협회 제6034호",
+     "grade": "감리원",
+     "birth": "1992-05-12",
+     "issued": "2026-07-10"
+    },
+    {
+     "no": 7784,
+     "name": "오승환",
+     "cert_no": "정보시스템감리협회 제6035호",
+     "grade": "감리원",
+     "birth": "1957-09-29",
+     "issued": "2026-07-10"
+    },
+    {
+     "no": 7785,
+     "name": "우석근",
+     "cert_no": "정보시스템감리협회 제6036호",
+     "grade": "감리원",
+     "birth": "1969-10-25",
+     "issued": "2026-07-10"
+    },
+    {
+     "no": 7786,
+     "name": "유상복",
+     "cert_no": "정보시스템감리협회 제6037호",
+     "grade": "감리원",
+     "birth": "1964-02-25",
+     "issued": "2026-07-10"
+    },
+    {
+     "no": 7787,
+     "name": "윤경수",
+     "cert_no": "정보시스템감리협회 제6038호",
+     "grade": "감리원",
+     "birth": "1967-07-09",
+     "issued": "2026-07-10"
+    },
+    {
+     "no": 7788,
+     "name": "윤명호",
+     "cert_no": "정보시스템감리협회 제6039호",
+     "grade": "감리원",
+     "birth": "1967-12-29",
+     "issued": "2026-07-10"
+    },
+    {
+     "no": 7789,
+     "name": "이길수",
+     "cert_no": "정보시스템감리협회 제6040호",
+     "grade": "감리원",
+     "birth": "1968-12-10",
+     "issued": "2026-07-10"
+    },
+    {
+     "no": 7790,
+     "name": "이상일",
+     "cert_no": "정보시스템감리협회 제6041호",
+     "grade": "감리원",
+     "birth": "1968-02-19",
+     "issued": "2026-07-10"
+    },
+    {
+     "no": 7791,
+     "name": "이상협",
+     "cert_no": "정보시스템감리협회 제6042호",
+     "grade": "감리원",
+     "birth": "1973-10-26",
+     "issued": "2026-07-10"
+    },
+    {
+     "no": 7792,
+     "name": "이수현",
+     "cert_no": "정보시스템감리협회 제6043호",
+     "grade": "감리원",
+     "birth": "1971-09-05",
+     "issued": "2026-07-10"
+    },
+    {
+     "no": 7793,
+     "name": "이신재",
+     "cert_no": "정보시스템감리협회 제6044호",
+     "grade": "감리원",
+     "birth": "1972-08-15",
+     "issued": "2026-07-10"
+    },
+    {
+     "no": 7794,
+     "name": "이영학",
+     "cert_no": "정보시스템감리협회 제6045호",
+     "grade": "감리원",
+     "birth": "1992-06-23",
+     "issued": "2026-07-10"
+    },
+    {
+     "no": 7795,
+     "name": "이주호",
+     "cert_no": "정보시스템감리협회 제6046호",
+     "grade": "감리원",
+     "birth": "1970-05-16",
+     "issued": "2026-07-10"
+    },
+    {
+     "no": 7796,
+     "name": "이창주",
+     "cert_no": "정보시스템감리협회 제6047호",
+     "grade": "감리원",
+     "birth": "1966-05-12",
+     "issued": "2026-07-10"
+    },
+    {
+     "no": 7797,
+     "name": "조대인",
+     "cert_no": "정보시스템감리협회 제6048호",
+     "grade": "감리원",
+     "birth": "1964-02-16",
+     "issued": "2026-07-10"
+    },
+    {
+     "no": 7798,
+     "name": "조주동",
+     "cert_no": "정보시스템감리협회 제6049호",
+     "grade": "감리원",
+     "birth": "1969-08-17",
+     "issued": "2026-07-10"
+    },
+    {
+     "no": 7799,
+     "name": "조지운",
+     "cert_no": "정보시스템감리협회 제6050호",
+     "grade": "감리원",
+     "birth": "1971-07-09",
+     "issued": "2026-07-10"
+    },
+    {
+     "no": 7800,
+     "name": "진재권",
+     "cert_no": "정보시스템감리협회 제6051호",
+     "grade": "감리원",
+     "birth": "1951-05-07",
+     "issued": "2026-07-10"
+    },
+    {
+     "no": 7801,
+     "name": "최재욱",
+     "cert_no": "정보시스템감리협회 제6052호",
+     "grade": "감리원",
+     "birth": "1966-03-15",
+     "issued": "2026-07-10"
+    },
+    {
+     "no": 7802,
+     "name": "한창훈",
+     "cert_no": "정보시스템감리협회 제6053호",
+     "grade": "감리원",
+     "birth": "1970-08-15",
+     "issued": "2026-07-10"
+    },
+    {
+     "no": 7803,
+     "name": "이건상",
+     "cert_no": "정보시스템감리협회 제6054호",
+     "grade": "감리원",
+     "birth": "1972-12-27",
+     "issued": "2026-05-28"
+    },
+    {
+     "no": 7804,
+     "name": "라광희",
+     "cert_no": "정보시스템감리협회 제6055호",
+     "grade": "감리원",
+     "birth": "1983-12-12",
+     "issued": "2026-07-16"
+    },
+    {
+     "no": 7805,
+     "name": "경용호",
+     "cert_no": "정보시스템감리협회 제6056호",
+     "grade": "감리원",
+     "birth": "1968-10-25",
+     "issued": "2026-07-22"
+    },
+    {
+     "no": 7806,
+     "name": "김민지",
+     "cert_no": "정보시스템감리협회 제6057호",
+     "grade": "감리원",
+     "birth": "1991-06-02",
+     "issued": "2026-07-22"
+    },
+    {
+     "no": 7807,
+     "name": "김수민",
+     "cert_no": "정보시스템감리협회 제6058호",
+     "grade": "감리원",
+     "birth": "1991-12-12",
+     "issued": "2026-07-22"
+    },
+    {
+     "no": 7808,
+     "name": "김용훈",
+     "cert_no": "정보시스템감리협회 제6059호",
+     "grade": "감리원",
+     "birth": "1969-06-03",
+     "issued": "2026-07-22"
+    },
+    {
+     "no": 7809,
+     "name": "김지나",
+     "cert_no": "정보시스템감리협회 제6060호",
+     "grade": "감리원",
+     "birth": "1991-05-23",
+     "issued": "2026-07-22"
+    },
+    {
+     "no": 7810,
+     "name": "박경희",
+     "cert_no": "정보시스템감리협회 제6061호",
+     "grade": "감리원",
+     "birth": "1969-07-09",
+     "issued": "2026-07-22"
+    },
+    {
+     "no": 7811,
+     "name": "박미소",
+     "cert_no": "정보시스템감리협회 제6062호",
+     "grade": "감리원",
+     "birth": "1994-08-05",
+     "issued": "2026-07-22"
+    },
+    {
+     "no": 7812,
+     "name": "박우정",
+     "cert_no": "정보시스템감리협회 제6063호",
+     "grade": "감리원",
+     "birth": "1990-02-14",
+     "issued": "2026-07-22"
+    },
+    {
+     "no": 7813,
+     "name": "박정복",
+     "cert_no": "정보시스템감리협회 제6064호",
+     "grade": "감리원",
+     "birth": "1972-05-05",
+     "issued": "2026-07-22"
+    },
+    {
+     "no": 7814,
+     "name": "박주희",
+     "cert_no": "정보시스템감리협회 제6065호",
+     "grade": "감리원",
+     "birth": "1984-10-12",
+     "issued": "2026-07-22"
+    },
+    {
+     "no": 7815,
+     "name": "박지영",
+     "cert_no": "정보시스템감리협회 제6066호",
+     "grade": "감리원",
+     "birth": "1992-05-05",
+     "issued": "2026-07-22"
+    },
+    {
+     "no": 7816,
+     "name": "백석진",
+     "cert_no": "정보시스템감리협회 제6067호",
+     "grade": "감리원",
+     "birth": "1968-07-27",
+     "issued": "2026-07-22"
+    },
+    {
+     "no": 7817,
+     "name": "백은규",
+     "cert_no": "정보시스템감리협회 제6068호",
+     "grade": "감리원",
+     "birth": "1995-11-27",
+     "issued": "2026-07-22"
+    },
+    {
+     "no": 7818,
+     "name": "설영준",
+     "cert_no": "정보시스템감리협회 제6069호",
+     "grade": "감리원",
+     "birth": "1982-08-01",
+     "issued": "2026-07-22"
+    },
+    {
+     "no": 7819,
+     "name": "성영석",
+     "cert_no": "정보시스템감리협회 제6070호",
+     "grade": "감리원",
+     "birth": "1971-05-20",
+     "issued": "2026-07-22"
+    },
+    {
+     "no": 7820,
+     "name": "윤주희",
+     "cert_no": "정보시스템감리협회 제6071호",
+     "grade": "감리원",
+     "birth": "1991-04-19",
+     "issued": "2026-07-22"
+    },
+    {
+     "no": 7821,
+     "name": "이동기",
+     "cert_no": "정보시스템감리협회 제6072호",
+     "grade": "감리원",
+     "birth": "1992-02-18",
+     "issued": "2026-07-22"
+    },
+    {
+     "no": 7822,
+     "name": "이민섭",
+     "cert_no": "정보시스템감리협회 제6073호",
+     "grade": "감리원",
+     "birth": "1971-03-09",
+     "issued": "2026-07-22"
+    },
+    {
+     "no": 7823,
+     "name": "이성훈",
+     "cert_no": "정보시스템감리협회 제6074호",
+     "grade": "감리원",
+     "birth": "1969-12-14",
+     "issued": "2026-07-22"
+    },
+    {
+     "no": 7824,
+     "name": "이수진",
+     "cert_no": "정보시스템감리협회 제6075호",
+     "grade": "감리원",
+     "birth": "1985-08-20",
+     "issued": "2026-07-22"
+    },
+    {
+     "no": 7825,
+     "name": "이호정",
+     "cert_no": "정보시스템감리협회 제6076호",
+     "grade": "감리원",
+     "birth": "1991-05-01",
+     "issued": "2026-07-22"
+    },
+    {
+     "no": 7826,
+     "name": "장윤석",
+     "cert_no": "정보시스템감리협회 제6077호",
+     "grade": "감리원",
+     "birth": "1985-07-25",
+     "issued": "2026-07-22"
+    },
+    {
+     "no": 7827,
+     "name": "정윤정",
+     "cert_no": "정보시스템감리협회 제6078호",
+     "grade": "감리원",
+     "birth": "1987-02-20",
+     "issued": "2026-07-22"
+    },
+    {
+     "no": 7828,
+     "name": "지봉근",
+     "cert_no": "정보시스템감리협회 제6079호",
+     "grade": "감리원",
+     "birth": "1970-01-30",
+     "issued": "2026-07-22"
+    },
+    {
+     "no": 7829,
+     "name": "채경병",
+     "cert_no": "정보시스템감리협회 제6080호",
+     "grade": "감리원",
+     "birth": "1984-01-28",
+     "issued": "2026-07-22"
+    },
+    {
+     "no": 7830,
+     "name": "황상구",
+     "cert_no": "정보시스템감리협회 제6081호",
+     "grade": "감리원",
+     "birth": "1971-02-01",
+     "issued": "2026-07-22"
+    },
+    {
+     "no": 7831,
+     "name": "이상혜",
+     "cert_no": "정보시스템감리협회 제6082호",
+     "grade": "감리원",
+     "birth": "1968-02-14",
+     "issued": "2026-07-22"
+    },
+    {
+     "no": 7832,
+     "name": "강대룡",
+     "cert_no": "정보시스템감리협회 제6083호",
+     "grade": "감리원",
+     "birth": "1974-12-13",
+     "issued": "2026-08-10"
+    },
+    {
+     "no": 7833,
+     "name": "구윤모",
+     "cert_no": "정보시스템감리협회 제6084호",
+     "grade": "감리원",
+     "birth": "1974-03-19",
+     "issued": "2026-08-10"
+    },
+    {
+     "no": 7834,
+     "name": "김민수",
+     "cert_no": "정보시스템감리협회 제6085호",
+     "grade": "감리원",
+     "birth": "1992-12-20",
+     "issued": "2026-08-10"
+    },
+    {
+     "no": 7835,
+     "name": "김병곤",
+     "cert_no": "정보시스템감리협회 제6086호",
+     "grade": "감리원",
+     "birth": "1970-08-08",
+     "issued": "2026-08-10"
+    },
+    {
+     "no": 7836,
+     "name": "김봉수",
+     "cert_no": "정보시스템감리협회 제6087호",
+     "grade": "감리원",
+     "birth": "1980-05-17",
+     "issued": "2026-08-10"
+    },
+    {
+     "no": 7837,
+     "name": "김석용",
+     "cert_no": "정보시스템감리협회 제6088호",
+     "grade": "감리원",
+     "birth": "1979-04-30",
+     "issued": "2026-08-10"
+    },
+    {
+     "no": 7838,
+     "name": "김영대",
+     "cert_no": "정보시스템감리협회 제6089호",
+     "grade": "감리원",
+     "birth": "1972-02-05",
+     "issued": "2026-08-10"
+    },
+    {
+     "no": 7839,
+     "name": "김완홍",
+     "cert_no": "정보시스템감리협회 제6090호",
+     "grade": "감리원",
+     "birth": "1968-01-08",
+     "issued": "2026-08-10"
+    },
+    {
+     "no": 7840,
+     "name": "나영호",
+     "cert_no": "정보시스템감리협회 제6091호",
+     "grade": "감리원",
+     "birth": "1965-12-20",
+     "issued": "2026-08-10"
+    },
+    {
+     "no": 7841,
+     "name": "박광천",
+     "cert_no": "정보시스템감리협회 제6092호",
+     "grade": "감리원",
+     "birth": "1967-05-31",
+     "issued": "2026-08-10"
+    },
+    {
+     "no": 7842,
+     "name": "박상종",
+     "cert_no": "정보시스템감리협회 제6093호",
+     "grade": "감리원",
+     "birth": "1962-12-03",
+     "issued": "2026-08-10"
+    },
+    {
+     "no": 7843,
+     "name": "박순영",
+     "cert_no": "정보시스템감리협회 제6094호",
+     "grade": "감리원",
+     "birth": "1969-08-20",
+     "issued": "2026-08-10"
+    },
+    {
+     "no": 7844,
+     "name": "박주성",
+     "cert_no": "정보시스템감리협회 제6095호",
+     "grade": "감리원",
+     "birth": "1973-09-05",
+     "issued": "2026-08-10"
+    },
+    {
+     "no": 7845,
+     "name": "박중석",
+     "cert_no": "정보시스템감리협회 제6096호",
+     "grade": "감리원",
+     "birth": "1966-11-07",
+     "issued": "2026-08-10"
+    },
+    {
+     "no": 7846,
+     "name": "박형진",
+     "cert_no": "정보시스템감리협회 제6097호",
+     "grade": "감리원",
+     "birth": "1969-05-02",
+     "issued": "2026-08-10"
+    },
+    {
+     "no": 7847,
+     "name": "백소현",
+     "cert_no": "정보시스템감리협회 제6098호",
+     "grade": "감리원",
+     "birth": "1980-06-12",
+     "issued": "2026-08-10"
+    },
+    {
+     "no": 7848,
+     "name": "서경선",
+     "cert_no": "정보시스템감리협회 제6099호",
+     "grade": "감리원",
+     "birth": "1981-08-17",
+     "issued": "2026-08-10"
+    },
+    {
+     "no": 7849,
+     "name": "서길원",
+     "cert_no": "정보시스테감리협회 제6100호",
+     "grade": "감리원",
+     "birth": "1967-09-03",
+     "issued": "2026-08-10"
+    },
+    {
+     "no": 7850,
+     "name": "서원태",
+     "cert_no": "정보시스템감리협회 제6101호",
+     "grade": "감리원",
+     "birth": "1986-01-25",
+     "issued": "2026-08-10"
+    },
+    {
+     "no": 7851,
+     "name": "신중철",
+     "cert_no": "정보시스템감리협회 제6102호",
+     "grade": "감리원",
+     "birth": "1976-03-04",
+     "issued": "2026-08-10"
+    },
+    {
+     "no": 7852,
+     "name": "윤선용",
+     "cert_no": "정보시스템감리협회 제6103호",
+     "grade": "감리원",
+     "birth": "1972-12-16",
+     "issued": "2026-08-10"
+    },
+    {
+     "no": 7853,
+     "name": "윤창호",
+     "cert_no": "정보시스템감리협회 제6104호",
+     "grade": "감리원",
+     "birth": "1978-03-14",
+     "issued": "2026-08-10"
+    },
+    {
+     "no": 7854,
+     "name": "윤현수",
+     "cert_no": "정보시스템감리협회 제6105호",
+     "grade": "감리원",
+     "birth": "1967-05-23",
+     "issued": "2026-08-10"
+    },
+    {
+     "no": 7855,
+     "name": "이규호",
+     "cert_no": "정보시스템감리협회 제6106호",
+     "grade": "감리원",
+     "birth": "1970-07-28",
+     "issued": "2026-08-10"
+    },
+    {
+     "no": 7856,
+     "name": "이상훈",
+     "cert_no": "정보시스템감리협회 제6107호",
+     "grade": "감리원",
+     "birth": "1971-04-01",
+     "issued": "2026-08-10"
+    },
+    {
+     "no": 7857,
+     "name": "이성하",
+     "cert_no": "정보시스템감리협회 제6108호",
+     "grade": "감리원",
+     "birth": "1965-09-28",
+     "issued": "2026-08-10"
+    },
+    {
+     "no": 7858,
+     "name": "이수연",
+     "cert_no": "정보시스템감리협회 제6109호",
+     "grade": "감리원",
+     "birth": "1969-06-23",
+     "issued": "2026-08-10"
+    },
+    {
+     "no": 7859,
+     "name": "이승훈",
+     "cert_no": "정보시스템감리협회 제6110호",
+     "grade": "감리원",
+     "birth": "1972-11-03",
+     "issued": "2026-08-10"
+    },
+    {
+     "no": 7860,
+     "name": "이욱재",
+     "cert_no": "정보시스템감리협회 제6111호",
+     "grade": "감리원",
+     "birth": "1985-09-22",
+     "issued": "2026-08-21"
+    },
+    {
+     "no": 7861,
+     "name": "이재웅",
+     "cert_no": "정보시스템감리협회 제6112호",
+     "grade": "감리원",
+     "birth": "1983-07-13",
+     "issued": "2026-08-10"
+    },
+    {
+     "no": 7862,
+     "name": "이정완",
+     "cert_no": "정보시스템감리협회 제6113호",
+     "grade": "감리원",
+     "birth": "1967-07-24",
+     "issued": "2026-08-10"
+    },
+    {
+     "no": 7863,
+     "name": "이종섭",
+     "cert_no": "정보시스템감리협회 제6114호",
+     "grade": "감리원",
+     "birth": "1967-02-07",
+     "issued": "2026-08-10"
+    },
+    {
+     "no": 7864,
+     "name": "이종수",
+     "cert_no": "정보시스템감리협회 제6115호",
+     "grade": "감리원",
+     "birth": "1970-07-16",
+     "issued": "2026-08-10"
+    },
+    {
+     "no": 7865,
+     "name": "이진욱",
+     "cert_no": "정보시스템감리협회 제6116호",
+     "grade": "감리원",
+     "birth": "1993-10-29",
+     "issued": "2026-08-10"
+    },
+    {
+     "no": 7866,
+     "name": "임동욱",
+     "cert_no": "정보시스템감리협회 제6117호",
+     "grade": "감리원",
+     "birth": "1972-06-03",
+     "issued": "2026-08-10"
+    },
+    {
+     "no": 7867,
+     "name": "임상헌",
+     "cert_no": "정보시스테감리협회 제6118호",
+     "grade": "감리원",
+     "birth": "1983-07-10",
+     "issued": "2026-08-10"
+    },
+    {
+     "no": 7868,
+     "name": "임재택",
+     "cert_no": "정보시스템감리협회 제6119호",
+     "grade": "감리원",
+     "birth": "1972-02-11",
+     "issued": "2026-08-10"
+    },
+    {
+     "no": 7869,
+     "name": "임진섭",
+     "cert_no": "정보시스템감리협회 제6120호",
+     "grade": "감리원",
+     "birth": "1965-12-01",
+     "issued": "2026-08-10"
+    },
+    {
+     "no": 7870,
+     "name": "정기수",
+     "cert_no": "정보시스템감리협회 제6121호",
+     "grade": "감리원",
+     "birth": "1974-02-24",
+     "issued": "2026-08-10"
+    },
+    {
+     "no": 7871,
+     "name": "정수옥",
+     "cert_no": "정보시스템감리협회 제6122호",
+     "grade": "감리원",
+     "birth": "1970-03-16",
+     "issued": "2026-08-10"
+    },
+    {
+     "no": 7872,
+     "name": "조한나",
+     "cert_no": "정보시스템감리협회 제6123호",
+     "grade": "감리원",
+     "birth": "1982-12-05",
+     "issued": "2026-08-10"
+    },
+    {
+     "no": 7873,
+     "name": "최문욱",
+     "cert_no": "정보시스템감리협회 제6124호",
+     "grade": "감리원",
+     "birth": "1972-02-20",
+     "issued": "2026-08-10"
+    },
+    {
+     "no": 7874,
+     "name": "허봉식",
+     "cert_no": "정보시스템감리협회 제6125호",
+     "grade": "감리원",
+     "birth": "1967-06-17",
+     "issued": "2026-08-10"
+    },
+    {
+     "no": 7875,
+     "name": "허재영",
+     "cert_no": "정보시스템감리협회 제6126호",
+     "grade": "감리원",
+     "birth": "1979-10-27",
+     "issued": "2026-08-10"
+    },
+    {
+     "no": 7876,
+     "name": "고현국",
+     "cert_no": "정보시스템감리협회 제6127호",
+     "grade": "감리원",
+     "birth": "1975-09-24",
+     "issued": "2026-08-27"
+    },
+    {
+     "no": 7877,
+     "name": "곽상훈",
+     "cert_no": "정보시스템감리협회 제6128호",
+     "grade": "감리원",
+     "birth": "1973-03-01",
+     "issued": "2026-08-27"
+    },
+    {
+     "no": 7878,
+     "name": "김선미",
+     "cert_no": "정보시스템감리협회 제6129호",
+     "grade": "감리원",
+     "birth": "1970-04-21",
+     "issued": "2026-08-27"
+    },
+    {
+     "no": 7879,
+     "name": "박은영",
+     "cert_no": "정보시스템가밀협회 제6130호",
+     "grade": "감리원",
+     "birth": "1983-06-14",
+     "issued": "2026-08-27"
+    },
+    {
+     "no": 7880,
+     "name": "설민",
+     "cert_no": "정보시스템감리협회 제6131호",
+     "grade": "감리원",
+     "birth": "1992-02-18",
+     "issued": "2026-08-27"
+    },
+    {
+     "no": 7881,
+     "name": "손명근",
+     "cert_no": "정보시스템감리협회 제6132호",
+     "grade": "감리원",
+     "birth": "1974-12-05",
+     "issued": "2026-08-27"
+    },
+    {
+     "no": 7882,
+     "name": "이광근",
+     "cert_no": "정보시스템감리협회 제6133호",
+     "grade": "감리원",
+     "birth": "1981-04-04",
+     "issued": "2026-08-27"
+    },
+    {
+     "no": 7883,
+     "name": "이제환",
+     "cert_no": "정보시스테감리협회 제6134호",
+     "grade": "감리원",
+     "birth": "1974-03-30",
+     "issued": "2026-08-27"
+    },
+    {
+     "no": 7884,
+     "name": "이창수",
+     "cert_no": "정보시스템감리협회 제6135호",
+     "grade": "감리원",
+     "birth": "1976-04-09",
+     "issued": "2026-08-27"
+    },
+    {
+     "no": 7885,
+     "name": "이창우",
+     "cert_no": "정보시스템감리협회 제6136호",
+     "grade": "감리원",
+     "birth": "1988-11-23",
+     "issued": "2026-08-27"
+    },
+    {
+     "no": 7886,
+     "name": "조용범",
+     "cert_no": "정보시스템감리협회 제6137호",
+     "grade": "감리원",
+     "birth": "1969-04-18",
+     "issued": "2026-08-27"
+    },
+    {
+     "no": 7887,
+     "name": "진윤한",
+     "cert_no": "정보시스템감리협회 제6138호",
+     "grade": "감리원",
+     "birth": "1970-02-18",
+     "issued": "2026-08-27"
+    },
+    {
+     "no": 7888,
+     "name": "홍이삭",
+     "cert_no": "정보시스템감리협회 제6139호",
+     "grade": "감리원",
+     "birth": "1981-01-17",
+     "issued": "2026-08-27"
+    },
+    {
+     "no": 7889,
+     "name": "황덕환",
+     "cert_no": "정보시스템감리협회 제6140호",
+     "grade": "감리원",
+     "birth": "1993-03-15",
+     "issued": "2026-09-07"
+    },
+    {
+     "no": 7890,
+     "name": "김동진",
+     "cert_no": "정보시스템감리협회 제6141호",
+     "grade": "감리원",
+     "birth": "1977-09-15",
+     "issued": "2026-08-31"
+    },
+    {
+     "no": 7891,
+     "name": "권범준",
+     "cert_no": "정보시스템감리협회 제6142호",
+     "grade": "수석감리원",
+     "birth": "1974-12-25",
+     "issued": "2026-09-21"
+    },
+    {
+     "no": 7892,
+     "name": "권오준",
+     "cert_no": "정보시스템감리협회 제6143호",
+     "grade": "수석감리원",
+     "birth": "1966-07-24",
+     "issued": "2026-09-21"
+    },
+    {
+     "no": 7893,
+     "name": "김광남",
+     "cert_no": "정보시스템감리협회 제6144호",
+     "grade": "수석감리원",
+     "birth": "1969-05-20",
+     "issued": "2026-09-21"
+    },
+    {
+     "no": 7894,
+     "name": "김성일",
+     "cert_no": "정보시스템감리협회 제6145호",
+     "grade": "수석감리원",
+     "birth": "1971-08-21",
+     "issued": "2026-09-21"
+    },
+    {
+     "no": 7895,
+     "name": "김영호",
+     "cert_no": "정보시스템감리협회 제6146호",
+     "grade": "수석감리원",
+     "birth": "1969-05-20",
+     "issued": "2026-09-21"
+    },
+    {
+     "no": 7896,
+     "name": "김인식",
+     "cert_no": "정보시스템감리협회 제6147호",
+     "grade": "수석감리원",
+     "birth": "1974-12-25",
+     "issued": "2026-09-21"
+    },
+    {
+     "no": 7897,
+     "name": "김재현",
+     "cert_no": "정보시스템감리협회 제6148호",
+     "grade": "수석감리원",
+     "birth": "1973-07-03",
+     "issued": "2026-09-21"
+    },
+    {
+     "no": 7898,
+     "name": "김정희",
+     "cert_no": "정보시스템감리협회 제6149호",
+     "grade": "수석감리원",
+     "birth": "1964-01-13",
+     "issued": "2026-09-21"
+    },
+    {
+     "no": 7899,
+     "name": "김종락",
+     "cert_no": "정보시스템감리협회 제6150호",
+     "grade": "수석감리원",
+     "birth": "1964-03-29",
+     "issued": "2026-09-21"
+    },
+    {
+     "no": 7900,
+     "name": "김태룡",
+     "cert_no": "정보시스템감리협회 제6151호",
+     "grade": "수석감리원",
+     "birth": "1970-05-28",
+     "issued": "2026-09-21"
+    },
+    {
+     "no": 7901,
+     "name": "김태훈",
+     "cert_no": "정보시스템감리협회 제6152호",
+     "grade": "수석감리원",
+     "birth": "1993-09-06",
+     "issued": "2026-09-21"
+    },
+    {
+     "no": 7902,
+     "name": "김희경",
+     "cert_no": "정보시스템감리협회 제6153호",
+     "grade": "수석감리원",
+     "birth": "1969-11-22",
+     "issued": "2026-09-21"
+    },
+    {
+     "no": 7903,
+     "name": "노수갑",
+     "cert_no": "정보시스템감리협회 제6154호",
+     "grade": "수석감리원",
+     "birth": "1972-04-13",
+     "issued": "2026-09-21"
+    },
+    {
+     "no": 7904,
+     "name": "도레미",
+     "cert_no": "정보시스템감리협회 제6155호",
+     "grade": "수석감리원",
+     "birth": "1974-12-06",
+     "issued": "2026-09-21"
+    },
+    {
+     "no": 7905,
+     "name": "문장석",
+     "cert_no": "정보시스템감리협회 제6156호",
+     "grade": "수석감리원",
+     "birth": "1968-07-12",
+     "issued": "2026-09-21"
+    },
+    {
+     "no": 7906,
+     "name": "민경필",
+     "cert_no": "정보시스템감리협회 제6157호",
+     "grade": "수석감리원",
+     "birth": "1976-07-03",
+     "issued": "2026-09-21"
+    },
+    {
+     "no": 7907,
+     "name": "박대철",
+     "cert_no": "정보시스템감리협회 제6158호",
+     "grade": "수석감리원",
+     "birth": "1980-01-11",
+     "issued": "2026-09-21"
+    },
+    {
+     "no": 7908,
+     "name": "박종희",
+     "cert_no": "정보시스템감리협회 제6159호",
+     "grade": "수석감리원",
+     "birth": "1978-02-08",
+     "issued": "2026-09-21"
+    },
+    {
+     "no": 7909,
+     "name": "변해성",
+     "cert_no": "정보시스템감리협회 제6160호",
+     "grade": "수석감리원",
+     "birth": "1974-11-20",
+     "issued": "2026-09-21"
+    },
+    {
+     "no": 7910,
+     "name": "변혜연",
+     "cert_no": "정보시스템감리협회 제6161호",
+     "grade": "수석감리원",
+     "birth": "1982-07-05",
+     "issued": "2026-09-21"
+    },
+    {
+     "no": 7911,
+     "name": "송인규",
+     "cert_no": "정보시스템감리협회 제6162호",
+     "grade": "수석감리원",
+     "birth": "1971-02-11",
+     "issued": "2026-09-21"
+    },
+    {
+     "no": 7912,
+     "name": "신동현",
+     "cert_no": "정보시스템감리협회 제6163호",
+     "grade": "수석감리원",
+     "birth": "1972-09-27",
+     "issued": "2026-09-21"
+    },
+    {
+     "no": 7913,
+     "name": "신명섭",
+     "cert_no": "정보시스템감리협회 제6164호",
+     "grade": "수석감리원",
+     "birth": "1976-10-15",
+     "issued": "2026-09-21"
+    },
+    {
+     "no": 7914,
+     "name": "우하늘",
+     "cert_no": "정보시스템감리협회 제6165호",
+     "grade": "수석감리원",
+     "birth": "1982-07-10",
+     "issued": "2026-09-21"
+    },
+    {
+     "no": 7915,
+     "name": "유찬석",
+     "cert_no": "정보시스템감리협회 제6166호",
+     "grade": "수석감리원",
+     "birth": "1967-10-24",
+     "issued": "2026-09-21"
+    },
+    {
+     "no": 7916,
+     "name": "이근재",
+     "cert_no": "정보시스템감리협회 제6167호",
+     "grade": "수석감리원",
+     "birth": "1972-03-26",
+     "issued": "2026-09-21"
+    },
+    {
+     "no": 7917,
+     "name": "이석주",
+     "cert_no": "정보시스템감리협회 제6168호",
+     "grade": "수석감리원",
+     "birth": "1970-10-01",
+     "issued": "2026-09-21"
+    },
+    {
+     "no": 7918,
+     "name": "이성진",
+     "cert_no": "정보시스템감리협회 제6169호",
+     "grade": "수석감리원",
+     "birth": "1967-10-04",
+     "issued": "2026-09-21"
+    },
+    {
+     "no": 7919,
+     "name": "이지훈",
+     "cert_no": "정보시스템감리협회 제6170호",
+     "grade": "수석감리원",
+     "birth": "1973-04-22",
+     "issued": "2026-09-21"
+    },
+    {
+     "no": 7920,
+     "name": "이해원",
+     "cert_no": "정보시스템감리협회 제6171호",
+     "grade": "수석감리원",
+     "birth": "1969-06-24",
+     "issued": "2026-09-21"
+    },
+    {
+     "no": 7921,
+     "name": "이현도",
+     "cert_no": "정보시스템감리협회 제6172호",
+     "grade": "수석감리원",
+     "birth": "1989-02-07",
+     "issued": "2026-09-21"
+    },
+    {
+     "no": 7922,
+     "name": "이효숙",
+     "cert_no": "정보시스템감리협회 제6173호",
+     "grade": "수석감리원",
+     "birth": "1982-04-13",
+     "issued": "2026-09-21"
+    },
+    {
+     "no": 7923,
+     "name": "임동완",
+     "cert_no": "정보시스템감리협회 제6174호",
+     "grade": "수석감리원",
+     "birth": "1974-05-23",
+     "issued": "2026-09-21"
+    },
+    {
+     "no": 7924,
+     "name": "임지영",
+     "cert_no": "정보시스템감리협회 제6175호",
+     "grade": "수석감리원",
+     "birth": "1972-09-17",
+     "issued": "2026-09-21"
+    },
+    {
+     "no": 7925,
+     "name": "임지환",
+     "cert_no": "정보시스템감리협회 제6176호",
+     "grade": "수석감리원",
+     "birth": "1982-08-30",
+     "issued": "2026-09-21"
+    },
+    {
+     "no": 7926,
+     "name": "정태영",
+     "cert_no": "정보시스템감리협회 제6177호",
+     "grade": "수석감리원",
+     "birth": "1974-02-22",
+     "issued": "2026-09-21"
+    },
+    {
+     "no": 7927,
+     "name": "채진영",
+     "cert_no": "정보시스템감리협회 제6178호",
+     "grade": "수석감리원",
+     "birth": "1973-07-26",
+     "issued": "2026-09-21"
+    },
+    {
+     "no": 7928,
+     "name": "황인성",
+     "cert_no": "정보시스템감리협회 제6179호",
+     "grade": "수석감리원",
+     "birth": "1971-10-12",
+     "issued": "2026-09-21"
+    },
+    {
+     "no": 7929,
+     "name": "황찬식",
+     "cert_no": "정보시스템감리협회 제6180호",
+     "grade": "수석감리원",
+     "birth": "1968-06-12",
+     "issued": "2026-09-21"
+    },
+    {
+     "no": 7930,
+     "name": "박성호",
+     "cert_no": "정보시스템감리협회 제6181호",
+     "grade": "수석감리원",
+     "birth": "1970-10-27",
+     "issued": "2026-09-21"
+    },
+    {
+     "no": 7931,
+     "name": "고람성",
+     "cert_no": "정보시스템감리협회 제6184호",
+     "grade": "감리원",
+     "birth": "1975-09-14",
+     "issued": "2026-09-18"
+    },
+    {
+     "no": 7932,
+     "name": "권정민",
+     "cert_no": "정보시스템감리협회 제6185호",
+     "grade": "감리원",
+     "birth": "1966-10-11",
+     "issued": "2026-09-18"
+    },
+    {
+     "no": 7933,
+     "name": "권혁재",
+     "cert_no": "정보시스템감리협회 제6186호",
+     "grade": "감리원",
+     "birth": "1979-07-05",
+     "issued": "2026-09-18"
+    },
+    {
+     "no": 7934,
+     "name": "김광배",
+     "cert_no": "정보시스템감리협회 제6187호",
+     "grade": "감리원",
+     "birth": "1968-07-19",
+     "issued": "2026-09-18"
+    },
+    {
+     "no": 7935,
+     "name": "김대원",
+     "cert_no": "정보시스템감리협회 제6188호",
+     "grade": "감리원",
+     "birth": "1980-02-09",
+     "issued": "2026-09-18"
+    },
+    {
+     "no": 7936,
+     "name": "김민수",
+     "cert_no": "정보시스템감리협회 제6189호",
+     "grade": "감리원",
+     "birth": "1976-02-20",
+     "issued": "2026-09-18"
+    },
+    {
+     "no": 7937,
+     "name": "김성원",
+     "cert_no": "정보시스템감리협회 제6190호",
+     "grade": "감리원",
+     "birth": "1981-02-25",
+     "issued": "2026-09-18"
+    },
+    {
+     "no": 7938,
+     "name": "김영원",
+     "cert_no": "정보시스템감리협회 제6191호",
+     "grade": "감리원",
+     "birth": "1973-11-15",
+     "issued": "2026-09-18"
+    },
+    {
+     "no": 7939,
+     "name": "김영태",
+     "cert_no": "정보시스템감리협회 제6192호",
+     "grade": "감리원",
+     "birth": "1971-02-02",
+     "issued": "2026-09-18"
+    },
+    {
+     "no": 7940,
+     "name": "김은희",
+     "cert_no": "정보시스템감리협회 제6193호",
+     "grade": "감리원",
+     "birth": "1970-06-07",
+     "issued": "2026-09-18"
+    },
+    {
+     "no": 7941,
+     "name": "김자민",
+     "cert_no": "정보시스템감리협회 제6194호",
+     "grade": "감리원",
+     "birth": "1995-04-22",
+     "issued": "2026-09-18"
+    },
+    {
+     "no": 7942,
+     "name": "김재필",
+     "cert_no": "정보시스템감리협회 제6195호",
+     "grade": "감리원",
+     "birth": "1972-11-21",
+     "issued": "2026-09-18"
+    },
+    {
+     "no": 7943,
+     "name": "김재환",
+     "cert_no": "정보시스템감리협회 제6196호",
+     "grade": "감리원",
+     "birth": "1980-03-27",
+     "issued": "2026-09-18"
+    },
+    {
+     "no": 7944,
+     "name": "김종오",
+     "cert_no": "정보시스템감리협회 제6197호",
+     "grade": "감리원",
+     "birth": "1972-10-18",
+     "issued": "2026-09-18"
+    },
+    {
+     "no": 7945,
+     "name": "김진실",
+     "cert_no": "정보시스템감리협회 제6198호",
+     "grade": "감리원",
+     "birth": "1984-01-03",
+     "issued": "2026-09-18"
+    },
+    {
+     "no": 7946,
+     "name": "김혜진",
+     "cert_no": "정보시스템감리협회 제6199호",
+     "grade": "감리원",
+     "birth": "1984-08-07",
+     "issued": "2026-09-18"
+    },
+    {
+     "no": 7947,
+     "name": "나종환",
+     "cert_no": "정보시스템감리협회 제6200호",
+     "grade": "감리원",
+     "birth": "1975-02-20",
+     "issued": "2026-09-18"
+    },
+    {
+     "no": 7948,
+     "name": "남무엽",
+     "cert_no": "정보시스템감리협회 제6201호",
+     "grade": "감리원",
+     "birth": "1970-08-05",
+     "issued": "2026-09-18"
+    },
+    {
+     "no": 7949,
+     "name": "류호증",
+     "cert_no": "정보시스템감리협회 제6202호",
+     "grade": "감리원",
+     "birth": "1967-08-15",
+     "issued": "2026-09-18"
+    },
+    {
+     "no": 7950,
+     "name": "박성만",
+     "cert_no": "정보시스템감리협회 제6203호",
+     "grade": "감리원",
+     "birth": "1972-01-10",
+     "issued": "2026-09-18"
+    },
+    {
+     "no": 7951,
+     "name": "박양진",
+     "cert_no": "정보시스템감리협회 제6204호",
+     "grade": "감리원",
+     "birth": "1972-06-12",
+     "issued": "2026-09-18"
+    },
+    {
+     "no": 7952,
+     "name": "박정선",
+     "cert_no": "정보시스템감리협회 제6205호",
+     "grade": "감리원",
+     "birth": "1973-09-23",
+     "issued": "2026-09-18"
+    },
+    {
+     "no": 7953,
+     "name": "반승욱",
+     "cert_no": "정보시스템감리협회 제6206호",
+     "grade": "감리원",
+     "birth": "1966-07-11",
+     "issued": "2026-09-18"
+    },
+    {
+     "no": 7954,
+     "name": "방진성",
+     "cert_no": "정보시스템감리협회 제6207호",
+     "grade": "감리원",
+     "birth": "1976-05-11",
+     "issued": "2026-09-18"
+    },
+    {
+     "no": 7955,
+     "name": "배석환",
+     "cert_no": "정보시스템감리협회 제6208호",
+     "grade": "감리원",
+     "birth": "1971-04-03",
+     "issued": "2026-09-18"
+    },
+    {
+     "no": 7956,
+     "name": "서달미",
+     "cert_no": "정보시스템감리협회 제6209호",
+     "grade": "감리원",
+     "birth": "1983-05-10",
+     "issued": "2026-09-18"
+    },
+    {
+     "no": 7957,
+     "name": "석진구",
+     "cert_no": "정보시스템감리협회 제6210호",
+     "grade": "감리원",
+     "birth": "1967-08-28",
+     "issued": "2026-09-18"
+    },
+    {
+     "no": 7958,
+     "name": "손경화",
+     "cert_no": "정보시스템감리협회 제6211호",
+     "grade": "감리원",
+     "birth": "1968-11-29",
+     "issued": "2026-09-18"
+    },
+    {
+     "no": 7959,
+     "name": "신재영",
+     "cert_no": "정보시스템감리협회 제6212호",
+     "grade": "감리원",
+     "birth": "1973-07-22",
+     "issued": "2026-09-18"
+    },
+    {
+     "no": 7960,
+     "name": "오윤경",
+     "cert_no": "정보시스템감리협회 제6213호",
+     "grade": "감리원",
+     "birth": "1973-09-03",
+     "issued": "2026-09-18"
+    },
+    {
+     "no": 7961,
+     "name": "오정희",
+     "cert_no": "정보시스템감리협회 제6214호",
+     "grade": "감리원",
+     "birth": "1972-10-10",
+     "issued": "2026-09-18"
+    },
+    {
+     "no": 7962,
+     "name": "유동완",
+     "cert_no": "정보시스템감리협회 제6215호",
+     "grade": "감리원",
+     "birth": "1991-12-06",
+     "issued": "2026-09-18"
+    },
+    {
+     "no": 7963,
+     "name": "유영근",
+     "cert_no": "정보시스템감리협회 제6216호",
+     "grade": "감리원",
+     "birth": "1975-11-30",
+     "issued": "2026-09-18"
+    },
+    {
+     "no": 7964,
+     "name": "이상우",
+     "cert_no": "정보시스템감리협회 제6217호",
+     "grade": "감리원",
+     "birth": "1967-11-01",
+     "issued": "2026-09-18"
+    },
+    {
+     "no": 7965,
+     "name": "이상훈",
+     "cert_no": "정보시스템감리협회 제6218호",
+     "grade": "감리원",
+     "birth": "1970-01-07",
+     "issued": "2026-09-18"
+    },
+    {
+     "no": 7966,
+     "name": "이성준",
+     "cert_no": "정보시스템감리협회 제6219호",
+     "grade": "감리원",
+     "birth": "1971-01-01",
+     "issued": "2026-09-18"
+    },
+    {
+     "no": 7967,
+     "name": "이승한",
+     "cert_no": "정보시스템감리협회 제6220호",
+     "grade": "감리원",
+     "birth": "1970-07-29",
+     "issued": "2026-09-18"
+    },
+    {
+     "no": 7968,
+     "name": "이용철",
+     "cert_no": "정보시스템감리협회 제6221호",
+     "grade": "감리원",
+     "birth": "1974-12-04",
+     "issued": "2026-09-18"
+    },
+    {
+     "no": 7969,
+     "name": "이용훈",
+     "cert_no": "정보시스템감리협회 제6222호",
+     "grade": "감리원",
+     "birth": "1968-07-08",
+     "issued": "2026-09-18"
+    },
+    {
+     "no": 7970,
+     "name": "이행영",
+     "cert_no": "정보시스템감리협회 제6223호",
+     "grade": "감리원",
+     "birth": "1971-09-10",
+     "issued": "2026-09-18"
+    },
+    {
+     "no": 7971,
+     "name": "장유선",
+     "cert_no": "정보시스템감리협회 제6224호",
+     "grade": "감리원",
+     "birth": "1969-02-18",
+     "issued": "2026-09-18"
+    },
+    {
+     "no": 7972,
+     "name": "정범구",
+     "cert_no": "정보시스템감리협회 제6225호",
+     "grade": "감리원",
+     "birth": "1976-05-16",
+     "issued": "2026-09-18"
+    },
+    {
+     "no": 7973,
+     "name": "정현수",
+     "cert_no": "정보시스템감리협회 제6226호",
+     "grade": "감리원",
+     "birth": "1970-02-15",
+     "issued": "2026-09-18"
+    },
+    {
+     "no": 7974,
+     "name": "정형중",
+     "cert_no": "정보시스템감리협회 제6227호",
+     "grade": "감리원",
+     "birth": "1972-04-15",
+     "issued": "2026-09-18"
+    },
+    {
+     "no": 7975,
+     "name": "조윤서",
+     "cert_no": "정보시스템감리협회 제6228호",
+     "grade": "감리원",
+     "birth": "1995-01-09",
+     "issued": "2026-09-18"
+    },
+    {
+     "no": 7976,
+     "name": "조윤희",
+     "cert_no": "정보시스템감리협회 제6229호",
+     "grade": "감리원",
+     "birth": "1968-09-22",
+     "issued": "2026-09-18"
+    },
+    {
+     "no": 7977,
+     "name": "주상웅",
+     "cert_no": "정보시스템감리협회 제6230호",
+     "grade": "감리원",
+     "birth": "1979-07-27",
+     "issued": "2026-09-18"
+    },
+    {
+     "no": 7978,
+     "name": "채승호",
+     "cert_no": "정보시스템감리협회 제6231호",
+     "grade": "감리원",
+     "birth": "1970-11-26",
+     "issued": "2026-09-18"
+    },
+    {
+     "no": 7979,
+     "name": "최성훈",
+     "cert_no": "정보시스템감리협회 제6232호",
+     "grade": "감리원",
+     "birth": "1986-10-14",
+     "issued": "2026-09-18"
+    },
+    {
+     "no": 7980,
+     "name": "허경행",
+     "cert_no": "정보시스템감리협회 제6233호",
+     "grade": "감리원",
+     "birth": "1977-02-15",
+     "issued": "2026-09-18"
+    },
+    {
+     "no": 7981,
+     "name": "허성호",
+     "cert_no": "정보시스템감리협회 제6234호",
+     "grade": "감리원",
+     "birth": "1975-01-30",
+     "issued": "2026-09-18"
+    },
+    {
+     "no": 7982,
+     "name": "현동호",
+     "cert_no": "정보시스템감리협회 제6235호",
+     "grade": "감리원",
+     "birth": "1968-07-06",
+     "issued": "2026-09-18"
+    },
+    {
+     "no": 7983,
+     "name": "김덕곤",
+     "cert_no": "정보시스템감리협회 제6236호",
+     "grade": "감리원",
+     "birth": "1976-09-23",
+     "issued": "2026-09-18"
+    }
+   ]
+  },
+  "P2_정크행": {
+   "count": 5,
+   "rows": [
+    {
+     "row": 6709,
+     "raw": "차성욱정보시스템감리협회 제4963호 | 차성욱 | 정보시스템감리협회 제4963호 | 감리원 | 1985.08.11 | 2025.06.25 | 아"
+    },
+    {
+     "row": 6897,
+     "raw": ""
+    },
+    {
+     "row": 6898,
+     "raw": "차성욱정보시스템감리협회 제4963호 | 차성욱 | 정보시스템감리협회 제4963호 | 감리원 | 1985.08.11 | 2025.06.25 | 아"
+    },
+    {
+     "row": 6899,
+     "raw": ""
+    },
+    {
+     "row": 6992,
+     "raw": "8월 13일 추가!!!!!"
+    }
+   ]
+  },
+  "P3_번호미보존": {
+   "count": 1,
+   "rows": [
+    {
+     "name": "백승철",
+     "no": 4239,
+     "cert": "부산 제22호"
+    }
+   ]
+  },
+  "발급일자열_미이관": {
+   "count": 7663,
+   "total_edu": 7663
+  }
+ },
+ "추가입력0928": {
+  "명단": 225,
+  "TR등록": 225,
+  "미등록": {
+   "count": 0,
+   "rows": []
+  },
+  "증번호열_누락": {
+   "count": 55,
+   "rows": [
+    {
+     "trainee_no": "TR-20260928-0505",
+     "name_encrypted": "이지훈",
+     "birth_date": "1973-04-22",
+     "supervisor_grade": "수석감리원"
+    },
+    {
+     "trainee_no": "TR-20260928-1A3A",
+     "name_encrypted": "김태훈",
+     "birth_date": "1993-09-06",
+     "supervisor_grade": "수석감리원"
+    },
+    {
+     "trainee_no": "TR-20260928-1A8E",
+     "name_encrypted": "이효숙",
+     "birth_date": "1982-04-13",
+     "supervisor_grade": "수석감리원"
+    },
+    {
+     "trainee_no": "TR-20260928-2020",
+     "name_encrypted": "이현도",
+     "birth_date": "1989-02-07",
+     "supervisor_grade": "수석감리원"
+    },
+    {
+     "trainee_no": "TR-20260928-2318",
+     "name_encrypted": "변혜연",
+     "birth_date": "1982-07-05",
+     "supervisor_grade": "수석감리원"
+    },
+    {
+     "trainee_no": "TR-20260928-23BD",
+     "name_encrypted": "이성진",
+     "birth_date": "1967-10-04",
+     "supervisor_grade": "수석감리원"
+    },
+    {
+     "trainee_no": "TR-20260928-23C4",
+     "name_encrypted": "송인규",
+     "birth_date": "1971-02-11",
+     "supervisor_grade": "수석감리원"
+    },
+    {
+     "trainee_no": "TR-20260928-251C",
+     "name_encrypted": "박종환",
+     "birth_date": "1982-08-28",
+     "supervisor_grade": "수석감리원"
+    },
+    {
+     "trainee_no": "TR-20260928-2A47",
+     "name_encrypted": "이해원",
+     "birth_date": "1969-06-24",
+     "supervisor_grade": "수석감리원"
+    },
+    {
+     "trainee_no": "TR-20260928-2DB0",
+     "name_encrypted": "노수갑",
+     "birth_date": "1972-04-13",
+     "supervisor_grade": "수석감리원"
+    },
+    {
+     "trainee_no": "TR-20260928-2F02",
+     "name_encrypted": "황찬식",
+     "birth_date": "1968-06-12",
+     "supervisor_grade": "수석감리원"
+    },
+    {
+     "trainee_no": "TR-20260928-31BE",
+     "name_encrypted": "변해성",
+     "birth_date": "1974-11-20",
+     "supervisor_grade": "수석감리원"
+    },
+    {
+     "trainee_no": "TR-20260928-35EC",
+     "name_encrypted": "문장석",
+     "birth_date": "1968-07-12",
+     "supervisor_grade": "수석감리원"
+    },
+    {
+     "trainee_no": "TR-20260928-396B",
+     "name_encrypted": "황인성",
+     "birth_date": "1971-10-12",
+     "supervisor_grade": "수석감리원"
+    },
+    {
+     "trainee_no": "TR-20260928-3A4F",
+     "name_encrypted": "박성호",
+     "birth_date": "1970-10-27",
+     "supervisor_grade": "수석감리원"
+    },
+    {
+     "trainee_no": "TR-20260928-3B62",
+     "name_encrypted": "김종락",
+     "birth_date": "1964-03-29",
+     "supervisor_grade": "수석감리원"
+    },
+    {
+     "trainee_no": "TR-20260928-3E29",
+     "name_encrypted": "최치림",
+     "birth_date": "1968-11-25",
+     "supervisor_grade": "수석감리원"
+    },
+    {
+     "trainee_no": "TR-20260928-430D",
+     "name_encrypted": "채진영",
+     "birth_date": "1973-07-26",
+     "supervisor_grade": "수석감리원"
+    },
+    {
+     "trainee_no": "TR-20260928-45BF",
+     "name_encrypted": "도레미",
+     "birth_date": "1974-12-06",
+     "supervisor_grade": "수석감리원"
+    },
+    {
+     "trainee_no": "TR-20260928-48D9",
+     "name_encrypted": "박대철",
+     "birth_date": "1980-01-11",
+     "supervisor_grade": "수석감리원"
+    },
+    {
+     "trainee_no": "TR-20260928-493C",
+     "name_encrypted": "김영호",
+     "birth_date": "1969-05-20",
+     "supervisor_grade": "수석감리원"
+    },
+    {
+     "trainee_no": "TR-20260928-4A85",
+     "name_encrypted": "이성제",
+     "birth_date": "1982-08-24",
+     "supervisor_grade": "수석감리원"
+    },
+    {
+     "trainee_no": "TR-20260928-4ABF",
+     "name_encrypted": "김정희",
+     "birth_date": "1964-01-13",
+     "supervisor_grade": "수석감리원"
+    },
+    {
+     "trainee_no": "TR-20260928-5860",
+     "name_encrypted": "김인식",
+     "birth_date": "1974-12-25",
+     "supervisor_grade": "수석감리원"
+    },
+    {
+     "trainee_no": "TR-20260928-5B0D",
+     "name_encrypted": "임지환",
+     "birth_date": "1982-08-30",
+     "supervisor_grade": "수석감리원"
+    },
+    {
+     "trainee_no": "TR-20260928-5FCA",
+     "name_encrypted": "전종명",
+     "birth_date": "1984-03-17",
+     "supervisor_grade": "수석감리원"
+    },
+    {
+     "trainee_no": "TR-20260928-6039",
+     "name_encrypted": "이경희",
+     "birth_date": "1977-08-20",
+     "supervisor_grade": "수석감리원"
+    },
+    {
+     "trainee_no": "TR-20260928-646E",
+     "name_encrypted": "이근재",
+     "birth_date": "1972-03-26",
+     "supervisor_grade": "수석감리원"
+    },
+    {
+     "trainee_no": "TR-20260928-658D",
+     "name_encrypted": "이다연",
+     "birth_date": "1987-01-31",
+     "supervisor_grade": "수석감리원"
+    },
+    {
+     "trainee_no": "TR-20260928-718F",
+     "name_encrypted": "방대한",
+     "birth_date": "1991-02-27",
+     "supervisor_grade": "수석감리원"
+    },
+    {
+     "trainee_no": "TR-20260928-78B2",
+     "name_encrypted": "민경필",
+     "birth_date": "1976-07-03",
+     "supervisor_grade": "수석감리원"
+    },
+    {
+     "trainee_no": "TR-20260928-7983",
+     "name_encrypted": "서용욱",
+     "birth_date": "1987-07-12",
+     "supervisor_grade": "수석감리원"
+    },
+    {
+     "trainee_no": "TR-20260928-79B4",
+     "name_encrypted": "차명호",
+     "birth_date": "1980-12-25",
+     "supervisor_grade": "수석감리원"
+    },
+    {
+     "trainee_no": "TR-20260928-7B88",
+     "name_encrypted": "김재현",
+     "birth_date": "1973-07-03",
+     "supervisor_grade": "수석감리원"
+    },
+    {
+     "trainee_no": "TR-20260928-7C2B",
+     "name_encrypted": "김성일",
+     "birth_date": "1971-08-21",
+     "supervisor_grade": "수석감리원"
+    },
+    {
+     "trainee_no": "TR-20260928-87B0",
+     "name_encrypted": "김수민",
+     "birth_date": "1991-09-20",
+     "supervisor_grade": "수석감리원"
+    },
+    {
+     "trainee_no": "TR-20260928-87F2",
+     "name_encrypted": "김태룡",
+     "birth_date": "1970-05-28",
+     "supervisor_grade": "수석감리원"
+    },
+    {
+     "trainee_no": "TR-20260928-8CAA",
+     "name_encrypted": "임동완",
+     "birth_date": "1974-05-23",
+     "supervisor_grade": "수석감리원"
+    },
+    {
+     "trainee_no": "TR-20260928-94EB",
+     "name_encrypted": "임지영",
+     "birth_date": "1972-09-17",
+     "supervisor_grade": "수석감리원"
+    },
+    {
+     "trainee_no": "TR-20260928-9D1E",
+     "name_encrypted": "이경민",
+     "birth_date": "1986-08-25",
+     "supervisor_grade": "수석감리원"
+    },
+    {
+     "trainee_no": "TR-20260928-A24C",
+     "name_encrypted": "김광남",
+     "birth_date": "1969-05-20",
+     "supervisor_grade": "수석감리원"
+    },
+    {
+     "trainee_no": "TR-20260928-A760",
+     "name_encrypted": "김희경",
+     "birth_date": "1969-11-22",
+     "supervisor_grade": "수석감리원"
+    },
+    {
+     "trainee_no": "TR-20260928-BC96",
+     "name_encrypted": "권오준",
+     "birth_date": "1966-07-24",
+     "supervisor_grade": "수석감리원"
+    },
+    {
+     "trainee_no": "TR-20260928-C274",
+     "name_encrypted": "변근수",
+     "birth_date": "1979-07-03",
+     "supervisor_grade": "수석감리원"
+    },
+    {
+     "trainee_no": "TR-20260928-C8B6",
+     "name_encrypted": "신동현",
+     "birth_date": "1972-09-27",
+     "supervisor_grade": "수석감리원"
+    },
+    {
+     "trainee_no": "TR-20260928-D662",
+     "name_encrypted": "신명섭",
+     "birth_date": "1976-10-15",
+     "supervisor_grade": "수석감리원"
+    },
+    {
+     "trainee_no": "TR-20260928-D6C3",
+     "name_encrypted": "권범준",
+     "birth_date": "1974-12-25",
+     "supervisor_grade": "수석감리원"
+    },
+    {
+     "trainee_no": "TR-20260928-D735",
+     "name_encrypted": "박종희",
+     "birth_date": "1978-02-08",
+     "supervisor_grade": "수석감리원"
+    },
+    {
+     "trainee_no": "TR-20260928-DC7E",
+     "name_encrypted": "이성로",
+     "birth_date": "1985-09-17",
+     "supervisor_grade": "수석감리원"
+    },
+    {
+     "trainee_no": "TR-20260928-E7E6",
+     "name_encrypted": "김문영",
+     "birth_date": "1970-02-22",
+     "supervisor_grade": "수석감리원"
+    },
+    {
+     "trainee_no": "TR-20260928-EA49",
+     "name_encrypted": "우하늘",
+     "birth_date": "1982-07-10",
+     "supervisor_grade": "수석감리원"
+    },
+    {
+     "trainee_no": "TR-20260928-F6D4",
+     "name_encrypted": "유찬석",
+     "birth_date": "1967-10-24",
+     "supervisor_grade": "수석감리원"
+    },
+    {
+     "trainee_no": "TR-20260928-F9F7",
+     "name_encrypted": "송정기",
+     "birth_date": "1974-10-28",
+     "supervisor_grade": "수석감리원"
+    },
+    {
+     "trainee_no": "TR-20260928-FDFB",
+     "name_encrypted": "정태영",
+     "birth_date": "1974-02-22",
+     "supervisor_grade": "수석감리원"
+    },
+    {
+     "trainee_no": "TR-20260928-FFA2",
+     "name_encrypted": "이석주",
+     "birth_date": "1970-10-01",
+     "supervisor_grade": "수석감리원"
+    }
+   ]
+  },
+  "전화번호_명단보유": 0,
+  "전화번호_미입력": 203
+ },
+ "요청건회원": {
+  "1013": {
+   "총": 7,
+   "미등록": {
+    "count": 1,
+    "rows": [
+     {
+      "no": 2,
+      "member_grade": "평생회원",
+      "name": "김 정 희",
+      "birth": "1964-01-13T00:00:00",
+      "sup_grade": "수석감리원",
+      "cert_no": "정보시스템감리협회 제6149호",
+      "phone": "010-5084-7007",
+      "email": "rotc8624@hanmail.net",
+      "pay_date": null
+     }
+    ]
+   }
+  },
+  "1012": {
+   "총": 1,
+   "미등록": {
+    "count": 0,
+    "rows": []
+   }
+  }
+ },
+ "기타시트": {
+  "수강신청오류": {
+   "행": 128,
+   "수강신청시트에_없는_고유쌍": 20
+  },
+  "Sheet3": {
+   "행": 1548,
+   "키화_가능": 1548,
+   "DB존재": 78,
+   "DB부재": 1470
+  },
+  "온라인수료증": {
+   "행": 1334,
+   "비고": "임포트 대상 시트 아님(설계) — 수강신청·외부교육 경계 중복 추정, 전수 대조 미실시"
+  },
+  "시간확인용": {
+   "행": 5275,
+   "비고": "동일 — 임포트 대상 시트 아님(설계)"
+  }
+ },
+ "외부교육": {
+  "유효": 713,
+  "정크_열누락": {
+   "count": 1,
+   "rows": [
+    {
+     "rowno": 152,
+     "institution": "한국소프트웨어기술진흥협회",
+     "subject": "JIRA 실무에서 자유자재로 활용하기-심화",
+     "사유": "이름·증번호 열 결측"
+    }
+   ]
+  },
+  "삭제_10_21": 14
+ }
+}

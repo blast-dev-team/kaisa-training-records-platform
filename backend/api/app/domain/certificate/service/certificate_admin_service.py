@@ -111,6 +111,12 @@ async def issue_certificates(
                     "VALIDATION_ERROR",
                     message="선택한 이력이 해당 교육생의 것이 아니에요",
                 )
+            # 수강 기간 미기재 이력 — 문서에 기간이 비므로 발급 차단
+            if record.started_at is None or record.ended_at is None:
+                raise api_error(
+                    "VALIDATION_ERROR",
+                    message="수강 기간이 없는 교육은 확인서를 발급할 수 없어요",
+                )
             # 어드민 발급은 회원 유효본과 무관한 독립 문서다 — previous 를
             # 연결하면 issue_certificate 가 회원본을 폐기하므로 링크하지 않는다.
             # issue_type 도 항상 original — '재발급'은 WEB 경로 전용 개념

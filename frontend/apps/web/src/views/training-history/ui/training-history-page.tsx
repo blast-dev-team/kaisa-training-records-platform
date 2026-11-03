@@ -162,11 +162,15 @@ export function TrainingHistoryPage() {
   /**
    * 행의 선택 카테고리 — 확인서 발급 상태가 기본. 3년이 지나 unavailable 이어도
    * 내부 기관 수료분이면 수료증(무료) 대상이라 completionOnly 로 분류한다.
+   * 수강 기간이 없는 이력(레거시 원본에 날짜 미기재)은 확인서·수료증 모두
+   * 발급 불가 — unavailable 로 잠근다.
    */
   const rowCategory = (item: TrainingHistoryItem): SelectionCategory =>
-    item.certificateStatus === "unavailable" && item.completionCertIssuable
-      ? "completionOnly"
-      : item.certificateStatus;
+    !item.startedOn || !item.endedOn
+      ? "unavailable"
+      : item.certificateStatus === "unavailable" && item.completionCertIssuable
+        ? "completionOnly"
+        : item.certificateStatus;
 
   /** 행 체크 가능 여부 — 발급 불가(외부·미수료) 제외 + 선택 카테고리 일치 */
   const isRowCheckable = (item: TrainingHistoryItem): boolean => {

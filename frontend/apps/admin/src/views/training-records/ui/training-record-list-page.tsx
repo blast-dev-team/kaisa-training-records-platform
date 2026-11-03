@@ -37,9 +37,12 @@ import { SessionPickerDialog } from "@/src/views/course-sessions/ui/session-pick
 import { AttachTraineesDialog } from "@/src/views/course-sessions/ui/attach-trainees-dialog";
 import type { CourseSession } from "@/src/entities/course-session";
 
-/** 수료증 발급 자격 — 내부 기관의 수료 완료 내역만 */
+/** 수료증 발급 자격 — 내부 기관의 수료 완료 내역 + 수강 기간 존재 */
 const canIssueCompletion = (record: TrainingRecord) =>
-  record.institutionType === "internal" && record.completionStatus === "completed";
+  record.institutionType === "internal" &&
+  record.completionStatus === "completed" &&
+  Boolean(record.startedAt) &&
+  Boolean(record.endedAt);
 
 /** 조회기간 칩 — 레거시 프로그램(전체·최근 3년·최근 1년) 이식. 'all'이 기본이라 URL 키 생략 */
 const PERIOD_CHIPS = [
@@ -49,11 +52,15 @@ const PERIOD_CHIPS = [
 ] as const;
 type PeriodChip = (typeof PERIOD_CHIPS)[number]["key"];
 
-/** 교육생 선택 드롭다운 옵션 — 성명 검색, 보조 표기는 교육생번호 */
+/** 교육생 선택 드롭다운 옵션 — 성명 검색, 보조 표기는 수석감리원증번호 → 감리원증번호 → 교육생번호 */
 const traineeOptionsFetcher = fetchOptions("/trainees", {}, (t) => ({
   value: t.id as string,
   label: t.name as string,
-  hint: (t.cert_no as string | null) ?? (t.trainee_no as string | null) ?? undefined,
+  hint:
+    (t.senior_cert_no as string | null) ??
+    (t.cert_no as string | null) ??
+    (t.trainee_no as string | null) ??
+    undefined,
 }));
 
 export function TrainingRecordListPage() {
@@ -324,7 +331,13 @@ export function TrainingRecordListPage() {
                 variant="ghost"
                 size="sm"
                 disabled={!eligible}
-                title={eligible ? undefined : "사내 기관의 수료 완료 내역만 발급할 수 있어요"}
+                title={
+                  eligible
+                    ? undefined
+                    : !row.original.startedAt || !row.original.endedAt
+                      ? "수강 기간이 없는 교육은 수료증을 발급할 수 없어요"
+                      : "사내 기관의 수료 완료 내역만 발급할 수 있어요"
+                }
                 onClick={(e) => {
                   e.stopPropagation();
                   issueCompletionMutation.mutate([row.original.id]);
@@ -408,10 +421,16 @@ export function TrainingRecordListPage() {
             disableCreate
             queryKeyPrefix={["options", "trainees"]}
             // 동명이인 구분 — 선택 후에도 어떤 감리원인지 번호로 보이게
+            // 번호 우선순위: 수석감리원증번호 → 감리원증번호 → 교육생번호
             selectedLabel={
-              selectedTrainee?.certNo
-                ? `${selectedTrainee.name} (${selectedTrainee.certNo})`
-                : selectedTrainee?.name
+              selectedTrainee
+                ? `${selectedTrainee.name} (${
+                    selectedTrainee.seniorCertNo ??
+                    selectedTrainee.certNo ??
+                    selectedTrainee.traineeNo ??
+                    "미지정"
+                  })`
+                : undefined
             }
           />
         </FilterRow>
@@ -556,7 +575,25 @@ export function TrainingRecordListPage() {
           >
             <Pencil className="size-3.5" /> 일괄 수정
           </Button>
-          <Button size="sm" onClick={() => setPreviewRecords([...selected.values()])}>
+          <Button
+            size="sm"
+            title="수강 기간이 없는 이력은 발급 대상에서 제외돼요"
+            onClick={() => {
+              const values = [...selected.values()];
+              // 수강 기간 미기재 이력은 확인서에 기간이 비어 발급될 수 없다 — 대상에서 제외
+              const withoutPeriod = values.filter(
+                (r) => !r.startedAt || !r.endedAt,
+              );
+              const issuables = values.filter((r) => r.startedAt && r.endedAt);
+              if (withoutPeriod.length > 0) {
+                toast.info(
+                  `수강 기간이 없는 교육은 확인서를 발급할 수 없어요 — ${withoutPeriod.length}건은 제외했어요`,
+                );
+              }
+              if (issuables.length === 0) return;
+              setPreviewRecords(issuables);
+            }}
+          >
             <FileDown className="size-4" /> 확인서 미리보기
           </Button>
           <Button

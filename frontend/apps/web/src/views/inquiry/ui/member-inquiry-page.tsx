@@ -129,7 +129,7 @@ function NewInquiryForm({ onDone }: { onDone: () => void }) {
           <dl className="grid grid-cols-[88px_1fr] gap-y-1 text-14 text-gray-800">
             <dt className="text-gray-500">성명</dt>
             <dd>{author.data.name}</dd>
-            <dt className="text-gray-500">감리원번호</dt>
+            <dt className="text-gray-500">자격증번호</dt>
             <dd>{author.data.certNo ?? "—"}</dd>
             <dt className="text-gray-500">연락처</dt>
             <dd>{author.data.phoneMasked ?? "—"}</dd>

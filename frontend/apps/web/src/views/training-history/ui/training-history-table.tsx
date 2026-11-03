@@ -98,6 +98,11 @@ export function TrainingHistoryTable({
         return (
           <div
             key={item.id}
+            title={
+              !isCheckable && (!item.startedOn || !item.endedOn)
+                ? "수강 기간이 없는 교육은 발급할 수 없어요"
+                : undefined
+            }
             onClick={() => {
               if (isCheckable) onToggleRow(item);
             }}

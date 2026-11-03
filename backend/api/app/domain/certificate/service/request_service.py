@@ -108,6 +108,13 @@ async def _validate_item(
     if record is None:
         raise api_error("NOT_FOUND", message="교육이력을 찾을 수 없어요")
 
+    # 수강 기간 미기재 이력 — 문서에 기간이 비어 발급되면 안 된다 (원본 보완 전까지 차단)
+    if record.started_at is None or record.ended_at is None:
+        raise api_error(
+            "VALIDATION_ERROR",
+            message="수강 기간이 없는 교육은 확인서를 발급할 수 없어요",
+        )
+
     # 수강 시작일 기준 3년 이내만 발급 가능 — 초과 이력은 발급 신청 자체를 차단
     if (
         record.started_at is not None
