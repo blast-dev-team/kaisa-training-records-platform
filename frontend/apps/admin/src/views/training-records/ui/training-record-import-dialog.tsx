@@ -41,6 +41,10 @@ interface ImportDraft {
   hoursTotal: string;
   traineeId: string | null;
   traineeName: string | null;
+  /** 매칭된 감리원의 회원등급명 */
+  traineeGradeName: string | null;
+  /** 유료회원(평생·연간) 여부 — '유료회원만' 필터 기준 */
+  traineeIsPaid: boolean;
   institutionExists: boolean;
   courseExists: boolean;
   /** 같은 감리원·과정명·시작일 내역이 이미 있음 — 확정해도 서버가 건너뛰므로 포함 불가 */
@@ -53,6 +57,8 @@ type Stage = "select" | "preview" | "result";
 
 /** 감리원 매칭 관련 오류 — 감리원을 연결하면 사라져야 하는 것만. 날짜·기관 오류는 남긴다 */
 const withoutTraineeErrors = (errors: string[]) => errors.filter((e) => !e.includes("감리원"));
+/** 검색으로 고른 감리원의 유료회원 추정 — 목록 API 는 등급명만 준다. 확정 시 서버가 만료까지 다시 판정 */
+const PAID_GRADE_NAMES = new Set(["평생", "연간"]);
 /** 같은 사람 판별 키 — 공백 차이는 무시(감리원증번호 비교 기준과 동일) */
 const sameKey = (v: string) => v.replace(/\s+/g, "");
 type MatchingFilter = "all" | "matched" | "unmatched";
@@ -76,6 +82,8 @@ export function TrainingRecordImportDialog({ isOpen, onClose }: Props) {
   const [fileNames, setFileNames] = useState<string[]>([]);
   const [result, setResult] = useState<TrainingRecordImportResult | null>(null);
   const [matchingFilter, setMatchingFilter] = useState<MatchingFilter>("all");
+  /** 유료회원(평생·연간)에게만 추가하는 교육 — 켜면 일반 등급 감리원 행은 등록에서 빠진다 */
+  const [paidOnly, setPaidOnly] = useState(false);
   const [addingKey, setAddingKey] = useState<string | null>(null);
   const [addForm, setAddForm] = useState<AddTraineeForm>({
     name: "",
@@ -94,6 +102,7 @@ export function TrainingRecordImportDialog({ isOpen, onClose }: Props) {
     setFileNames([]);
     setResult(null);
     setMatchingFilter("all");
+    setPaidOnly(false);
     setAddingKey(null);
     fileSeqRef.current = 0;
   }, [isOpen]);
@@ -111,7 +120,7 @@ export function TrainingRecordImportDialog({ isOpen, onClose }: Props) {
    */
   const assignTrainee = (
     key: string,
-    trainee: { id: string; name: string },
+    trainee: { id: string; name: string; gradeName: string | null; isPaid: boolean },
     certNo?: string,
   ): number => {
     const link = (rows: ImportDraft[]) => {
@@ -135,6 +144,8 @@ export function TrainingRecordImportDialog({ isOpen, onClose }: Props) {
           ...d,
           traineeId: trainee.id,
           traineeName: trainee.name,
+          traineeGradeName: trainee.gradeName,
+          traineeIsPaid: trainee.isPaid,
           certNo: isSource && certNo !== undefined ? certNo : d.certNo,
           errors,
           include: errors.length === 0 && !d.isDuplicate,
@@ -168,6 +179,8 @@ export function TrainingRecordImportDialog({ isOpen, onClose }: Props) {
           hoursTotal: r.hours_total ?? "",
           traineeId: r.trainee_id ?? null,
           traineeName: r.trainee_name ?? null,
+          traineeGradeName: r.trainee_grade_name ?? null,
+          traineeIsPaid: r.trainee_is_paid_member ?? false,
           institutionExists: r.institution_exists,
           courseExists: r.course_exists,
           isDuplicate: r.is_duplicate,
@@ -205,7 +218,12 @@ export function TrainingRecordImportDialog({ isOpen, onClose }: Props) {
         }),
       ),
     onSuccess: (trainee, vars) => {
-      const linkedOthers = assignTrainee(vars.key, trainee, vars.form.certNo);
+      // 새로 등록한 감리원은 일반 등급 — 유료회원만 켜져 있으면 등록에서 빠진다
+      const linkedOthers = assignTrainee(
+        vars.key,
+        { id: trainee.id, name: trainee.name, gradeName: trainee.gradeName, isPaid: false },
+        vars.form.certNo,
+      );
       setAddingKey(null);
       queryClient.invalidateQueries({ queryKey: traineeQueries.all() });
       toast.success(
@@ -227,10 +245,14 @@ export function TrainingRecordImportDialog({ isOpen, onClose }: Props) {
     enabled: searchingKey !== null && searchQ.length >= 2,
   });
 
+  /** 유료회원만 켜졌을 때 일반 등급 감리원 행 — 체크 상태는 두고 등록에서만 뺀다(끄면 원래대로) */
+  const isBlockedByPaid = (d: ImportDraft) => paidOnly && !!d.traineeId && !d.traineeIsPaid;
+  const isIncluded = (d: ImportDraft) => d.include && !!d.traineeId && !isBlockedByPaid(d);
+
   const confirmMutation = useMutation({
     mutationFn: () => {
       const items = drafts
-        .filter((d) => d.include && d.traineeId)
+        .filter(isIncluded)
         .map((d) => ({
           row_number: d.rowNumber,
           name: d.name.trim(),
@@ -242,7 +264,7 @@ export function TrainingRecordImportDialog({ isOpen, onClose }: Props) {
           hours_total: d.hoursTotal || null,
           trainee_id: d.traineeId as string,
         }));
-      return postTrainingRecordImportConfirm(items);
+      return postTrainingRecordImportConfirm(items, paidOnly);
     },
     onSuccess: (data) => {
       setResult(data);
@@ -259,15 +281,13 @@ export function TrainingRecordImportDialog({ isOpen, onClose }: Props) {
   const filtered =
     matchingFilter === "all"
       ? drafts
-      : drafts.filter((d) =>
-          matchingFilter === "matched" ? d.traineeId : !d.traineeId,
-        );
+      : drafts.filter((d) => (matchingFilter === "matched" ? d.traineeId : !d.traineeId));
 
-  const included = drafts.filter((d) => d.include && d.traineeId);
+  const included = drafts.filter(isIncluded);
+  const paidBlockedCount = drafts.filter(isBlockedByPaid).length;
   const hasBlockingError = included.some((d) => !d.traineeId || d.errors.length > 0);
 
-  const gridCols =
-    "grid grid-cols-[36px_110px_170px_180px_180px_120px_110px_90px_auto] gap-1.5";
+  const gridCols = "grid grid-cols-[36px_110px_170px_180px_180px_120px_110px_90px_auto] gap-1.5";
 
   const actions =
     stage === "preview"
@@ -295,9 +315,20 @@ export function TrainingRecordImportDialog({ isOpen, onClose }: Props) {
       onClose={onClose}
       size="2xl"
       title="교육내역 엑셀 등록"
+      titleAside={
+        <label className="flex cursor-pointer items-center gap-1.5 text-13 font-medium text-ink-2">
+          <input
+            type="checkbox"
+            className="accent-accent"
+            checked={paidOnly}
+            onChange={(e) => setPaidOnly(e.target.checked)}
+          />
+          유료회원(평생·연간)만
+        </label>
+      }
       description={
         stage === "select"
-          ? "헤더가 교육생명·감리원증번호·교육기관명·과목명·시작일자·종료일자·교육시간인 엑셀(.xlsx)을 올려요 — 기관이 매칭되면 내부 교육, 아니면 외부 교육으로 등록돼요"
+          ? "헤더가 감리원명·감리원증번호·교육기관명·과목명·시작일자·종료일자·교육시간인 엑셀(.xlsx)을 올려요 — 기관이 매칭되면 내부 교육, 아니면 외부 교육으로 등록돼요"
           : undefined
       }
       actions={actions}
@@ -306,11 +337,7 @@ export function TrainingRecordImportDialog({ isOpen, onClose }: Props) {
       {dupConfirm.dialog}
       {stage === "select" && (
         <div className="space-y-3">
-          <FileDropZone
-            multiple
-            onClick={() => fileInputRef.current?.click()}
-            onFiles={setFiles}
-          >
+          <FileDropZone multiple onClick={() => fileInputRef.current?.click()} onFiles={setFiles}>
             {files.length === 0
               ? "클릭하거나 엑셀 파일을 끌어다 놓으세요"
               : files.length === 1
@@ -373,15 +400,22 @@ export function TrainingRecordImportDialog({ isOpen, onClose }: Props) {
                 className="accent-accent"
                 checked={
                   included.length > 0 &&
-                  included.length === drafts.filter((d) => d.traineeId && !d.isDuplicate).length
+                  included.length ===
+                    drafts.filter((d) => d.traineeId && !d.isDuplicate && !isBlockedByPaid(d))
+                      .length
                 }
                 onChange={(e) =>
                   setDrafts((prev) =>
-                    prev.map((d) => ({
-                      ...d,
-                      // 미매칭 행은 교육생 추가 전까지, 중복 행은 항상 체크 불가
-                      include: d.traineeId && !d.isDuplicate ? e.target.checked : false,
-                    })),
+                    prev.map((d) =>
+                      // 유료회원 필터로 빠진 행은 체크 상태를 그대로 둔다 — 필터를 끄면 원래대로
+                      isBlockedByPaid(d)
+                        ? d
+                        : {
+                            ...d,
+                            // 미매칭 행은 교육생 추가 전까지, 중복 행은 항상 체크 불가
+                            include: d.traineeId && !d.isDuplicate ? e.target.checked : false,
+                          },
+                    ),
                   )
                 }
               />
@@ -393,7 +427,7 @@ export function TrainingRecordImportDialog({ isOpen, onClose }: Props) {
               <div className={`${gridCols} sticky top-0 z-10 items-center bg-panel py-1 px-2.5`}>
                 <span />
                 <Label className="text-11 text-ink-3">
-                  교육생명<span className="text-danger">*</span>
+                  감리원명<span className="text-danger">*</span>
                 </Label>
                 <Label className="text-11 text-ink-3">감리원증번호</Label>
                 <Label className="text-11 text-ink-3">
@@ -412,14 +446,14 @@ export function TrainingRecordImportDialog({ isOpen, onClose }: Props) {
                   <div key={d.key} className="space-y-1">
                     <div
                       className={`${gridCols} items-center rounded-lg border border-line px-2.5 py-2 ${
-                        d.include ? "" : "opacity-50"
+                        isIncluded(d) ? "" : "opacity-50"
                       }`}
                     >
                       <input
                         type="checkbox"
                         className="accent-accent disabled:opacity-40"
-                        disabled={!d.traineeId || d.isDuplicate}
-                        checked={d.include}
+                        disabled={!d.traineeId || d.isDuplicate || isBlockedByPaid(d)}
+                        checked={isIncluded(d)}
                         onChange={(e) => setDraft(d.key, { include: e.target.checked })}
                       />
                       {/* 매칭된 행 — 감리원·기관·과정 정보는 수정 불가 */}
@@ -428,17 +462,17 @@ export function TrainingRecordImportDialog({ isOpen, onClose }: Props) {
                       <Input disabled value={d.institution} onChange={() => {}} />
                       <Input disabled value={d.subject} onChange={() => {}} />
                       <Input
-                        disabled={!d.include}
+                        disabled={!isIncluded(d)}
                         value={d.startDate}
                         onChange={(e) => setDraft(d.key, { startDate: e.target.value })}
                       />
                       <Input
-                        disabled={!d.include}
+                        disabled={!isIncluded(d)}
                         value={d.endDate}
                         onChange={(e) => setDraft(d.key, { endDate: e.target.value })}
                       />
                       <Input
-                        disabled={!d.include}
+                        disabled={!isIncluded(d)}
                         value={d.hoursTotal}
                         onChange={(e) => setDraft(d.key, { hoursTotal: e.target.value })}
                       />
@@ -448,6 +482,12 @@ export function TrainingRecordImportDialog({ isOpen, onClose }: Props) {
                         ) : (
                           <Pill tone="warn">미매칭</Pill>
                         )}
+                        {d.traineeId && d.traineeGradeName && (
+                          <Pill tone={d.traineeIsPaid ? "accent" : "default"}>
+                            {d.traineeGradeName}
+                          </Pill>
+                        )}
+                        {isBlockedByPaid(d) && <Pill tone="danger">일반 회원 제외</Pill>}
                         {d.isDuplicate && <Pill tone="danger">이미 등록됨</Pill>}
                         {!d.institutionExists && <Pill tone="info">기관 신규</Pill>}
                         {!d.courseExists && <Pill tone="info">과정 신규</Pill>}
@@ -494,9 +534,7 @@ export function TrainingRecordImportDialog({ isOpen, onClose }: Props) {
                           <Label className="text-11 text-ink-3">성명 *</Label>
                           <Input
                             value={addForm.name}
-                            onChange={(e) =>
-                              setAddForm((p) => ({ ...p, name: e.target.value }))
-                            }
+                            onChange={(e) => setAddForm((p) => ({ ...p, name: e.target.value }))}
                           />
                         </div>
                         <div className="flex flex-col gap-1">
@@ -511,18 +549,14 @@ export function TrainingRecordImportDialog({ isOpen, onClose }: Props) {
                           <Label className="text-11 text-ink-3">감리원증번호</Label>
                           <Input
                             value={addForm.certNo}
-                            onChange={(e) =>
-                              setAddForm((p) => ({ ...p, certNo: e.target.value }))
-                            }
+                            onChange={(e) => setAddForm((p) => ({ ...p, certNo: e.target.value }))}
                           />
                         </div>
                         <div className="flex flex-col gap-1">
                           <Label className="text-11 text-ink-3">전화번호</Label>
                           <Input
                             value={addForm.phone}
-                            onChange={(e) =>
-                              setAddForm((p) => ({ ...p, phone: e.target.value }))
-                            }
+                            onChange={(e) => setAddForm((p) => ({ ...p, phone: e.target.value }))}
                           />
                         </div>
                         <Button
@@ -554,27 +588,33 @@ export function TrainingRecordImportDialog({ isOpen, onClose }: Props) {
                           onChange={(e) => setSearchQuery(e.target.value)}
                           autoFocus
                         />
-                        {searchQ.length >= 2 && (searchResults?.items ?? []).map((t) => (
-                          <button
-                            key={t.id}
-                            type="button"
-                            className="flex w-full items-center gap-2 rounded-md border border-line px-2.5 py-1.5 text-left text-13 hover:bg-panel-2"
-                            onClick={() => {
-                              const linkedOthers = assignTrainee(d.key, t);
-                              setSearchingKey(null);
-                              if (linkedOthers > 0) {
-                                toast.success(
-                                  `'${t.name}' 감리원을 같은 사람의 다른 ${linkedOthers}행에도 연결했어요`,
-                                );
-                              }
-                            }}
-                          >
-                            <span className="font-medium text-ink">{t.name}</span>
-                            <span className="text-ink-3">{t.traineeNo}</span>
-                            <span className="text-ink-3">{t.certNo}</span>
-                            <span className="text-ink-3">{t.supervisorGrade ?? "—"}</span>
-                          </button>
-                        ))}
+                        {searchQ.length >= 2 &&
+                          (searchResults?.items ?? []).map((t) => (
+                            <button
+                              key={t.id}
+                              type="button"
+                              className="flex w-full items-center gap-2 rounded-md border border-line px-2.5 py-1.5 text-left text-13 hover:bg-panel-2"
+                              onClick={() => {
+                                const linkedOthers = assignTrainee(d.key, {
+                                  id: t.id,
+                                  name: t.name,
+                                  gradeName: t.gradeName,
+                                  isPaid: PAID_GRADE_NAMES.has(t.gradeName ?? ""),
+                                });
+                                setSearchingKey(null);
+                                if (linkedOthers > 0) {
+                                  toast.success(
+                                    `'${t.name}' 감리원을 같은 사람의 다른 ${linkedOthers}행에도 연결했어요`,
+                                  );
+                                }
+                              }}
+                            >
+                              <span className="font-medium text-ink">{t.name}</span>
+                              <span className="text-ink-3">{t.traineeNo}</span>
+                              <span className="text-ink-3">{t.certNo}</span>
+                              <span className="text-ink-3">{t.supervisorGrade ?? "—"}</span>
+                            </button>
+                          ))}
                       </div>
                     )}
                   </div>
@@ -583,9 +623,12 @@ export function TrainingRecordImportDialog({ isOpen, onClose }: Props) {
             </div>
           </div>
           <p className="text-12 text-ink-3">
-            감리원이 매칭된 행만 등록돼요 — 미매칭 행은 '교육생 직접 추가'로 감리원을 등록한 뒤 포함할 수 있어요.
+            감리원이 매칭된 행만 등록돼요 — 미매칭 행은 '교육생 직접 추가'로 감리원을 등록한 뒤
+            포함할 수 있어요.
             {duplicateCount > 0 &&
               ` 같은 감리원·과정명·시작일 내역이 이미 있는 ${duplicateCount}행은 등록에서 빠져요.`}
+            {paidOnly &&
+              ` 유료회원(평생·연간)만 등록 — 일반 등급 감리원 ${paidBlockedCount}행은 등록에서 빠져요.`}
             마스터에 없는 기관·과정은 등록 시 자동 생성돼요.
           </p>
         </div>
