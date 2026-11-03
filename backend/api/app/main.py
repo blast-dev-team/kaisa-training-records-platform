@@ -29,6 +29,9 @@ from app.domain.certificate.router import (
 from app.domain.certificate.router import router as certificate_request_router
 from app.domain.health.router import router as health_router
 from app.domain.identity.router import review_router as identity_review_router
+from app.domain.inquiry.router import admin_router as inquiry_admin_router
+from app.domain.inquiry.router import member_router as inquiry_member_router
+from app.domain.inquiry.router import public_router as inquiry_public_router
 from app.domain.institution.router import (
     course_router,
     session_name_router,
@@ -143,6 +146,9 @@ app.include_router(completion_certificate_router, prefix="/api")
 app.include_router(payment_router, prefix="/api")
 app.include_router(payment_webhook_router, prefix="/api")
 app.include_router(payment_admin_router, prefix="/api")
+app.include_router(inquiry_member_router, prefix="/api")
+app.include_router(inquiry_public_router, prefix="/api")
+app.include_router(inquiry_admin_router, prefix="/api")
 
 
 if settings.ENVIRONMENT != "production":
