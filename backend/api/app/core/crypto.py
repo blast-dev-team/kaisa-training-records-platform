@@ -7,6 +7,7 @@
 
 import hashlib
 import hmac
+import re
 import unicodedata
 
 from cryptography.fernet import Fernet, InvalidToken
@@ -79,6 +80,26 @@ def name_columns(value: str | None) -> tuple[str | None, str | None]:
     if not normalized:
         return None, None
     return encrypt_field(normalized), name_hash(normalized)
+
+
+def normalize_phone(value: str | None) -> str:
+    """연락처 비교 키 — NFKC(전각 숫자 → 반각) 후 ASCII 숫자만 남긴다(010-1234-5678 == 01012345678).
+
+    str.isdigit() 는 전각·아랍 숫자도 통과시켜 같은 번호가 다른 해시가 된다.
+    """
+    if not value:
+        return ""
+    return re.sub(r"[^0-9]", "", unicodedata.normalize("NFKC", value))
+
+
+def phone_hash(value: str | None) -> str | None:
+    """연락처 blind index — HMAC-SHA256. 휴대폰 번호도 키스페이스가 작아 무키 해시는
+    사전공격이 가능하므로 이름과 같은 방식(키 있는 HMAC)을 쓴다. 빈 값이면 None."""
+    digits = normalize_phone(value)
+    if not digits:
+        return None
+    key = hashlib.sha256(("phone-blind-index:" + settings.CRYPTO_KEY).encode()).digest()
+    return hmac.new(key, digits.encode(), hashlib.sha256).hexdigest()
 
 
 def hash_ip(ip: str) -> str:

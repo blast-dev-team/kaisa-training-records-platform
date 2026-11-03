@@ -1,4 +1,5 @@
 import { NavLink } from "react-router";
+import { useQuery } from "@tanstack/react-query";
 import {
   LayoutDashboard,
   Users,
@@ -13,7 +14,9 @@ import {
   UserCog,
   MailPlus,
   ScrollText,
+  MessageSquare,
 } from "lucide-react";
+import { inquiryQueries } from "@/src/entities/inquiry";
 import { cn } from "@/src/shared/utils/cn";
 import logoMark from "@/src/assets/logo-mark.svg";
 
@@ -23,6 +26,8 @@ interface NavItem {
   icon: React.ComponentType<{ className?: string }>;
   /** super 전용 메뉴 */
   superOnly?: boolean;
+  /** 메뉴 옆 숫자 뱃지 — 미해결 문의 수 */
+  badge?: "unresolvedInquiries";
 }
 
 const NAV_GROUPS: { title: string; items: NavItem[] }[] = [
@@ -57,6 +62,7 @@ const NAV_GROUPS: { title: string; items: NavItem[] }[] = [
   {
     title: "운영",
     items: [
+      { to: "/inquiries", label: "문의함", icon: MessageSquare, badge: "unresolvedInquiries" },
       { to: "/admin-users", label: "관리자 계정", icon: UserCog, superOnly: true },
       { to: "/allowed-emails", label: "초대 이메일", icon: MailPlus, superOnly: true },
       { to: "/audit-logs", label: "감사 로그", icon: ScrollText },
@@ -65,6 +71,11 @@ const NAV_GROUPS: { title: string; items: NavItem[] }[] = [
 ];
 
 export function Sidebar({ role }: { role: "super" | "staff" }) {
+  // 미해결 문의 수 — 모든 관리자에게 같은 값. 0이면 뱃지를 숨긴다
+  const { data: unresolvedInquiries = 0 } = useQuery(inquiryQueries.unresolvedCount());
+  const badgeCount = (badge: NavItem["badge"]) =>
+    badge === "unresolvedInquiries" ? unresolvedInquiries : 0;
+
   return (
     <aside className="w-[220px] shrink-0 border-r border-line bg-panel flex flex-col">
       {/* 브랜드 */}
@@ -102,7 +113,15 @@ export function Sidebar({ role }: { role: "super" | "staff" }) {
                   }
                 >
                   <item.icon className="size-4 shrink-0" />
-                  {item.label}
+                  <span className="flex-1">{item.label}</span>
+                  {badgeCount(item.badge) > 0 && (
+                    <span
+                      className="min-w-5 rounded-full bg-danger px-1.5 text-center text-11 font-semibold leading-5 text-white"
+                      aria-label={`미해결 ${badgeCount(item.badge)}건`}
+                    >
+                      {badgeCount(item.badge) > 99 ? "99+" : badgeCount(item.badge)}
+                    </span>
+                  )}
                 </NavLink>
               ))}
             </div>

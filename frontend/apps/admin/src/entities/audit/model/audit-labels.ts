@@ -44,6 +44,8 @@ export const ACTION_LABELS: Record<string, string> = {
   "training_record.bulk_created": "교육 내역 일괄 생성",
   "training_record.updated": "교육 내역 수정",
   "training_record.deleted": "교육 내역 삭제",
+  "inquiry.answered": "문의 답변 등록",
+  "inquiry.answer_updated": "문의 답변 수정",
 };
 
 export const ENTITY_TYPE_LABELS: Record<string, string> = {
@@ -61,6 +63,7 @@ export const ENTITY_TYPE_LABELS: Record<string, string> = {
   training_record: "교육 내역",
   course_session: "교육 일정",
   session_name: "회차명",
+  inquiry: "문의",
 };
 
 /** before / after 에 기록되는 필드 키 */
@@ -125,6 +128,8 @@ export const FIELD_LABELS: Record<string, string> = {
   // 회원등급 (membership_grade.updated after)
   description: "설명",
   sort_order: "정렬 순서",
+  // 문의함 (inquiry.answered / inquiry.answer_updated before·after)
+  answer: "답변",
 };
 
 /** 필드 값 중 enum 성격인 것들 (컨텍스트 무관 공용) */
@@ -161,6 +166,9 @@ export const VALUE_LABELS: Record<string, string> = {
   excel_import: "엑셀 일괄 등록",
   admin: "어드민",
   web: "웹 회원",
+  // 문의 상태 (inquiry.status)
+  open: "미해결",
+  answered: "답변완료",
 };
 
 export const formatActionLabel = (action: string): string => ACTION_LABELS[action] ?? action;

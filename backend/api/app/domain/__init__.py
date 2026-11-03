@@ -14,6 +14,7 @@ from app.domain.certificate.model import (  # noqa: F401
     CertificateVerificationLog,
 )
 from app.domain.identity.model import IdentityReview, IdentityVerification  # noqa: F401
+from app.domain.inquiry.model import Inquiry  # noqa: F401
 from app.domain.institution.model import (  # noqa: F401
     TrainingCourse,
     TrainingInstitution,

@@ -52,6 +52,24 @@ def register_attempt(key: str, window_seconds: int) -> None:
         _evict_locked()
 
 
+def try_acquire(key: str, max_attempts: int, window_seconds: int) -> bool:
+    """확인과 기록을 한 번에(원자적으로) — 남은 횟수가 있으면 1회 기록하고 True.
+
+    is_rate_limited → (await) → register_attempt 순서면 동시에 들어온 요청이 모두
+    확인을 통과한 뒤에야 기록돼 한도를 넘는다. await 를 사이에 두는 곳은 이걸 쓴다.
+    """
+    now = time.monotonic()
+    with _lock:
+        _evict_locked()
+        q = _attempts[key]
+        while q and q[0] <= now - window_seconds:
+            q.popleft()
+        if len(q) >= max_attempts:
+            return False
+        q.append(now)
+        return True
+
+
 def clear_attempts(key: str) -> None:
     with _lock:
         _attempts.pop(key, None)

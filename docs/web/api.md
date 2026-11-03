@@ -168,11 +168,21 @@ POST /api/public/certificate-verifications { certificate_no, issue_date: "YYYY-M
 | POST | `/api/certificate-requests` | `{training_record_id, issue_type}` | 발급 신청 (201) |
 | POST | `/api/payments/{order_no}/confirm` | — | 결제 검증·발급 확정 |
 
+### 문의하기 (회원 세션)
+
+| Method | Path | Body | 설명 |
+|---|---|---|---|
+| GET | `/api/me/inquiries/author` | — | 작성 화면 자동 입력값 `{name, cert_no, phone_masked}` |
+| GET | `/api/me/inquiries` | — | 내 문의 목록(내용·답변 포함, 최신순) |
+| POST | `/api/me/inquiries` | `{category, title, content}` | 문의 작성 (201) — 문의자 정보는 서버가 채움 |
+
 ### 공개
 
 | Method | Path | Body | 설명 |
 |---|---|---|---|
 | POST | `/api/public/certificate-verifications` | `{certificate_no, issue_date}` | 진위확인 (rate limit) |
+| POST | `/api/public/inquiries` | `{category, title, content, name, phone, cert_no?, email?, password(숫자 6~20), privacy_agreed, website(honeypot)}` | 비회원 문의 (201, IP rate limit) |
+| POST | `/api/public/inquiries/lookup` | `{name, phone, password}` | 비회원 내 문의 조회 — 불일치는 404(사유 미공개), 실패 횟수 제한 |
 | GET | `/api/health` | — | 헬스체크 |
 
 ### 주요 응답 스키마 (DTO 원형)

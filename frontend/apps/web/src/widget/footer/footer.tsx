@@ -6,6 +6,8 @@ const FOOTER_LINKS = [
   { label: "이용약관", to: "/terms" },
   { label: "개인정보 수집·이용 동의", to: "/terms?tab=privacy" },
   { label: "환불정책", to: "/terms?tab=refund" },
+  // 헤더 메뉴가 숨는 모바일에서도 문의하기로 갈 수 있게. 로그인 상태면 /inquiry 가 회원 문의함으로 보낸다
+  { label: "문의하기", to: "/inquiry" },
 ] as const;
 
 export interface FooterProps {

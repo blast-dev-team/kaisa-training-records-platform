@@ -67,6 +67,14 @@ export const router = createBrowserRouter([
           return { Component: PassCompletePage };
         }),
       },
+      // 문의하기(비회원) — 로그인 상태면 회원 문의함(/inquiries)으로 보낸다
+      {
+        path: 'inquiry',
+        lazy: lazyPage(async () => {
+          const { GuestInquiryPage } = await import('@/src/views/inquiry');
+          return { Component: GuestInquiryPage };
+        }),
+      },
       // 이용약관 — 별도 좌측 탭, ?tab= 으로 문서 전환
       {
         path: 'terms',
@@ -106,6 +114,13 @@ export const router = createBrowserRouter([
         lazy: lazyPage(async () => {
           const { VerificationPage } = await import('@/src/views/verification');
           return { Component: VerificationPage };
+        }),
+      },
+      {
+        path: 'inquiries',
+        lazy: lazyPage(async () => {
+          const { MemberInquiryPage } = await import('@/src/views/inquiry');
+          return { Component: MemberInquiryPage };
         }),
       },
     ],

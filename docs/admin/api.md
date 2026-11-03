@@ -248,6 +248,15 @@ POST /api/training-records/bulk
 | POST | `/api/payment-orders/{order_id}/refunds` | `{reason}` | 환불 — 주문 전액, 그 결제의 확인서 전부 폐기. PG 실패 시 502 + 주문·확인서 유지, 처리 중이면 409 |
 | POST | `/api/payment-orders/{order_id}/reconcile` | — | PortOne 재조회 → `{outcome: issued\|closed\|pending\|error, message, order}`. 결제됐으면 즉시 발급 |
 
+### 문의함 (admin)
+
+| Method | Path | Body / Query | 설명 |
+|---|---|---|---|
+| GET | `/api/inquiries` | `status`(open\|answered),`category`,`author_type`(member\|guest),`search`(제목 부분·성명 전체 일치),`date_from`,`date_to`(KST),`page`,`limit` | 목록 (Paged, 접수 최신순) |
+| GET | `/api/inquiries/unresolved-count` | — | `{count}` 미해결 수 — 사이드바 뱃지 |
+| GET | `/api/inquiries/{id}` | — | 상세 + `history`(같은 문의자: 회원 계정 또는 성명+연락처 일치, 항목별 `matched_by`: account\|name_phone) |
+| PUT | `/api/inquiries/{id}/answer` | `{answer}` | 답변 등록·수정 → `answered`, 감사로그 `inquiry.answered` / `inquiry.answer_updated` |
+
 ### 감사 로그 (admin)
 
 | Method | Path | Query | 설명 |

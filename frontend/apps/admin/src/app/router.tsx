@@ -111,6 +111,13 @@ export const router = createBrowserRouter([
         }),
       },
       {
+        path: 'inquiries',
+        lazy: lazyPage(async () => {
+          const { InquiryListPage } = await import('@/src/views/inquiries')
+          return { Component: InquiryListPage }
+        }),
+      },
+      {
         path: 'admin-users',
         lazy: lazyPage(async () => {
           const { AdminUserListPage } = await import('@/src/views/admin-users')

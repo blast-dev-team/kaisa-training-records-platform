@@ -10,7 +10,12 @@ interface HeaderNavItem {
   emphasized?: boolean;
   /** 인증 상태로 목적지가 갈림 — 미인증이면 /verification-no-auth 로 보낸다 */
   authGate?: boolean;
+  /** 로그인(본인인증) 상태일 때의 목적지 — 문의하기는 회원 문의함으로 */
+  memberTo?: string;
 }
+
+// 문의하기 — 비회원은 /inquiry, 로그인 회원은 사이드바 문의함(/inquiries)
+const INQUIRY_ITEM: HeaderNavItem = { label: "문의하기", to: "/inquiry", memberTo: "/inquiries" };
 
 // 본인인증 CTA — intro 페이지로 이동해 본인인증 후 조회를 시작한다
 const AUTH_CTA_ITEM: HeaderNavItem = {
@@ -19,10 +24,14 @@ const AUTH_CTA_ITEM: HeaderNavItem = {
   emphasized: true,
 };
 
-const HEADER_NAV_ITEMS: HeaderNavItem[] = [];
+const HEADER_NAV_ITEMS: HeaderNavItem[] = [INQUIRY_ITEM];
 
 // 비인증 진위확인 페이지 — 서비스 안내 + 본인인증하고 조회만 노출 (node 29:2434)
-const VERIFICATION_NAV_ITEMS: HeaderNavItem[] = [{ label: "서비스 안내", to: "/" }, AUTH_CTA_ITEM];
+const VERIFICATION_NAV_ITEMS: HeaderNavItem[] = [
+  { label: "서비스 안내", to: "/" },
+  INQUIRY_ITEM,
+  AUTH_CTA_ITEM,
+];
 
 // 이용약관 페이지 — 기본 메뉴 + 본인인증 CTA (node 44:114)
 const TERMS_NAV_ITEMS: HeaderNavItem[] = [...HEADER_NAV_ITEMS, AUTH_CTA_ITEM];
@@ -66,8 +75,10 @@ export function Header({ variant = "default", className }: HeaderProps) {
   const logoTo = isAuthenticated ? "/training-history" : "/";
 
   // 진위확인 — 미인증이면 본인인증 없이 확인 가능한 페이지로 보낸다
-  const resolveTo = (item: HeaderNavItem) =>
-    item.authGate && !isAuthenticated ? "/verification-no-auth" : item.to;
+  const resolveTo = (item: HeaderNavItem) => {
+    if (item.memberTo && isAuthenticated) return item.memberTo;
+    return item.authGate && !isAuthenticated ? "/verification-no-auth" : item.to;
+  };
 
   return (
     <header className={cn("border-b border-solid border-gray-200 bg-white font-sans", className)}>

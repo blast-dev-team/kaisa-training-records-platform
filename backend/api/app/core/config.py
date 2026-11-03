@@ -111,6 +111,11 @@ class Settings(BaseSettings):
     RATE_LIMIT_PASS_COMPLETE_WINDOW: int = 60  # 초
     RATE_LIMIT_REGISTER_MAX: int = 5
     RATE_LIMIT_REGISTER_WINDOW: int = 300  # 초
+    # 비회원 문의 — 작성(스팸)·조회(비밀번호 대입) 모두 IP 기준
+    RATE_LIMIT_INQUIRY_CREATE_MAX: int = 5
+    RATE_LIMIT_INQUIRY_CREATE_WINDOW: int = 600  # 초
+    RATE_LIMIT_INQUIRY_LOOKUP_MAX: int = 10
+    RATE_LIMIT_INQUIRY_LOOKUP_WINDOW: int = 600  # 초
 
     # 확인서 유효기간 (일). 0 = 무기한
     CERTIFICATE_VALID_DAYS: int = 0
