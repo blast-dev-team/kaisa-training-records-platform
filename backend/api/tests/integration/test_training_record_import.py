@@ -264,3 +264,69 @@ async def test_preview_matches_cert_no_ignoring_spaces(client, db):
     row = resp.json()["rows"][0]
     assert row["trainee_id"] == str(trainee.id)
     assert row["errors"] == []
+
+
+async def _paid_member_setup(db):
+    """평생 1명 · 일반 1명 · 기간 지난 연간 1명 — 확정 시 감리원증번호로 매칭된다."""
+    from datetime import date
+
+    lifetime = await make_grade(db, code="lifetime", name="평생")
+    general = await make_grade(db, code="general", name="일반")
+    annual = await make_grade(db, code="annual", name="연간")
+    people = {}
+    for key, grade, no in (("평생이", lifetime, "P-1"), ("일반이", general, "P-2"), ("연간이", annual, "P-3")):
+        _, t = await make_trainee(db, grade.id, ci_raw=f"ci-{no}", trainee_no=f"TR-{no}", name=key)
+        t.cert_no = f"협회 제{no}호"
+        people[key] = t
+    people["연간이"].grade_expires_at = date(2020, 1, 1)  # 만료 → 일반으로 자동 전환돼야 한다
+    return people
+
+
+def _paid_rows():
+    return [
+        [name, f"협회 제{no}호", "한국정보화진흥원", "유료회원 특강", "2025.06.01", "2025.06.30", 8, 8]
+        for name, no in (("평생이", "P-1"), ("일반이", "P-2"), ("연간이", "P-3"))
+    ]
+
+
+async def test_preview_reports_paid_member_grade(client, db):
+    await _paid_member_setup(db)
+    _, admin_token = await make_admin(db)
+    await db.commit()
+
+    resp = await preview(client, admin_token, make_xlsx(_paid_rows()))
+    assert resp.status_code == 200, resp.text
+    got = {r["trainee_name"]: (r["trainee_grade_name"], r["trainee_is_paid_member"]) for r in resp.json()["rows"]}
+    assert got == {"평생이": ("평생", True), "일반이": ("일반", False), "연간이": ("일반", False)}
+
+
+async def test_confirm_paid_only_skips_non_paid_members(client, db):
+    people = await _paid_member_setup(db)
+    _, admin_token = await make_admin(db)
+    await db.commit()
+
+    rows = [
+        {
+            "row_number": i + 2,
+            "name": name,
+            "cert_no": None,
+            "institution": "한국정보화진흥원",
+            "subject": "유료회원 특강",
+            "start_date": "2025-06-01",
+            "end_date": "2025-06-30",
+            "hours_total": "8",
+            "hours_recog": "8",
+            "trainee_id": str(people[name].id),
+        }
+        for i, name in enumerate(("평생이", "일반이", "연간이"))
+    ]
+    resp = await client.post(
+        "/api/training-records/import-confirm",
+        json={"rows": rows, "paid_only": True},
+        cookies=admin_cookie(admin_token),
+    )
+    assert resp.status_code == 200, resp.text
+    body = resp.json()
+    assert body["created"] == 1
+    assert sorted(f["row_number"] for f in body["failed"]) == [3, 4]
+    assert all("유료회원" in f["error"] for f in body["failed"])
