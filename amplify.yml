@@ -8,7 +8,8 @@ applications:
             - cd ../.. && npm install -g pnpm@9.0.0 && pnpm install --frozen-lockfile
         build:
           commands:
-            - cd ../.. && pnpm --filter web... run build
+            # 브랜치별 Sentry — master(운영)만 수집, dev 는 DSN 을 비워 비활성화
+            - cd ../.. && VITE_ENV=$([ "$AWS_BRANCH" = "master" ] && echo production || echo staging) VITE_SENTRY_DSN=$([ "$AWS_BRANCH" = "master" ] && echo "$VITE_SENTRY_DSN" || true) VITE_RELEASE=$COMMIT_REF pnpm --filter web... run build
       artifacts:
         baseDirectory: dist
         files:
@@ -26,7 +27,8 @@ applications:
             - cd ../.. && npm install -g pnpm@9.0.0 && pnpm install --frozen-lockfile
         build:
           commands:
-            - cd ../.. && pnpm --filter admin... run build
+            # 브랜치별 Sentry — master(운영)만 수집, dev 는 DSN 을 비워 비활성화
+            - cd ../.. && VITE_ENV=$([ "$AWS_BRANCH" = "master" ] && echo production || echo staging) VITE_SENTRY_DSN=$([ "$AWS_BRANCH" = "master" ] && echo "$VITE_SENTRY_DSN" || true) VITE_RELEASE=$COMMIT_REF pnpm --filter admin... run build
       artifacts:
         baseDirectory: dist
         files:
