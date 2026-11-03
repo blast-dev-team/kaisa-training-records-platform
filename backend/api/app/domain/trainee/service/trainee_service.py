@@ -44,6 +44,8 @@ _BLOCKING_ORDER_STATUSES = ("ready", "pending")
 # 회원등급 코드 — seed GRADES 와 일치. 연간만 기간(만료일)이 있고, 만료 시 일반으로 자동 전환
 GENERAL_GRADE_CODE = "general"
 PERIOD_GRADE_CODE = "annual"
+# 유료회원 = 평생·연간. 특정 교육은 유료회원에게만 교육내역을 추가한다
+PAID_GRADE_CODES = frozenset({"lifetime", PERIOD_GRADE_CODE})
 AUTO_DOWNGRADE_REASON = "연간 회원 기간 만료 — 자동 전환"
 
 
@@ -400,6 +402,24 @@ async def update_trainees_grade_bulk(
             skipped += 1  # 이미 같은 등급
     await db.commit()
     return updated, skipped
+
+
+async def load_grade_map(db: AsyncSession) -> dict[uuid.UUID, MembershipGrade]:
+    """등급 id → 등급. 판정·표시는 이 맵과 trainee.membership_grade_id 로 한다 —
+    expire_due_memberships 가 같은 요청에서 등급 id 만 바꾸면 이미 로드된 trainee.grade
+    관계는 옛 등급으로 남기 때문."""
+    rows = await db.execute(select(MembershipGrade))
+    return {g.id: g for g in rows.scalars().all()}
+
+
+def is_paid_member(trainee: Trainee, grade_map: dict[uuid.UUID, MembershipGrade]) -> bool:
+    """평생·연간 회원인지 — 연간은 만료일 당일까지 유효(expire_due_memberships 와 같은 기준)."""
+    grade = grade_map.get(trainee.membership_grade_id) if trainee.membership_grade_id else None
+    if grade is None or grade.code not in PAID_GRADE_CODES:
+        return False
+    if grade.code == PERIOD_GRADE_CODE and trainee.grade_expires_at is not None:
+        return trainee.grade_expires_at >= today_kst()
+    return True
 
 
 async def expire_due_memberships(db: AsyncSession) -> int:

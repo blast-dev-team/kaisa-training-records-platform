@@ -203,6 +203,9 @@ class TrainingRecordImportRow(BaseModel):
     course_exists: bool = True
     trainee_id: uuid.UUID | None = None
     trainee_name: str | None = None
+    # 매칭된 감리원의 회원등급 — '유료회원(평생·연간)만' 등록할 때 화면이 거른다
+    trainee_grade_name: str | None = None
+    trainee_is_paid_member: bool = False
     # 같은 감리원·과정명·시작일 내역이 이미 있음 — 확정 시 건너뛴다
     is_duplicate: bool = False
     errors: list[str] = []
@@ -230,6 +233,8 @@ class TrainingRecordImportConfirmItem(BaseModel):
 
 class TrainingRecordImportConfirmRequest(BaseModel):
     rows: list[TrainingRecordImportConfirmItem] = Field(min_length=1)
+    # True 면 평생·연간 회원이 아닌 감리원의 행은 등록하지 않는다(화면 필터와 별개로 서버에서 한 번 더)
+    paid_only: bool = False
 
 
 class TrainingRecordImportFailure(BaseModel):

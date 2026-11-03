@@ -19,7 +19,13 @@ from app.core.kst import now_kst
 from app.domain.auth.model import AdminUser
 from app.domain.institution.repository import institution_repository as inst_repo
 from app.domain.trainee.repository import trainee_repository as trainee_repo
-from app.domain.trainee.service.trainee_service import _parse_cell_date, _row_cell
+from app.domain.trainee.service.trainee_service import (
+    _parse_cell_date,
+    _row_cell,
+    expire_due_memberships,
+    is_paid_member,
+    load_grade_map,
+)
 from app.domain.institution.model.training_course import TrainingCourse
 from app.domain.institution.model.training_institution import TrainingInstitution
 from app.domain.training_record.model import TrainingRecord
@@ -687,6 +693,9 @@ async def import_preview(db: AsyncSession, content: bytes) -> TrainingRecordImpo
             continue  # 완전히 빈 행
         parsed.append({"row_number": offset, **cells})
 
+    # 기간 지난 연간 회원을 먼저 일반으로 전환 — 프리뷰의 등급 표시가 확정과 어긋나지 않게
+    await expire_due_memberships(db)
+    grade_map = await load_grade_map(db)
     candidates = await trainee_repo.find_by_identifiers(
         db,
         names=sorted({r["name"] for r in parsed if r["name"]}),
@@ -725,7 +734,8 @@ async def import_preview(db: AsyncSession, content: bytes) -> TrainingRecordImpo
         if r["institution"] and r["subject"]:
             iid = inst_name_to_id.get(r["institution"])
             course_exists = iid is not None and (r["subject"], iid) in existing_course_keys
-        trainee_id = trainee_name = None
+        trainee_id = trainee_name = trainee_grade_name = None
+        trainee_is_paid = False
         if not r["institution"]:
             errors.append("교육기관명이 필요해요")
         if not r["subject"]:
@@ -754,6 +764,9 @@ async def import_preview(db: AsyncSession, content: bytes) -> TrainingRecordImpo
         if hit is not None and not any("감리원" in e for e in errors):
             trainee_id = hit.id
             trainee_name = decrypt_field(hit.name_encrypted)
+            grade = grade_map.get(hit.membership_grade_id) if hit.membership_grade_id else None
+            trainee_grade_name = grade.name if grade else None
+            trainee_is_paid = is_paid_member(hit, grade_map)
 
         result_rows.append(
             TrainingRecordImportRow(
@@ -770,6 +783,8 @@ async def import_preview(db: AsyncSession, content: bytes) -> TrainingRecordImpo
                 course_exists=course_exists,
                 trainee_id=trainee_id,
                 trainee_name=trainee_name,
+                trainee_grade_name=trainee_grade_name,
+                trainee_is_paid_member=trainee_is_paid,
                 errors=errors,
             )
         )
@@ -811,10 +826,17 @@ async def import_confirm(
     """
     created = skipped = 0
     failed: list[tuple[int, str]] = []
+    grade_map = {}
+    if data.paid_only:
+        await expire_due_memberships(db)
+        grade_map = await load_grade_map(db)
     for item in data.rows:
         trainee = await trainee_repo.find_by_id(db, item.trainee_id)
         if trainee is None:
             failed.append((item.row_number, "감리원을 찾을 수 없어요"))
+            continue
+        if data.paid_only and not is_paid_member(trainee, grade_map):
+            failed.append((item.row_number, "유료회원(평생·연간)이 아니에요"))
             continue
         if not item.institution or not item.subject:
             failed.append((item.row_number, "기관명·과목명이 필요해요"))
