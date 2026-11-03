@@ -187,7 +187,7 @@ export function DashboardPage() {
           linkLabel="결제 내역"
           total={weekPayments?.total}
           emptyMessage="최근 7일간 결제가 없어요"
-          head={["주문번호", "결제자", "등급", "감리원증번호", "과정", "상태"]}
+          head={["주문번호", "결제자", "등급", "자격증번호", "과정", "상태"]}
         >
           {(weekPayments?.items ?? []).map((o) => (
             <tr key={o.id} className="border-b border-line last:border-b-0">

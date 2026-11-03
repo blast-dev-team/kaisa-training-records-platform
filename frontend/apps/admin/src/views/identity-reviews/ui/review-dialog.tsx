@@ -190,7 +190,7 @@ export function ReviewDialog({ review, onClose }: Props) {
                 <div className="flex items-center justify-between rounded-md border border-accent-soft bg-accent-soft px-3 py-2.5">
                   <div className="text-13">
                     <span className="font-medium text-accent-ink">
-                      {selected.certNo} · {selected.name}
+                      {selected.seniorCertNo ?? selected.certNo ?? selected.traineeNo} · {selected.name}
                     </span>
                     <span className="ml-2 font-mono text-12 text-accent-ink">
                       {selected.phoneMasked}
@@ -232,7 +232,9 @@ export function ReviewDialog({ review, onClose }: Props) {
                         }}
                       >
                         <span className="text-13 font-medium text-ink">{t.name}</span>
-                        <span className="ml-2 text-12 text-ink-3">{t.certNo}</span>
+                        <span className="ml-2 text-12 text-ink-3">
+                          {t.seniorCertNo ?? t.certNo ?? t.traineeNo}
+                        </span>
                         <span className="ml-2 font-mono text-12 text-ink-2">
                           {t.phoneMasked}
                           <span

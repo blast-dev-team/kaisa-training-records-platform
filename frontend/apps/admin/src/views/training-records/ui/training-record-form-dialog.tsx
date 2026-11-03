@@ -416,7 +416,7 @@ export function TrainingRecordFormDialog({
                         >
                           <span className="font-medium text-ink">{t.name}</span>
                           <span className="ml-2 text-ink-3">
-                            {t.certNo} · {t.phoneMasked}
+                            {t.seniorCertNo ?? t.certNo ?? t.traineeNo} · {t.phoneMasked}
                           </span>
                         </button>
                       ))

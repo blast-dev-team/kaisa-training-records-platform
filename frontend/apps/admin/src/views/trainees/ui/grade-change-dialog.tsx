@@ -64,7 +64,7 @@ export function GradeChangeDialog({ trainee, onClose }: Props) {
       title="회원등급 변경"
       description={
         trainee
-          ? `${trainee.certNo} ${trainee.name} · 현재 ${trainee.gradeName ?? "미지정"}`
+          ? `${trainee.seniorCertNo ?? trainee.certNo ?? trainee.traineeNo} ${trainee.name} · 현재 ${trainee.gradeName ?? "미지정"}`
           : undefined
       }
       actions={[

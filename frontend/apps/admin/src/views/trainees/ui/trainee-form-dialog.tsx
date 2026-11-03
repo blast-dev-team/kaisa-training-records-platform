@@ -134,7 +134,7 @@ export function TraineeFormDialog({ isOpen, onClose, trainee }: Props) {
       title={trainee ? "감리원 정보 수정" : "감리원 등록"}
       description={
         trainee
-          ? `${trainee.certNo ?? ""} · ${trainee.name}`
+          ? `${trainee.seniorCertNo ?? trainee.certNo ?? trainee.traineeNo} · ${trainee.name}`
           : "본인인증 없이 수기 등록 — 신원을 확인한 뒤 등록해 주세요"
       }
       actions={[
