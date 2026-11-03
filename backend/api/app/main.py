@@ -2,6 +2,7 @@ import logging
 import uuid
 from contextlib import asynccontextmanager
 
+import sentry_sdk
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
@@ -48,6 +49,50 @@ from app.domain.training_record.router import router as training_record_router
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# ── Sentry ─────────────────────────────────────────────────────────────────────
+# DSN 비면 비활성화 (로컬 기본). 환경 태그는 ENVIRONMENT(local|staging|production),
+# 릴리즈는 RELEASE. 개인정보 처리 시스템이라 쿠키·헤더 PII 전송은 끈다.
+if settings.SENTRY_DSN:
+    sentry_sdk.init(
+        dsn=settings.SENTRY_DSN,
+        environment=settings.ENVIRONMENT,
+        release=settings.RELEASE or None,
+        send_default_pii=False,
+        traces_sample_rate=0.1,
+    )
+
+# ── Sentry 기능 태그 ────────────────────────────────────────────────────────────
+# 요청 경로 앞부분으로 기능을 묶는다 — 이슈 필터 "feature:결제" 처럼 쓴다.
+_FEATURE_PREFIXES = [
+    ("/api/payments", "결제"),
+    ("/api/payment-orders", "결제"),
+    ("/api/certificate-requests", "확인서"),
+    ("/api/certificates", "확인서"),
+    ("/api/completion-certificates", "확인서"),
+    ("/api/training-records", "교육내역"),
+    ("/api/inquiries", "문의"),
+    ("/api/public/inquiries", "문의"),
+    ("/api/identity-reviews", "본인인증심사"),
+    ("/api/trainees", "교육생"),
+    ("/api/courses", "교육과정"),
+    ("/api/course-sessions", "교육과정"),
+    ("/api/session-names", "교육과정"),
+    ("/api/institutions", "기관"),
+    ("/api/membership-grades", "회원등급"),
+    ("/api/admin-users", "관리자계정"),
+    ("/api/audit-logs", "감사로그"),
+    ("/api/auth", "인증"),
+    ("/api/me", "내정보"),
+    ("/api/public", "공개조회"),
+]
+
+
+def _sentry_feature(path: str) -> str:
+    for prefix, name in _FEATURE_PREFIXES:
+        if path.startswith(prefix):
+            return name
+    return path
 
 
 @asynccontextmanager
@@ -108,6 +153,20 @@ async def validation_exception_handler(
 
 @app.exception_handler(Exception)
 async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    # 커스텀 핸들러가 예외를 삼켜 Sentry ASGI 통합에 안 걸리므로 여기서 명시 수집.
+    # 어떤 기능·엔드포인트에서, 어떤 요청 본문으로 터졌는지 이슈에 붙인다.
+    sentry_sdk.set_tag("endpoint", f"{request.method} {request.url.path}")
+    sentry_sdk.set_tag("feature", _sentry_feature(request.url.path))
+    try:
+        raw_body = await request.body()
+        if raw_body:
+            sentry_sdk.set_extra(
+                "request_body", raw_body[:2000].decode("utf-8", errors="replace")
+            )
+    except Exception:
+        # 컨텍스트 수집 실패가 500 응답을 막지 않게
+        logger.debug("sentry request context 수집 실패", exc_info=True)
+    sentry_sdk.capture_exception(exc)
     # 화면에 보인 오류 코드로 서버 로그의 traceback 을 바로 찾을 수 있게 같은 id 를 남긴다
     error_id = uuid.uuid4().hex[:8]
     logger.exception(

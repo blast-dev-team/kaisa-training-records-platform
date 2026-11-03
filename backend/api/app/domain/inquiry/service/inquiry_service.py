@@ -53,7 +53,8 @@ class _MemberAuthor:
         self.trainee = trainee
         self.name = name
         self.phone = phone
-        self.cert_no = (trainee.cert_no or trainee.senior_cert_no) if trainee else None
+        # 표기 우선순위 — 수석감리원증번호 → 감리원증번호 (수석감리원은 cert_no 가 NULL)
+        self.cert_no = (trainee.senior_cert_no or trainee.cert_no) if trainee else None
         self.email = trainee.email if trainee else None
 
 

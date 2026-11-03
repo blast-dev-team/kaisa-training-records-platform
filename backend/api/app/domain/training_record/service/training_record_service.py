@@ -17,6 +17,8 @@ from app.core.crypto import decrypt_field, name_hash
 from app.core.error_codes import api_error
 from app.core.kst import now_kst
 from app.domain.auth.model import AdminUser
+from app.domain.institution.model.training_course import TrainingCourse
+from app.domain.institution.model.training_institution import TrainingInstitution
 from app.domain.institution.repository import institution_repository as inst_repo
 from app.domain.trainee.repository import trainee_repository as trainee_repo
 from app.domain.trainee.service.trainee_service import (
@@ -26,21 +28,18 @@ from app.domain.trainee.service.trainee_service import (
     is_paid_member,
     load_grade_map,
 )
-from app.domain.institution.model.training_course import TrainingCourse
-from app.domain.institution.model.training_institution import TrainingInstitution
 from app.domain.training_record.model import TrainingRecord
 from app.domain.training_record.repository import training_record_repository as repo
 from app.domain.training_record.schema import (
-    TrainingRecordImportRow,
-    TrainingRecordImportConfirmRequest,
-    TrainingRecordImportPreviewResult,
-    TrainingRecordImportResult,
     MatchPreviewMatched,
     MatchPreviewUnmatched,
     TraineeMatchPreviewResult,
     TrainingRecordBulkDelete,
     TrainingRecordBulkUpdate,
     TrainingRecordCreate,
+    TrainingRecordImportConfirmRequest,
+    TrainingRecordImportPreviewResult,
+    TrainingRecordImportRow,
     TrainingRecordUpdate,
 )
 from app.utils.cert_no import normalize_cert_no
@@ -472,8 +471,12 @@ async def match_preview(db: AsyncSession, content: bytes) -> TraineeMatchPreview
     by_trainee_no: dict[str, list] = {}
     by_name: dict[str, list] = {}
     for t in candidates:
-        if t.cert_no:
-            by_cert.setdefault(normalize_cert_no(t.cert_no), []).append(t)
+        # 감리원증·수석감리원증 양쪽 번호를 같은 축에 — 수석감리원은 cert_no 가 NULL 이다
+        for no in (t.cert_no, t.senior_cert_no):
+            if no:
+                bucket = by_cert.setdefault(normalize_cert_no(no), [])
+                if t not in bucket:
+                    bucket.append(t)
         if t.trainee_no:
             by_trainee_no.setdefault(t.trainee_no, []).append(t)
         # 성명은 암호화 저장 — blind index 해시를 대조 키로 쓴다

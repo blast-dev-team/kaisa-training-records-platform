@@ -47,7 +47,7 @@ class TrainingRecordResponse(BaseModel):
     # 어드민 목록 표시용 — trainee 조인 값 (model_validate 로는 안 채워진다)
     trainee_name: str | None = None
     trainee_no: str | None = None
-    trainee_cert_no: str | None = None  # 감리원증번호 — 목록 표시용
+    trainee_cert_no: str | None = None  # 자격증번호 — 목록 표시용 (수석감리원증번호 우선, 없으면 감리원증번호)
     trainee_birth_date: date | None = None
     trainee_phone: str | None = None  # 마스킹 — trainee.phone_encrypted 복호화 후 mask_phone
     # 회원 포털용 — 공용 데모 이력 플래그. 웹 수료증 발급 대상 제외 판정에 쓴다
@@ -95,7 +95,8 @@ class TrainingRecordResponse(BaseModel):
             trainee_id=record.trainee_id,
             trainee_name=decrypt_field(trainee.name_encrypted) if trainee else None,
             trainee_no=trainee.trainee_no if trainee else None,
-            trainee_cert_no=trainee.cert_no if trainee else None,
+            # 수석감리원은 cert_no 가 NULL 이다(단일 번호 수석감리원 = 수석증만 보유) — senior 우선
+            trainee_cert_no=(trainee.senior_cert_no or trainee.cert_no) if trainee else None,
             trainee_birth_date=trainee.birth_date if trainee else None,
             trainee_phone=phone,
             is_demo=record.is_demo,
