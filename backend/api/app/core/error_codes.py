@@ -63,6 +63,10 @@ _ERRORS: dict[str, tuple[int, str]] = {
         422,
         "내부 기관의 수료 완료 내역만 발급할 수 있어요",
     ),
+    "COMPLETION_CERTIFICATE_PERIOD_MISSING": (
+        422,
+        "수강 기간이 없는 교육은 수료증을 발급할 수 없어요",
+    ),
 }
 
 

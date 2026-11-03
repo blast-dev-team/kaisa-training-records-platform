@@ -75,6 +75,9 @@ def _ensure_issuable(
             or record.completion_status != "completed"
         ):
             raise api_error("COMPLETION_CERTIFICATE_NOT_ALLOWED")
+        # 수강 기간 미기재 이력 — 문서에 기간이 비므로 발급 차단
+        if record.started_at is None or record.ended_at is None:
+            raise api_error("COMPLETION_CERTIFICATE_PERIOD_MISSING")
 
 
 async def _issue_certificates(
