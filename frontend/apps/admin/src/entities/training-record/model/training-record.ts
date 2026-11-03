@@ -102,6 +102,10 @@ export interface TrainingRecordImportRow {
   hours_recog: string | null
   trainee_id: string | null
   trainee_name: string | null
+  /** 매칭된 감리원의 회원등급명 (평생·연간·일반 …) */
+  trainee_grade_name: string | null
+  /** 유료회원(평생·연간, 연간은 만료 전) 여부 — '유료회원만' 등록 필터 기준 */
+  trainee_is_paid_member: boolean
   /** 마스터에 없는 기관·과정 — 확정 시 신규 생성됨 */
   institution_exists: boolean
   course_exists: boolean

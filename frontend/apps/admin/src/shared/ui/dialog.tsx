@@ -18,6 +18,8 @@ interface DialogProps {
   isOpen: boolean;
   onClose: () => void;
   title: string;
+  /** 제목 오른쪽에 붙는 요소 (체크박스·토글 등) */
+  titleAside?: ReactNode;
   description?: ReactNode;
   /** default: 'md' */
   size?: "sm" | "md" | "lg" | "xl" | "2xl";
@@ -53,6 +55,7 @@ export function Dialog({
   isOpen,
   onClose,
   title,
+  titleAside,
   description,
   size = "md",
   closeOnBackdrop = true,
@@ -99,7 +102,14 @@ export function Dialog({
       >
         {/* Header */}
         <div className="px-6 pt-6 pb-4 shrink-0">
-          <h2 className="text-16 font-semibold text-ink">{title}</h2>
+          {titleAside ? (
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="text-16 font-semibold text-ink">{title}</h2>
+              {titleAside}
+            </div>
+          ) : (
+            <h2 className="text-16 font-semibold text-ink">{title}</h2>
+          )}
           {description && (
             <p className="text-13 text-ink-2 mt-1.5 leading-relaxed">{description}</p>
           )}
