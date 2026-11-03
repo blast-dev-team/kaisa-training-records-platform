@@ -4,7 +4,10 @@ import { RouterProvider } from "react-router";
 import { Providers } from "@/src/app/providers";
 import { ReviewPendingGate } from "@/src/app/review-pending-gate";
 import { router } from "@/src/app/router";
+import { initSentry } from "@/src/shared/lib/sentry";
 import "@/src/styles/globals.css";
+
+initSentry();
 
 const root = document.getElementById("root");
 if (!root) throw new Error("#root not found");
