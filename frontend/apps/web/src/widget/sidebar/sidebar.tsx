@@ -7,6 +7,7 @@ export const SIDEBAR_NAV_ITEMS = [
   { label: "교육내역 조회", to: "/training-history" },
   { label: "발급·결제 내역", to: "/payment-history" },
   { label: "진위확인", to: "/verify" },
+  { label: "문의하기", to: "/inquiries" },
 ] as const;
 
 export interface SidebarProps {

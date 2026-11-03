@@ -28,6 +28,8 @@ export interface TextAreaProps
   error?: boolean;
   /** 글자 수 카운터 상한 — 지정 시 우측 하단 `n / N` 표시 */
   letterLimit?: number;
+  /** 입력 박스 클래스 — 기본 높이(120px)를 바꿀 때 (예: "h-80") */
+  boxClassName?: string;
 }
 
 const BOX_BASE =
@@ -60,6 +62,7 @@ export function TextArea({
   error = false,
   letterLimit,
   className,
+  boxClassName,
   id,
   value,
   defaultValue,
@@ -101,7 +104,7 @@ export function TextArea({
       )}
 
       <div
-        className={cn(BOX_BASE, error ? BOX_ERROR : BOX_DEFAULT, BOX_DISABLED)}
+        className={cn(BOX_BASE, error ? BOX_ERROR : BOX_DEFAULT, BOX_DISABLED, boxClassName)}
       >
         <textarea
           id={textareaId}
