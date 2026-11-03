@@ -50,6 +50,11 @@ interface ImportDraft {
 }
 
 type Stage = "select" | "preview" | "result";
+
+/** 감리원 매칭 관련 오류 — 감리원을 연결하면 사라져야 하는 것만. 날짜·기관 오류는 남긴다 */
+const withoutTraineeErrors = (errors: string[]) => errors.filter((e) => !e.includes("감리원"));
+/** 같은 사람 판별 키 — 공백 차이는 무시(감리원증번호 비교 기준과 동일) */
+const sameKey = (v: string) => v.replace(/\s+/g, "");
 type MatchingFilter = "all" | "matched" | "unmatched";
 
 /** 미매칭 행 — 교육생 직접 추가용 폼 값 */
@@ -95,6 +100,51 @@ export function TrainingRecordImportDialog({ isOpen, onClose }: Props) {
 
   const setDraft = (key: string, patch: Partial<ImportDraft>) => {
     setDrafts((prev) => prev.map((d) => (d.key === key ? { ...d, ...patch } : d)));
+  };
+
+  /**
+   * 미매칭 행에 감리원을 연결한다. 이름·감리원증번호가 같은 다른 미매칭 행도 같은 사람으로
+   * 보고 함께 연결한다 — 한 사람의 교육 여러 건을 행마다 다시 찾지 않게.
+   * 감리원 관련 오류만 지우고 날짜 등 다른 오류는 남겨 등록에서 빠지게 한다.
+   * 교육생 등록 응답 뒤에 호출되므로 최신 state 에 적용한다(그 사이 편집을 덮지 않게).
+   * @returns 함께 연결된 다른 행 수
+   */
+  const assignTrainee = (
+    key: string,
+    trainee: { id: string; name: string },
+    certNo?: string,
+  ): number => {
+    const link = (rows: ImportDraft[]) => {
+      const source = rows.find((d) => d.key === key);
+      if (!source) return { rows, linkedOthers: 0 };
+      const nameKey = sameKey(source.name);
+      const certKey = sameKey(source.certNo);
+      let linkedOthers = 0;
+      const next = rows.map((d) => {
+        const isSource = d.key === key;
+        const isSamePerson =
+          !isSource &&
+          !d.traineeId &&
+          nameKey !== "" &&
+          sameKey(d.name) === nameKey &&
+          sameKey(d.certNo) === certKey;
+        if (!isSource && !isSamePerson) return d;
+        if (isSamePerson) linkedOthers += 1;
+        const errors = withoutTraineeErrors(d.errors);
+        return {
+          ...d,
+          traineeId: trainee.id,
+          traineeName: trainee.name,
+          certNo: isSource && certNo !== undefined ? certNo : d.certNo,
+          errors,
+          include: errors.length === 0 && !d.isDuplicate,
+        };
+      });
+      return { rows: next, linkedOthers };
+    };
+    setDrafts((prev) => link(prev).rows);
+    // 토스트용 개수 — 렌더 시점 목록 기준(연결 대상 판정은 위 updater 가 최신 목록으로 다시 한다)
+    return link(drafts).linkedOthers;
   };
 
   const previewMutation = useMutation({
@@ -155,16 +205,14 @@ export function TrainingRecordImportDialog({ isOpen, onClose }: Props) {
         }),
       ),
     onSuccess: (trainee, vars) => {
-      setDraft(vars.key, {
-        traineeId: trainee.id,
-        traineeName: trainee.name,
-        certNo: vars.form.certNo,
-        errors: [],
-        include: true,
-      });
+      const linkedOthers = assignTrainee(vars.key, trainee, vars.form.certNo);
       setAddingKey(null);
       queryClient.invalidateQueries({ queryKey: traineeQueries.all() });
-      toast.success(`'${trainee.name}' 감리원을 새로 등록하고 선택했어요`);
+      toast.success(
+        linkedOthers > 0
+          ? `'${trainee.name}' 감리원을 새로 등록하고 같은 사람의 다른 ${linkedOthers}행에도 연결했어요`
+          : `'${trainee.name}' 감리원을 새로 등록하고 선택했어요`,
+      );
     },
     onError: (e: Error) => {
       if (e instanceof DuplicateCancelledError) return;
@@ -512,13 +560,13 @@ export function TrainingRecordImportDialog({ isOpen, onClose }: Props) {
                             type="button"
                             className="flex w-full items-center gap-2 rounded-md border border-line px-2.5 py-1.5 text-left text-13 hover:bg-panel-2"
                             onClick={() => {
-                              setDraft(d.key, {
-                                traineeId: t.id,
-                                traineeName: t.name,
-                                errors: [],
-                                include: true,
-                              });
+                              const linkedOthers = assignTrainee(d.key, t);
                               setSearchingKey(null);
+                              if (linkedOthers > 0) {
+                                toast.success(
+                                  `'${t.name}' 감리원을 같은 사람의 다른 ${linkedOthers}행에도 연결했어요`,
+                                );
+                              }
                             }}
                           >
                             <span className="font-medium text-ink">{t.name}</span>

@@ -183,7 +183,7 @@ export function TraineeImportDialog({ isOpen, onClose }: Props) {
       title="감리원 엑셀 등록"
       description={
         stage === "select"
-          ? "헤더가 감리원명·전화번호·생년월일·감리원증번호·감리원등급명·감리원증발급일자인 엑셀(.xlsx)을 올려요"
+          ? "감리원명(성명)·전화번호(연락처)·생년월일·감리원증번호·감리원등급명 컬럼이 있는 엑셀(.xlsx)을 올려요 · 감리원증발급일자는 선택"
           : undefined
       }
       actions={actions}
