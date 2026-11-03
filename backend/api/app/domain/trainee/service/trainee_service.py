@@ -35,6 +35,7 @@ from app.domain.trainee.schema import (
     TraineeImportRow,
     TraineeUpdate,
 )
+from app.utils.cert_no import normalize_cert_no
 
 # 삭제 차단 — 아직 끝나지 않은 신청·결제가 있는 교육생은 지울 수 없다
 _BLOCKING_REQUEST_STATUSES = ("pending", "payment_pending", "paid", "issuing")
@@ -152,7 +153,8 @@ async def _check_duplicate_trainee(
     pairs = [(name, birth_date)] if birth_date else []
     existing = await repo.find_duplicates_for_import(db, cert_nos, pairs)
     for t in existing:
-        if {t.cert_no, t.senior_cert_no} & set(cert_nos):
+        existing_keys = {normalize_cert_no(n) for n in (t.cert_no, t.senior_cert_no) if n}
+        if existing_keys & {normalize_cert_no(n) for n in cert_nos}:
             raise api_error(
                 "DUPLICATE_TRAINEE",
                 message=(
@@ -527,6 +529,18 @@ _IMPORT_HEADERS = {
     "cert_issued_date": "감리원증발급일자",
 }
 _IMPORT_MAX_ROWS = 500
+# 협회 명부 등 다른 양식의 컬럼 이름도 같은 필드로 읽는다 — 공백 제거 후 정확 일치
+_IMPORT_HEADER_ALIASES = {
+    "name": ("감리원명", "성명", "이름", "회원명"),
+    "phone": ("전화번호", "연락처", "휴대폰", "휴대폰번호", "휴대전화", "핸드폰"),
+    "birth_date": ("생년월일",),
+    "cert_no": ("감리원증번호", "감리원번호"),
+    "supervisor_grade": ("감리원등급명", "감리원등급", "등급"),
+    "cert_issued_date": ("감리원증발급일자", "발급일자", "감리원증발급일"),
+}
+# 없어도 되는 컬럼 — 회원 명부에는 발급일자 컬럼이 없다
+_IMPORT_OPTIONAL_FIELDS = {"cert_issued_date"}
+_IMPORT_HEADER_SCAN_ROWS = 10
 
 
 def _parse_cell_date(value) -> date | None:
@@ -579,8 +593,17 @@ def _normalize_cell_phone(value) -> str | None:
     return digits
 
 
+def _row_cell(row: tuple, idx: int):
+    """행에서 idx 번째 값 — 없으면 None.
+
+    시트에 크기 정보(dimension)가 없는 엑셀은 read_only 로 읽을 때 오른쪽 끝 빈 칸이
+    잘려 행 길이가 헤더보다 짧게 온다. 인덱스로 바로 꺼내면 IndexError(500)가 난다.
+    """
+    return row[idx] if idx < len(row) else None
+
+
 def parse_import_file(content: bytes) -> list[TraineeImportRow]:
-    """엑셀 1행씩 → TraineeImportRow. 헤더명으로 컬럼을 찾는다(순서 무관).
+    """엑셀 1행씩 → TraineeImportRow. 헤더명으로 컬럼을 찾는다(순서·위치 무관, 별칭 허용).
 
     완전히 빈 행은 건너뛰고, 감리원명 빠진 행은 errors 를 담아 그대로 돌려준다 —
     프리뷰에서 사용자가 고치거나 제외할 수 있게.
@@ -592,45 +615,56 @@ def parse_import_file(content: bytes) -> list[TraineeImportRow]:
             "VALIDATION_ERROR",
             message="엑셀 파일(.xlsx)을 열 수 없어요. 파일을 확인해 주세요",
         )
-    # 한 파일에 교육내역 등 다른 시트가 섞여 있을 수 있다 — 헤더가 모두 맞는 첫 시트를 읽는다.
-    # 맞는 시트가 없으면 가장 많이 맞은 시트 기준으로 빠진 헤더를 알려준다
-    rows: list[tuple] = []
-    header_map: dict[str, int] = {}
-    missing: list[str] = list(_IMPORT_HEADERS.values())
-    for ws in wb.worksheets:
-        sheet_rows = list(ws.iter_rows(values_only=True))
-        if not sheet_rows:
-            continue
-        sheet_map = {
-            str(cell).strip(): idx
-            for idx, cell in enumerate(sheet_rows[0])
-            if cell is not None
-        }
-        sheet_missing = [
-            label for label in _IMPORT_HEADERS.values() if label not in sheet_map
-        ]
-        if not rows or len(sheet_missing) < len(missing):
-            rows, header_map, missing = sheet_rows, sheet_map, sheet_missing
-        if not sheet_missing:
-            break
+    sheets = [list(ws.iter_rows(values_only=True)) for ws in wb.worksheets]
     wb.close()
-    if not rows:
+    if not any(sheets):
         raise api_error("VALIDATION_ERROR", message="엑셀에 데이터가 없어요")
+
+    # 헤더 찾기 — 한 파일에 교육내역 등 다른 시트가 섞이고, 명부처럼 제목 행 아래에 헤더가
+    # 있을 수 있다. 모든 시트의 상단 행을 훑어 필수 헤더가 모두 맞는 첫 행을 쓰고,
+    # 없으면 가장 많이 맞은 행 기준으로 빠진 헤더를 알려준다
+    required = [f for f in _IMPORT_HEADERS if f not in _IMPORT_OPTIONAL_FIELDS]
+
+    def _norm(v) -> str:
+        return re.sub(r"\s+", "", str(v)) if v is not None else ""
+
+    rows: list[tuple] = []
+    header_idx = 0
+    columns: dict[str, int | None] = {}
+    missing: list[str] = required
+    for sheet_rows in sheets:
+        for idx, row in enumerate(sheet_rows[:_IMPORT_HEADER_SCAN_ROWS]):
+            hmap: dict[str, int] = {}
+            for i, c in enumerate(row):
+                hmap.setdefault(_norm(c), i)
+            cols = {
+                field: next((hmap[a] for a in aliases if a in hmap), None)
+                for field, aliases in _IMPORT_HEADER_ALIASES.items()
+            }
+            row_missing = [f for f in required if cols[f] is None]
+            if not columns or len(row_missing) < len(missing):
+                rows, header_idx, columns, missing = sheet_rows, idx, cols, row_missing
+            if not row_missing:
+                break
+        if not missing:
+            break
     if missing:
+        labels = ", ".join(_IMPORT_HEADERS[f] for f in missing)
         raise api_error(
             "VALIDATION_ERROR",
-            message=f"엑셀 헤더에 {', '.join(missing)} 이(가) 없어요",
+            message=f"엑셀 헤더에 {labels} 이(가) 없어요",
         )
 
     parsed: list[TraineeImportRow] = []
-    for offset, row in enumerate(rows[1:], start=2):
-        if offset > _IMPORT_MAX_ROWS:
+    for offset, row in enumerate(rows[header_idx + 1 :], start=header_idx + 2):
+        if offset > header_idx + _IMPORT_MAX_ROWS:
             raise api_error(
                 "VALIDATION_ERROR",
                 message=f"한 번에 등록할 수 있는 행은 {_IMPORT_MAX_ROWS}개까지예요",
             )
         cells = {
-            field: row[header_map[label]] for field, label in _IMPORT_HEADERS.items()
+            field: _row_cell(row, col) if col is not None else None
+            for field, col in columns.items()
         }
         if all(v is None or str(v).strip() == "" for v in cells.values()):
             continue  # 완전히 빈 행
@@ -689,11 +723,14 @@ async def preview_import(
     existing = await repo.find_duplicates_for_import(db, cert_nos, pairs)
     # 감리원증·수석감리원증 양쪽 번호를 키로 — 엑셀 번호가 기존 수석번호와 일치해도 중복
     by_cert = {
-        no: t for t in existing for no in (t.cert_no, t.senior_cert_no) if no
+        normalize_cert_no(no): t
+        for t in existing
+        for no in (t.cert_no, t.senior_cert_no)
+        if no
     }
     by_pair = {(t.name_hash, t.birth_date): t for t in existing if t.birth_date}
     for row in parsed:
-        hit_by_cert = by_cert.get(row.cert_no) if row.cert_no else None
+        hit_by_cert = by_cert.get(normalize_cert_no(row.cert_no)) if row.cert_no else None
         hit = hit_by_cert
         if hit is None and row.name and row.birth_date:
             hit = by_pair.get((name_hash(row.name), row.birth_date))
@@ -726,7 +763,10 @@ async def confirm_import(
     pairs = [(i.name.strip(), i.birth_date) for i in data.items if i.birth_date]
     existing = await repo.find_duplicates_for_import(db, cert_nos, pairs)
     by_cert = {
-        no: t for t in existing for no in (t.cert_no, t.senior_cert_no) if no
+        normalize_cert_no(no): t
+        for t in existing
+        for no in (t.cert_no, t.senior_cert_no)
+        if no
     }
     by_pair = {(t.name_hash, t.birth_date): t for t in existing if t.birth_date}
 
@@ -739,7 +779,7 @@ async def confirm_import(
         if not name:
             failed.append((item.row_number, "감리원명이 비어 있어요"))
             continue
-        if item.cert_no and item.cert_no in by_cert:
+        if item.cert_no and normalize_cert_no(item.cert_no) in by_cert:
             skipped += 1  # 감리원증번호 중복
             continue
         hit_pair = (

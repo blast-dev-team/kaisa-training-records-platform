@@ -19,7 +19,7 @@ from app.core.kst import now_kst
 from app.domain.auth.model import AdminUser
 from app.domain.institution.repository import institution_repository as inst_repo
 from app.domain.trainee.repository import trainee_repository as trainee_repo
-from app.domain.trainee.service.trainee_service import _parse_cell_date
+from app.domain.trainee.service.trainee_service import _parse_cell_date, _row_cell
 from app.domain.institution.model.training_course import TrainingCourse
 from app.domain.institution.model.training_institution import TrainingInstitution
 from app.domain.training_record.model import TrainingRecord
@@ -37,6 +37,7 @@ from app.domain.training_record.schema import (
     TrainingRecordCreate,
     TrainingRecordUpdate,
 )
+from app.utils.cert_no import normalize_cert_no
 
 ALLOWED_SOURCES = {"internal", "external", "legacy_import"}
 ALLOWED_COMPLETION = {"in_progress", "completed", "canceled"}
@@ -376,7 +377,7 @@ async def delete_record(
 _MATCH_HEADERS = {
     "name": ("교육생명", "감리원명", "성명", "이름"),
     "trainee_no": ("교육생번호", "교육번", "회원번호", "번호"),
-    "cert_no": ("감리원증번호", "감리원증 번호", "증번호", "자격번호"),
+    "cert_no": ("감리원증번호", "감리원증 번호", "감리원번호", "증번호", "자격번호"),
 }
 _MATCH_MAX_ROWS = 1000
 
@@ -443,7 +444,9 @@ async def match_preview(db: AsyncSession, content: bytes) -> TraineeMatchPreview
             )
         cells = {
             field: (
-                _match_cell_str(row[header_map[columns[field]]]) if columns[field] else None
+                _match_cell_str(_row_cell(row, header_map[columns[field]]))
+                if columns[field]
+                else None
             )
             for field in _MATCH_HEADERS
         }
@@ -464,7 +467,7 @@ async def match_preview(db: AsyncSession, content: bytes) -> TraineeMatchPreview
     by_name: dict[str, list] = {}
     for t in candidates:
         if t.cert_no:
-            by_cert.setdefault(t.cert_no, []).append(t)
+            by_cert.setdefault(normalize_cert_no(t.cert_no), []).append(t)
         if t.trainee_no:
             by_trainee_no.setdefault(t.trainee_no, []).append(t)
         # 성명은 암호화 저장 — blind index 해시를 대조 키로 쓴다
@@ -479,8 +482,13 @@ async def match_preview(db: AsyncSession, content: bytes) -> TraineeMatchPreview
         for field, index in (("cert_no", by_cert), ("trainee_no", by_trainee_no), ("name", by_name)):
             if r[field] is None:
                 continue
-            # 이름 키는 엑셀 원문을 해시해 비교한다
-            lookup = name_hash(r[field]) if field == "name" else r[field]
+            # 이름 키는 엑셀 원문을 해시해 비교하고, 감리원증번호는 공백을 빼고 비교한다
+            if field == "name":
+                lookup = name_hash(r[field])
+            elif field == "cert_no":
+                lookup = normalize_cert_no(r[field])
+            else:
+                lookup = r[field]
             hits = index.get(lookup, [])
             if len(hits) == 1:
                 hit, matched_by = hits[0], field
@@ -537,7 +545,7 @@ async def match_preview(db: AsyncSession, content: bytes) -> TraineeMatchPreview
 
 _IMPORT_HEADERS = {
     "name": ("교육생명", "감리원명", "성명", "이름", "회원명"),
-    "cert_no": ("감리원증번호", "감리원증 번호", "증번호", "자격번호", "감리원증"),
+    "cert_no": ("감리원증번호", "감리원증 번호", "감리원번호", "증번호", "자격번호", "감리원증"),
     "institution": ("교육기관명", "기관명", "교육기관", "주관기관", "기관"),
     "subject": ("과목명", "교육과목", "과정명", "교육명", "교육내용", "과목"),
     "start": ("시작일자", "시작일", "교육시작일", "시작"),
@@ -668,7 +676,7 @@ async def import_preview(db: AsyncSession, content: bytes) -> TrainingRecordImpo
         cells = {
             field: (
                 (_import_date_cell if field in ("start", "end") else _import_cell)(
-                    row[header_map[columns[field]]]
+                    _row_cell(row, header_map[columns[field]])
                 )
                 if columns[field]
                 else None
@@ -690,7 +698,7 @@ async def import_preview(db: AsyncSession, content: bytes) -> TrainingRecordImpo
     for t in candidates:
         for no in (t.cert_no, t.senior_cert_no):
             if no:
-                by_cert.setdefault(no.strip(), []).append(t)
+                by_cert.setdefault(normalize_cert_no(no), []).append(t)
         by_name.setdefault(t.name_hash, []).append(t)
 
     existing_inst_names = {
@@ -729,7 +737,7 @@ async def import_preview(db: AsyncSession, content: bytes) -> TrainingRecordImpo
 
         hit = None
         if r["cert_no"]:
-            hits = by_cert.get(r["cert_no"].strip(), [])
+            hits = by_cert.get(normalize_cert_no(r["cert_no"]), [])
             if len(hits) == 1:
                 hit = hits[0]
             elif len(hits) > 1:
@@ -824,13 +832,20 @@ async def import_confirm(
             continue
         # 기관 매칭 — 내부 기관(internal)이면 내부 데이터로 그대로 등록하고,
         # 매칭되지 않으면 외부 기관·외부 교육으로 등록한다.
+        # 기관명은 유니크가 아니라 같은 이름이 여럿일 수 있다 — scalar_one_or_none 은
+        # MultipleResultsFound(500)를 내므로, 내부 기관 → 활성 → 먼저 만든 순으로 하나를 고른다
         institution = (
             await db.execute(
-                select(TrainingInstitution).where(
-                    TrainingInstitution.name == item.institution
+                select(TrainingInstitution)
+                .where(TrainingInstitution.name == item.institution)
+                .order_by(
+                    (TrainingInstitution.institution_type == "internal").desc().nulls_last(),
+                    TrainingInstitution.is_active.desc(),
+                    TrainingInstitution.created_at,
                 )
+                .limit(1)
             )
-        ).scalar_one_or_none()
+        ).scalars().first()
         if institution is None:
             institution = TrainingInstitution(
                 name=item.institution, institution_type="external"
@@ -838,14 +853,18 @@ async def import_confirm(
             db.add(institution)
             await db.flush()
         is_internal = institution.institution_type == "internal"
+        # 과정도 (기관, 과정명) 유니크가 아니다 — 활성 → 먼저 만든 순으로 하나를 고른다
         course = (
             await db.execute(
-                select(TrainingCourse).where(
+                select(TrainingCourse)
+                .where(
                     TrainingCourse.institution_id == institution.id,
                     TrainingCourse.name == item.subject,
                 )
+                .order_by(TrainingCourse.is_active.desc(), TrainingCourse.created_at)
+                .limit(1)
             )
-        ).scalar_one_or_none()
+        ).scalars().first()
         if course is None:
             course = TrainingCourse(
                 institution_id=institution.id,

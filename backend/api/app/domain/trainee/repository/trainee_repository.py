@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.crypto import name_hash
 from app.domain.trainee.model import MembershipGrade, Trainee
+from app.utils.cert_no import normalize_cert_no
 
 
 async def find_by_id(db: AsyncSession, trainee_id: uuid.UUID) -> Trainee | None:
@@ -157,6 +158,15 @@ async def list_cert_no_duplicates(
     return list(result.scalars().all())
 
 
+def _cert_key(column):
+    """DB 쪽 감리원증번호 비교 키 — 공백 제거. normalize_cert_no 와 같은 기준."""
+    return func.regexp_replace(column, r"\s", "", "g")
+
+
+def _cert_keys(cert_nos: list[str]) -> list[str]:
+    return sorted({k for k in (normalize_cert_no(n) for n in cert_nos) if k})
+
+
 async def find_duplicates_for_import(
     db: AsyncSession,
     cert_nos: list[str],
@@ -170,7 +180,10 @@ async def find_duplicates_for_import(
     conditions = []
     if cert_nos:
         conditions.append(
-            or_(Trainee.cert_no.in_(cert_nos), Trainee.senior_cert_no.in_(cert_nos))
+            or_(
+                _cert_key(Trainee.cert_no).in_(_cert_keys(cert_nos)),
+                _cert_key(Trainee.senior_cert_no).in_(_cert_keys(cert_nos)),
+            )
         )
     if name_birth_pairs:
         conditions.append(
@@ -201,7 +214,10 @@ async def find_by_identifiers(
         conditions.append(Trainee.name_hash.in_([name_hash(n) for n in names]))
     if cert_nos:
         conditions.append(
-            or_(Trainee.cert_no.in_(cert_nos), Trainee.senior_cert_no.in_(cert_nos))
+            or_(
+                _cert_key(Trainee.cert_no).in_(_cert_keys(cert_nos)),
+                _cert_key(Trainee.senior_cert_no).in_(_cert_keys(cert_nos)),
+            )
         )
     if trainee_nos:
         conditions.append(Trainee.trainee_no.in_(trainee_nos))
