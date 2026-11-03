@@ -27,7 +27,6 @@ import { GradeChangeDialog } from "./grade-change-dialog";
 import { TraineeFormDialog } from "./trainee-form-dialog";
 import { TraineeDuplicatesDialog } from "./trainee-duplicates-dialog";
 import { TraineeImportDialog } from "./trainee-import-dialog";
-import { GradeImportDialog } from "./grade-import-dialog";
 
 export function TraineeListPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -46,7 +45,6 @@ export function TraineeListPage() {
   const [deleteTarget, setDeleteTarget] = useState<Trainee | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
-  const [gradeImportOpen, setGradeImportOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<Trainee | null>(null);
   const [duplicatesOpen, setDuplicatesOpen] = useState(false);
   const [bulkGradeOpen, setBulkGradeOpen] = useState(false);
@@ -313,9 +311,6 @@ export function TraineeListPage() {
         subtitle={`총 ${total.toLocaleString()}명`}
         actions={
           <>
-            <Button variant="outline" onClick={() => setGradeImportOpen(true)}>
-              <FileSpreadsheet className="size-4" /> 엑셀 등급 적용
-            </Button>
             <Button variant="outline" onClick={() => setImportOpen(true)}>
               <FileSpreadsheet className="size-4" /> 엑셀 등록
             </Button>
@@ -516,7 +511,6 @@ export function TraineeListPage() {
       />
 
       <TraineeImportDialog isOpen={importOpen} onClose={() => setImportOpen(false)} />
-      <GradeImportDialog isOpen={gradeImportOpen} onClose={() => setGradeImportOpen(false)} />
 
       <Dialog
         isOpen={deleteTarget !== null}
