@@ -1,0 +1,3873 @@
+{
+ "courses_canonical": 2586,
+ "courses_ok": 2362,
+ "courses_missing": [
+  {
+   "sn": 48,
+   "institution": "(사)정보시스템감리협회",
+   "session_name": "2018년 1차 전문교육 강의",
+   "subject": null,
+   "edu_div": 2
+  },
+  {
+   "sn": 49,
+   "institution": "(사)정보시스템감리협회",
+   "session_name": "2018년 2차 전문교육 강의",
+   "subject": null,
+   "edu_div": 2
+  },
+  {
+   "sn": 50,
+   "institution": "(사)정보시스템감리협회",
+   "session_name": "2018년 1차 기본교육 강의",
+   "subject": null,
+   "edu_div": 2
+  },
+  {
+   "sn": 51,
+   "institution": "(사)정보시스템감리협회",
+   "session_name": "2018년 5차 기본교육 강의",
+   "subject": null,
+   "edu_div": 2
+  },
+  {
+   "sn": 52,
+   "institution": "(사)정보시스템감리협회",
+   "session_name": "2018년 6차 기본교육 강의",
+   "subject": null,
+   "edu_div": 2
+  },
+  {
+   "sn": 1478,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 1479,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 1480,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 1481,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2140,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2141,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2196,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2197,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2198,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2199,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2218,
+   "institution": "x",
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2219,
+   "institution": "x",
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2220,
+   "institution": "x",
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2222,
+   "institution": "x",
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2223,
+   "institution": "x",
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2224,
+   "institution": "x",
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2225,
+   "institution": "x",
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2226,
+   "institution": "x",
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2227,
+   "institution": "x",
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2259,
+   "institution": "ㅡ",
+   "session_name": "ㅡ",
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2260,
+   "institution": "ㅡ",
+   "session_name": "ㅡ",
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2261,
+   "institution": "ㅡ",
+   "session_name": "ㅡ",
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2474,
+   "institution": "ㅡ",
+   "session_name": "ㅡ",
+   "subject": "ㅡ",
+   "edu_div": 1
+  },
+  {
+   "sn": 2475,
+   "institution": "ㅡ",
+   "session_name": "ㅡ",
+   "subject": "ㅡ",
+   "edu_div": 1
+  },
+  {
+   "sn": 2476,
+   "institution": "ㅡ",
+   "session_name": "ㅡ",
+   "subject": "ㅡ",
+   "edu_div": 1
+  },
+  {
+   "sn": 2477,
+   "institution": "ㅡ",
+   "session_name": "ㅡ",
+   "subject": "ㅡ",
+   "edu_div": 1
+  },
+  {
+   "sn": 2478,
+   "institution": "ㅡ",
+   "session_name": "ㅡ",
+   "subject": "ㅡ",
+   "edu_div": 1
+  },
+  {
+   "sn": 2479,
+   "institution": "ㅡ",
+   "session_name": "ㅡ",
+   "subject": "ㅡ",
+   "edu_div": 1
+  },
+  {
+   "sn": 2480,
+   "institution": "ㅡ",
+   "session_name": "ㅡ",
+   "subject": "ㅡ",
+   "edu_div": 1
+  },
+  {
+   "sn": 2481,
+   "institution": "ㅡ",
+   "session_name": "ㅡ",
+   "subject": "ㅡ",
+   "edu_div": 1
+  },
+  {
+   "sn": 2482,
+   "institution": "ㅡ",
+   "session_name": "ㅡ",
+   "subject": "ㅡ",
+   "edu_div": 1
+  },
+  {
+   "sn": 2483,
+   "institution": "ㅡ",
+   "session_name": "ㅡ",
+   "subject": "ㅡ",
+   "edu_div": 1
+  },
+  {
+   "sn": 2484,
+   "institution": "ㅡ",
+   "session_name": "ㅡ",
+   "subject": "ㅡ",
+   "edu_div": 1
+  },
+  {
+   "sn": 2485,
+   "institution": "ㅡ",
+   "session_name": "ㅡ",
+   "subject": "ㅡ",
+   "edu_div": 1
+  },
+  {
+   "sn": 2486,
+   "institution": "ㅡ",
+   "session_name": "ㅡ",
+   "subject": "ㅡ",
+   "edu_div": 1
+  },
+  {
+   "sn": 2487,
+   "institution": "한국인공지능·소프트웨어산업협회",
+   "session_name": "컨소시엄",
+   "subject": "개인정보 보호관리체계 전문가 양성과정",
+   "edu_div": 1
+  },
+  {
+   "sn": 2488,
+   "institution": "한국인터넷진흥원",
+   "session_name": "SW보안약점",
+   "subject": "2026년 SW보안약점 진단원 보수교육(4차)",
+   "edu_div": 1
+  },
+  {
+   "sn": 2489,
+   "institution": "ICT폴리텍대학",
+   "session_name": "감리원특급",
+   "subject": "감리원특급(온라인집합)",
+   "edu_div": 1
+  },
+  {
+   "sn": 2490,
+   "institution": "한국소프트웨어기술진흥협회",
+   "session_name": "Agentic AI",
+   "subject": "기업용 자율 에이전트 개발",
+   "edu_div": 1
+  },
+  {
+   "sn": 2491,
+   "institution": "한국인터넷진흥원",
+   "session_name": "SW보안약점",
+   "subject": "2026년 SW보안약점 진단원 보수교육(4차)",
+   "edu_div": 1
+  },
+  {
+   "sn": 2492,
+   "institution": "ㅡ",
+   "session_name": "ㅡ",
+   "subject": "ㅡ",
+   "edu_div": 1
+  },
+  {
+   "sn": 2493,
+   "institution": "정보통신산업진흥원",
+   "session_name": "인공지능 중급(일반)",
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2494,
+   "institution": "한국인공지능·소프트웨어산업협회",
+   "session_name": "[컨소시엄] 초거대 AI(생성형AI) 이해 및 활용 과정",
+   "subject": "[컨소시엄] 초거대 AI(생성형AI) 이해 및 활용 과정",
+   "edu_div": 1
+  },
+  {
+   "sn": 2495,
+   "institution": "ㅡ",
+   "session_name": "ㅡ",
+   "subject": "ㅡ",
+   "edu_div": 1
+  },
+  {
+   "sn": 2496,
+   "institution": "ㅡ",
+   "session_name": "ㅡ",
+   "subject": "ㅡ",
+   "edu_div": 1
+  },
+  {
+   "sn": 2497,
+   "institution": "행정안전부",
+   "session_name": "공공데이터 품질관리",
+   "subject": "공공데이터 품질관리",
+   "edu_div": 1
+  },
+  {
+   "sn": 2498,
+   "institution": "경기도평생학습포털",
+   "session_name": "코딩으로 AI 인공지능 배우기 (햄스터S활용)",
+   "subject": "코딩으로 AI 인공지능 배우기 (햄스터S활용)",
+   "edu_div": 1
+  },
+  {
+   "sn": 2499,
+   "institution": "행정안전부",
+   "session_name": "2026 AI 리터러시와 업무 활용과정",
+   "subject": "2026 AI 리터러시와 업무 활용과정",
+   "edu_div": 1
+  },
+  {
+   "sn": 2500,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2501,
+   "institution": "한국기술교육대학교",
+   "session_name": "IT프로젝트 성과관리",
+   "subject": "IT프로젝트 성과관리",
+   "edu_div": 1
+  },
+  {
+   "sn": 2502,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2503,
+   "institution": "한국기술교육대학교",
+   "session_name": "[K-디지털] 클라우드 인프라 아키텍처 설계",
+   "subject": "[K-디지털] 클라우드 인프라 아키텍처 설계",
+   "edu_div": 1
+  },
+  {
+   "sn": 2504,
+   "institution": "한국기술교육대학교",
+   "session_name": "인공지능(AI) 서비스 목표 수립(이해와 방향 설정)",
+   "subject": "인공지능(AI) 서비스 목표 수립(이해와 방향 설정)",
+   "edu_div": 1
+  },
+  {
+   "sn": 2505,
+   "institution": "한국인공지능·소프트웨어산업협회",
+   "session_name": "[컨소시엄] 현장 중심의 PM(Project Manager) 양성 과정",
+   "subject": "[컨소시엄] 현장 중심의 PM(Project Manager) 양성 과정",
+   "edu_div": 1
+  },
+  {
+   "sn": 2506,
+   "institution": "한국인공지능·소프트웨어산업협회",
+   "session_name": "[컨소시엄] 멀티모달(Multimodal) 프롬프트 과정",
+   "subject": "[컨소시엄] 멀티모달(Multimodal) 프롬프트 과정",
+   "edu_div": 1
+  },
+  {
+   "sn": 2507,
+   "institution": "한국정보통신기술협회",
+   "session_name": "코드품질 향상을 위한 SonarQube 활용",
+   "subject": "코드품질 향상을 위한 SonarQube 활용",
+   "edu_div": 1
+  },
+  {
+   "sn": 2508,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2509,
+   "institution": "한국정보통신기술협회",
+   "session_name": "클라우드 환경하에서 소프트웨어 테스트기법",
+   "subject": "클라우드 환경하에서 소프트웨어 테스트기법",
+   "edu_div": 1
+  },
+  {
+   "sn": 2510,
+   "institution": "ICT폴리텍대학",
+   "session_name": "(2026년) 감리원 중급이하 비대면 실시간 화상교육 제8기(2차)",
+   "subject": "(2026년) 감리원 중급이하 비대면 실시간 화상교육 제8기(2차)",
+   "edu_div": 1
+  },
+  {
+   "sn": 2511,
+   "institution": "한국인터넷진흥원",
+   "session_name": "2026년 개인정보 영향평가 전군교육(하반기,1차)",
+   "subject": "2026년 개인정보 영향평가 전군교육(하반기,1차)",
+   "edu_div": 1
+  },
+  {
+   "sn": 2512,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2513,
+   "institution": "한국인공지능·소프트웨어산업협회",
+   "session_name": "[컨소시엄] 초거대 AI 트렌드 이해 과정",
+   "subject": "[컨소시엄] 초거대 AI 트렌드 이해 과정",
+   "edu_div": 1
+  },
+  {
+   "sn": 2514,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2515,
+   "institution": "한국인공지능·소프트웨어산업협회",
+   "session_name": "[컨소시엄] 현장 중심의 PM(Project Manager) 양성 과정",
+   "subject": "[컨소시엄] 현장 중심의 PM(Project Manager) 양성 과정",
+   "edu_div": 1
+  },
+  {
+   "sn": 2516,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2517,
+   "institution": "한국인공지능·소프트웨어산업협회",
+   "session_name": "[컨소시엄] 생성형 AI를 활용한 업무혁신 과정",
+   "subject": "[컨소시엄] 생성형 AI를 활용한 업무혁신 과정",
+   "edu_div": 1
+  },
+  {
+   "sn": 2518,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2519,
+   "institution": "한국표준협회",
+   "session_name": "2026년 7월 스마트공장 수준확인 심사원 정기 교육",
+   "subject": "2026년 7월 스마트공장 수준확인 심사원 정기 교육",
+   "edu_div": 1
+  },
+  {
+   "sn": 2520,
+   "institution": "한국인터넷진흥원",
+   "session_name": "2026년 SW보안약점 진단원 보수교육(1차)",
+   "subject": "2026년 SW보안약점 진단원 보수교육(1차)",
+   "edu_div": 1
+  },
+  {
+   "sn": 2521,
+   "institution": "한국인터넷진흥원",
+   "session_name": "SW보안약점 진단원 보수교육[1차]",
+   "subject": "SW보안약점 진단원 보수교육[1차]",
+   "edu_div": 1
+  },
+  {
+   "sn": 2522,
+   "institution": "ICT폴리텍대학",
+   "session_name": "감리원 중급이하(온라인집합)",
+   "subject": "감리원 중급이하(온라인집합)",
+   "edu_div": 1
+  },
+  {
+   "sn": 2523,
+   "institution": "경기도평생학습포털",
+   "session_name": "HCI와 함께하는 소프트웨어 공학",
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2524,
+   "institution": "울산대학교",
+   "session_name": "코팅의 기술 실습편",
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2525,
+   "institution": "한국데이터산업협회",
+   "session_name": "데이터거래사 교육 12기",
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2526,
+   "institution": "(사)정보시스템감리협회",
+   "session_name": "MDD 방법론 / 오픈소스 기반 개발 방법론",
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2527,
+   "institution": "(사)정보시스템감리협회",
+   "session_name": "웹 개발 기술 / EVM",
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2528,
+   "institution": "(사)정보시스템감리협회",
+   "session_name": "감리 프레임워크 아키텍처 / ITA & ISP 감리",
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2529,
+   "institution": "(사)정보시스템감리협회",
+   "session_name": "전자정부프레임워크 전문과정",
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2530,
+   "institution": "(사)정보시스템감리협회",
+   "session_name": "정보시스템감리원을 위한 논리적 글쓰기",
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2531,
+   "institution": "(사)정보시스템감리협회",
+   "session_name": "PMO 1차 과정",
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2532,
+   "institution": "(사)정보시스템감리협회",
+   "session_name": "PMO 2차 과정",
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2533,
+   "institution": "(사)정보시스템감리협회",
+   "session_name": "PMO 3차 과정",
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2534,
+   "institution": "한국인터넷진흥원",
+   "session_name": "2026년 SW개발보안 진단원 기본과정(1차)",
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2535,
+   "institution": "한국인터넷진흥원",
+   "session_name": "SW보안약점 진단원 기(양성)본과정 [오프라인][3차]",
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2536,
+   "institution": "(사)정보시스템감리협회",
+   "session_name": "웹 개발 기술 / EVM",
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2537,
+   "institution": "(사)정보시스템감리협회",
+   "session_name": "정보시스템감리원을 위한 논리적 글쓰기",
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2538,
+   "institution": "(사)정보시스템감리협회",
+   "session_name": "PMO 통합과정",
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2539,
+   "institution": "한국클라우드컴퓨팅연구조합",
+   "session_name": "[온라인] 클라우드와 클라우드 네이티브를 위한 기본 기술과정",
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2540,
+   "institution": "한국정보통신기술협회",
+   "session_name": "인공지능 신뢰성 인증을 통한 AI 품질 향상 방법론 과정",
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2541,
+   "institution": "한국정보통신기술협회",
+   "session_name": "CSTS 품질 전문가 양성 심화",
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2542,
+   "institution": "한국정보통신기술협회",
+   "session_name": "JMeter 기반 실전 성능테스트",
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2543,
+   "institution": "한국데이터산업협회",
+   "session_name": "데이터거래사 교육 15기",
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2544,
+   "institution": "한국정보통신기술협회",
+   "session_name": "제 2차 기업 실무자 대상 인공지능 신뢰성 및 인증 교육",
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2545,
+   "institution": "ICT폴리텍대학",
+   "session_name": "정보통신설비 유지보수 관리자",
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2546,
+   "institution": "한국표준협회",
+   "session_name": "AI훈련코치 역량 강화 교육_기본과정",
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2547,
+   "institution": "한국기술교육대학교 능력개발교육원",
+   "session_name": "[빅데이터분석] 파이썬 웹 데이터 수집(웹API/웹스크래핑)",
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2548,
+   "institution": "한국기술교육대학교 능력개발교육원",
+   "session_name": "(특별교육)[인공지능] 효율적인 LLM 서비스 개발를 위한 LangChain 입문",
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2551,
+   "institution": "한국기술교육대학교 능력개발교육원",
+   "session_name": "(특별교육)온디바이스 LLM 앱 개발",
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2552,
+   "institution": "한국기술교육대학교 능력개발교육원",
+   "session_name": "(특별교육) 생성형 AI(diffusion)를 활용한 영상 콘텐츠 제작",
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2553,
+   "institution": "중소벤처기업진흥공단",
+   "session_name": "(스마트제조)디지털전환(DX)멘토단 사업성실수행 교육(코칭단)",
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2554,
+   "institution": "한국인터넷진흥원",
+   "session_name": "정보보호 및 개인정보보호 관리체계(ISMS-P) 구축운영",
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2555,
+   "institution": "개인정보보호위원회",
+   "session_name": "CPO 제도 시행령,고시 개정 및 주요내용 안내",
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2557,
+   "institution": "한국기술사회",
+   "session_name": "해킹과 정보보안",
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2558,
+   "institution": "한국기술사회",
+   "session_name": "SWA와 AA, 개발자에서 아키텍트되기",
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2562,
+   "institution": "한국기술사회",
+   "session_name": "IT인프라스트럭처 가상화 및 클라우드 컴퓨팅",
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2564,
+   "institution": "한국인터넷진흥원",
+   "session_name": "SW보안약점 진단원 양성과정(오프라인) [3차]",
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2565,
+   "institution": "한국기술교육대학원 온라인평생교육원",
+   "session_name": "정보보호 관리 운영 및 보안성 검토",
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2566,
+   "institution": "한국기술교육대학원 온라인평생교육원",
+   "session_name": "정보보안을 위한 모델링 및 시뮬레이션",
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2567,
+   "institution": "한국기술교육대학원 온라인평생교육원",
+   "session_name": "[기초직업능력] 정보처리능력",
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2568,
+   "institution": "한국기술교육대학원 온라인평생교육원",
+   "session_name": "정보보호 관리 운영 및 보안성 검토",
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2569,
+   "institution": "한국기술교육대학원 온라인평생교육원",
+   "session_name": "정보보안을 위한 모델링 및 시뮬레이션",
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2570,
+   "institution": "한국기술교육대학원 온라인평생교육원",
+   "session_name": "[기초직업능력] 정보처리능력",
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2571,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2572,
+   "institution": "한국기술교육대학원 온라인평생교육원",
+   "session_name": "정보보호 관리 운영 및 보안성 검토",
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2573,
+   "institution": "한국기술교육대학원 온라인평생교육원",
+   "session_name": "정보보안을 위한 모델링 및 시뮬레이션",
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2574,
+   "institution": "한국기술교육대학원 온라인평생교육원",
+   "session_name": "[기초직업능력] 정보처리능력",
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2575,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2576,
+   "institution": "한국기술교육대학원 온라인평생교육원",
+   "session_name": "정보보호 관리 운영 및 보안성 검토",
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2577,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2578,
+   "institution": "한국기술교육대학원 온라인평생교육원",
+   "session_name": "[기초직업능력] 정보처리능력",
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2579,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2580,
+   "institution": "한국기술교육대학원 온라인평생교육원",
+   "session_name": "정보보호 관리 운영 및 보안성 검토",
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2581,
+   "institution": "한국기술교육대학원 온라인평생교육원",
+   "session_name": "정보보안을 위한 모델링 및 시뮬레이션",
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2582,
+   "institution": "한국기술교육대학원 온라인평생교육원",
+   "session_name": "[기초직업능력] 정보처리능력",
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2583,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2584,
+   "institution": "한국기술교육대학교 능력개발교육원",
+   "session_name": "[정보기술전략계획] Power BI를 활용한 데이터 분석과 시각화(기본)",
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2585,
+   "institution": "한국기술교육대학교 능력개발교육원",
+   "session_name": "(특별교육)[인공지능] 라마인덱스(LLAMA INDEX) 활용 실습",
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2586,
+   "institution": "한국기술교육대학교 능력개발교육원",
+   "session_name": "(스마트공장)온디바이스 기반 인공지능 비전인식 모델 학습",
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2587,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2588,
+   "institution": "한국지능형사물인터넷협회",
+   "session_name": "ChatGTP활용한 빅데이터분석",
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2589,
+   "institution": "한국지능형사물인터넷협회",
+   "session_name": "자율 이동체 시뮬레이션 프로그래밍",
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2590,
+   "institution": "한국지능형사물인터넷협회",
+   "session_name": "생성형 AI를 활용한 비즈니스 서비스 개발",
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2591,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2592,
+   "institution": "한국인터넷진흥원",
+   "session_name": "2026년 SW보안약점 진단원 보수교육(4차)",
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2593,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2594,
+   "institution": "개인정보보호위원회",
+   "session_name": "개인정보 보호책임자(CPO) 기본교육 - 1회차",
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2595,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2596,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2597,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2598,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2599,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2600,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2601,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2602,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2603,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2604,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2605,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2606,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2607,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2608,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2609,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2610,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2611,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2612,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2613,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2614,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2615,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2616,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2617,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2618,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2619,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2620,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2621,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2622,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2623,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2624,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2625,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2626,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2627,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2628,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2629,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2630,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2631,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2632,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2633,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2634,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2635,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2636,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2637,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2638,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2639,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2640,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2641,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2642,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2643,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2644,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2645,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2646,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2647,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2648,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2649,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2650,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2651,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2652,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2653,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2654,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2655,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2656,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2657,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2658,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2659,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2660,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2661,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2662,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2663,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2664,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2665,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2666,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2667,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2668,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2669,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2670,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2671,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2672,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2673,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2674,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2675,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2676,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2677,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  }
+ ],
+ "courses_diff": [],
+ "sessions_canonical": 2569,
+ "sessions_ok": 2355,
+ "sessions_missing_in_db": [
+  {
+   "edc_sn": 735,
+   "schdl_sn": 826,
+   "session_name": "[2024-2차 계속교육]",
+   "subject": "LLM의 이해와 활용",
+   "start": "2024-05-18",
+   "end": "2024-05-18",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 736,
+   "schdl_sn": 827,
+   "session_name": "[2024-2차 계속교육]",
+   "subject": "LLM의 이해와 활용",
+   "start": null,
+   "end": null,
+   "hours": 0,
+   "recognized": 0
+  },
+  {
+   "edc_sn": 1478,
+   "schdl_sn": 1492,
+   "session_name": "0",
+   "subject": "0",
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2140,
+   "schdl_sn": 2036,
+   "session_name": "정보보호",
+   "subject": "정보보호관리체계(ISMS-P) 구축 및 운영실무",
+   "start": "2024-04-08",
+   "end": "2024-04-09",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2141,
+   "schdl_sn": 2037,
+   "session_name": "인공지능",
+   "subject": "인공지능(AI) 전문가 1급",
+   "start": "2025-09-01",
+   "end": "2025-09-30",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2196,
+   "schdl_sn": 2092,
+   "session_name": "인공지능데이터",
+   "subject": "인공지능데이터전문가",
+   "start": "2026-01-01",
+   "end": "2026-01-19",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2197,
+   "schdl_sn": 2093,
+   "session_name": "Docker 기반 환경 구축",
+   "subject": "Docker 기반 환경 구축 및 웹 서비스 테스트",
+   "start": "2025-09-15",
+   "end": "2025-09-16",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2198,
+   "schdl_sn": 2094,
+   "session_name": "API 테스트 개념",
+   "subject": "API 테스트 개념 및 실행 실습",
+   "start": "2026-01-12",
+   "end": "2026-01-13",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2199,
+   "schdl_sn": 2095,
+   "session_name": "DB 성능품질 향상",
+   "subject": "DB 성능품질 향상을 위한 모니터링 및 통제",
+   "start": "2026-02-23",
+   "end": "2026-02-24",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2218,
+   "schdl_sn": 2114,
+   "session_name": "x",
+   "subject": "x",
+   "start": "2024-06-19",
+   "end": "2024-06-19",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2219,
+   "schdl_sn": 2115,
+   "session_name": "x",
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2220,
+   "schdl_sn": 2116,
+   "session_name": "x",
+   "subject": "x",
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2222,
+   "schdl_sn": 2118,
+   "session_name": "x",
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2223,
+   "schdl_sn": 2119,
+   "session_name": "x",
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2224,
+   "schdl_sn": 2120,
+   "session_name": "x",
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2225,
+   "schdl_sn": 2121,
+   "session_name": "x",
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2226,
+   "schdl_sn": 2122,
+   "session_name": "Python과 딥러닝을 활용한 자연어처리",
+   "subject": "Python과 딥러닝을 활용한 자연어처리",
+   "start": "2025-07-14",
+   "end": "2025-07-17",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2227,
+   "schdl_sn": 2123,
+   "session_name": "Kubernetes",
+   "subject": "컨테이너 오케스트레이션",
+   "start": "2025-01-22",
+   "end": "2025-01-24",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2259,
+   "schdl_sn": 2155,
+   "session_name": "ㅡ",
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2260,
+   "schdl_sn": 2156,
+   "session_name": "ㅡ",
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2261,
+   "schdl_sn": 2157,
+   "session_name": "ㅡ",
+   "subject": "ㅡ",
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2474,
+   "schdl_sn": 2370,
+   "session_name": "ㅡ",
+   "subject": "ㅡ",
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2475,
+   "schdl_sn": 2371,
+   "session_name": "ㅡ",
+   "subject": "ㅡ",
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2476,
+   "schdl_sn": 2372,
+   "session_name": "ㅡ",
+   "subject": "ㅡ",
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2477,
+   "schdl_sn": 2373,
+   "session_name": "ㅡ",
+   "subject": "ㅡ",
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2478,
+   "schdl_sn": 2374,
+   "session_name": "ㅡ",
+   "subject": "ㅡ",
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2479,
+   "schdl_sn": 2375,
+   "session_name": "ㅡ",
+   "subject": "ㅡ",
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2480,
+   "schdl_sn": 2376,
+   "session_name": "ㅡ",
+   "subject": "ㅡ",
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2481,
+   "schdl_sn": 2377,
+   "session_name": "ㅡ",
+   "subject": "ㅡ",
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2482,
+   "schdl_sn": 2378,
+   "session_name": "ㅡ",
+   "subject": "ㅡ",
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2483,
+   "schdl_sn": 2379,
+   "session_name": "ㅡ",
+   "subject": "ㅡ",
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2484,
+   "schdl_sn": 2380,
+   "session_name": "ㅡ",
+   "subject": "ㅡ",
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2485,
+   "schdl_sn": 2381,
+   "session_name": "ㅡ",
+   "subject": "ㅡ",
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2486,
+   "schdl_sn": 2382,
+   "session_name": "컨소시엄",
+   "subject": "개인정보 보호관리체계 전문가 양성과정",
+   "start": "2026-09-07",
+   "end": "2026-09-10",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2487,
+   "schdl_sn": 2383,
+   "session_name": "ㅡ",
+   "subject": "ㅡ",
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2488,
+   "schdl_sn": 2384,
+   "session_name": "SW보안약점",
+   "subject": "2026년 SW보안약점 진단원 보수교육(4차)",
+   "start": "2026-09-10",
+   "end": "2026-09-10",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2489,
+   "schdl_sn": 2385,
+   "session_name": "감리원특급",
+   "subject": "감리원특급(온라인집합)",
+   "start": "2025-04-14",
+   "end": "2025-04-18",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2490,
+   "schdl_sn": 2386,
+   "session_name": "Agentic AI",
+   "subject": "기업용 자율 에이전트 개발",
+   "start": "2026-09-22",
+   "end": "2026-09-22",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2491,
+   "schdl_sn": 2387,
+   "session_name": "SW보안약점",
+   "subject": "2026년 SW보안약점 진단원 보수교육(4차)",
+   "start": "2026-09-10",
+   "end": "2026-09-10",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2492,
+   "schdl_sn": 2388,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2493,
+   "schdl_sn": 2389,
+   "session_name": "인공지능 중급(일반)",
+   "subject": "인공지능 중급(일반)",
+   "start": "2026-05-11",
+   "end": "2026-07-08",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2494,
+   "schdl_sn": 2390,
+   "session_name": "[컨소시엄] 초거대 AI(생성형AI) 이해 및 활용 과정",
+   "subject": "[컨소시엄] 초거대 AI(생성형AI) 이해 및 활용 과정",
+   "start": "2025-07-01",
+   "end": "2025-07-04",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2495,
+   "schdl_sn": 2391,
+   "session_name": "ㅡ",
+   "subject": "ㅡ",
+   "start": "2026-10-02",
+   "end": "2026-10-02",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2496,
+   "schdl_sn": 2392,
+   "session_name": "ㅡ",
+   "subject": "ㅡ",
+   "start": "2026-08-27",
+   "end": "2026-08-27",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2497,
+   "schdl_sn": 2393,
+   "session_name": "공공데이터 품질관리",
+   "subject": "공공데이터 품질관리",
+   "start": "2026-08-26",
+   "end": "2026-10-25",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2498,
+   "schdl_sn": 2394,
+   "session_name": "코딩으로 AI 인공지능 배우기 (햄스터S활용)",
+   "subject": "코딩으로 AI 인공지능 배우기 (햄스터S활용)",
+   "start": "2026-10-02",
+   "end": "2026-10-02",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2499,
+   "schdl_sn": 2395,
+   "session_name": "2026 AI 리터러시와 업무 활용과정",
+   "subject": "2026 AI 리터러시와 업무 활용과정",
+   "start": "2026-08-27",
+   "end": "2026-08-27",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2500,
+   "schdl_sn": 2396,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2501,
+   "schdl_sn": 2397,
+   "session_name": "IT프로젝트 성과관리",
+   "subject": "IT프로젝트 성과관리",
+   "start": "2026-10-04",
+   "end": "2026-11-02",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2502,
+   "schdl_sn": 2398,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2503,
+   "schdl_sn": 2399,
+   "session_name": "[K-디지털] 클라우드 인프라 아키텍처 설계",
+   "subject": "[K-디지털] 클라우드 인프라 아키텍처 설계",
+   "start": "2026-10-01",
+   "end": "2026-10-30",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2504,
+   "schdl_sn": 2400,
+   "session_name": "인공지능(AI) 서비스 목표 수립(이해와 방향 설정)",
+   "subject": "인공지능(AI) 서비스 목표 수립(이해와 방향 설정)",
+   "start": "2026-10-01",
+   "end": "2026-10-30",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2505,
+   "schdl_sn": 2401,
+   "session_name": "[컨소시엄] 현장 중심의 PM(Project Manager) 양성 과정",
+   "subject": "[컨소시엄] 현장 중심의 PM(Project Manager) 양성 과정",
+   "start": "2025-06-18",
+   "end": "2025-06-19",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2506,
+   "schdl_sn": 2402,
+   "session_name": "[컨소시엄] 멀티모달(Multimodal) 프롬프트 과정",
+   "subject": "[컨소시엄] 멀티모달(Multimodal) 프롬프트 과정",
+   "start": "2025-05-23",
+   "end": "2025-05-23",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2507,
+   "schdl_sn": 2403,
+   "session_name": "코드품질 향상을 위한 SonarQube 활용",
+   "subject": "코드품질 향상을 위한 SonarQube 활용",
+   "start": "2026-03-05",
+   "end": "2026-03-06",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2508,
+   "schdl_sn": 2404,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2509,
+   "schdl_sn": 2405,
+   "session_name": "클라우드 환경하에서 소프트웨어 테스트기법",
+   "subject": "클라우드 환경하에서 소프트웨어 테스트기법",
+   "start": "2026-03-03",
+   "end": "2026-03-04",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2510,
+   "schdl_sn": 2406,
+   "session_name": "(2026년) 감리원 중급이하 비대면 실시간 화상교육 제8기(2차)",
+   "subject": "(2026년) 감리원 중급이하 비대면 실시간 화상교육 제8기(2차)",
+   "start": "2026-08-14",
+   "end": "2026-10-02",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2511,
+   "schdl_sn": 2407,
+   "session_name": "2026년 개인정보 영향평가 전군교육(하반기,1차)",
+   "subject": "2026년 개인정보 영향평가 전군교육(하반기,1차)",
+   "start": "2026-09-14",
+   "end": "2026-09-18",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2512,
+   "schdl_sn": 2408,
+   "session_name": null,
+   "subject": null,
+   "start": "2026-01-30",
+   "end": "2026-01-30",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2513,
+   "schdl_sn": 2409,
+   "session_name": "[컨소시엄] 초거대 AI 트렌드 이해 과정",
+   "subject": "[컨소시엄] 초거대 AI 트렌드 이해 과정",
+   "start": "2026-01-23",
+   "end": "2026-01-23",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2514,
+   "schdl_sn": 2410,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2515,
+   "schdl_sn": 2411,
+   "session_name": "[컨소시엄] 현장 중심의 PM(Project Manager) 양성 과정",
+   "subject": "[컨소시엄] 현장 중심의 PM(Project Manager) 양성 과정",
+   "start": "2025-06-18",
+   "end": "2025-06-19",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2516,
+   "schdl_sn": 2412,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2517,
+   "schdl_sn": 2413,
+   "session_name": "[컨소시엄] 생성형 AI를 활용한 업무혁신 과정",
+   "subject": "[컨소시엄] 생성형 AI를 활용한 업무혁신 과정",
+   "start": "2026-01-30",
+   "end": "2026-01-30",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2519,
+   "schdl_sn": 2415,
+   "session_name": "2026년 7월 스마트공장 수준확인 심사원 정기 교육",
+   "subject": "2026년 7월 스마트공장 수준확인 심사원 정기 교육",
+   "start": "2026-07-01",
+   "end": "2026-07-31",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2520,
+   "schdl_sn": 2416,
+   "session_name": "2026년 SW보안약점 진단원 보수교육(1차)",
+   "subject": "2026년 SW보안약점 진단원 보수교육(1차)",
+   "start": "2026-07-02",
+   "end": "2026-07-02",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2521,
+   "schdl_sn": 2417,
+   "session_name": "SW보안약점 진단원 보수교육[1차]",
+   "subject": "SW보안약점 진단원 보수교육[1차]",
+   "start": "2025-06-19",
+   "end": "2025-06-19",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2522,
+   "schdl_sn": 2418,
+   "session_name": "감리원 중급이하(온라인집합)",
+   "subject": "감리원 중급이하(온라인집합)",
+   "start": "2025-05-07",
+   "end": "2025-05-09",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2523,
+   "schdl_sn": 2419,
+   "session_name": "HCI와 함께하는 소프트웨어 공학",
+   "subject": "HCI와 함께하는 소프트웨어 공학",
+   "start": "2026-09-22",
+   "end": "2026-11-30",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2524,
+   "schdl_sn": 2420,
+   "session_name": "코팅의 기술 실습편",
+   "subject": "코팅의 기술 실습편",
+   "start": "2026-10-06",
+   "end": "2026-10-06",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2525,
+   "schdl_sn": 2421,
+   "session_name": "데이터거래사 교육 12기",
+   "subject": "데이터거래사 교육 12기",
+   "start": "2025-07-07",
+   "end": "2025-07-11",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2526,
+   "schdl_sn": 2422,
+   "session_name": "MDD 방법론 / 오픈소스 기반 개발 방법론",
+   "subject": "MDD 방법론 / 오픈소스 기반 개발 방법론",
+   "start": "2026-09-01",
+   "end": "2026-09-30",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2527,
+   "schdl_sn": 2423,
+   "session_name": "웹 개발 기술 / EVM",
+   "subject": "웹 개발 기술 / EVM",
+   "start": "2026-09-01",
+   "end": "2026-09-30",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2528,
+   "schdl_sn": 2424,
+   "session_name": "감리 프레임워크 아키텍처 / ITA & ISP 감리",
+   "subject": "감리 프레임워크 아키텍처 / ITA & ISP 감리",
+   "start": "2026-09-01",
+   "end": "2026-09-30",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2529,
+   "schdl_sn": 2425,
+   "session_name": "전자정부프레임워크 전문과정",
+   "subject": "전자정부프레임워크 전문과정",
+   "start": "2026-09-01",
+   "end": "2026-09-30",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2530,
+   "schdl_sn": 2426,
+   "session_name": "정보시스템감리원을 위한 논리적 글쓰기",
+   "subject": "정보시스템감리원을 위한 논리적 글쓰기",
+   "start": "2026-09-01",
+   "end": "2026-09-30",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2531,
+   "schdl_sn": 2427,
+   "session_name": "PMO 1차 과정",
+   "subject": "PMO 1차 과정",
+   "start": "2026-09-01",
+   "end": "2026-09-30",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2532,
+   "schdl_sn": 2428,
+   "session_name": "PMO 2차 과정",
+   "subject": "PMO 2차 과정",
+   "start": "2026-09-01",
+   "end": "2026-09-30",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2533,
+   "schdl_sn": 2429,
+   "session_name": "PMO 3차 과정",
+   "subject": "PMO 3차 과정",
+   "start": "2026-09-01",
+   "end": "2026-09-30",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2534,
+   "schdl_sn": 2430,
+   "session_name": "2026년 SW개발보안 진단원 기본과정(1차)",
+   "subject": "2026년 SW개발보안 진단원 기본과정(1차)",
+   "start": "2026-06-22",
+   "end": "2026-06-26",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2535,
+   "schdl_sn": 2431,
+   "session_name": "SW보안약점 진단원 기(양성)본과정 [오프라인][3차]",
+   "subject": "SW보안약점 진단원 기(양성)본과정 [오프라인][3차]",
+   "start": "2025-09-01",
+   "end": "2025-09-05",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2536,
+   "schdl_sn": 2432,
+   "session_name": "웹 개발 기술 / EVM",
+   "subject": "웹 개발 기술 / EVM",
+   "start": "2026-10-01",
+   "end": "2026-10-31",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2537,
+   "schdl_sn": 2433,
+   "session_name": "정보시스템감리원을 위한 논리적 글쓰기",
+   "subject": "정보시스템감리원을 위한 논리적 글쓰기",
+   "start": "2026-10-01",
+   "end": "2026-10-31",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2538,
+   "schdl_sn": 2434,
+   "session_name": "PMO 통합과정",
+   "subject": "PMO 통합과정",
+   "start": "2026-10-01",
+   "end": "2026-10-31",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2539,
+   "schdl_sn": 2435,
+   "session_name": "[온라인] 클라우드와 클라우드 네이티브를 위한 기본 기술과정",
+   "subject": "[온라인] 클라우드와 클라우드 네이티브를 위한 기본 기술과정",
+   "start": "2025-02-07",
+   "end": "2025-12-12",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2540,
+   "schdl_sn": 2436,
+   "session_name": "인공지능 신뢰성 인증을 통한 AI 품질 향상 방법론 과정",
+   "subject": "인공지능 신뢰성 인증을 통한 AI 품질 향상 방법론 과정",
+   "start": "2026-02-27",
+   "end": "2026-02-27",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2541,
+   "schdl_sn": 2437,
+   "session_name": "CSTS 품질 전문가 양성 심화",
+   "subject": "CSTS 품질 전문가 양성 심화",
+   "start": "2025-09-03",
+   "end": "2025-09-04",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2542,
+   "schdl_sn": 2438,
+   "session_name": "JMeter 기반 실전 성능테스트",
+   "subject": "JMeter 기반 실전 성능테스트",
+   "start": "2025-09-08",
+   "end": "2025-09-09",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2543,
+   "schdl_sn": 2439,
+   "session_name": "데이터거래사 교육 15기",
+   "subject": "데이터거래사 교육 15기",
+   "start": "2025-11-10",
+   "end": "2025-11-14",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2544,
+   "schdl_sn": 2440,
+   "session_name": "제 2차 기업 실무자 대상 인공지능 신뢰성 및 인증 교육",
+   "subject": "제 2차 기업 실무자 대상 인공지능 신뢰성 및 인증 교육",
+   "start": "2026-10-22",
+   "end": "2026-10-22",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2545,
+   "schdl_sn": 2441,
+   "session_name": "정보통신설비 유지보수 관리자",
+   "subject": "정보통신설비 유지보수 관리자",
+   "start": "2025-07-28",
+   "end": "2025-07-30",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2546,
+   "schdl_sn": 2442,
+   "session_name": "AI훈련코치 역량 강화 교육_기본과정",
+   "subject": "AI훈련코치 역량 강화 교육_기본과정",
+   "start": "2026-04-23",
+   "end": "2026-04-24",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2547,
+   "schdl_sn": 2443,
+   "session_name": "[빅데이터분석] 파이썬 웹 데이터 수집(웹API/웹스크래핑)",
+   "subject": "[빅데이터분석] 파이썬 웹 데이터 수집(웹API/웹스크래핑)",
+   "start": "2024-03-23",
+   "end": "2024-03-24",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2548,
+   "schdl_sn": 2444,
+   "session_name": "(특별교육)[인공지능] 효율적인 LLM 서비스 개발를 위한 LangChain 입문",
+   "subject": "(특별교육)[인공지능] 효율적인 LLM 서비스 개발를 위한 LangChain 입문",
+   "start": "2024-05-28",
+   "end": "2024-05-28",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2551,
+   "schdl_sn": 2447,
+   "session_name": "한국기술교육대학교 능력개발교육원",
+   "subject": "(특별교육)온디바이스 LLM 앱 개발 - Local LLM 의 장점 이해와 이를 활용한 온디바이스 앱 개발",
+   "start": "2024-07-18",
+   "end": "2024-07-18",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2552,
+   "schdl_sn": 2448,
+   "session_name": "한국기술교육대학교 능력개발교육원",
+   "subject": "(특별교육) 생성형 AI(diffusion)를 활용한 영상 콘텐츠 제작",
+   "start": "2024-07-23",
+   "end": "2024-07-23",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2553,
+   "schdl_sn": 2449,
+   "session_name": "(스마트제조)디지털전환(DX)멘토단 사업성실수행 교육(코칭단)",
+   "subject": "(스마트제조)디지털전환(DX)멘토단 사업성실수행 교육(코칭단)",
+   "start": "2024-06-30",
+   "end": "2024-07-29",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2554,
+   "schdl_sn": 2450,
+   "session_name": "정보보호 및 개인정보보호 관리체계(ISMS-P) 구축운영",
+   "subject": "정보보호 및 개인정보보호 관리체계(ISMS-P) 구축운영",
+   "start": "2025-07-30",
+   "end": "2025-07-30",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2555,
+   "schdl_sn": 2451,
+   "session_name": "CPO 제도 시행령,고시 개정 및 주요내용 안내",
+   "subject": "CPO 제도 시행령,고시 개정 및 주요내용 안내",
+   "start": "2025-01-01",
+   "end": "2025-12-31",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2557,
+   "schdl_sn": 2453,
+   "session_name": "SWA와 AA, 개발자에서 아키텍트되기",
+   "subject": "SWA와 AA, 개발자에서 아키텍트되기",
+   "start": "2024-11-18",
+   "end": "2024-12-15",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2564,
+   "schdl_sn": 2460,
+   "session_name": "정보보호 관리 운영 및 보안성 검토",
+   "subject": "정보보호 관리 운영 및 보안성 검토",
+   "start": "2025-08-28",
+   "end": "2025-09-26",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2565,
+   "schdl_sn": 2461,
+   "session_name": "정보보안을 위한 모델링 및 시뮬레이션",
+   "subject": "정보보안을 위한 모델링 및 시뮬레이션",
+   "start": "2025-08-20",
+   "end": "2025-09-18",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2566,
+   "schdl_sn": 2462,
+   "session_name": "[기초직업능력] 정보처리능력",
+   "subject": "[기초직업능력] 정보처리능력",
+   "start": "2025-08-19",
+   "end": "2025-09-17",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2567,
+   "schdl_sn": 2463,
+   "session_name": "정보보호 관리 운영 및 보안성 검토",
+   "subject": "정보보호 관리 운영 및 보안성 검토",
+   "start": "2025-08-28",
+   "end": "2025-09-26",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2568,
+   "schdl_sn": 2464,
+   "session_name": "정보보안을 위한 모델링 및 시뮬레이션",
+   "subject": "정보보안을 위한 모델링 및 시뮬레이션",
+   "start": "2025-08-20",
+   "end": "2025-09-18",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2569,
+   "schdl_sn": 2465,
+   "session_name": "[기초직업능력] 정보처리능력",
+   "subject": "[기초직업능력] 정보처리능력",
+   "start": "2025-08-19",
+   "end": "2025-09-17",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2570,
+   "schdl_sn": 2466,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2571,
+   "schdl_sn": 2467,
+   "session_name": "정보보호 관리 운영 및 보안성 검토",
+   "subject": "정보보호 관리 운영 및 보안성 검토",
+   "start": "2025-08-28",
+   "end": "2025-09-26",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2572,
+   "schdl_sn": 2468,
+   "session_name": "정보보안을 위한 모델링 및 시뮬레이션",
+   "subject": "정보보안을 위한 모델링 및 시뮬레이션",
+   "start": "2025-08-20",
+   "end": "2025-09-18",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2573,
+   "schdl_sn": 2469,
+   "session_name": "[기초직업능력] 정보처리능력",
+   "subject": "[기초직업능력] 정보처리능력",
+   "start": "2025-08-19",
+   "end": "2025-09-17",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2574,
+   "schdl_sn": 2470,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2575,
+   "schdl_sn": 2471,
+   "session_name": "정보보호 관리 운영 및 보안성 검토",
+   "subject": "정보보호 관리 운영 및 보안성 검토",
+   "start": "2025-08-28",
+   "end": "2025-09-26",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2576,
+   "schdl_sn": 2472,
+   "session_name": "[기초직업능력] 정보처리능력",
+   "subject": "[기초직업능력] 정보처리능력",
+   "start": "2025-08-19",
+   "end": "2025-09-17",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2577,
+   "schdl_sn": 2473,
+   "session_name": "[기초직업능력] 정보처리능력",
+   "subject": "[기초직업능력] 정보처리능력",
+   "start": "2025-08-19",
+   "end": "2025-09-17",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2578,
+   "schdl_sn": 2474,
+   "session_name": "[기초직업능력] 정보처리능력",
+   "subject": "[기초직업능력] 정보처리능력",
+   "start": "2025-08-19",
+   "end": "2025-09-17",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2579,
+   "schdl_sn": 2475,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2580,
+   "schdl_sn": 2476,
+   "session_name": "정보보호 관리 운영 및 보안성 검토",
+   "subject": "정보보호 관리 운영 및 보안성 검토",
+   "start": "2025-08-28",
+   "end": "2025-09-26",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2581,
+   "schdl_sn": 2477,
+   "session_name": "정보보안을 위한 모델링 및 시뮬레이션",
+   "subject": "정보보안을 위한 모델링 및 시뮬레이션",
+   "start": "2025-08-20",
+   "end": "2025-09-18",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2582,
+   "schdl_sn": 2478,
+   "session_name": "[기초직업능력] 정보처리능력",
+   "subject": "[기초직업능력] 정보처리능력",
+   "start": "2025-08-19",
+   "end": "2025-09-17",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2583,
+   "schdl_sn": 2479,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2584,
+   "schdl_sn": 2480,
+   "session_name": "[정보기술전략계획] Power BI를 활용한 데이터 분석과 시각화(기본)",
+   "subject": "[정보기술전략계획] Power BI를 활용한 데이터 분석과 시각화(기본)",
+   "start": "2024-08-17",
+   "end": "2024-08-18",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2585,
+   "schdl_sn": 2481,
+   "session_name": "(특별교육)[인공지능] 라마인덱스(LLAMA INDEX) 활용 실습",
+   "subject": "(특별교육)[인공지능] 라마인덱스(LLAMA INDEX) 활용 실습",
+   "start": "2024-10-07",
+   "end": "2024-10-07",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2586,
+   "schdl_sn": 2482,
+   "session_name": "(스마트공장)온디바이스 기반 인공지능 비전인식 모델 학습",
+   "subject": "(스마트공장)온디바이스 기반 인공지능 비전인식 모델 학습",
+   "start": "2024-08-24",
+   "end": "2024-08-25",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2587,
+   "schdl_sn": 2483,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2588,
+   "schdl_sn": 2484,
+   "session_name": "ChatGTP활용한 빅데이터분석",
+   "subject": "ChatGTP활용한 빅데이터분석",
+   "start": "2024-10-31",
+   "end": "2024-10-31",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2589,
+   "schdl_sn": 2485,
+   "session_name": "자율 이동체 시뮬레이션 프로그래밍",
+   "subject": "자율 이동체 시뮬레이션 프로그래밍",
+   "start": "2025-02-24",
+   "end": "2025-02-25",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2590,
+   "schdl_sn": 2486,
+   "session_name": "생성형 AI를 활용한 비즈니스 서비스 개발",
+   "subject": "생성형 AI를 활용한 비즈니스 서비스 개발",
+   "start": "2025-02-28",
+   "end": "2025-02-28",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2591,
+   "schdl_sn": 2487,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2592,
+   "schdl_sn": 2488,
+   "session_name": "2026년 SW보안약점 진단원 보수교육(4차)",
+   "subject": "2026년 SW보안약점 진단원 보수교육(4차)",
+   "start": "2026-09-10",
+   "end": "2026-09-10",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2593,
+   "schdl_sn": 2489,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2594,
+   "schdl_sn": 2490,
+   "session_name": "개인정보 보호책임자(CPO) 기본교육 - 1회차",
+   "subject": "개인정보 보호책임자(CPO) 기본교육 - 1회차",
+   "start": "2026-04-22",
+   "end": "2026-05-05",
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2595,
+   "schdl_sn": 2491,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2596,
+   "schdl_sn": 2492,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2597,
+   "schdl_sn": 2493,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2598,
+   "schdl_sn": 2494,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2599,
+   "schdl_sn": 2495,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2600,
+   "schdl_sn": 2496,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2601,
+   "schdl_sn": 2497,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2602,
+   "schdl_sn": 2498,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2603,
+   "schdl_sn": 2499,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2604,
+   "schdl_sn": 2500,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2605,
+   "schdl_sn": 2501,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2606,
+   "schdl_sn": 2502,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2607,
+   "schdl_sn": 2503,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2608,
+   "schdl_sn": 2504,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2609,
+   "schdl_sn": 2505,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2610,
+   "schdl_sn": 2506,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2611,
+   "schdl_sn": 2507,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2612,
+   "schdl_sn": 2508,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2613,
+   "schdl_sn": 2509,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2614,
+   "schdl_sn": 2510,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2615,
+   "schdl_sn": 2511,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2616,
+   "schdl_sn": 2512,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2617,
+   "schdl_sn": 2513,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2618,
+   "schdl_sn": 2514,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2619,
+   "schdl_sn": 2515,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2620,
+   "schdl_sn": 2516,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2621,
+   "schdl_sn": 2517,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2622,
+   "schdl_sn": 2518,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2623,
+   "schdl_sn": 2519,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2624,
+   "schdl_sn": 2520,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2625,
+   "schdl_sn": 2521,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2626,
+   "schdl_sn": 2522,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2627,
+   "schdl_sn": 2523,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2628,
+   "schdl_sn": 2524,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2629,
+   "schdl_sn": 2525,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2630,
+   "schdl_sn": 2526,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2631,
+   "schdl_sn": 2527,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2632,
+   "schdl_sn": 2528,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2633,
+   "schdl_sn": 2529,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2634,
+   "schdl_sn": 2530,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2635,
+   "schdl_sn": 2531,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2636,
+   "schdl_sn": 2532,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2637,
+   "schdl_sn": 2533,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2638,
+   "schdl_sn": 2534,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2639,
+   "schdl_sn": 2535,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2640,
+   "schdl_sn": 2536,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2641,
+   "schdl_sn": 2537,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2642,
+   "schdl_sn": 2538,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2643,
+   "schdl_sn": 2539,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2644,
+   "schdl_sn": 2540,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2645,
+   "schdl_sn": 2541,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2646,
+   "schdl_sn": 2542,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2647,
+   "schdl_sn": 2543,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2648,
+   "schdl_sn": 2544,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2649,
+   "schdl_sn": 2545,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2650,
+   "schdl_sn": 2546,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2651,
+   "schdl_sn": 2547,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2652,
+   "schdl_sn": 2548,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2653,
+   "schdl_sn": 2549,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2654,
+   "schdl_sn": 2550,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2655,
+   "schdl_sn": 2551,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2656,
+   "schdl_sn": 2552,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2657,
+   "schdl_sn": 2553,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2658,
+   "schdl_sn": 2554,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2659,
+   "schdl_sn": 2555,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2660,
+   "schdl_sn": 2556,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2661,
+   "schdl_sn": 2557,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2662,
+   "schdl_sn": 2558,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2663,
+   "schdl_sn": 2559,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2664,
+   "schdl_sn": 2560,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2665,
+   "schdl_sn": 2561,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2666,
+   "schdl_sn": 2562,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2667,
+   "schdl_sn": 2563,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2668,
+   "schdl_sn": 2564,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2669,
+   "schdl_sn": 2565,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2670,
+   "schdl_sn": 2566,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2671,
+   "schdl_sn": 2567,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2672,
+   "schdl_sn": 2568,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2673,
+   "schdl_sn": 2569,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2674,
+   "schdl_sn": 2570,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2675,
+   "schdl_sn": 2571,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2676,
+   "schdl_sn": 2572,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  }
+ ],
+ "session_date_diffs": [],
+ "removed_in_new_courses": [
+  {
+   "sn": 2549,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2550,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2556,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2559,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2560,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2561,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  },
+  {
+   "sn": 2563,
+   "institution": null,
+   "session_name": null,
+   "subject": null,
+   "edu_div": 1
+  }
+ ],
+ "removed_in_new_sessions": [
+  {
+   "edc_sn": 2518,
+   "schdl_sn": 2414,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2549,
+   "schdl_sn": 2445,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2550,
+   "schdl_sn": 2446,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2556,
+   "schdl_sn": 2452,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2558,
+   "schdl_sn": 2454,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2559,
+   "schdl_sn": 2455,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2560,
+   "schdl_sn": 2456,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2561,
+   "schdl_sn": 2457,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2562,
+   "schdl_sn": 2458,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  },
+  {
+   "edc_sn": 2563,
+   "schdl_sn": 2459,
+   "session_name": null,
+   "subject": null,
+   "start": null,
+   "end": null,
+   "hours": 1.0,
+   "recognized": 1.0
+  }
+ ]
+}

@@ -1,0 +1,323 @@
+{
+ "external_canonical": 713,
+ "external_ok": 698,
+ "external_missing": [
+  {
+   "rowno": 24,
+   "institution": "(사)정보시스템감리협회",
+   "subject": "2018 정보시스템감리 공동 심포지엄",
+   "start": "2018-06-26",
+   "end": "2018-06-26",
+   "hours": 4.0,
+   "recognized": 4.0,
+   "cert_no": "정보시스템감리협회제 1639호",
+   "name": "권용화"
+  },
+  {
+   "rowno": 30,
+   "institution": "(사)정보시스템감리협회",
+   "subject": "2018 정보시스템감리 공동 심포지엄",
+   "start": "2018-06-26",
+   "end": "2018-06-26",
+   "hours": 4.0,
+   "recognized": 4.0,
+   "cert_no": "서울 제316호",
+   "name": "김원곤"
+  },
+  {
+   "rowno": 40,
+   "institution": "(사)정보시스템감리협회",
+   "subject": "2018 정보시스템감리 공동 심포지엄",
+   "start": "2018-06-26",
+   "end": "2018-06-26",
+   "hours": 4.0,
+   "recognized": 4.0,
+   "cert_no": "정보시스템 감리협회 제 1827호",
+   "name": "방영세"
+  },
+  {
+   "rowno": 63,
+   "institution": "(사)정보시스템감리협회",
+   "subject": "2018 정보시스템감리 공동 심포지엄",
+   "start": "2018-06-26",
+   "end": "2018-06-26",
+   "hours": 4.0,
+   "recognized": 4.0,
+   "cert_no": "행안부 제461호",
+   "name": "이종건"
+  },
+  {
+   "rowno": 69,
+   "institution": "(사)정보시스템감리협회",
+   "subject": "2018 정보시스템감리 공동 심포지엄",
+   "start": "2018-06-26",
+   "end": "2018-06-26",
+   "hours": 4.0,
+   "recognized": 4.0,
+   "cert_no": "서울제269호",
+   "name": "이호득"
+  },
+  {
+   "rowno": 135,
+   "institution": "(사)정보시스템감리협회",
+   "subject": "2018 정보시스템감리 공동 심포지엄",
+   "start": "2018-06-26",
+   "end": "2018-06-26",
+   "hours": 4.0,
+   "recognized": 4.0,
+   "cert_no": "서울 제316호",
+   "name": "김원곤"
+  },
+  {
+   "rowno": 152,
+   "institution": "한국소프트웨어기술진흥협회",
+   "subject": "JIRA 실무에서 자유자재로 활용하기-심화",
+   "start": null,
+   "end": null,
+   "hours": 0,
+   "recognized": 0,
+   "cert_no": null,
+   "name": null
+  },
+  {
+   "rowno": 233,
+   "institution": "(사)정보시스템감리협회",
+   "subject": "2018 정보시스템감리 공동 심포지엄",
+   "start": "2018-06-26",
+   "end": "2018-06-26",
+   "hours": 4.0,
+   "recognized": 4.0,
+   "cert_no": "정보시스템감리협회 제1827호",
+   "name": "방영세"
+  },
+  {
+   "rowno": 503,
+   "institution": "(사)정보시스템감리협회",
+   "subject": "2019 정보시스템감리 공동 심포지엄",
+   "start": "2019-06-20",
+   "end": "2019-06-20",
+   "hours": 4.0,
+   "recognized": 4.0,
+   "cert_no": "정보시스템감리협회 제133호",
+   "name": "유태영"
+  },
+  {
+   "rowno": 629,
+   "institution": "한국정보화진흥원",
+   "subject": "공공데이터 품질심사원 양성교육",
+   "start": "2020-06-22",
+   "end": "2020-06-24",
+   "hours": 19.0,
+   "recognized": 9.0,
+   "cert_no": "정보시스템감리협회 제1346호",
+   "name": "이선준"
+  },
+  {
+   "rowno": 630,
+   "institution": "한국인터넷진흥원",
+   "subject": "정보보호 및 개인정보보호 관리체계 인증심사원 전환 교육",
+   "start": "2018-11-13",
+   "end": "2018-11-14",
+   "hours": 14.0,
+   "recognized": 7.0,
+   "cert_no": "정보시스템감리협회 제1346호",
+   "name": "이선준"
+  },
+  {
+   "rowno": 631,
+   "institution": "한국인터넷진흥원",
+   "subject": "정보보호 관리체계 인증 심사원 실무교육",
+   "start": "2017-08-07",
+   "end": "2017-08-11",
+   "hours": 31.0,
+   "recognized": 15.0,
+   "cert_no": "정보시스템감리협회 제1346호",
+   "name": "이선준"
+  },
+  {
+   "rowno": 632,
+   "institution": "한국인터넷진흥원",
+   "subject": "2018년 SW보안약점 진단원 보수교육",
+   "start": "2018-11-26",
+   "end": "2018-11-26",
+   "hours": 8.0,
+   "recognized": 4.0,
+   "cert_no": "정보시스템감리협회 제1346호",
+   "name": "이선준"
+  },
+  {
+   "rowno": 633,
+   "institution": "한국인터넷진흥원",
+   "subject": "2019년 SW보안약점 진단원 보수교육",
+   "start": "2019-10-31",
+   "end": "2019-10-31",
+   "hours": 8.0,
+   "recognized": 4.0,
+   "cert_no": "정보시스템감리협회 제1346호",
+   "name": "이선준"
+  },
+  {
+   "rowno": 634,
+   "institution": "한국인터넷진흥원",
+   "subject": "2020년 SW보안약점 진단원 보수교육",
+   "start": "2020-08-26",
+   "end": "2020-08-26",
+   "hours": 8.0,
+   "recognized": 4.0,
+   "cert_no": "정보시스템감리협회 제1346호",
+   "name": "이선준"
+  }
+ ],
+ "external_diffs": [],
+ "batch_1006_add": {
+  "excel": 13,
+  "matches": 13,
+  "unmatched": [],
+  "field_mismatch": [],
+  "db_extra": []
+ },
+ "batch_1012_oct": {
+  "excel": 63,
+  "matches": 60,
+  "unmatched": [
+   {
+    "excel": {
+     "no": 60,
+     "cert_no": "정보시스템감리협회 제915호",
+     "name": "이수석",
+     "birth": "1967-09-13",
+     "institution": "(사)정보시스템감리협회",
+     "course": "PMO 2차 과정",
+     "start": "2026-09-01",
+     "end": "2026-09-30",
+     "hours": 8.0
+    }
+   },
+   {
+    "excel": {
+     "no": 61,
+     "cert_no": "정보시스템감리협회 제915호",
+     "name": "이수석",
+     "birth": "1967-09-13",
+     "institution": "(사)정보시스템감리협회",
+     "course": "PMO 3차 과정",
+     "start": "2026-09-01",
+     "end": "2026-09-30",
+     "hours": 8.0
+    }
+   },
+   {
+    "excel": {
+     "no": 63,
+     "cert_no": "정보시스템감리협회 제4256호",
+     "name": "황동환",
+     "birth": "1970-10-27",
+     "institution": "(사)정보시스템감리협회",
+     "course": "PMO 통합과정",
+     "start": "2026-09-01",
+     "end": "2026-09-30",
+     "hours": 24.0
+    }
+   }
+  ],
+  "field_mismatch": [
+   {
+    "excel": {
+     "no": 50,
+     "cert_no": "정보시스템감리협회 제4256호",
+     "name": "황동환",
+     "birth": "1970-10-27",
+     "institution": "(사)정보시스템감리협회",
+     "course": "정보시스템감리원을 위한 논리적 글쓰기",
+     "start": "2026-09-01",
+     "end": "2026-09-30",
+     "hours": 8.0
+    },
+    "db": {
+     "training_record_no": "LEG-EXT-OCT12-66",
+     "course_name": "PMO 통합과정",
+     "started_at": "2026-09-01",
+     "ended_at": "2026-09-30",
+     "total_hours": "24.00"
+    }
+   }
+  ],
+  "db_extra": [
+   "LEG-EXT-OCT12-44",
+   "LEG-EXT-OCT12-48",
+   "LEG-EXT-OCT12-49"
+  ]
+ },
+ "batch_1013_today": {
+  "excel": 31,
+  "matches": 31,
+  "unmatched": [],
+  "field_mismatch": [],
+  "db_extra": []
+ },
+ "manual_rec_0910_batches": [
+  {
+   "training_record_no": "REC-20260928-aef543",
+   "course_name": "컨소시엄-개인정보 보호관리체계 전문가 양성과정",
+   "institution_name": "한국인공지능·소프트웨어산업협회",
+   "started_at": "2026-09-07",
+   "ended_at": "2026-09-10",
+   "total_hours": "14.00",
+   "created_at": "2026-09-28T07:41:54.261303+00:00"
+  },
+  {
+   "training_record_no": "REC-20260930-187c5f",
+   "course_name": "2026년 SW보안약점 진단원 보수교육(4차)",
+   "institution_name": "한국소프트웨어기술진흥협회",
+   "started_at": "2026-09-22",
+   "ended_at": "2026-09-22",
+   "total_hours": "4.00",
+   "created_at": "2026-09-30T06:15:04.854541+00:00"
+  },
+  {
+   "training_record_no": "REC-20260930-1b7b57",
+   "course_name": "2026년 SW보안약점 진단원 보수교육(4차)",
+   "institution_name": "한국인터넷진흥원",
+   "started_at": "2026-09-10",
+   "ended_at": "2026-09-10",
+   "total_hours": "4.00",
+   "created_at": "2026-09-30T06:16:00.080431+00:00"
+  },
+  {
+   "training_record_no": "REC-20260930-4a6157",
+   "course_name": "감리원특급(온라인집합)",
+   "institution_name": "ICT폴리텍대학",
+   "started_at": "2025-04-14",
+   "ended_at": "2025-04-18",
+   "total_hours": "16.00",
+   "created_at": "2026-09-30T06:13:45.032222+00:00"
+  },
+  {
+   "training_record_no": "REC-20260930-5308f3",
+   "course_name": "2026년 SW보안약점 진단원 보수교육(4차)",
+   "institution_name": "한국인터넷진흥원",
+   "started_at": "2026-09-10",
+   "ended_at": "2026-09-10",
+   "total_hours": "4.00",
+   "created_at": "2026-09-30T05:45:05.377237+00:00"
+  },
+  {
+   "training_record_no": "REC-20261016-9d2042",
+   "course_name": "인공지능 인공지능(AI) 전문가 1급",
+   "institution_name": "한국자격검정평가진흥원",
+   "started_at": "2026-09-14",
+   "ended_at": "2026-10-12",
+   "total_hours": "1.00",
+   "created_at": "2026-10-16T02:12:56.690649+00:00"
+  },
+  {
+   "training_record_no": "REC-20261016-b4c8cd",
+   "course_name": "ISMS-P 인증심사 실무 ISMS-P 인증심사 실무(2022 보안기술교육)",
+   "institution_name": "(사)금융보안원",
+   "started_at": "2026-10-16",
+   "ended_at": "2026-10-16",
+   "total_hours": "8.00",
+   "created_at": "2026-10-16T02:12:20.297436+00:00"
+  }
+ ]
+}

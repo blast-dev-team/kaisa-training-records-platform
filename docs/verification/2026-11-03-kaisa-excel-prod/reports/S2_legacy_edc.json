@@ -1,0 +1,9544 @@
+{
+ "canonical_valid": 9416,
+ "canonical_na_skipped": 3591,
+ "matched_ok": 8835,
+ "missing_in_db": [
+  {
+   "row": 4916,
+   "schdl_raw": "534",
+   "partc_raw": "2461",
+   "schdl_sn": 534,
+   "partc_no": 2461,
+   "hours": 2.0,
+   "recognized": 1.0,
+   "session_name": "개인정보",
+   "subject": "개인정보 보호 기본과정",
+   "cert_no": "정보시스템감리협회 제2461호",
+   "name": "조근희",
+   "birth": "1960-09-09"
+  },
+  {
+   "row": 4918,
+   "schdl_raw": "536",
+   "partc_raw": "2461",
+   "schdl_sn": 536,
+   "partc_no": 2461,
+   "hours": 40.0,
+   "recognized": 14.0,
+   "session_name": "SW발주기술",
+   "subject": "2020년 SW발주 기술 아카데미",
+   "cert_no": "정보시스템감리협회 제2461호",
+   "name": "조근희",
+   "birth": "1960-09-09"
+  },
+  {
+   "row": 5019,
+   "schdl_raw": "569",
+   "partc_raw": "2717",
+   "schdl_sn": 569,
+   "partc_no": 2717,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "2023-1차 계속교육",
+   "subject": "클라우드 기본교육",
+   "cert_no": "충청 제1호",
+   "name": "유형원",
+   "birth": "1957-06-01"
+  },
+  {
+   "row": 5597,
+   "schdl_raw": "604",
+   "partc_raw": "1228",
+   "schdl_sn": 604,
+   "partc_no": 1228,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "2023-3차 계속교육",
+   "subject": "빅데이터와 NoSQL(Not only SQL)​",
+   "cert_no": "정보시스템감리협회 제1228호",
+   "name": "곽동하",
+   "birth": "1974-06-17"
+  },
+  {
+   "row": 5598,
+   "schdl_raw": "604",
+   "partc_raw": "4993",
+   "schdl_sn": 604,
+   "partc_no": 4993,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "2023-3차 계속교육",
+   "subject": "빅데이터와 NoSQL(Not only SQL)​",
+   "cert_no": "정보시스템감리협회 제3248호",
+   "name": "국윤주",
+   "birth": "1972-01-10"
+  },
+  {
+   "row": 5599,
+   "schdl_raw": "604",
+   "partc_raw": "2227",
+   "schdl_sn": 604,
+   "partc_no": 2227,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "2023-3차 계속교육",
+   "subject": "빅데이터와 NoSQL(Not only SQL)​",
+   "cert_no": "정보시스템감리협회 제2227호",
+   "name": "김기린",
+   "birth": "1975-03-21"
+  },
+  {
+   "row": 5600,
+   "schdl_raw": "604",
+   "partc_raw": "4195",
+   "schdl_sn": 604,
+   "partc_no": 4195,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "2023-3차 계속교육",
+   "subject": "빅데이터와 NoSQL(Not only SQL)​",
+   "cert_no": "충청 제28호",
+   "name": "김순곤",
+   "birth": "1957-09-05"
+  },
+  {
+   "row": 5601,
+   "schdl_raw": "604",
+   "partc_raw": "2597",
+   "schdl_sn": 604,
+   "partc_no": 2597,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "2023-3차 계속교육",
+   "subject": "빅데이터와 NoSQL(Not only SQL)​",
+   "cert_no": "서울 제50호",
+   "name": "김영호",
+   "birth": "1966-09-08"
+  },
+  {
+   "row": 5602,
+   "schdl_raw": "604",
+   "partc_raw": "2278",
+   "schdl_sn": 604,
+   "partc_no": 2278,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "2023-3차 계속교육",
+   "subject": "빅데이터와 NoSQL(Not only SQL)​",
+   "cert_no": "정보시스템감리협회 제2278호",
+   "name": "김윤호",
+   "birth": "1976-10-29"
+  },
+  {
+   "row": 5603,
+   "schdl_raw": "604",
+   "partc_raw": "33",
+   "schdl_sn": 604,
+   "partc_no": 33,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "2023-3차 계속교육",
+   "subject": "빅데이터와 NoSQL(Not only SQL)​",
+   "cert_no": "정보시스템감리협회 제2130호",
+   "name": "김은정",
+   "birth": "1970-10-05"
+  },
+  {
+   "row": 5604,
+   "schdl_raw": "604",
+   "partc_raw": "4823",
+   "schdl_sn": 604,
+   "partc_no": 4823,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "2023-3차 계속교육",
+   "subject": "빅데이터와 NoSQL(Not only SQL)​",
+   "cert_no": "정보시스템감리협회 제3078호",
+   "name": "김인주",
+   "birth": "1966-11-25"
+  },
+  {
+   "row": 5605,
+   "schdl_raw": "604",
+   "partc_raw": "1403",
+   "schdl_sn": 604,
+   "partc_no": 1403,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "2023-3차 계속교육",
+   "subject": "빅데이터와 NoSQL(Not only SQL)​",
+   "cert_no": "정보시스템감리협회 제1403호",
+   "name": "김지영",
+   "birth": "1979-11-03"
+  },
+  {
+   "row": 5606,
+   "schdl_raw": "604",
+   "partc_raw": "2962",
+   "schdl_sn": 604,
+   "partc_no": 2962,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "2023-3차 계속교육",
+   "subject": "빅데이터와 NoSQL(Not only SQL)​",
+   "cert_no": "서울 제415호",
+   "name": "김진수",
+   "birth": "1957-11-05"
+  },
+  {
+   "row": 5607,
+   "schdl_raw": "604",
+   "partc_raw": "4554",
+   "schdl_sn": 604,
+   "partc_no": 4554,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "2023-3차 계속교육",
+   "subject": "빅데이터와 NoSQL(Not only SQL)​",
+   "cert_no": "정보시스템감리협회 제2810호",
+   "name": "김춘규",
+   "birth": "1963-03-17"
+  },
+  {
+   "row": 5608,
+   "schdl_raw": "604",
+   "partc_raw": "821",
+   "schdl_sn": 604,
+   "partc_no": 821,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "2023-3차 계속교육",
+   "subject": "빅데이터와 NoSQL(Not only SQL)​",
+   "cert_no": "정보시스템감리협회 제821호",
+   "name": "김현수",
+   "birth": "1961-11-19"
+  },
+  {
+   "row": 5609,
+   "schdl_raw": "604",
+   "partc_raw": "4332",
+   "schdl_sn": 604,
+   "partc_no": 4332,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "2023-3차 계속교육",
+   "subject": "빅데이터와 NoSQL(Not only SQL)​",
+   "cert_no": "정보시스템감리협회 제2588호",
+   "name": "김호근",
+   "birth": "1957-03-20"
+  },
+  {
+   "row": 5610,
+   "schdl_raw": "604",
+   "partc_raw": "2587",
+   "schdl_sn": 604,
+   "partc_no": 2587,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "2023-3차 계속교육",
+   "subject": "빅데이터와 NoSQL(Not only SQL)​",
+   "cert_no": "서울 제40호",
+   "name": "김희자",
+   "birth": "1970-01-27"
+  },
+  {
+   "row": 5611,
+   "schdl_raw": "604",
+   "partc_raw": "4429",
+   "schdl_sn": 604,
+   "partc_no": 4429,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "2023-3차 계속교육",
+   "subject": "빅데이터와 NoSQL(Not only SQL)​",
+   "cert_no": "정보시스템감리협회 제2685호",
+   "name": "남봉기",
+   "birth": "1965-12-13"
+  },
+  {
+   "row": 5612,
+   "schdl_raw": "604",
+   "partc_raw": "2942",
+   "schdl_sn": 604,
+   "partc_no": 2942,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "2023-3차 계속교육",
+   "subject": "빅데이터와 NoSQL(Not only SQL)​",
+   "cert_no": "서울 제395호",
+   "name": "민선주",
+   "birth": "1975-01-16"
+  },
+  {
+   "row": 5613,
+   "schdl_raw": "604",
+   "partc_raw": "123",
+   "schdl_sn": 604,
+   "partc_no": 123,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "2023-3차 계속교육",
+   "subject": "빅데이터와 NoSQL(Not only SQL)​",
+   "cert_no": "정보시스템감리협회 제122호",
+   "name": "박상호",
+   "birth": "1964-09-15"
+  },
+  {
+   "row": 5614,
+   "schdl_raw": "604",
+   "partc_raw": "1994",
+   "schdl_sn": 604,
+   "partc_no": 1994,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "2023-3차 계속교육",
+   "subject": "빅데이터와 NoSQL(Not only SQL)​",
+   "cert_no": "정보시스템감리협회 제1994호",
+   "name": "박윤우",
+   "birth": "1965-04-01"
+  },
+  {
+   "row": 5615,
+   "schdl_raw": "604",
+   "partc_raw": "2477",
+   "schdl_sn": 604,
+   "partc_no": 2477,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "2023-3차 계속교육",
+   "subject": "빅데이터와 NoSQL(Not only SQL)​",
+   "cert_no": "정보시스템감리협회 제2477호",
+   "name": "박정우",
+   "birth": "1974-12-25"
+  },
+  {
+   "row": 5616,
+   "schdl_raw": "604",
+   "partc_raw": "1081",
+   "schdl_sn": 604,
+   "partc_no": 1081,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "2023-3차 계속교육",
+   "subject": "빅데이터와 NoSQL(Not only SQL)​",
+   "cert_no": "정보시스템감리협회 제1081호",
+   "name": "박태근",
+   "birth": "1960-07-18"
+  },
+  {
+   "row": 5617,
+   "schdl_raw": "604",
+   "partc_raw": "612",
+   "schdl_sn": 604,
+   "partc_no": 612,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "2023-3차 계속교육",
+   "subject": "빅데이터와 NoSQL(Not only SQL)​",
+   "cert_no": "정보시스템감리협회 제621호",
+   "name": "백현주",
+   "birth": "1964-01-10"
+  },
+  {
+   "row": 5618,
+   "schdl_raw": "604",
+   "partc_raw": "4562",
+   "schdl_sn": 604,
+   "partc_no": 4562,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "2023-3차 계속교육",
+   "subject": "빅데이터와 NoSQL(Not only SQL)​",
+   "cert_no": "정보시스템감리협회 제2818호",
+   "name": "송옥경",
+   "birth": "1976-12-15"
+  },
+  {
+   "row": 5619,
+   "schdl_raw": "604",
+   "partc_raw": "4171",
+   "schdl_sn": 604,
+   "partc_no": 4171,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "2023-3차 계속교육",
+   "subject": "빅데이터와 NoSQL(Not only SQL)​",
+   "cert_no": "충청 제4호",
+   "name": "순남순",
+   "birth": "1960-10-11"
+  },
+  {
+   "row": 5620,
+   "schdl_raw": "604",
+   "partc_raw": "4211",
+   "schdl_sn": 604,
+   "partc_no": 4211,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "2023-3차 계속교육",
+   "subject": "빅데이터와 NoSQL(Not only SQL)​",
+   "cert_no": "충청 제44호",
+   "name": "여윤호",
+   "birth": "1956-03-01"
+  },
+  {
+   "row": 5621,
+   "schdl_raw": "604",
+   "partc_raw": "4212",
+   "schdl_sn": 604,
+   "partc_no": 4212,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "2023-3차 계속교육",
+   "subject": "빅데이터와 NoSQL(Not only SQL)​",
+   "cert_no": "충청 제45호",
+   "name": "오병호",
+   "birth": "1954-07-07"
+  },
+  {
+   "row": 5622,
+   "schdl_raw": "604",
+   "partc_raw": "4115",
+   "schdl_sn": 604,
+   "partc_no": 4115,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "2023-3차 계속교육",
+   "subject": "빅데이터와 NoSQL(Not only SQL)​",
+   "cert_no": "행정안전부 제595호",
+   "name": "유재련",
+   "birth": "1962-05-06"
+  },
+  {
+   "row": 5623,
+   "schdl_raw": "604",
+   "partc_raw": "31",
+   "schdl_sn": 604,
+   "partc_no": 31,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "2023-3차 계속교육",
+   "subject": "빅데이터와 NoSQL(Not only SQL)​",
+   "cert_no": "정보시스템감리협회 제31호",
+   "name": "윤덕훈",
+   "birth": "1958-11-19"
+  },
+  {
+   "row": 5624,
+   "schdl_raw": "604",
+   "partc_raw": "4187",
+   "schdl_sn": 604,
+   "partc_no": 4187,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "2023-3차 계속교육",
+   "subject": "빅데이터와 NoSQL(Not only SQL)​",
+   "cert_no": "충청 제20호",
+   "name": "이광준",
+   "birth": "1965-02-06"
+  },
+  {
+   "row": 5625,
+   "schdl_raw": "604",
+   "partc_raw": "4704",
+   "schdl_sn": 604,
+   "partc_no": 4704,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "2023-3차 계속교육",
+   "subject": "빅데이터와 NoSQL(Not only SQL)​",
+   "cert_no": "정보시스템감리협회 제2959호",
+   "name": "이길홍",
+   "birth": "1961-03-05"
+  },
+  {
+   "row": 5626,
+   "schdl_raw": "604",
+   "partc_raw": "4707",
+   "schdl_sn": 604,
+   "partc_no": 4707,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "2023-3차 계속교육",
+   "subject": "빅데이터와 NoSQL(Not only SQL)​",
+   "cert_no": "정보시스템감리협회 제2962호",
+   "name": "이우철",
+   "birth": "1989-08-21"
+  },
+  {
+   "row": 5627,
+   "schdl_raw": "604",
+   "partc_raw": "1614",
+   "schdl_sn": 604,
+   "partc_no": 1614,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "2023-3차 계속교육",
+   "subject": "빅데이터와 NoSQL(Not only SQL)​",
+   "cert_no": "정보시스템감리협회 제1614호",
+   "name": "이종선",
+   "birth": "1969-05-08"
+  },
+  {
+   "row": 5628,
+   "schdl_raw": "604",
+   "partc_raw": "2910",
+   "schdl_sn": 604,
+   "partc_no": 2910,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "2023-3차 계속교육",
+   "subject": "빅데이터와 NoSQL(Not only SQL)​",
+   "cert_no": "서울 제363호",
+   "name": "이주환",
+   "birth": "1961-04-01"
+  },
+  {
+   "row": 5629,
+   "schdl_raw": "604",
+   "partc_raw": "3085",
+   "schdl_sn": 604,
+   "partc_no": 3085,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "2023-3차 계속교육",
+   "subject": "빅데이터와 NoSQL(Not only SQL)​",
+   "cert_no": "서울 제538호",
+   "name": "이현철",
+   "birth": "1958-05-13"
+  },
+  {
+   "row": 5630,
+   "schdl_raw": "604",
+   "partc_raw": "1084",
+   "schdl_sn": 604,
+   "partc_no": 1084,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "2023-3차 계속교육",
+   "subject": "빅데이터와 NoSQL(Not only SQL)​",
+   "cert_no": "정보시스템감리협회 제1084호",
+   "name": "이형준",
+   "birth": "1967-11-04"
+  },
+  {
+   "row": 5631,
+   "schdl_raw": "604",
+   "partc_raw": "18",
+   "schdl_sn": 604,
+   "partc_no": 18,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "2023-3차 계속교육",
+   "subject": "빅데이터와 NoSQL(Not only SQL)​",
+   "cert_no": "정보시스템감리협회 제18호",
+   "name": "임동배",
+   "birth": "1958-03-17"
+  },
+  {
+   "row": 5632,
+   "schdl_raw": "604",
+   "partc_raw": "2390",
+   "schdl_sn": 604,
+   "partc_no": 2390,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "2023-3차 계속교육",
+   "subject": "빅데이터와 NoSQL(Not only SQL)​",
+   "cert_no": "정보시스템감리협회 제2390호",
+   "name": "임지영",
+   "birth": "1972-09-17"
+  },
+  {
+   "row": 5633,
+   "schdl_raw": "604",
+   "partc_raw": "4193",
+   "schdl_sn": 604,
+   "partc_no": 4193,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "2023-3차 계속교육",
+   "subject": "빅데이터와 NoSQL(Not only SQL)​",
+   "cert_no": "충청 제26호",
+   "name": "임헌규",
+   "birth": "1962-09-14"
+  },
+  {
+   "row": 5634,
+   "schdl_raw": "604",
+   "partc_raw": "1126",
+   "schdl_sn": 604,
+   "partc_no": 1126,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "2023-3차 계속교육",
+   "subject": "빅데이터와 NoSQL(Not only SQL)​",
+   "cert_no": "정보시스템감리협회 제1126호",
+   "name": "장향우",
+   "birth": "1972-01-21"
+  },
+  {
+   "row": 5635,
+   "schdl_raw": "604",
+   "partc_raw": "4581",
+   "schdl_sn": 604,
+   "partc_no": 4581,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "2023-3차 계속교육",
+   "subject": "빅데이터와 NoSQL(Not only SQL)​",
+   "cert_no": "정보시스템감리협회 제2837호",
+   "name": "정재훈",
+   "birth": "1974-12-04"
+  },
+  {
+   "row": 5636,
+   "schdl_raw": "604",
+   "partc_raw": "2459",
+   "schdl_sn": 604,
+   "partc_no": 2459,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "2023-3차 계속교육",
+   "subject": "빅데이터와 NoSQL(Not only SQL)​",
+   "cert_no": "정보시스템감리협회 제2459호",
+   "name": "정창신",
+   "birth": "1960-02-28"
+  },
+  {
+   "row": 5637,
+   "schdl_raw": "604",
+   "partc_raw": "1129",
+   "schdl_sn": 604,
+   "partc_no": 1129,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "2023-3차 계속교육",
+   "subject": "빅데이터와 NoSQL(Not only SQL)​",
+   "cert_no": "정보시스템감리협회 제1129호",
+   "name": "정해담",
+   "birth": "1965-05-18"
+  },
+  {
+   "row": 5638,
+   "schdl_raw": "604",
+   "partc_raw": "383",
+   "schdl_sn": 604,
+   "partc_no": 383,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "2023-3차 계속교육",
+   "subject": "빅데이터와 NoSQL(Not only SQL)​",
+   "cert_no": "정보시스템감리협회 제383호",
+   "name": "조경미",
+   "birth": "1967-08-31"
+  },
+  {
+   "row": 5639,
+   "schdl_raw": "604",
+   "partc_raw": "4914",
+   "schdl_sn": 604,
+   "partc_no": 4914,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "2023-3차 계속교육",
+   "subject": "빅데이터와 NoSQL(Not only SQL)​",
+   "cert_no": "정보시스템감리협회 제3169호",
+   "name": "조수형",
+   "birth": "1960-09-28"
+  },
+  {
+   "row": 5640,
+   "schdl_raw": "604",
+   "partc_raw": "4716",
+   "schdl_sn": 604,
+   "partc_no": 4716,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "2023-3차 계속교육",
+   "subject": "빅데이터와 NoSQL(Not only SQL)​",
+   "cert_no": "정보시스템감리협회 제2971호",
+   "name": "진명식",
+   "birth": "1953-09-22"
+  },
+  {
+   "row": 5641,
+   "schdl_raw": "604",
+   "partc_raw": "2427",
+   "schdl_sn": 604,
+   "partc_no": 2427,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "2023-3차 계속교육",
+   "subject": "빅데이터와 NoSQL(Not only SQL)​",
+   "cert_no": "정보시스템감리협회 제2427호",
+   "name": "최석우",
+   "birth": "1978-06-05"
+  },
+  {
+   "row": 5642,
+   "schdl_raw": "604",
+   "partc_raw": "2736",
+   "schdl_sn": 604,
+   "partc_no": 2736,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "2023-3차 계속교육",
+   "subject": "빅데이터와 NoSQL(Not only SQL)​",
+   "cert_no": "서울 제189호",
+   "name": "최진철",
+   "birth": "1967-02-23"
+  },
+  {
+   "row": 5643,
+   "schdl_raw": "604",
+   "partc_raw": "3180",
+   "schdl_sn": 604,
+   "partc_no": 3180,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "2023-3차 계속교육",
+   "subject": "빅데이터와 NoSQL(Not only SQL)​",
+   "cert_no": "서울 제633호",
+   "name": "한숙경",
+   "birth": "1972-11-19"
+  },
+  {
+   "row": 5644,
+   "schdl_raw": "604",
+   "partc_raw": "2715",
+   "schdl_sn": 604,
+   "partc_no": 2715,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "2023-3차 계속교육",
+   "subject": "빅데이터와 NoSQL(Not only SQL)​",
+   "cert_no": "서울 제168호",
+   "name": "홍기향",
+   "birth": "1969-10-15"
+  },
+  {
+   "row": 5771,
+   "schdl_raw": "615",
+   "partc_raw": "4214",
+   "schdl_sn": 615,
+   "partc_no": 4214,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "온라인 계속교육",
+   "subject": "정보시스템감리원을 위한 논리적 글쓰기",
+   "cert_no": "충청 제47호",
+   "name": "김재춘",
+   "birth": "1962-10-14"
+  },
+  {
+   "row": 6327,
+   "schdl_raw": "650",
+   "partc_raw": "4214",
+   "schdl_sn": 650,
+   "partc_no": 4214,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "온라인 계속교육",
+   "subject": "PMO 1차 과정",
+   "cert_no": "충청 제47호",
+   "name": "김재춘",
+   "birth": "1962-10-14"
+  },
+  {
+   "row": 6463,
+   "schdl_raw": "662",
+   "partc_raw": "2717",
+   "schdl_sn": 662,
+   "partc_no": 2717,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "2023-8차 계속교육",
+   "subject": "소프트웨어 개발보안 감리 실무",
+   "cert_no": "충청 제1호",
+   "name": "유형원",
+   "birth": "1957-06-01"
+  },
+  {
+   "row": 6490,
+   "schdl_raw": "675",
+   "partc_raw": "4776",
+   "schdl_sn": 675,
+   "partc_no": 4776,
+   "hours": 7.0,
+   "recognized": 7.0,
+   "session_name": "온라인 2차",
+   "subject": "웹 개발 기술 / EVM",
+   "cert_no": "정보시스템감리협회 제3031호",
+   "name": "김명진",
+   "birth": "1980-03-25"
+  },
+  {
+   "row": 6618,
+   "schdl_raw": "693",
+   "partc_raw": "5783",
+   "schdl_sn": 693,
+   "partc_no": 5783,
+   "hours": 7.0,
+   "recognized": 7.0,
+   "session_name": "온라인계속교육 3차",
+   "subject": "감리 프레임워크의 아키텍처 / ITA&ISP 감리",
+   "cert_no": "정보시스템감리협회 제4037호",
+   "name": "권영현",
+   "birth": "1956-02-22"
+  },
+  {
+   "row": 6646,
+   "schdl_raw": "709",
+   "partc_raw": "5783",
+   "schdl_sn": 709,
+   "partc_no": 5783,
+   "hours": 7.0,
+   "recognized": 7.0,
+   "session_name": "온라인계속교육 1차",
+   "subject": "MDD방법론/오픈소스개발방법론",
+   "cert_no": "정보시스템감리협회 제4037호",
+   "name": "권영현",
+   "birth": "1956-02-22"
+  },
+  {
+   "row": 6655,
+   "schdl_raw": "716",
+   "partc_raw": "4682",
+   "schdl_sn": 716,
+   "partc_no": 4682,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "SW보안약점",
+   "subject": "SW보안약점 진단원 보수교육",
+   "cert_no": "정보시스템감리협회 제2937호",
+   "name": "김대연",
+   "birth": "1972-11-21"
+  },
+  {
+   "row": 6659,
+   "schdl_raw": "720",
+   "partc_raw": "2544",
+   "schdl_sn": 720,
+   "partc_no": 2544,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "SW보안약점",
+   "subject": "SW보안약점 진단원 보수교육",
+   "cert_no": "정보시스템감리협회 제3445호",
+   "name": "장승한",
+   "birth": "1969-08-16"
+  },
+  {
+   "row": 6665,
+   "schdl_raw": "724",
+   "partc_raw": "4548",
+   "schdl_sn": 724,
+   "partc_no": 4548,
+   "hours": 8.0,
+   "recognized": 4.0,
+   "session_name": "컨테이너 기반 인프라 가상화",
+   "subject": "컨테이너 기반 인프라 가상화",
+   "cert_no": "정보시스템감리협회 제3150호",
+   "name": "박창호",
+   "birth": "1969-01-30"
+  },
+  {
+   "row": 6668,
+   "schdl_raw": "727",
+   "partc_raw": "415",
+   "schdl_sn": 727,
+   "partc_no": 415,
+   "hours": 8.0,
+   "recognized": 4.0,
+   "session_name": "SW보안약점진단원보수교육",
+   "subject": "SW보안약점진단원보수교육",
+   "cert_no": "정보시스템감리협회 제415호",
+   "name": "이규영",
+   "birth": "1968-05-27"
+  },
+  {
+   "row": 6669,
+   "schdl_raw": "728",
+   "partc_raw": "415",
+   "schdl_sn": 728,
+   "partc_no": 415,
+   "hours": 8.0,
+   "recognized": 4.0,
+   "session_name": "SW보안약점진단원보수교육",
+   "subject": "SW보안약점진단원보수교육",
+   "cert_no": "정보시스템감리협회 제415호",
+   "name": "이규영",
+   "birth": "1968-05-27"
+  },
+  {
+   "row": 6810,
+   "schdl_raw": "768",
+   "partc_raw": "2712",
+   "schdl_sn": 768,
+   "partc_no": 2712,
+   "hours": 8.0,
+   "recognized": 4.0,
+   "session_name": "SW 보안약점 진단원 보수교육",
+   "subject": "SW 보안약점 진단원 보수교육(온라인 3차)",
+   "cert_no": "서울 제165호",
+   "name": "이종설",
+   "birth": "1961-05-10"
+  },
+  {
+   "row": 6816,
+   "schdl_raw": "774",
+   "partc_raw": "5175",
+   "schdl_sn": 774,
+   "partc_no": 5175,
+   "hours": 7.0,
+   "recognized": 3.0,
+   "session_name": "G-PRIVACY 2024",
+   "subject": "제12회 공공∙금융∙기업 개인정보보호&정보보안 컨퍼런스",
+   "cert_no": "정보시스템감리협회 제3430호",
+   "name": "문대성",
+   "birth": "1972-04-29"
+  },
+  {
+   "row": 6818,
+   "schdl_raw": "776",
+   "partc_raw": "5175",
+   "schdl_sn": 776,
+   "partc_no": 5175,
+   "hours": 7.0,
+   "recognized": 3.0,
+   "session_name": "G-PRIVACY 2024",
+   "subject": "개인정보보호&정보보안 컨퍼런스",
+   "cert_no": "정보시스템감리협회 제3430호",
+   "name": "문대성",
+   "birth": "1972-04-29"
+  },
+  {
+   "row": 7150,
+   "schdl_raw": "841",
+   "partc_raw": "3695",
+   "schdl_sn": 841,
+   "partc_no": 3695,
+   "hours": 3.0,
+   "recognized": 1.0,
+   "session_name": "Python 활용 1-14강",
+   "subject": "Python 활용 1-14강",
+   "cert_no": "행정안전부 제509호",
+   "name": "김용갑",
+   "birth": "1960-02-26"
+  },
+  {
+   "row": 7261,
+   "schdl_raw": "894",
+   "partc_raw": "56",
+   "schdl_sn": 894,
+   "partc_no": 56,
+   "hours": 7.0,
+   "recognized": 7.0,
+   "session_name": "AI프로젝트 성공 비결 / LLM의 이해와 활용",
+   "subject": "AI프로젝트 성공 비결 / LLM의 이해와 활용",
+   "cert_no": "정보시스템감리협회 제2804호",
+   "name": "김은향",
+   "birth": "1972-06-05"
+  },
+  {
+   "row": 7275,
+   "schdl_raw": "894",
+   "partc_raw": "525",
+   "schdl_sn": 894,
+   "partc_no": 525,
+   "hours": 7.0,
+   "recognized": 7.0,
+   "session_name": "AI프로젝트 성공 비결 / LLM의 이해와 활용",
+   "subject": "AI프로젝트 성공 비결 / LLM의 이해와 활용",
+   "cert_no": "정보시스템감리협회 제2002호",
+   "name": "윤상인",
+   "birth": "1960-01-10"
+  },
+  {
+   "row": 7284,
+   "schdl_raw": "894",
+   "partc_raw": "941",
+   "schdl_sn": 894,
+   "partc_no": 941,
+   "hours": 7.0,
+   "recognized": 7.0,
+   "session_name": "AI프로젝트 성공 비결 / LLM의 이해와 활용",
+   "subject": "AI프로젝트 성공 비결 / LLM의 이해와 활용",
+   "cert_no": "정보시스템감리협회 제1131호",
+   "name": "조기범",
+   "birth": "1967-04-24"
+  },
+  {
+   "row": 7402,
+   "schdl_raw": "909",
+   "partc_raw": "1961",
+   "schdl_sn": 909,
+   "partc_no": 1961,
+   "hours": 7.0,
+   "recognized": 7.0,
+   "session_name": "온라인계속교육",
+   "subject": "MDD방법론/오픈소스개발방법론",
+   "cert_no": "정보시스템감리협회 제1961호",
+   "name": "신성대",
+   "birth": "1958-02-19"
+  },
+  {
+   "row": 7424,
+   "schdl_raw": "931",
+   "partc_raw": "525",
+   "schdl_sn": 931,
+   "partc_no": 525,
+   "hours": 3.0,
+   "recognized": 1.0,
+   "session_name": "2012 빅데이터 검색 분석 기술 INSIGHT",
+   "subject": "2012 빅데이터 검색 분석 기술 INSIGHT",
+   "cert_no": "정보시스템감리협회 제2002호",
+   "name": "윤상인",
+   "birth": "1960-01-10"
+  },
+  {
+   "row": 7426,
+   "schdl_raw": "933",
+   "partc_raw": "525",
+   "schdl_sn": 933,
+   "partc_no": 525,
+   "hours": 11.0,
+   "recognized": 6.0,
+   "session_name": "Python 프로그래밍 1-10강",
+   "subject": "Python 프로그래밍 1-10강",
+   "cert_no": "정보시스템감리협회 제2002호",
+   "name": "윤상인",
+   "birth": "1960-01-10"
+  },
+  {
+   "row": 7427,
+   "schdl_raw": "934",
+   "partc_raw": "525",
+   "schdl_sn": 934,
+   "partc_no": 525,
+   "hours": 2.0,
+   "recognized": 1.0,
+   "session_name": "[세미나] 바로 적용되는 데이터 표준화 실무",
+   "subject": "[세미나] 바로 적용되는 데이터 표준화 실무",
+   "cert_no": "정보시스템감리협회 제2002호",
+   "name": "윤상인",
+   "birth": "1960-01-10"
+  },
+  {
+   "row": 7458,
+   "schdl_raw": "962",
+   "partc_raw": "525",
+   "schdl_sn": 962,
+   "partc_no": 525,
+   "hours": 7.0,
+   "recognized": 7.0,
+   "session_name": "온라인계속교육",
+   "subject": "MDD방법론/오픈소스개발방법론",
+   "cert_no": "정보시스템감리협회 제2002호",
+   "name": "윤상인",
+   "birth": "1960-01-10"
+  },
+  {
+   "row": 7474,
+   "schdl_raw": "963",
+   "partc_raw": "525",
+   "schdl_sn": 963,
+   "partc_no": 525,
+   "hours": 7.0,
+   "recognized": 7.0,
+   "session_name": "온라인계속교육",
+   "subject": "웹 개발기술 / EVM",
+   "cert_no": "정보시스템감리협회 제2002호",
+   "name": "윤상인",
+   "birth": "1960-01-10"
+  },
+  {
+   "row": 7736,
+   "schdl_raw": "1154",
+   "partc_raw": "525",
+   "schdl_sn": 1154,
+   "partc_no": 525,
+   "hours": 8.0,
+   "recognized": 4.0,
+   "session_name": "데이터 처리 기술 1-11강",
+   "subject": "데이터 처리 기술 1-11강",
+   "cert_no": "정보시스템감리협회 제525호",
+   "name": "윤상인",
+   "birth": "1960-01-10"
+  },
+  {
+   "row": 8170,
+   "schdl_raw": "1232",
+   "partc_raw": "4029",
+   "schdl_sn": 1232,
+   "partc_no": 4029,
+   "hours": 2.0,
+   "recognized": 1.0,
+   "session_name": "데이터 시각화",
+   "subject": "[데이터 시각화 전문가 사전교육] 데이터 시각화",
+   "cert_no": "행정안전부 제509호",
+   "name": "김용갑",
+   "birth": "1960-02-26"
+  },
+  {
+   "row": 8178,
+   "schdl_raw": "1240",
+   "partc_raw": "2002",
+   "schdl_sn": 1240,
+   "partc_no": 2002,
+   "hours": 2.0,
+   "recognized": 1.0,
+   "session_name": "[세미나] 데이터아키텍처 전문가로 가는 길",
+   "subject": "[세미나] 데이터아키텍처 전문가로 가는 길",
+   "cert_no": "정보시스템감리협회 제2002호",
+   "name": "윤상인",
+   "birth": "1960-01-10"
+  },
+  {
+   "row": 8310,
+   "schdl_raw": "1287",
+   "partc_raw": "602",
+   "schdl_sn": 1287,
+   "partc_no": 602,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "세미나",
+   "subject": "2024년도 정보시스템감리사협의회 세미나",
+   "cert_no": "정보시스템감리협회 제602호",
+   "name": "김홍빈",
+   "birth": "1959-01-29"
+  },
+  {
+   "row": 8351,
+   "schdl_raw": "1316",
+   "partc_raw": "5390",
+   "schdl_sn": 1316,
+   "partc_no": 5390,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "세미나",
+   "subject": "2024년도 정보시스템감리사협의회 세미나",
+   "cert_no": "정보시스템감리협회 제3644호",
+   "name": "조응규",
+   "birth": "1962-11-26"
+  },
+  {
+   "row": 8377,
+   "schdl_raw": "1323",
+   "partc_raw": "575",
+   "schdl_sn": 1323,
+   "partc_no": 575,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "세미나",
+   "subject": "2024년도 정보시스템감리사협의회 세미나",
+   "cert_no": "정보시스템감리협회 제887호",
+   "name": "박범진",
+   "birth": "1971-10-11"
+  },
+  {
+   "row": 8530,
+   "schdl_raw": "1325",
+   "partc_raw": "2000",
+   "schdl_sn": 1325,
+   "partc_no": 2000,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "세미나",
+   "subject": "2024년도 정보시스템감리사협의회 세미나",
+   "cert_no": "정보시스템감리협회 제2000호",
+   "name": "양재원",
+   "birth": "1969-05-10"
+  },
+  {
+   "row": 8691,
+   "schdl_raw": "1349",
+   "partc_raw": "1808",
+   "schdl_sn": 1349,
+   "partc_no": 1808,
+   "hours": 21.0,
+   "recognized": 10.0,
+   "session_name": "침해사고 대응훈련",
+   "subject": "YARA기반 정규 표현식",
+   "cert_no": "정보시스템감리협회 제1808호",
+   "name": "조종호",
+   "birth": "1967-03-26"
+  },
+  {
+   "row": 8693,
+   "schdl_raw": "1353",
+   "partc_raw": "1808",
+   "schdl_sn": 1353,
+   "partc_no": 1808,
+   "hours": 21.0,
+   "recognized": 10.0,
+   "session_name": "침해사고 대응훈련",
+   "subject": "YARA기반 정규 표현식",
+   "cert_no": "정보시스템감리협회 제1808호",
+   "name": "조종호",
+   "birth": "1967-03-26"
+  },
+  {
+   "row": 8849,
+   "schdl_raw": "1387",
+   "partc_raw": "44",
+   "schdl_sn": 1387,
+   "partc_no": 44,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "법인위탁계속교육",
+   "subject": "생성형 AI 감리 수행 사례",
+   "cert_no": "정보시스템감리협회 제371호",
+   "name": "이강희",
+   "birth": "1972-02-15"
+  },
+  {
+   "row": 8917,
+   "schdl_raw": "1387",
+   "partc_raw": "960",
+   "schdl_sn": 1387,
+   "partc_no": 960,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "법인위탁계속교육",
+   "subject": "생성형 AI 감리 수행 사례",
+   "cert_no": "정보시스템감리협회 제1617호",
+   "name": "이한근",
+   "birth": "1966-10-04"
+  },
+  {
+   "row": 9353,
+   "schdl_raw": "1325",
+   "partc_raw": "2248",
+   "schdl_sn": 1325,
+   "partc_no": 2248,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "세미나",
+   "subject": "2024년도 정보시스템감리사협의회 세미나",
+   "cert_no": "정보시스템감리협회 제2248호",
+   "name": "양승훈",
+   "birth": "1970-01-05"
+  },
+  {
+   "row": 9357,
+   "schdl_raw": "1425",
+   "partc_raw": "2248",
+   "schdl_sn": 1425,
+   "partc_no": 2248,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "SW보안약점 진단원 보수교육",
+   "subject": "SW보안약점 진단원 보수교육 [5차]",
+   "cert_no": "정보시스템감리협회 제2248호",
+   "name": "양승훈",
+   "birth": "1970-01-05"
+  },
+  {
+   "row": 9358,
+   "schdl_raw": "1426",
+   "partc_raw": "2248",
+   "schdl_sn": 1426,
+   "partc_no": 2248,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "SW보안약점 진단원 보수교육",
+   "subject": "SW보안약점 진단원 보수교육 [1차]",
+   "cert_no": "정보시스템감리협회 제2248호",
+   "name": "양승훈",
+   "birth": "1970-01-05"
+  },
+  {
+   "row": 9359,
+   "schdl_raw": "1427",
+   "partc_raw": "2248",
+   "schdl_sn": 1427,
+   "partc_no": 2248,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "SW보안약점 진단원 보수교육",
+   "subject": "SW보안약점 진단원 보수교육 [2차",
+   "cert_no": "정보시스템감리협회 제2248호",
+   "name": "양승훈",
+   "birth": "1970-01-05"
+  },
+  {
+   "row": 9516,
+   "schdl_raw": "1438",
+   "partc_raw": "4029",
+   "schdl_sn": 1438,
+   "partc_no": 4029,
+   "hours": 3.0,
+   "recognized": 3.0,
+   "session_name": "2025년도 정보시스템 공동 심포지엄",
+   "subject": "AI 시대를 위한 정보시스템 신뢰성 확보 방안",
+   "cert_no": "행정안전부 제509호",
+   "name": "김용갑",
+   "birth": "1960-02-26"
+  },
+  {
+   "row": 9578,
+   "schdl_raw": "1438",
+   "partc_raw": "1673",
+   "schdl_sn": 1438,
+   "partc_no": 1673,
+   "hours": 3.0,
+   "recognized": 3.0,
+   "session_name": "2025년도 정보시스템 공동 심포지엄",
+   "subject": "AI 시대를 위한 정보시스템 신뢰성 확보 방안",
+   "cert_no": "정보시스템감리협회 제1450호",
+   "name": "이은옥",
+   "birth": "1974-01-12"
+  },
+  {
+   "row": 9617,
+   "schdl_raw": "1438",
+   "partc_raw": "1615",
+   "schdl_sn": 1438,
+   "partc_no": 1615,
+   "hours": 3.0,
+   "recognized": 3.0,
+   "session_name": "2025년도 정보시스템 공동 심포지엄",
+   "subject": "AI 시대를 위한 정보시스템 신뢰성 확보 방안",
+   "cert_no": "정보시스템감리협회 제1615호",
+   "name": "이차준",
+   "birth": "1973-09-13"
+  },
+  {
+   "row": 9619,
+   "schdl_raw": "1438",
+   "partc_raw": "1346",
+   "schdl_sn": 1438,
+   "partc_no": 1346,
+   "hours": 3.0,
+   "recognized": 3.0,
+   "session_name": "2025년도 정보시스템 공동 심포지엄",
+   "subject": "AI 시대를 위한 정보시스템 신뢰성 확보 방안",
+   "cert_no": "정보시스템감리협회 제1346호",
+   "name": "이선준",
+   "birth": "1973-09-13"
+  },
+  {
+   "row": 9622,
+   "schdl_raw": "1438",
+   "partc_raw": "923",
+   "schdl_sn": 1438,
+   "partc_no": 923,
+   "hours": 3.0,
+   "recognized": 3.0,
+   "session_name": "2025년도 정보시스템 공동 심포지엄",
+   "subject": "AI 시대를 위한 정보시스템 신뢰성 확보 방안",
+   "cert_no": "정보시스템감리협회 제923호",
+   "name": "김영자",
+   "birth": "1968-03-05"
+  },
+  {
+   "row": 9642,
+   "schdl_raw": "1439",
+   "partc_raw": "1673",
+   "schdl_sn": 1439,
+   "partc_no": 1673,
+   "hours": 7.0,
+   "recognized": 7.0,
+   "session_name": "국가인적자원개발 컨소시엄 훈련과정",
+   "subject": "정보보호관리체계(ISMS-P)구축 및 운영 실무",
+   "cert_no": "정보시스템감리협회 제1670호",
+   "name": "이은옥",
+   "birth": "1972-01-12"
+  },
+  {
+   "row": 9790,
+   "schdl_raw": "1448",
+   "partc_raw": "1615",
+   "schdl_sn": 1448,
+   "partc_no": 1615,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "온라인 계속교육",
+   "subject": "정보시스템 감리원을 위한 논리적 글쓰기",
+   "cert_no": "정보시스템감리협회 제1615호",
+   "name": "이차준",
+   "birth": "1973-09-13"
+  },
+  {
+   "row": 9889,
+   "schdl_raw": "1460",
+   "partc_raw": "2495",
+   "schdl_sn": 1460,
+   "partc_no": 2495,
+   "hours": 6.0,
+   "recognized": 6.0,
+   "session_name": "2025-4차 계속교육",
+   "subject": "생성형 AI의 이해와 활용",
+   "cert_no": "정보시스템감리협회 제2495호",
+   "name": "임대용",
+   "birth": "1956-03-07"
+  },
+  {
+   "row": 9893,
+   "schdl_raw": "1460",
+   "partc_raw": "5190",
+   "schdl_sn": 1460,
+   "partc_no": 5190,
+   "hours": 6.0,
+   "recognized": 6.0,
+   "session_name": "2025-4차 계속교육",
+   "subject": "생성형 AI의 이해와 활용",
+   "cert_no": "정보시스템감리협회 제3445호",
+   "name": "장승한",
+   "birth": "1969-08-16"
+  },
+  {
+   "row": 9937,
+   "schdl_raw": "1460",
+   "partc_raw": "4029",
+   "schdl_sn": 1460,
+   "partc_no": 4029,
+   "hours": 6.0,
+   "recognized": 6.0,
+   "session_name": "2025-4차 계속교육",
+   "subject": "생성형 AI의 이해와 활용",
+   "cert_no": "행정안전부 제509호",
+   "name": "김용갑",
+   "birth": "1960-02-26"
+  },
+  {
+   "row": 9956,
+   "schdl_raw": "1460",
+   "partc_raw": "4037",
+   "schdl_sn": 1460,
+   "partc_no": 4037,
+   "hours": 6.0,
+   "recognized": 6.0,
+   "session_name": "2025-4차 계속교육",
+   "subject": "생성형 AI의 이해와 활용",
+   "cert_no": "행정안전부 제517호",
+   "name": "박경용",
+   "birth": "1959-11-15"
+  },
+  {
+   "row": 9963,
+   "schdl_raw": "1460",
+   "partc_raw": "923",
+   "schdl_sn": 1460,
+   "partc_no": 923,
+   "hours": 6.0,
+   "recognized": 6.0,
+   "session_name": "2025-4차 계속교육",
+   "subject": "생성형 AI의 이해와 활용",
+   "cert_no": "정보시스템감리협회 제923호",
+   "name": "김영자",
+   "birth": "1968-03-05"
+  },
+  {
+   "row": 9964,
+   "schdl_raw": "1460",
+   "partc_raw": "960",
+   "schdl_sn": 1460,
+   "partc_no": 960,
+   "hours": 6.0,
+   "recognized": 6.0,
+   "session_name": "2025-4차 계속교육",
+   "subject": "생성형 AI의 이해와 활용",
+   "cert_no": "정보시스템감리협회 제960호",
+   "name": "이한근",
+   "birth": "1966-10-04"
+  },
+  {
+   "row": 9970,
+   "schdl_raw": "569",
+   "partc_raw": "4168",
+   "schdl_sn": 569,
+   "partc_no": 4168,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "0",
+   "subject": "0",
+   "cert_no": "충청 제1호",
+   "name": "유형원",
+   "birth": "1957-06-01"
+  },
+  {
+   "row": 9971,
+   "schdl_raw": "570",
+   "partc_raw": "4168",
+   "schdl_sn": 570,
+   "partc_no": 4168,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "0",
+   "subject": "0",
+   "cert_no": "충청 제1호",
+   "name": "유형원",
+   "birth": "1957-06-01"
+  },
+  {
+   "row": 9972,
+   "schdl_raw": "662",
+   "partc_raw": "4168",
+   "schdl_sn": 662,
+   "partc_no": 4168,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "0",
+   "subject": "0",
+   "cert_no": "충청 제1호",
+   "name": "유형원",
+   "birth": "1957-06-01"
+  },
+  {
+   "row": 9973,
+   "schdl_raw": "806",
+   "partc_raw": "4168",
+   "schdl_sn": 806,
+   "partc_no": 4168,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "[2024-1차 계속교육]",
+   "subject": "ChatGPT와 AI / LLM의 이해와 활용",
+   "cert_no": "충청 제1호",
+   "name": "유형원",
+   "birth": "1957-06-01"
+  },
+  {
+   "row": 9974,
+   "schdl_raw": "1319",
+   "partc_raw": "4168",
+   "schdl_sn": 1319,
+   "partc_no": 4168,
+   "hours": 7.0,
+   "recognized": 7.0,
+   "session_name": "온라인계속교육",
+   "subject": "감리 프레임워크의 아키텍처 / ITA&ISP 감리",
+   "cert_no": "충청 제1호",
+   "name": "유형원",
+   "birth": "1957-06-01"
+  },
+  {
+   "row": 9975,
+   "schdl_raw": "1321",
+   "partc_raw": "4168",
+   "schdl_sn": 1321,
+   "partc_no": 4168,
+   "hours": 7.0,
+   "recognized": 7.0,
+   "session_name": "온라인계속교육",
+   "subject": "웹 개발기술 / EVM",
+   "cert_no": "충청 제1호",
+   "name": "유형원",
+   "birth": "1957-06-01"
+  },
+  {
+   "row": 9976,
+   "schdl_raw": "1322",
+   "partc_raw": "4168",
+   "schdl_sn": 1322,
+   "partc_no": 4168,
+   "hours": 7.0,
+   "recognized": 7.0,
+   "session_name": "온라인계속교육",
+   "subject": "MDD방법론/오픈소스개발방법론",
+   "cert_no": "충청 제1호",
+   "name": "유형원",
+   "birth": "1957-06-01"
+  },
+  {
+   "row": 10040,
+   "schdl_raw": "1477",
+   "partc_raw": "0",
+   "schdl_sn": 1477,
+   "partc_no": 0,
+   "hours": 2.0,
+   "recognized": 2.0,
+   "session_name": "법인위탁계속교육",
+   "subject": "스마트팩토리 감리원 역량 강화 교육",
+   "cert_no": null,
+   "name": null,
+   "birth": null
+  },
+  {
+   "row": 10044,
+   "schdl_raw": "1482",
+   "partc_raw": "895",
+   "schdl_sn": 1482,
+   "partc_no": 895,
+   "hours": 10.0,
+   "recognized": 5.0,
+   "session_name": "온라인 연수원",
+   "subject": "데이터·AI 활용 역량강화",
+   "cert_no": "정보시스템감리협회 제895호",
+   "name": "안성엽",
+   "birth": "1974-01-18"
+  },
+  {
+   "row": 10050,
+   "schdl_raw": "1488",
+   "partc_raw": "371",
+   "schdl_sn": 1488,
+   "partc_no": 371,
+   "hours": 7.0,
+   "recognized": 3.0,
+   "session_name": "2025년 개인정보 영향평가 계속교육",
+   "subject": "2025년 개인정보 영향평가 계속교육(3차)",
+   "cert_no": "정보시스템감리협회 제371호",
+   "name": "이강희",
+   "birth": "1972-02-15"
+  },
+  {
+   "row": 10130,
+   "schdl_raw": "1491",
+   "partc_raw": "0",
+   "schdl_sn": 1491,
+   "partc_no": 0,
+   "hours": 0,
+   "recognized": 0,
+   "session_name": "2025-5차 계속교육",
+   "subject": "SI프로젝트와 개인정보 Compliance",
+   "cert_no": null,
+   "name": null,
+   "birth": null
+  },
+  {
+   "row": 10271,
+   "schdl_raw": "1517",
+   "partc_raw": "6563",
+   "schdl_sn": 1517,
+   "partc_no": 6563,
+   "hours": 32.0,
+   "recognized": 16.0,
+   "session_name": "[컨소시엄] 초거대 AI(생성형AI) 이해 및 활용 과정",
+   "subject": "[컨소시엄] 초거대 AI(생성형AI) 이해 및 활용 과정",
+   "cert_no": "정보시스템감리협회 제4815호",
+   "name": "김영상",
+   "birth": "1964-07-08"
+  },
+  {
+   "row": 10272,
+   "schdl_raw": "1518",
+   "partc_raw": "6563",
+   "schdl_sn": 1518,
+   "partc_no": 6563,
+   "hours": 28.0,
+   "recognized": 14.0,
+   "session_name": "딥러닝을 활용한 이미지/객체인식 모델 구현",
+   "subject": "딥러닝을 활용한 이미지/객체인식 모델 구현",
+   "cert_no": "정보시스템감리협회 제4815호",
+   "name": "김영상",
+   "birth": "1964-07-08"
+  },
+  {
+   "row": 10273,
+   "schdl_raw": "1519",
+   "partc_raw": "6563",
+   "schdl_sn": 1519,
+   "partc_no": 6563,
+   "hours": 16.0,
+   "recognized": 8.0,
+   "session_name": "데이터베이스의 기본 이론과 SQL",
+   "subject": "데이터베이스의 기본 이론과 SQL",
+   "cert_no": "정보시스템감리협회 제4815호",
+   "name": "김영상",
+   "birth": "1964-07-08"
+  },
+  {
+   "row": 10274,
+   "schdl_raw": "1520",
+   "partc_raw": "6563",
+   "schdl_sn": 1520,
+   "partc_no": 6563,
+   "hours": 8.0,
+   "recognized": 4.0,
+   "session_name": "Function Point 산정 실무 과정",
+   "subject": "Function Point 산정 실무 과정",
+   "cert_no": "정보시스템감리협회 제4815호",
+   "name": "김영상",
+   "birth": "1964-07-08"
+  },
+  {
+   "row": 10297,
+   "schdl_raw": "1543",
+   "partc_raw": "2489",
+   "schdl_sn": 1543,
+   "partc_no": 2489,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "온라인 계속교육",
+   "subject": "정보시스템 감리원을 위한 논리적 글쓰기",
+   "cert_no": "정보시스템감리협회 제2489호",
+   "name": "이동영",
+   "birth": "1972-09-01"
+  },
+  {
+   "row": 11245,
+   "schdl_raw": "2029",
+   "partc_raw": "2606",
+   "schdl_sn": 2029,
+   "partc_no": 2606,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "인공지능",
+   "subject": "인공지능(AI) 전문가 1급",
+   "cert_no": "서울 제59호",
+   "name": "곽노석",
+   "birth": "1956-01-20"
+  },
+  {
+   "row": 11246,
+   "schdl_raw": "2030",
+   "partc_raw": "2606",
+   "schdl_sn": 2030,
+   "partc_no": 2606,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "인공지능",
+   "subject": "인공지능활용전문가 과정",
+   "cert_no": "서울 제59호",
+   "name": "곽노석",
+   "birth": null
+  },
+  {
+   "row": 11253,
+   "schdl_raw": "2038",
+   "partc_raw": "5752",
+   "schdl_sn": 2038,
+   "partc_no": 5752,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "정보보호",
+   "subject": "정보보호관리체계(ISMS-P) 구축 및 운영실무",
+   "cert_no": "정보시스템감리협회 제4006호",
+   "name": "박일환",
+   "birth": null
+  },
+  {
+   "row": 11254,
+   "schdl_raw": "2039",
+   "partc_raw": "5752",
+   "schdl_sn": 2039,
+   "partc_no": 5752,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "인공지능",
+   "subject": "인공지능(AI) 전문가 1급",
+   "cert_no": "정보시스템감리협회 제4006호",
+   "name": "박일환",
+   "birth": null
+  },
+  {
+   "row": 11457,
+   "schdl_raw": "2114",
+   "partc_raw": "3446",
+   "schdl_sn": 2114,
+   "partc_no": 3446,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "SW보안약점",
+   "subject": "SW보안약점 진단원 보수교육 1차",
+   "cert_no": "서울 제899호",
+   "name": "신장섭",
+   "birth": null
+  },
+  {
+   "row": 11458,
+   "schdl_raw": "2117",
+   "partc_raw": "3446",
+   "schdl_sn": 2117,
+   "partc_no": 3446,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "SW보안약점",
+   "subject": "SW보안약점 진단원 보수교육 1차",
+   "cert_no": "서울 제899호",
+   "name": "신장섭",
+   "birth": null
+  },
+  {
+   "row": 11529,
+   "schdl_raw": "2128",
+   "partc_raw": "5764",
+   "schdl_sn": 2128,
+   "partc_no": 5764,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "온라인 계속교육",
+   "subject": "전자정부프레임워크 전문과정",
+   "cert_no": "정보시스템감리협회 제4018호",
+   "name": "장호석",
+   "birth": null
+  },
+  {
+   "row": 11705,
+   "schdl_raw": "2137",
+   "partc_raw": "7599",
+   "schdl_sn": 2137,
+   "partc_no": 7599,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "AI 감리 역랑 강화특강",
+   "subject": "AI 감리 역랑 강화특강",
+   "cert_no": "정보시스템감리협회 제610호",
+   "name": "박종삼",
+   "birth": "1964-05-07"
+  },
+  {
+   "row": 11706,
+   "schdl_raw": "2138",
+   "partc_raw": "7599",
+   "schdl_sn": 2138,
+   "partc_no": 7599,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "AI 감리 역랑 강화특강 (2차)",
+   "subject": "AI 감리 역랑 강화특강 (2차)",
+   "cert_no": "정보시스템감리협회 제610호",
+   "name": "박종삼",
+   "birth": "1964-05-07"
+  },
+  {
+   "row": 11707,
+   "schdl_raw": "2139",
+   "partc_raw": "7599",
+   "schdl_sn": 2139,
+   "partc_no": 7599,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "[2024]MSA",
+   "subject": "[2024]MSA (Micro Service Architecture) 개요",
+   "cert_no": "정보시스템감리협회 제610호",
+   "name": "박종삼",
+   "birth": "1964-05-07"
+  },
+  {
+   "row": 11708,
+   "schdl_raw": "2140",
+   "partc_raw": "7599",
+   "schdl_sn": 2140,
+   "partc_no": 7599,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "[2024] 애자일 개요",
+   "subject": "[2024] 애자일 개요 - 스크럼 중심",
+   "cert_no": "정보시스템감리협회 제610호",
+   "name": "박종삼",
+   "birth": "1964-05-07"
+  },
+  {
+   "row": 11709,
+   "schdl_raw": "2141",
+   "partc_raw": "7599",
+   "schdl_sn": 2141,
+   "partc_no": 7599,
+   "hours": 10.0,
+   "recognized": 10.0,
+   "session_name": "[2024] 리눅스 시스템 운영",
+   "subject": "[2024] 리눅스 시스템 운영을 위한 CLI 활용 실무",
+   "cert_no": "정보시스템감리협회 제610호",
+   "name": "박종삼",
+   "birth": "1964-05-07"
+  },
+  {
+   "row": 11789,
+   "schdl_raw": "2159",
+   "partc_raw": "525",
+   "schdl_sn": 2159,
+   "partc_no": 525,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "생성형 AI",
+   "subject": "생성형 AI 활용(심화)",
+   "cert_no": "제정보시스템감리협회 제2002호",
+   "name": "윤상인",
+   "birth": "1960-01-10"
+  },
+  {
+   "row": 12165,
+   "schdl_raw": "2196",
+   "partc_raw": "5813",
+   "schdl_sn": 2196,
+   "partc_no": 5813,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "개인정보",
+   "subject": "개인정보처리자",
+   "cert_no": "정보시스템 감리협회 제4067호",
+   "name": "석기석",
+   "birth": "1963-11-30"
+  },
+  {
+   "row": 12166,
+   "schdl_raw": "2197",
+   "partc_raw": "5813",
+   "schdl_sn": 2197,
+   "partc_no": 5813,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "개인정보",
+   "subject": "개인정보처리자",
+   "cert_no": "정보시스템 감리협회 제4067호",
+   "name": "석기석",
+   "birth": "1963-11-30"
+  },
+  {
+   "row": 12187,
+   "schdl_raw": "2209",
+   "partc_raw": "6563",
+   "schdl_sn": 2209,
+   "partc_no": 6563,
+   "hours": 12.0,
+   "recognized": 12.0,
+   "session_name": "컨소시엄",
+   "subject": "[컨소시엄] AI 프로젝트 수행 방법론과 실무 적용 과정",
+   "cert_no": "정보시스템감리협회 제4815호",
+   "name": "김영상",
+   "birth": "1964-07-08"
+  },
+  {
+   "row": 12194,
+   "schdl_raw": "2216",
+   "partc_raw": "4507",
+   "schdl_sn": 2216,
+   "partc_no": 4507,
+   "hours": 1.0,
+   "recognized": 1.0,
+   "session_name": "ICT 표준전문가 양성교육",
+   "subject": "ICT 표준전문가 양성교육 - TTA 국내표준화 실무과정",
+   "cert_no": "정보시스템감리협회 제2763호",
+   "name": "정효연",
+   "birth": "1979-02-20"
+  },
+  {
+   "row": 12237,
+   "schdl_raw": "2230",
+   "partc_raw": "18",
+   "schdl_sn": 2230,
+   "partc_no": 18,
+   "hours": 1.0,
+   "recognized": 1.0,
+   "session_name": "정보보호",
+   "subject": "26년 정보보호 공시 실무교육_사전점검 기관 대상 (1차)",
+   "cert_no": "정보시스템감리협회 제18호",
+   "name": "임동배",
+   "birth": "1958-03-17"
+  },
+  {
+   "row": 12279,
+   "schdl_raw": "2236",
+   "partc_raw": "1182",
+   "schdl_sn": 2236,
+   "partc_no": 1182,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "법인위탁계속교육",
+   "subject": "SW 성능 고도화 교육",
+   "cert_no": "정보시스템감리협회 제1182호",
+   "name": "권병섭",
+   "birth": "1966-11-05"
+  },
+  {
+   "row": 12280,
+   "schdl_raw": "2236",
+   "partc_raw": "7101",
+   "schdl_sn": 2236,
+   "partc_no": 7101,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "법인위탁계속교육",
+   "subject": "SW 성능 고도화 교육",
+   "cert_no": "정보시스템감리협회 제5355호",
+   "name": "김기관",
+   "birth": "1970-07-04"
+  },
+  {
+   "row": 12281,
+   "schdl_raw": "2236",
+   "partc_raw": "4684",
+   "schdl_sn": 2236,
+   "partc_no": 4684,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "법인위탁계속교육",
+   "subject": "SW 성능 고도화 교육",
+   "cert_no": "정보시스템감리협회 제2939호",
+   "name": "김승신",
+   "birth": "1971-02-12"
+  },
+  {
+   "row": 12282,
+   "schdl_raw": "2236",
+   "partc_raw": "5278",
+   "schdl_sn": 2236,
+   "partc_no": 5278,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "법인위탁계속교육",
+   "subject": "SW 성능 고도화 교육",
+   "cert_no": "정보시스템감리협회 제3532호",
+   "name": "김제유",
+   "birth": "1965-02-22"
+  },
+  {
+   "row": 12283,
+   "schdl_raw": "2236",
+   "partc_raw": "4429",
+   "schdl_sn": 2236,
+   "partc_no": 4429,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "법인위탁계속교육",
+   "subject": "SW 성능 고도화 교육",
+   "cert_no": "정보시스템감리협회 제2685호",
+   "name": "남봉기",
+   "birth": "1965-12-13"
+  },
+  {
+   "row": 12284,
+   "schdl_raw": "2236",
+   "partc_raw": "287",
+   "schdl_sn": 2236,
+   "partc_no": 287,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "법인위탁계속교육",
+   "subject": "SW 성능 고도화 교육",
+   "cert_no": "정보시스템감리협회 제287호",
+   "name": "박용석",
+   "birth": "1965-05-19"
+  },
+  {
+   "row": 12285,
+   "schdl_raw": "2236",
+   "partc_raw": "2811",
+   "schdl_sn": 2236,
+   "partc_no": 2811,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "법인위탁계속교육",
+   "subject": "SW 성능 고도화 교육",
+   "cert_no": "서울 제264호",
+   "name": "서병도",
+   "birth": "1958-04-23"
+  },
+  {
+   "row": 12286,
+   "schdl_raw": "2236",
+   "partc_raw": "3234",
+   "schdl_sn": 2236,
+   "partc_no": 3234,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "법인위탁계속교육",
+   "subject": "SW 성능 고도화 교육",
+   "cert_no": "서울 제687호",
+   "name": "안병근",
+   "birth": "1964-01-12"
+  },
+  {
+   "row": 12287,
+   "schdl_raw": "2236",
+   "partc_raw": "549",
+   "schdl_sn": 2236,
+   "partc_no": 549,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "법인위탁계속교육",
+   "subject": "SW 성능 고도화 교육",
+   "cert_no": "정보시스템감리협회 제549호",
+   "name": "유광열",
+   "birth": "1955-01-06"
+  },
+  {
+   "row": 12288,
+   "schdl_raw": "2236",
+   "partc_raw": "6927",
+   "schdl_sn": 2236,
+   "partc_no": 6927,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "법인위탁계속교육",
+   "subject": "SW 성능 고도화 교육",
+   "cert_no": "정보시스템감리협회 제5182호",
+   "name": "이대영",
+   "birth": "1962-06-19"
+  },
+  {
+   "row": 12289,
+   "schdl_raw": "2236",
+   "partc_raw": "5577",
+   "schdl_sn": 2236,
+   "partc_no": 5577,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "법인위탁계속교육",
+   "subject": "SW 성능 고도화 교육",
+   "cert_no": "정보시스템감리협회 제3831호",
+   "name": "이성갑",
+   "birth": "1955-03-02"
+  },
+  {
+   "row": 12290,
+   "schdl_raw": "2236",
+   "partc_raw": "6411",
+   "schdl_sn": 2236,
+   "partc_no": 6411,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "법인위탁계속교육",
+   "subject": "SW 성능 고도화 교육",
+   "cert_no": "정보시스템감리협회 제4663호",
+   "name": "이창희",
+   "birth": "1965-03-22"
+  },
+  {
+   "row": 12291,
+   "schdl_raw": "2236",
+   "partc_raw": "3019",
+   "schdl_sn": 2236,
+   "partc_no": 3019,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "법인위탁계속교육",
+   "subject": "SW 성능 고도화 교육",
+   "cert_no": "서울 제472호",
+   "name": "정은주",
+   "birth": "1959-01-24"
+  },
+  {
+   "row": 12292,
+   "schdl_raw": "2236",
+   "partc_raw": "6099",
+   "schdl_sn": 2236,
+   "partc_no": 6099,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "법인위탁계속교육",
+   "subject": "SW 성능 고도화 교육",
+   "cert_no": "정보시스템감리협회 제4353호",
+   "name": "정회문",
+   "birth": "1966-06-10"
+  },
+  {
+   "row": 12293,
+   "schdl_raw": "2236",
+   "partc_raw": "2461",
+   "schdl_sn": 2236,
+   "partc_no": 2461,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "법인위탁계속교육",
+   "subject": "SW 성능 고도화 교육",
+   "cert_no": "정보시스템감리협회 제2461호",
+   "name": "조근희",
+   "birth": "1960-09-09"
+  },
+  {
+   "row": 12294,
+   "schdl_raw": "2236",
+   "partc_raw": "4857",
+   "schdl_sn": 2236,
+   "partc_no": 4857,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "법인위탁계속교육",
+   "subject": "SW 성능 고도화 교육",
+   "cert_no": "정보시스템감리협회 제3112호",
+   "name": "한경훈",
+   "birth": "1969-09-14"
+  },
+  {
+   "row": 12295,
+   "schdl_raw": "2236",
+   "partc_raw": "3458",
+   "schdl_sn": 2236,
+   "partc_no": 3458,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "법인위탁계속교육",
+   "subject": "SW 성능 고도화 교육",
+   "cert_no": "서울 제911호",
+   "name": "홍대기",
+   "birth": "1963-10-29"
+  },
+  {
+   "row": 12490,
+   "schdl_raw": "2246",
+   "partc_raw": "887",
+   "schdl_sn": 2246,
+   "partc_no": 887,
+   "hours": 2.0,
+   "recognized": 2.0,
+   "session_name": "개인정보관리",
+   "subject": "개인정보관리 전문기관 지정 심사위원 양성교육",
+   "cert_no": "정보시스템감리협회 제887호",
+   "name": "박범진",
+   "birth": "1971-10-11"
+  },
+  {
+   "row": 12491,
+   "schdl_raw": "2247",
+   "partc_raw": "887",
+   "schdl_sn": 2247,
+   "partc_no": 887,
+   "hours": 2.0,
+   "recognized": 2.0,
+   "session_name": "개인정보관리",
+   "subject": "개인정보관리 전문기관 지정 심사위원 양성교육",
+   "cert_no": "정보시스템감리협회 제887호",
+   "name": "박범진",
+   "birth": "1971-10-11"
+  },
+  {
+   "row": 12878,
+   "schdl_raw": "2382",
+   "partc_raw": "5395",
+   "schdl_sn": 2382,
+   "partc_no": 5395,
+   "hours": 14.0,
+   "recognized": 14.0,
+   "session_name": "컨소시엄",
+   "subject": "개인정보 보호관리체계 전문가 양성과정",
+   "cert_no": "정보시스템감리협회 제3649호",
+   "name": "최해형",
+   "birth": "1968-06-07"
+  },
+  {
+   "row": 12879,
+   "schdl_raw": "2384",
+   "partc_raw": "2242",
+   "schdl_sn": 2384,
+   "partc_no": 2242,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "SW보안약점",
+   "subject": "2026년 SW보안약점 진단원 보수교육(4차)",
+   "cert_no": "정보시스템감리협회 제2242호",
+   "name": "방성훈",
+   "birth": "1969-01-23"
+  },
+  {
+   "row": 12880,
+   "schdl_raw": "2385",
+   "partc_raw": "2493",
+   "schdl_sn": 2385,
+   "partc_no": 2493,
+   "hours": 16.0,
+   "recognized": 16.0,
+   "session_name": "감리원특급",
+   "subject": "감리원특급(온라인집합)",
+   "cert_no": "정보시스템감리협회 제2493호",
+   "name": "이철",
+   "birth": "1965-02-02"
+  },
+  {
+   "row": 12881,
+   "schdl_raw": "2386",
+   "partc_raw": "6563",
+   "schdl_sn": 2386,
+   "partc_no": 6563,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "Agentic AI",
+   "subject": "기업용 자율 에이전트 개발",
+   "cert_no": "정보시스템감리협회 제4815호",
+   "name": "김영상",
+   "birth": "1964-07-08"
+  },
+  {
+   "row": 12882,
+   "schdl_raw": "2387",
+   "partc_raw": "2253",
+   "schdl_sn": 2387,
+   "partc_no": 2253,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "SW보안약점",
+   "subject": "2026년 SW보안약점 진단원 보수교육(4차)",
+   "cert_no": "정보시스템감리협회 제2253호",
+   "name": "윤성태",
+   "birth": "1974-05-01"
+  },
+  {
+   "row": 12883,
+   "schdl_raw": "2389",
+   "partc_raw": "2118",
+   "schdl_sn": 2389,
+   "partc_no": 2118,
+   "hours": 16.0,
+   "recognized": 16.0,
+   "session_name": "인공지능 중급(일반)",
+   "subject": "인공지능 중급(일반)",
+   "cert_no": "정보시스템감리협회 제2118호",
+   "name": "이화숙",
+   "birth": "1954-12-01"
+  },
+  {
+   "row": 12884,
+   "schdl_raw": "2390",
+   "partc_raw": "3670",
+   "schdl_sn": 2390,
+   "partc_no": 3670,
+   "hours": 16.0,
+   "recognized": 16.0,
+   "session_name": "[컨소시엄] 초거대 AI(생성형AI) 이해 및 활용 과정",
+   "subject": "[컨소시엄] 초거대 AI(생성형AI) 이해 및 활용 과정",
+   "cert_no": "행정안전부 제150호",
+   "name": "장중훈",
+   "birth": "1957-04-27"
+  },
+  {
+   "row": 12885,
+   "schdl_raw": "2393",
+   "partc_raw": "7785",
+   "schdl_sn": 2393,
+   "partc_no": 7785,
+   "hours": 1.0,
+   "recognized": 1.0,
+   "session_name": "공공데이터 품질관리",
+   "subject": "공공데이터 품질관리",
+   "cert_no": "정보시스템감리협회 제6036호",
+   "name": "우석근",
+   "birth": "1969-10-25"
+  },
+  {
+   "row": 12886,
+   "schdl_raw": "2394",
+   "partc_raw": "7785",
+   "schdl_sn": 2394,
+   "partc_no": 7785,
+   "hours": 1.0,
+   "recognized": 1.0,
+   "session_name": "코딩으로 AI 인공지능 배우기 (햄스터S활용)",
+   "subject": "코딩으로 AI 인공지능 배우기 (햄스터S활용)",
+   "cert_no": "정보시스템감리협회 제6036호",
+   "name": "우석근",
+   "birth": "1969-10-25"
+  },
+  {
+   "row": 12887,
+   "schdl_raw": "2395",
+   "partc_raw": "7785",
+   "schdl_sn": 2395,
+   "partc_no": 7785,
+   "hours": 1.0,
+   "recognized": 1.0,
+   "session_name": "2026 AI 리터러시와 업무 활용과정",
+   "subject": "2026 AI 리터러시와 업무 활용과정",
+   "cert_no": "정보시스템감리협회 제6036호",
+   "name": "우석근",
+   "birth": "1969-10-25"
+  },
+  {
+   "row": 12888,
+   "schdl_raw": "2397",
+   "partc_raw": "7112",
+   "schdl_sn": 2397,
+   "partc_no": 7112,
+   "hours": 7.0,
+   "recognized": 7.0,
+   "session_name": "IT프로젝트 성과관리",
+   "subject": "IT프로젝트 성과관리",
+   "cert_no": "정보시스템감리협회 제5366호",
+   "name": "박재현",
+   "birth": "1964-05-04"
+  },
+  {
+   "row": 12889,
+   "schdl_raw": "2399",
+   "partc_raw": "7112",
+   "schdl_sn": 2399,
+   "partc_no": 7112,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "[K-디지털] 클라우드 인프라 아키텍처 설계",
+   "subject": "[K-디지털] 클라우드 인프라 아키텍처 설계",
+   "cert_no": "정보시스템감리협회 제5366호",
+   "name": "박재현",
+   "birth": "1964-05-04"
+  },
+  {
+   "row": 12890,
+   "schdl_raw": "2400",
+   "partc_raw": "7112",
+   "schdl_sn": 2400,
+   "partc_no": 7112,
+   "hours": 5.0,
+   "recognized": 5.0,
+   "session_name": "인공지능(AI) 서비스 목표 수립(이해와 방향 설정)",
+   "subject": "인공지능(AI) 서비스 목표 수립(이해와 방향 설정)",
+   "cert_no": "정보시스템감리협회 제5366호",
+   "name": "박재현",
+   "birth": "1964-05-04"
+  },
+  {
+   "row": 12891,
+   "schdl_raw": "2402",
+   "partc_raw": "3670",
+   "schdl_sn": 2402,
+   "partc_no": 3670,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "[컨소시엄] 멀티모달(Multimodal) 프롬프트 과정",
+   "subject": "[컨소시엄] 멀티모달(Multimodal) 프롬프트 과정",
+   "cert_no": "행정안전부 제150호",
+   "name": "장중훈",
+   "birth": "1957-04-27"
+  },
+  {
+   "row": 12892,
+   "schdl_raw": "2403",
+   "partc_raw": "4698",
+   "schdl_sn": 2403,
+   "partc_no": 4698,
+   "hours": 7.0,
+   "recognized": 7.0,
+   "session_name": "코드품질 향상을 위한 SonarQube 활용",
+   "subject": "코드품질 향상을 위한 SonarQube 활용",
+   "cert_no": "정보시스템감리협회 제2953호",
+   "name": "안영근",
+   "birth": "1966-12-12"
+  },
+  {
+   "row": 12893,
+   "schdl_raw": "2405",
+   "partc_raw": "4698",
+   "schdl_sn": 2405,
+   "partc_no": 4698,
+   "hours": 7.0,
+   "recognized": 7.0,
+   "session_name": "클라우드 환경하에서 소프트웨어 테스트기법",
+   "subject": "클라우드 환경하에서 소프트웨어 테스트기법",
+   "cert_no": "정보시스템감리협회 제2953호",
+   "name": "안영근",
+   "birth": "1966-12-12"
+  },
+  {
+   "row": 12894,
+   "schdl_raw": "2406",
+   "partc_raw": "3667",
+   "schdl_sn": 2406,
+   "partc_no": 3667,
+   "hours": 16.0,
+   "recognized": 16.0,
+   "session_name": "(2026년) 감리원 중급이하 비대면 실시간 화상교육 제8기(2차)",
+   "subject": "(2026년) 감리원 중급이하 비대면 실시간 화상교육 제8기(2차)",
+   "cert_no": "행정안전부 제147호",
+   "name": "정회영",
+   "birth": "1970-07-20"
+  },
+  {
+   "row": 12895,
+   "schdl_raw": "2407",
+   "partc_raw": "7785",
+   "schdl_sn": 2407,
+   "partc_no": 7785,
+   "hours": 16.0,
+   "recognized": 16.0,
+   "session_name": "2026년 개인정보 영향평가 전군교육(하반기,1차)",
+   "subject": "2026년 개인정보 영향평가 전군교육(하반기,1차)",
+   "cert_no": "정보시스템감리협회 제6036호",
+   "name": "우석근",
+   "birth": "1969-10-25"
+  },
+  {
+   "row": 12896,
+   "schdl_raw": "2409",
+   "partc_raw": "3670",
+   "schdl_sn": 2409,
+   "partc_no": 3670,
+   "hours": 2.0,
+   "recognized": 2.0,
+   "session_name": "[컨소시엄] 초거대 AI 트렌드 이해 과정",
+   "subject": "[컨소시엄] 초거대 AI 트렌드 이해 과정",
+   "cert_no": "행정안전부 제150호",
+   "name": "장중훈",
+   "birth": "1957-04-27"
+  },
+  {
+   "row": 12897,
+   "schdl_raw": "2411",
+   "partc_raw": "3670",
+   "schdl_sn": 2411,
+   "partc_no": 3670,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "[컨소시엄] 현장 중심의 PM(Project Manager) 양성 과정",
+   "subject": "[컨소시엄] 현장 중심의 PM(Project Manager) 양성 과정",
+   "cert_no": "행정안전부 제150호",
+   "name": "장중훈",
+   "birth": "1957-04-27"
+  },
+  {
+   "row": 12898,
+   "schdl_raw": "2413",
+   "partc_raw": "3670",
+   "schdl_sn": 2413,
+   "partc_no": 3670,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "[컨소시엄] 생성형 AI를 활용한 업무혁신 과정",
+   "subject": "[컨소시엄] 생성형 AI를 활용한 업무혁신 과정",
+   "cert_no": "행정안전부 제150호",
+   "name": "장중훈",
+   "birth": "1957-04-27"
+  },
+  {
+   "row": 12899,
+   "schdl_raw": "2415",
+   "partc_raw": "3667",
+   "schdl_sn": 2415,
+   "partc_no": 3667,
+   "hours": 3.0,
+   "recognized": 3.0,
+   "session_name": "2026년 7월 스마트공장 수준확인 심사원 정기 교육",
+   "subject": "2026년 7월 스마트공장 수준확인 심사원 정기 교육",
+   "cert_no": "행정안전부 제147호",
+   "name": "정회영",
+   "birth": "1970-07-20"
+  },
+  {
+   "row": 12900,
+   "schdl_raw": "2416",
+   "partc_raw": "3667",
+   "schdl_sn": 2416,
+   "partc_no": 3667,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "2026년 SW보안약점 진단원 보수교육(1차)",
+   "subject": "2026년 SW보안약점 진단원 보수교육(1차)",
+   "cert_no": "행정안전부 제147호",
+   "name": "정회영",
+   "birth": "1970-07-20"
+  },
+  {
+   "row": 12901,
+   "schdl_raw": "2416",
+   "partc_raw": "4698",
+   "schdl_sn": 2416,
+   "partc_no": 4698,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "2026년 SW보안약점 진단원 보수교육(1차)",
+   "subject": "2026년 SW보안약점 진단원 보수교육(1차)",
+   "cert_no": "정보시스템감리협회 제2953호",
+   "name": "안영근",
+   "birth": "1966-12-12"
+  },
+  {
+   "row": 12902,
+   "schdl_raw": "2417",
+   "partc_raw": "4698",
+   "schdl_sn": 2417,
+   "partc_no": 4698,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "SW보안약점 진단원 보수교육[1차]",
+   "subject": "SW보안약점 진단원 보수교육[1차]",
+   "cert_no": "정보시스템감리협회 제2953호",
+   "name": "안영근",
+   "birth": "1966-12-12"
+  },
+  {
+   "row": 12903,
+   "schdl_raw": "2083",
+   "partc_raw": "4698",
+   "schdl_sn": 2083,
+   "partc_no": 4698,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "개발보안 및 소스코드 품질",
+   "subject": "개발보안 및 소스코드 품질",
+   "cert_no": "정보시스템감리협회 제2953호",
+   "name": "안영근",
+   "birth": "1966-12-12"
+  },
+  {
+   "row": 12904,
+   "schdl_raw": "2418",
+   "partc_raw": "3670",
+   "schdl_sn": 2418,
+   "partc_no": 3670,
+   "hours": 16.0,
+   "recognized": 16.0,
+   "session_name": "감리원 중급이하(온라인집합)",
+   "subject": "감리원 중급이하(온라인집합)",
+   "cert_no": "행정안전부 제150호",
+   "name": "장중훈",
+   "birth": "1957-04-27"
+  },
+  {
+   "row": 12905,
+   "schdl_raw": "2083",
+   "partc_raw": "6126",
+   "schdl_sn": 2083,
+   "partc_no": 6126,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "개발보안 및 소스코드 품질",
+   "subject": "개발보안 및 소스코드 품질",
+   "cert_no": "정보시스템감리협회 제4379호",
+   "name": "백승원",
+   "birth": "1997-08-23"
+  },
+  {
+   "row": 12906,
+   "schdl_raw": "2083",
+   "partc_raw": "5616",
+   "schdl_sn": 2083,
+   "partc_no": 5616,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "개발보안 및 소스코드 품질",
+   "subject": "개발보안 및 소스코드 품질",
+   "cert_no": "정보시스템감리협회 제3870호",
+   "name": "유진영",
+   "birth": "1968-09-05"
+  },
+  {
+   "row": 12907,
+   "schdl_raw": "2083",
+   "partc_raw": "4996",
+   "schdl_sn": 2083,
+   "partc_no": 4996,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "개발보안 및 소스코드 품질",
+   "subject": "개발보안 및 소스코드 품질",
+   "cert_no": "정보시스템감리협회 제3251호",
+   "name": "권혁천",
+   "birth": "1959-11-02"
+  },
+  {
+   "row": 12908,
+   "schdl_raw": "2083",
+   "partc_raw": "3678",
+   "schdl_sn": 2083,
+   "partc_no": 3678,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "개발보안 및 소스코드 품질",
+   "subject": "개발보안 및 소스코드 품질",
+   "cert_no": "행정안전부 제158호",
+   "name": "김성경",
+   "birth": "1964-09-03"
+  },
+  {
+   "row": 12909,
+   "schdl_raw": "2083",
+   "partc_raw": "1588",
+   "schdl_sn": 2083,
+   "partc_no": 1588,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "개발보안 및 소스코드 품질",
+   "subject": "개발보안 및 소스코드 품질",
+   "cert_no": "정보시스템감리협회 제1588호",
+   "name": "김욱환",
+   "birth": "1972-06-27"
+  },
+  {
+   "row": 12910,
+   "schdl_raw": "2083",
+   "partc_raw": "5278",
+   "schdl_sn": 2083,
+   "partc_no": 5278,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "개발보안 및 소스코드 품질",
+   "subject": "개발보안 및 소스코드 품질",
+   "cert_no": "정보시스템감리협회 제3532호",
+   "name": "김제유",
+   "birth": "1965-02-22"
+  },
+  {
+   "row": 12911,
+   "schdl_raw": "2083",
+   "partc_raw": "5797",
+   "schdl_sn": 2083,
+   "partc_no": 5797,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "개발보안 및 소스코드 품질",
+   "subject": "개발보안 및 소스코드 품질",
+   "cert_no": "정보시스템감리협회 제4051호",
+   "name": "김주홍",
+   "birth": "1968-04-01"
+  },
+  {
+   "row": 12912,
+   "schdl_raw": "2083",
+   "partc_raw": "2279",
+   "schdl_sn": 2083,
+   "partc_no": 2279,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "개발보안 및 소스코드 품질",
+   "subject": "개발보안 및 소스코드 품질",
+   "cert_no": "정보시스템감리협회 제2279호",
+   "name": "남재근",
+   "birth": "1957-10-27"
+  },
+  {
+   "row": 12913,
+   "schdl_raw": "2083",
+   "partc_raw": "4037",
+   "schdl_sn": 2083,
+   "partc_no": 4037,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "개발보안 및 소스코드 품질",
+   "subject": "개발보안 및 소스코드 품질",
+   "cert_no": "행정안전부 제 517호",
+   "name": "박경용",
+   "birth": "1959-11-15"
+  },
+  {
+   "row": 12914,
+   "schdl_raw": "2083",
+   "partc_raw": "4434",
+   "schdl_sn": 2083,
+   "partc_no": 4434,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "개발보안 및 소스코드 품질",
+   "subject": "개발보안 및 소스코드 품질",
+   "cert_no": "정보시스템감리협회 제2690호",
+   "name": "박명수",
+   "birth": "1962-05-22"
+  },
+  {
+   "row": 12915,
+   "schdl_raw": "2083",
+   "partc_raw": "2168",
+   "schdl_sn": 2083,
+   "partc_no": 2168,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "개발보안 및 소스코드 품질",
+   "subject": "개발보안 및 소스코드 품질",
+   "cert_no": "정보시스템감리협회 제2168호",
+   "name": "박용진",
+   "birth": "1961-08-14"
+  },
+  {
+   "row": 12916,
+   "schdl_raw": "2083",
+   "partc_raw": "3389",
+   "schdl_sn": 2083,
+   "partc_no": 3389,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "개발보안 및 소스코드 품질",
+   "subject": "개발보안 및 소스코드 품질",
+   "cert_no": "서울 제 842호",
+   "name": "박을용",
+   "birth": "1963-01-05"
+  },
+  {
+   "row": 12917,
+   "schdl_raw": "2083",
+   "partc_raw": "5303",
+   "schdl_sn": 2083,
+   "partc_no": 5303,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "개발보안 및 소스코드 품질",
+   "subject": "개발보안 및 소스코드 품질",
+   "cert_no": "정보시스템감리협회 제3557호",
+   "name": "신태갑",
+   "birth": "1962-08-05"
+  },
+  {
+   "row": 12918,
+   "schdl_raw": "2083",
+   "partc_raw": "3809",
+   "schdl_sn": 2083,
+   "partc_no": 3809,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "개발보안 및 소스코드 품질",
+   "subject": "개발보안 및 소스코드 품질",
+   "cert_no": "행정안전부 제289호",
+   "name": "원종빈",
+   "birth": "1961-01-27"
+  },
+  {
+   "row": 12919,
+   "schdl_raw": "2083",
+   "partc_raw": "6324",
+   "schdl_sn": 2083,
+   "partc_no": 6324,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "개발보안 및 소스코드 품질",
+   "subject": "개발보안 및 소스코드 품질",
+   "cert_no": "정보시스템감리협회 제4576호",
+   "name": "이동욱",
+   "birth": "1965-08-01"
+  },
+  {
+   "row": 12920,
+   "schdl_raw": "2083",
+   "partc_raw": "3280",
+   "schdl_sn": 2083,
+   "partc_no": 3280,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "개발보안 및 소스코드 품질",
+   "subject": "개발보안 및 소스코드 품질",
+   "cert_no": "서울 제 733호",
+   "name": "전재영",
+   "birth": "1957-09-22"
+  },
+  {
+   "row": 12921,
+   "schdl_raw": "2083",
+   "partc_raw": "3019",
+   "schdl_sn": 2083,
+   "partc_no": 3019,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "개발보안 및 소스코드 품질",
+   "subject": "개발보안 및 소스코드 품질",
+   "cert_no": "서울 제 472호",
+   "name": "정은주",
+   "birth": "1959-01-24"
+  },
+  {
+   "row": 12922,
+   "schdl_raw": "2083",
+   "partc_raw": "4912",
+   "schdl_sn": 2083,
+   "partc_no": 4912,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "개발보안 및 소스코드 품질",
+   "subject": "개발보안 및 소스코드 품질",
+   "cert_no": "정보시스템감리협회 제3167호",
+   "name": "정하영",
+   "birth": "1956-02-13"
+  },
+  {
+   "row": 12923,
+   "schdl_raw": "2083",
+   "partc_raw": "564",
+   "schdl_sn": 2083,
+   "partc_no": 564,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "개발보안 및 소스코드 품질",
+   "subject": "개발보안 및 소스코드 품질",
+   "cert_no": "정보시스템감리협회 제564호",
+   "name": "정현욱",
+   "birth": "1962-11-21"
+  },
+  {
+   "row": 12924,
+   "schdl_raw": "2083",
+   "partc_raw": "6535",
+   "schdl_sn": 2083,
+   "partc_no": 6535,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "개발보안 및 소스코드 품질",
+   "subject": "개발보안 및 소스코드 품질",
+   "cert_no": "정보시스템감리협회 제4787호",
+   "name": "조민진",
+   "birth": "1964-04-01"
+  },
+  {
+   "row": 12925,
+   "schdl_raw": "2083",
+   "partc_raw": "2464",
+   "schdl_sn": 2083,
+   "partc_no": 2464,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "개발보안 및 소스코드 품질",
+   "subject": "개발보안 및 소스코드 품질",
+   "cert_no": "정보시스템감리협회 제2464호",
+   "name": "최원영",
+   "birth": "1962-04-29"
+  },
+  {
+   "row": 12926,
+   "schdl_raw": "2083",
+   "partc_raw": "4857",
+   "schdl_sn": 2083,
+   "partc_no": 4857,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "개발보안 및 소스코드 품질",
+   "subject": "개발보안 및 소스코드 품질",
+   "cert_no": "정보시스템감리협회 제3112호",
+   "name": "한경훈",
+   "birth": "1969-09-14"
+  },
+  {
+   "row": 12927,
+   "schdl_raw": "2083",
+   "partc_raw": "3330",
+   "schdl_sn": 2083,
+   "partc_no": 3330,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "개발보안 및 소스코드 품질",
+   "subject": "개발보안 및 소스코드 품질",
+   "cert_no": "서울 제 783호",
+   "name": "홍기선",
+   "birth": "1963-07-27"
+  },
+  {
+   "row": 12928,
+   "schdl_raw": "2083",
+   "partc_raw": "3458",
+   "schdl_sn": 2083,
+   "partc_no": 3458,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "개발보안 및 소스코드 품질",
+   "subject": "개발보안 및 소스코드 품질",
+   "cert_no": "서울 제 911호",
+   "name": "홍대기",
+   "birth": "1963-10-29"
+  },
+  {
+   "row": 12929,
+   "schdl_raw": "2083",
+   "partc_raw": "6284",
+   "schdl_sn": 2083,
+   "partc_no": 6284,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "개발보안 및 소스코드 품질",
+   "subject": "개발보안 및 소스코드 품질",
+   "cert_no": "정보시스템감리협회 제 4536호",
+   "name": "황선환",
+   "birth": "1969-07-01"
+  },
+  {
+   "row": 12930,
+   "schdl_raw": "2419",
+   "partc_raw": "7785",
+   "schdl_sn": 2419,
+   "partc_no": 7785,
+   "hours": 3.0,
+   "recognized": 3.0,
+   "session_name": "HCI와 함께하는 소프트웨어 공학",
+   "subject": "HCI와 함께하는 소프트웨어 공학",
+   "cert_no": "정보시스템감리협회 제6036호",
+   "name": "우석근",
+   "birth": "1969-10-25"
+  },
+  {
+   "row": 12931,
+   "schdl_raw": "2420",
+   "partc_raw": "7785",
+   "schdl_sn": 2420,
+   "partc_no": 7785,
+   "hours": 3.0,
+   "recognized": 3.0,
+   "session_name": "코팅의 기술 실습편",
+   "subject": "코팅의 기술 실습편",
+   "cert_no": "정보시스템감리협회 제6036호",
+   "name": "우석근",
+   "birth": "1969-10-25"
+  },
+  {
+   "row": 12932,
+   "schdl_raw": "2421",
+   "partc_raw": "4698",
+   "schdl_sn": 2421,
+   "partc_no": 4698,
+   "hours": 16.0,
+   "recognized": 16.0,
+   "session_name": "데이터거래사 교육 12기",
+   "subject": "데이터거래사 교육 12기",
+   "cert_no": "정보시스템감리협회 제2953호",
+   "name": "안영근",
+   "birth": "1966-12-12"
+  },
+  {
+   "row": 12933,
+   "schdl_raw": "2422",
+   "partc_raw": "4214",
+   "schdl_sn": 2422,
+   "partc_no": 4214,
+   "hours": 7.0,
+   "recognized": 7.0,
+   "session_name": "MDD 방법론 / 오픈소스 기반 개발 방법론",
+   "subject": "MDD 방법론 / 오픈소스 기반 개발 방법론",
+   "cert_no": "충주 제47호",
+   "name": "김재춘",
+   "birth": "1962-10-14"
+  },
+  {
+   "row": 12934,
+   "schdl_raw": "2423",
+   "partc_raw": "1717",
+   "schdl_sn": 2423,
+   "partc_no": 1717,
+   "hours": 7.0,
+   "recognized": 7.0,
+   "session_name": "웹 개발 기술 / EVM",
+   "subject": "웹 개발 기술 / EVM",
+   "cert_no": "정보시스템감리협회 제1717호",
+   "name": "고용진",
+   "birth": "1965-02-16"
+  },
+  {
+   "row": 12935,
+   "schdl_raw": "2424",
+   "partc_raw": "2464",
+   "schdl_sn": 2424,
+   "partc_no": 2464,
+   "hours": 7.0,
+   "recognized": 7.0,
+   "session_name": "감리 프레임워크 아키텍처 / ITA & ISP 감리",
+   "subject": "감리 프레임워크 아키텍처 / ITA & ISP 감리",
+   "cert_no": "정보시스템감리협회 제2464호",
+   "name": "최원영",
+   "birth": "1962-04-29"
+  },
+  {
+   "row": 12936,
+   "schdl_raw": "2425",
+   "partc_raw": "3203",
+   "schdl_sn": 2425,
+   "partc_no": 3203,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "전자정부프레임워크 전문과정",
+   "subject": "전자정부프레임워크 전문과정",
+   "cert_no": "서울 제656호",
+   "name": "김미령",
+   "birth": "1952-06-05"
+  },
+  {
+   "row": 12937,
+   "schdl_raw": "2425",
+   "partc_raw": "2088",
+   "schdl_sn": 2425,
+   "partc_no": 2088,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "전자정부프레임워크 전문과정",
+   "subject": "전자정부프레임워크 전문과정",
+   "cert_no": "정보시스템감리협회 제2088호",
+   "name": "이재원",
+   "birth": "1963-03-12"
+  },
+  {
+   "row": 12938,
+   "schdl_raw": "2425",
+   "partc_raw": "6411",
+   "schdl_sn": 2425,
+   "partc_no": 6411,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "전자정부프레임워크 전문과정",
+   "subject": "전자정부프레임워크 전문과정",
+   "cert_no": "정보시스템감리협회 제4663호",
+   "name": "이창희",
+   "birth": "1965-03-22"
+  },
+  {
+   "row": 12939,
+   "schdl_raw": "2425",
+   "partc_raw": "915",
+   "schdl_sn": 2425,
+   "partc_no": 915,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "전자정부프레임워크 전문과정",
+   "subject": "전자정부프레임워크 전문과정",
+   "cert_no": "정보시스템감리협회 제915호",
+   "name": "이수석",
+   "birth": "1967-09-13"
+  },
+  {
+   "row": 12940,
+   "schdl_raw": "2426",
+   "partc_raw": "3203",
+   "schdl_sn": 2426,
+   "partc_no": 3203,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "정보시스템감리원을 위한 논리적 글쓰기",
+   "subject": "정보시스템감리원을 위한 논리적 글쓰기",
+   "cert_no": "서울 제656호",
+   "name": "김미령",
+   "birth": "1952-06-05"
+  },
+  {
+   "row": 12941,
+   "schdl_raw": "2426",
+   "partc_raw": "345",
+   "schdl_sn": 2426,
+   "partc_no": 345,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "정보시스템감리원을 위한 논리적 글쓰기",
+   "subject": "정보시스템감리원을 위한 논리적 글쓰기",
+   "cert_no": "정보시스템감리협회 제345호",
+   "name": "강신학",
+   "birth": "1966-05-07"
+  },
+  {
+   "row": 12942,
+   "schdl_raw": "2426",
+   "partc_raw": "2464",
+   "schdl_sn": 2426,
+   "partc_no": 2464,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "정보시스템감리원을 위한 논리적 글쓰기",
+   "subject": "정보시스템감리원을 위한 논리적 글쓰기",
+   "cert_no": "정보시스템감리협회 제2464호",
+   "name": "최원영",
+   "birth": "1962-04-29"
+  },
+  {
+   "row": 12943,
+   "schdl_raw": "2426",
+   "partc_raw": "2088",
+   "schdl_sn": 2426,
+   "partc_no": 2088,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "정보시스템감리원을 위한 논리적 글쓰기",
+   "subject": "정보시스템감리원을 위한 논리적 글쓰기",
+   "cert_no": "정보시스템감리협회 제2088호",
+   "name": "이재원",
+   "birth": "1963-03-12"
+  },
+  {
+   "row": 12944,
+   "schdl_raw": "2426",
+   "partc_raw": "6378",
+   "schdl_sn": 2426,
+   "partc_no": 6378,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "정보시스템감리원을 위한 논리적 글쓰기",
+   "subject": "정보시스템감리원을 위한 논리적 글쓰기",
+   "cert_no": "정보시스템감리협회 제4630호",
+   "name": "장정화",
+   "birth": "1963-01-21"
+  },
+  {
+   "row": 12945,
+   "schdl_raw": "2426",
+   "partc_raw": "6002",
+   "schdl_sn": 2426,
+   "partc_no": 6002,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "정보시스템감리원을 위한 논리적 글쓰기",
+   "subject": "정보시스템감리원을 위한 논리적 글쓰기",
+   "cert_no": "정보시스템감리협회 제4256호",
+   "name": "황동환",
+   "birth": "1970-10-27"
+  },
+  {
+   "row": 12946,
+   "schdl_raw": "2426",
+   "partc_raw": "915",
+   "schdl_sn": 2426,
+   "partc_no": 915,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "정보시스템감리원을 위한 논리적 글쓰기",
+   "subject": "정보시스템감리원을 위한 논리적 글쓰기",
+   "cert_no": "정보시스템감리협회 제915호",
+   "name": "이수석",
+   "birth": "1967-09-13"
+  },
+  {
+   "row": 12947,
+   "schdl_raw": "2427",
+   "partc_raw": "7105",
+   "schdl_sn": 2427,
+   "partc_no": 7105,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "PMO 1차 과정",
+   "subject": "PMO 1차 과정",
+   "cert_no": "정보시스템감리협회 제5359호",
+   "name": "김영민",
+   "birth": "1977-01-14"
+  },
+  {
+   "row": 12948,
+   "schdl_raw": "2427",
+   "partc_raw": "3780",
+   "schdl_sn": 2427,
+   "partc_no": 3780,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "PMO 1차 과정",
+   "subject": "PMO 1차 과정",
+   "cert_no": "행정안전부 제260호",
+   "name": "이광인",
+   "birth": "1971-11-09"
+  },
+  {
+   "row": 12949,
+   "schdl_raw": "2427",
+   "partc_raw": "736",
+   "schdl_sn": 2427,
+   "partc_no": 736,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "PMO 1차 과정",
+   "subject": "PMO 1차 과정",
+   "cert_no": "정보시스템감리협회 제736호",
+   "name": "정현수",
+   "birth": "1959-01-22"
+  },
+  {
+   "row": 12950,
+   "schdl_raw": "2427",
+   "partc_raw": "6905",
+   "schdl_sn": 2427,
+   "partc_no": 6905,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "PMO 1차 과정",
+   "subject": "PMO 1차 과정",
+   "cert_no": "정보시스템감리협회 제5160호",
+   "name": "김병권",
+   "birth": "1969-10-30"
+  },
+  {
+   "row": 12951,
+   "schdl_raw": "2427",
+   "partc_raw": "915",
+   "schdl_sn": 2427,
+   "partc_no": 915,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "PMO 1차 과정",
+   "subject": "PMO 1차 과정",
+   "cert_no": "정보시스템감리협회 제915호",
+   "name": "이수석",
+   "birth": "1967-09-13"
+  },
+  {
+   "row": 12952,
+   "schdl_raw": "2428",
+   "partc_raw": "3780",
+   "schdl_sn": 2428,
+   "partc_no": 3780,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "PMO 2차 과정",
+   "subject": "PMO 2차 과정",
+   "cert_no": "행정안전부 제260호",
+   "name": "이광인",
+   "birth": "1971-11-09"
+  },
+  {
+   "row": 12953,
+   "schdl_raw": "2428",
+   "partc_raw": "6541",
+   "schdl_sn": 2428,
+   "partc_no": 6541,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "PMO 2차 과정",
+   "subject": "PMO 2차 과정",
+   "cert_no": "정보시스템감리협회 제4793호",
+   "name": "안희학",
+   "birth": "1956-09-21"
+  },
+  {
+   "row": 12954,
+   "schdl_raw": "2428",
+   "partc_raw": "1022",
+   "schdl_sn": 2428,
+   "partc_no": 1022,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "PMO 2차 과정",
+   "subject": "PMO 2차 과정",
+   "cert_no": "정보시스템감리협회 제1022호",
+   "name": "박정욱",
+   "birth": "1973-06-29"
+  },
+  {
+   "row": 12955,
+   "schdl_raw": "2428",
+   "partc_raw": "915",
+   "schdl_sn": 2428,
+   "partc_no": 915,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "PMO 2차 과정",
+   "subject": "PMO 2차 과정",
+   "cert_no": "정보시스템감리협회 제915호",
+   "name": "이수석",
+   "birth": "1967-09-13"
+  },
+  {
+   "row": 12956,
+   "schdl_raw": "2429",
+   "partc_raw": "915",
+   "schdl_sn": 2429,
+   "partc_no": 915,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "PMO 3차 과정",
+   "subject": "PMO 3차 과정",
+   "cert_no": "정보시스템감리협회 제915호",
+   "name": "이수석",
+   "birth": "1967-09-13"
+  },
+  {
+   "row": 12957,
+   "schdl_raw": "2364",
+   "partc_raw": "3203",
+   "schdl_sn": 2364,
+   "partc_no": 3203,
+   "hours": 24.0,
+   "recognized": 24.0,
+   "session_name": "PMO 통합과정",
+   "subject": "PMO 통합과정",
+   "cert_no": "서울 제656호",
+   "name": "김미령",
+   "birth": "1952-06-05"
+  },
+  {
+   "row": 12958,
+   "schdl_raw": "2364",
+   "partc_raw": "6002",
+   "schdl_sn": 2364,
+   "partc_no": 6002,
+   "hours": 24.0,
+   "recognized": 24.0,
+   "session_name": "PMO 통합과정",
+   "subject": "PMO 통합과정",
+   "cert_no": "정보시스템감리협회 제4256호",
+   "name": "황동환",
+   "birth": "1970-10-27"
+  },
+  {
+   "row": 12959,
+   "schdl_raw": "2430",
+   "partc_raw": "4574",
+   "schdl_sn": 2430,
+   "partc_no": 4574,
+   "hours": 16.0,
+   "recognized": 16.0,
+   "session_name": "2026년 SW개발보안 진단원 기본과정(1차)",
+   "subject": "2026년 SW개발보안 진단원 기본과정(1차)",
+   "cert_no": "정보시스템감리협회 제2830호",
+   "name": "이태현",
+   "birth": "1972-06-05"
+  },
+  {
+   "row": 12960,
+   "schdl_raw": "2431",
+   "partc_raw": "7234",
+   "schdl_sn": 2431,
+   "partc_no": 7234,
+   "hours": 16.0,
+   "recognized": 16.0,
+   "session_name": "SW보안약점 진단원 기(양성)본과정 [오프라인][3차]",
+   "subject": "SW보안약점 진단원 기(양성)본과정 [오프라인][3차]",
+   "cert_no": "정보시스템감리협회 제5488호",
+   "name": "하영석",
+   "birth": "1966-07-06"
+  },
+  {
+   "row": 12961,
+   "schdl_raw": "2432",
+   "partc_raw": "3599",
+   "schdl_sn": 2432,
+   "partc_no": 3599,
+   "hours": 7.0,
+   "recognized": 7.0,
+   "session_name": "웹 개발 기술 / EVM",
+   "subject": "웹 개발 기술 / EVM",
+   "cert_no": "행정안전부 제79호",
+   "name": "류경창",
+   "birth": "1970-11-01"
+  },
+  {
+   "row": 12962,
+   "schdl_raw": "2433",
+   "partc_raw": "5754",
+   "schdl_sn": 2433,
+   "partc_no": 5754,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "정보시스템감리원을 위한 논리적 글쓰기",
+   "subject": "정보시스템감리원을 위한 논리적 글쓰기",
+   "cert_no": "정보시스템감리협회 제4008호",
+   "name": "배상호",
+   "birth": "1963-11-14"
+  },
+  {
+   "row": 12963,
+   "schdl_raw": "2434",
+   "partc_raw": "3599",
+   "schdl_sn": 2434,
+   "partc_no": 3599,
+   "hours": 24.0,
+   "recognized": 24.0,
+   "session_name": "PMO 통합과정",
+   "subject": "PMO 통합과정",
+   "cert_no": "행정안전부 제79호",
+   "name": "류경창",
+   "birth": "1970-11-01"
+  },
+  {
+   "row": 12964,
+   "schdl_raw": "2434",
+   "partc_raw": "4610",
+   "schdl_sn": 2434,
+   "partc_no": 4610,
+   "hours": 24.0,
+   "recognized": 24.0,
+   "session_name": "PMO 통합과정",
+   "subject": "PMO 통합과정",
+   "cert_no": "정보시스템감리협회 제2866호",
+   "name": "송맹규",
+   "birth": "1967-08-15"
+  },
+  {
+   "row": 12965,
+   "schdl_raw": "2435",
+   "partc_raw": "6563",
+   "schdl_sn": 2435,
+   "partc_no": 6563,
+   "hours": 3.0,
+   "recognized": 3.0,
+   "session_name": "[온라인] 클라우드와 클라우드 네이티브를 위한 기본 기술과정",
+   "subject": "[온라인] 클라우드와 클라우드 네이티브를 위한 기본 기술과정",
+   "cert_no": "정보시스템감리협회 제4815호",
+   "name": "김영상",
+   "birth": "1964-07-08"
+  },
+  {
+   "row": 12966,
+   "schdl_raw": "2436",
+   "partc_raw": "5791",
+   "schdl_sn": 2436,
+   "partc_no": 5791,
+   "hours": 2.0,
+   "recognized": 2.0,
+   "session_name": "인공지능 신뢰성 인증을 통한 AI 품질 향상 방법론 과정",
+   "subject": "인공지능 신뢰성 인증을 통한 AI 품질 향상 방법론 과정",
+   "cert_no": "정보시스템감리협회 제4045호",
+   "name": "김성갑",
+   "birth": "1959-11-01"
+  },
+  {
+   "row": 12967,
+   "schdl_raw": "2437",
+   "partc_raw": "5791",
+   "schdl_sn": 2437,
+   "partc_no": 5791,
+   "hours": 7.0,
+   "recognized": 7.0,
+   "session_name": "CSTS 품질 전문가 양성 심화",
+   "subject": "CSTS 품질 전문가 양성 심화",
+   "cert_no": "정보시스템감리협회 제4045호",
+   "name": "김성갑",
+   "birth": "1959-11-01"
+  },
+  {
+   "row": 12968,
+   "schdl_raw": "2438",
+   "partc_raw": "5791",
+   "schdl_sn": 2438,
+   "partc_no": 5791,
+   "hours": 7.0,
+   "recognized": 7.0,
+   "session_name": "JMeter 기반 실전 성능테스트",
+   "subject": "JMeter 기반 실전 성능테스트",
+   "cert_no": "정보시스템감리협회 제4045호",
+   "name": "김성갑",
+   "birth": "1959-11-01"
+  },
+  {
+   "row": 12969,
+   "schdl_raw": "2439",
+   "partc_raw": "6563",
+   "schdl_sn": 2439,
+   "partc_no": 6563,
+   "hours": 16.0,
+   "recognized": 16.0,
+   "session_name": "데이터거래사 교육 15기",
+   "subject": "데이터거래사 교육 15기",
+   "cert_no": "정보시스템감리협회 제4815호",
+   "name": "김영상",
+   "birth": "1964-07-08"
+  },
+  {
+   "row": 12970,
+   "schdl_raw": "2440",
+   "partc_raw": "2118",
+   "schdl_sn": 2440,
+   "partc_no": 2118,
+   "hours": 3.0,
+   "recognized": 3.0,
+   "session_name": "제 2차 기업 실무자 대상 인공지능 신뢰성 및 인증 교육",
+   "subject": "제 2차 기업 실무자 대상 인공지능 신뢰성 및 인증 교육",
+   "cert_no": "정보시스템감리협회 제2118호",
+   "name": "이화숙",
+   "birth": "1954-12-01"
+  },
+  {
+   "row": 12971,
+   "schdl_raw": "2441",
+   "partc_raw": "783",
+   "schdl_sn": 2441,
+   "partc_no": 783,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "정보통신설비 유지보수 관리자",
+   "subject": "정보통신설비 유지보수 관리자",
+   "cert_no": "정보시스템감리협회 제783호",
+   "name": "김문기",
+   "birth": "1963-08-12"
+  },
+  {
+   "row": 12972,
+   "schdl_raw": "2442",
+   "partc_raw": "783",
+   "schdl_sn": 2442,
+   "partc_no": 783,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "AI훈련코치 역량 강화 교육_기본과정",
+   "subject": "AI훈련코치 역량 강화 교육_기본과정",
+   "cert_no": "정보시스템감리협회 제783호",
+   "name": "김문기",
+   "birth": "1963-08-12"
+  },
+  {
+   "row": 12973,
+   "schdl_raw": "2443",
+   "partc_raw": "783",
+   "schdl_sn": 2443,
+   "partc_no": 783,
+   "hours": 6.0,
+   "recognized": 6.0,
+   "session_name": "[빅데이터분석] 파이썬 웹 데이터 수집(웹API/웹스크래핑)",
+   "subject": "[빅데이터분석] 파이썬 웹 데이터 수집(웹API/웹스크래핑)",
+   "cert_no": "정보시스템감리협회 제783호",
+   "name": "김문기",
+   "birth": "1963-08-12"
+  },
+  {
+   "row": 12974,
+   "schdl_raw": "2444",
+   "partc_raw": "783",
+   "schdl_sn": 2444,
+   "partc_no": 783,
+   "hours": 3.0,
+   "recognized": 3.0,
+   "session_name": "(특별교육)[인공지능] 효율적인 LLM 서비스 개발를 위한 LangChain 입문",
+   "subject": "(특별교육)[인공지능] 효율적인 LLM 서비스 개발를 위한 LangChain 입문",
+   "cert_no": "정보시스템감리협회 제783호",
+   "name": "김문기",
+   "birth": "1963-08-12"
+  },
+  {
+   "row": 12975,
+   "schdl_raw": "2447",
+   "partc_raw": "783",
+   "schdl_sn": 2447,
+   "partc_no": 783,
+   "hours": 3.0,
+   "recognized": 3.0,
+   "session_name": "한국기술교육대학교 능력개발교육원",
+   "subject": "(특별교육)온디바이스 LLM 앱 개발 - Local LLM 의 장점 이해와 이를 활용한 온디바이스 앱 개발",
+   "cert_no": "정보시스템감리협회 제783호",
+   "name": "김문기",
+   "birth": "1963-08-12"
+  },
+  {
+   "row": 12976,
+   "schdl_raw": "2448",
+   "partc_raw": "783",
+   "schdl_sn": 2448,
+   "partc_no": 783,
+   "hours": 3.0,
+   "recognized": 3.0,
+   "session_name": "한국기술교육대학교 능력개발교육원",
+   "subject": "(특별교육) 생성형 AI(diffusion)를 활용한 영상 콘텐츠 제작",
+   "cert_no": "정보시스템감리협회 제783호",
+   "name": "김문기",
+   "birth": "1963-08-12"
+  },
+  {
+   "row": 12977,
+   "schdl_raw": "2449",
+   "partc_raw": "2903",
+   "schdl_sn": 2449,
+   "partc_no": 2903,
+   "hours": 1.0,
+   "recognized": 1.0,
+   "session_name": "(스마트제조)디지털전환(DX)멘토단 사업성실수행 교육(코칭단)",
+   "subject": "(스마트제조)디지털전환(DX)멘토단 사업성실수행 교육(코칭단)",
+   "cert_no": "서울 제356호",
+   "name": "리강민",
+   "birth": "1962-10-18"
+  },
+  {
+   "row": 12978,
+   "schdl_raw": "2450",
+   "partc_raw": "2864",
+   "schdl_sn": 2450,
+   "partc_no": 2864,
+   "hours": 2.0,
+   "recognized": 2.0,
+   "session_name": "정보보호 및 개인정보보호 관리체계(ISMS-P) 구축운영",
+   "subject": "정보보호 및 개인정보보호 관리체계(ISMS-P) 구축운영",
+   "cert_no": "서울 제317호",
+   "name": "황철구",
+   "birth": "1956-10-03"
+  },
+  {
+   "row": 12979,
+   "schdl_raw": "2451",
+   "partc_raw": "2864",
+   "schdl_sn": 2451,
+   "partc_no": 2864,
+   "hours": 1.0,
+   "recognized": 1.0,
+   "session_name": "CPO 제도 시행령,고시 개정 및 주요내용 안내",
+   "subject": "CPO 제도 시행령,고시 개정 및 주요내용 안내",
+   "cert_no": "서울 제317호",
+   "name": "황철구",
+   "birth": "1956-10-03"
+  },
+  {
+   "row": 12980,
+   "schdl_raw": "2452",
+   "partc_raw": "2864",
+   "schdl_sn": 2452,
+   "partc_no": 2864,
+   "hours": 2.0,
+   "recognized": 2.0,
+   "session_name": "해킹과 정보보안",
+   "subject": "해킹과 정보보안",
+   "cert_no": "서울 제317호",
+   "name": "황철구",
+   "birth": "1956-10-03"
+  },
+  {
+   "row": 12981,
+   "schdl_raw": "2453",
+   "partc_raw": "2864",
+   "schdl_sn": 2453,
+   "partc_no": 2864,
+   "hours": 2.0,
+   "recognized": 2.0,
+   "session_name": "SWA와 AA, 개발자에서 아키텍트되기",
+   "subject": "SWA와 AA, 개발자에서 아키텍트되기",
+   "cert_no": "서울 제317호",
+   "name": "황철구",
+   "birth": "1956-10-03"
+  },
+  {
+   "row": 12982,
+   "schdl_raw": "2457",
+   "partc_raw": "2864",
+   "schdl_sn": 2457,
+   "partc_no": 2864,
+   "hours": 1.0,
+   "recognized": 1.0,
+   "session_name": "IT인프라스트럭처 가상화 및 클라우드 컴퓨팅",
+   "subject": "IT인프라스트럭처 가상화 및 클라우드 컴퓨팅",
+   "cert_no": "서울 제317호",
+   "name": "황철구",
+   "birth": "1956-10-03"
+  },
+  {
+   "row": 12983,
+   "schdl_raw": "2459",
+   "partc_raw": "1336",
+   "schdl_sn": 2459,
+   "partc_no": 1336,
+   "hours": 16.0,
+   "recognized": 16.0,
+   "session_name": "SW보안약점 진단원 양성과정(오프라인) [3차]",
+   "subject": "SW보안약점 진단원 양성과정(오프라인) [3차]",
+   "cert_no": "정보시스템감리협회 제1336호",
+   "name": "변상선",
+   "birth": "1970-01-08"
+  },
+  {
+   "row": 12984,
+   "schdl_raw": "2467",
+   "partc_raw": "7150",
+   "schdl_sn": 2467,
+   "partc_no": 7150,
+   "hours": 7.0,
+   "recognized": 7.0,
+   "session_name": "정보보호 관리 운영 및 보안성 검토",
+   "subject": "정보보호 관리 운영 및 보안성 검토",
+   "cert_no": "정보시스템감리협회 제5404호",
+   "name": "강영원",
+   "birth": "1966-02-10"
+  },
+  {
+   "row": 12985,
+   "schdl_raw": "2468",
+   "partc_raw": "7150",
+   "schdl_sn": 2468,
+   "partc_no": 7150,
+   "hours": 7.0,
+   "recognized": 7.0,
+   "session_name": "정보보안을 위한 모델링 및 시뮬레이션",
+   "subject": "정보보안을 위한 모델링 및 시뮬레이션",
+   "cert_no": "정보시스템감리협회 제5404호",
+   "name": "강영원",
+   "birth": "1966-02-10"
+  },
+  {
+   "row": 12986,
+   "schdl_raw": "2469",
+   "partc_raw": "7150",
+   "schdl_sn": 2469,
+   "partc_no": 7150,
+   "hours": 2.0,
+   "recognized": 2.0,
+   "session_name": "[기초직업능력] 정보처리능력",
+   "subject": "[기초직업능력] 정보처리능력",
+   "cert_no": "정보시스템감리협회 제5404호",
+   "name": "강영원",
+   "birth": "1966-02-10"
+  },
+  {
+   "row": 12987,
+   "schdl_raw": "2471",
+   "partc_raw": "7150",
+   "schdl_sn": 2471,
+   "partc_no": 7150,
+   "hours": 7.0,
+   "recognized": 7.0,
+   "session_name": "정보보호 관리 운영 및 보안성 검토",
+   "subject": "정보보호 관리 운영 및 보안성 검토",
+   "cert_no": "정보시스템감리협회 제5404호",
+   "name": "강영원",
+   "birth": "1966-02-10"
+  },
+  {
+   "row": 12988,
+   "schdl_raw": "2472",
+   "partc_raw": "7150",
+   "schdl_sn": 2472,
+   "partc_no": 7150,
+   "hours": 2.0,
+   "recognized": 2.0,
+   "session_name": "[기초직업능력] 정보처리능력",
+   "subject": "[기초직업능력] 정보처리능력",
+   "cert_no": "정보시스템감리협회 제5404호",
+   "name": "강영원",
+   "birth": "1966-02-10"
+  },
+  {
+   "row": 12990,
+   "schdl_raw": "2476",
+   "partc_raw": "7150",
+   "schdl_sn": 2476,
+   "partc_no": 7150,
+   "hours": 7.0,
+   "recognized": 7.0,
+   "session_name": "정보보호 관리 운영 및 보안성 검토",
+   "subject": "정보보호 관리 운영 및 보안성 검토",
+   "cert_no": "정보시스템감리협회 제5404호",
+   "name": "강영원",
+   "birth": "1966-02-10"
+  },
+  {
+   "row": 12991,
+   "schdl_raw": "2477",
+   "partc_raw": "7150",
+   "schdl_sn": 2477,
+   "partc_no": 7150,
+   "hours": 7.0,
+   "recognized": 7.0,
+   "session_name": "정보보안을 위한 모델링 및 시뮬레이션",
+   "subject": "정보보안을 위한 모델링 및 시뮬레이션",
+   "cert_no": "정보시스템감리협회 제5404호",
+   "name": "강영원",
+   "birth": "1966-02-10"
+  },
+  {
+   "row": 12992,
+   "schdl_raw": "2478",
+   "partc_raw": "7150",
+   "schdl_sn": 2478,
+   "partc_no": 7150,
+   "hours": 2.0,
+   "recognized": 2.0,
+   "session_name": "[기초직업능력] 정보처리능력",
+   "subject": "[기초직업능력] 정보처리능력",
+   "cert_no": "정보시스템감리협회 제5404호",
+   "name": "강영원",
+   "birth": "1966-02-10"
+  },
+  {
+   "row": 12993,
+   "schdl_raw": "2480",
+   "partc_raw": "783",
+   "schdl_sn": 2480,
+   "partc_no": 783,
+   "hours": 6.0,
+   "recognized": 6.0,
+   "session_name": "[정보기술전략계획] Power BI를 활용한 데이터 분석과 시각화(기본)",
+   "subject": "[정보기술전략계획] Power BI를 활용한 데이터 분석과 시각화(기본)",
+   "cert_no": "정보시스템감리협회 제783호",
+   "name": "김문기",
+   "birth": "1963-08-12"
+  },
+  {
+   "row": 12994,
+   "schdl_raw": "2481",
+   "partc_raw": "783",
+   "schdl_sn": 2481,
+   "partc_no": 783,
+   "hours": 3.0,
+   "recognized": 3.0,
+   "session_name": "(특별교육)[인공지능] 라마인덱스(LLAMA INDEX) 활용 실습",
+   "subject": "(특별교육)[인공지능] 라마인덱스(LLAMA INDEX) 활용 실습",
+   "cert_no": "정보시스템감리협회 제783호",
+   "name": "김문기",
+   "birth": "1963-08-12"
+  },
+  {
+   "row": 12995,
+   "schdl_raw": "2482",
+   "partc_raw": "783",
+   "schdl_sn": 2482,
+   "partc_no": 783,
+   "hours": 6.0,
+   "recognized": 6.0,
+   "session_name": "(스마트공장)온디바이스 기반 인공지능 비전인식 모델 학습",
+   "subject": "(스마트공장)온디바이스 기반 인공지능 비전인식 모델 학습",
+   "cert_no": "정보시스템감리협회 제783호",
+   "name": "김문기",
+   "birth": "1963-08-12"
+  },
+  {
+   "row": 12996,
+   "schdl_raw": "2484",
+   "partc_raw": "557",
+   "schdl_sn": 2484,
+   "partc_no": 557,
+   "hours": 3.0,
+   "recognized": 3.0,
+   "session_name": "ChatGTP활용한 빅데이터분석",
+   "subject": "ChatGTP활용한 빅데이터분석",
+   "cert_no": "정보시스템감리협회 제557호",
+   "name": "홍종권",
+   "birth": "1956-08-25"
+  },
+  {
+   "row": 12997,
+   "schdl_raw": "2485",
+   "partc_raw": "557",
+   "schdl_sn": 2485,
+   "partc_no": 557,
+   "hours": 7.0,
+   "recognized": 7.0,
+   "session_name": "자율 이동체 시뮬레이션 프로그래밍",
+   "subject": "자율 이동체 시뮬레이션 프로그래밍",
+   "cert_no": "정보시스템감리협회 제557호",
+   "name": "홍종권",
+   "birth": "1956-08-25"
+  },
+  {
+   "row": 12998,
+   "schdl_raw": "2486",
+   "partc_raw": "557",
+   "schdl_sn": 2486,
+   "partc_no": 557,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "생성형 AI를 활용한 비즈니스 서비스 개발",
+   "subject": "생성형 AI를 활용한 비즈니스 서비스 개발",
+   "cert_no": "정보시스템감리협회 제557호",
+   "name": "홍종권",
+   "birth": "1956-08-25"
+  },
+  {
+   "row": 12999,
+   "schdl_raw": "2488",
+   "partc_raw": "2497",
+   "schdl_sn": 2488,
+   "partc_no": 2497,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "2026년 SW보안약점 진단원 보수교육(4차)",
+   "subject": "2026년 SW보안약점 진단원 보수교육(4차)",
+   "cert_no": "정보시스템감리협회 제2497호",
+   "name": "장지숙",
+   "birth": "1971-07-01"
+  },
+  {
+   "row": 13000,
+   "schdl_raw": "2490",
+   "partc_raw": "1336",
+   "schdl_sn": 2490,
+   "partc_no": 1336,
+   "hours": 13.0,
+   "recognized": 13.0,
+   "session_name": "개인정보 보호책임자(CPO) 기본교육 - 1회차",
+   "subject": "개인정보 보호책임자(CPO) 기본교육 - 1회차",
+   "cert_no": "정보시스템감리협회 제1336호",
+   "name": "변상선",
+   "birth": "1970-01-08"
+  }
+ ],
+ "field_diffs": [
+  {
+   "record_no": "LEG-EDC-862-690",
+   "name": "강봉기",
+   "cert": "정보시스템감리협회 제609호",
+   "hours": {
+    "excel_recognized": 7.0,
+    "excel_hours": 14.0,
+    "db": "3.00"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-860-690",
+   "name": "강봉기",
+   "cert": "정보시스템감리협회 제609호",
+   "hours": {
+    "excel_recognized": 7.0,
+    "excel_hours": 14.0,
+    "db": "3.00"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-1081-2294",
+   "name": "윤선영",
+   "cert": "정보시스템감리협회 제2294호",
+   "hours": {
+    "excel_recognized": 10.0,
+    "excel_hours": 21.0,
+    "db": "0.00"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-4548",
+   "name": "김은향",
+   "cert": "정보시스템감리협회 제2804호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-6239",
+   "name": "곽준환",
+   "cert": "정보시스템감리협회 제4491호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-3284",
+   "name": "신현명",
+   "cert": "서울 제737호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-4898",
+   "name": "우선욱",
+   "cert": "정보시스템감리협회 제3153호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-1614",
+   "name": "이종선",
+   "cert": "정보시스템감리협회 제1614호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-5197",
+   "name": "채해천",
+   "cert": "정보시스템감리협회 제3452호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-5553",
+   "name": "강기환",
+   "cert": "정보시스템감리협회 제3807호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-4990",
+   "name": "강안노",
+   "cert": "정보시스템감리협회 제3245호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-5167",
+   "name": "강종섭",
+   "cert": "정보시스템감리협회 제3422호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-5733",
+   "name": "강진욱",
+   "cert": "정보시스템감리협회 제3987호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-3055",
+   "name": "강진화",
+   "cert": "서울 제508호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-5735",
+   "name": "강현주",
+   "cert": "정보시스템감리협회 제3989호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-6426",
+   "name": "고영미",
+   "cert": "정보시스템감리협회 제4678호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-6427",
+   "name": "공형진",
+   "cert": "정보시스템감리협회 제4679호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-5221",
+   "name": "구태경",
+   "cert": "정보시스템감리협회 제3475호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-6428",
+   "name": "권기원",
+   "cert": "정보시스템감리협회 제4680호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-1773",
+   "name": "권병한",
+   "cert": "정보시스템감리협회 제1773호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2987",
+   "name": "권영순",
+   "cert": "서울 제440호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-4727",
+   "name": "권혁인",
+   "cert": "정보시스템감리협회 제2982호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2741",
+   "name": "권형표",
+   "cert": "서울 제194호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-108",
+   "name": "길이홍",
+   "cert": "정보시스템감리협회 제108호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-876",
+   "name": "김경호",
+   "cert": "정보시스템감리협회 제876호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-5223",
+   "name": "김고은",
+   "cert": "정보시스템감리협회 제3477호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2227",
+   "name": "김기린",
+   "cert": "정보시스템감리협회 제2227호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-3532",
+   "name": "김대식",
+   "cert": "행정안전부 제12호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2622",
+   "name": "김대원",
+   "cert": "서울 제75호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-6714",
+   "name": "김동식",
+   "cert": "정보시스템감리협회 제4968호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-6205",
+   "name": "김동을",
+   "cert": "정보시스템감리협회 제4457호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-1985",
+   "name": "김동필",
+   "cert": "정보시스템감리협회 제1985호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-4922",
+   "name": "김동환",
+   "cert": "정보시스템감리협회 제3177호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-6152",
+   "name": "김두현",
+   "cert": "정보시스템감리협회 제4405호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-5891",
+   "name": "김만배",
+   "cert": "정보시스템감리협회 제4145호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2229",
+   "name": "김명일",
+   "cert": "정보시스템감리협회 제2229호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-181",
+   "name": "김미정",
+   "cert": "정보시스템감리협회 제181호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2230",
+   "name": "김민겸",
+   "cert": "정보시스템감리협회 제2230호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-352",
+   "name": "김병양",
+   "cert": "정보시스템감리협회 제352호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-3998",
+   "name": "김상복",
+   "cert": "행정안전부 제478호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-5170",
+   "name": "김상수",
+   "cert": "정보시스템감리협회 제3425호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2231",
+   "name": "김상협",
+   "cert": "정보시스템감리협회 제2231호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-506",
+   "name": "김선용",
+   "cert": "정보시스템감리협회 제506호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-4778",
+   "name": "김성용",
+   "cert": "정보시스템감리협회 제3033호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2834",
+   "name": "김성윤",
+   "cert": "서울 제287호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-4417",
+   "name": "김성지",
+   "cert": "정보시스템감리협회 제2673호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-251",
+   "name": "김성진",
+   "cert": "정보시스템감리협회 제251호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2232",
+   "name": "김성학",
+   "cert": "정보시스템감리협회 제2232호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-4641",
+   "name": "김세진",
+   "cert": "정보시스템감리협회 제2897호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2783",
+   "name": "김영근",
+   "cert": "서울 제236호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-882",
+   "name": "김영대",
+   "cert": "정보시스템감리협회 제882호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-1586",
+   "name": "김영자",
+   "cert": "정보시스템감리협회 제1586호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2565",
+   "name": "김영재",
+   "cert": "서울 제18호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2607",
+   "name": "김영철",
+   "cert": "서울 제60호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2365",
+   "name": "김용재",
+   "cert": "정보시스템감리협회 제2365호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-5742",
+   "name": "김용철",
+   "cert": "정보시스템감리협회 제3996호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2277",
+   "name": "김원배",
+   "cert": "정보시스템감리협회 제2277호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-4274",
+   "name": "김은미",
+   "cert": "전북 제3호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-3771",
+   "name": "김은희",
+   "cert": "행정안전부 제251호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-4422",
+   "name": "김인국",
+   "cert": "정보시스템감리협회 제2678호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-4550",
+   "name": "김일수",
+   "cert": "정보시스템감리협회 제2806호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-5640",
+   "name": "김재춘",
+   "cert": "정보시스템감리협회 제3894호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2235",
+   "name": "김재훈",
+   "cert": "정보시스템감리협회 제2235호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-7297",
+   "name": "김종구",
+   "cert": "정보시스템감리협회 제5551호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-5744",
+   "name": "김종수",
+   "cert": "정보시스템감리협회 제3998호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2197",
+   "name": "김진희",
+   "cert": "정보시스템감리협회 제2197호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-884",
+   "name": "김찬우",
+   "cert": "정보시스템감리협회 제884호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-4598",
+   "name": "김창훈",
+   "cert": "정보시스템감리협회 제2854호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-4554",
+   "name": "김춘규",
+   "cert": "정보시스템감리협회 제2810호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-6119",
+   "name": "김태군",
+   "cert": "정보시스템감리협회 제4372호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2814",
+   "name": "김태현",
+   "cert": "서울 제267호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-4555",
+   "name": "김태형",
+   "cert": "정보시스템감리협회 제2811호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-6502",
+   "name": "김태환",
+   "cert": "정보시스템감리협회 제4754호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2198",
+   "name": "김택성",
+   "cert": "정보시스템감리협회 제2198호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-5693",
+   "name": "김혁",
+   "cert": "정보시스템감리협회 제3947호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-4557",
+   "name": "김현선",
+   "cert": "정보시스템감리협회 제2813호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-4825",
+   "name": "김호술",
+   "cert": "정보시스템감리협회 제3080호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-5433",
+   "name": "김홍국",
+   "cert": "정보시스템감리협회 제3687호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-1590",
+   "name": "김화진",
+   "cert": "정보시스템감리협회 제1590호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-1780",
+   "name": "나기문",
+   "cert": "정보시스템감리협회 제1780호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-5748",
+   "name": "남민호",
+   "cert": "정보시스템감리협회 제4002호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-4429",
+   "name": "남봉기",
+   "cert": "정보시스템감리협회 제2685호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2238",
+   "name": "노규현",
+   "cert": "정보시스템감리협회 제2238호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-4431",
+   "name": "도영훈",
+   "cert": "정보시스템감리협회 제2687호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-3249",
+   "name": "류진구",
+   "cert": "서울 제702호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2903",
+   "name": "리강민",
+   "cert": "서울 제356호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-4300",
+   "name": "마채원",
+   "cert": "정보시스템감리협회 제2556호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-606",
+   "name": "박경호",
+   "cert": "정보시스템감리협회 제606호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-3384",
+   "name": "박규효",
+   "cert": "서울 제837호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-6254",
+   "name": "박남규",
+   "cert": "정보시스템감리협회 제4506호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-6442",
+   "name": "박덕길",
+   "cert": "정보시스템감리협회 제4694호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-887",
+   "name": "박범진",
+   "cert": "정보시스템감리협회 제887호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-4933",
+   "name": "박봉근",
+   "cert": "정보시스템감리협회 제3188호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2474",
+   "name": "박상학",
+   "cert": "정보시스템감리협회 제2474호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-5121",
+   "name": "박선한",
+   "cert": "정보시스템감리협회 제3376호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2475",
+   "name": "박성희",
+   "cert": "정보시스템감리협회 제2475호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-1993",
+   "name": "박승진",
+   "cert": "정보시스템감리협회 제1993호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-5751",
+   "name": "박영배",
+   "cert": "정보시스템감리협회 제4005호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-262",
+   "name": "박윤재",
+   "cert": "정보시스템감리협회 제262호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-7111",
+   "name": "박재아",
+   "cert": "정보시스템감리협회 제5365호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-1594",
+   "name": "박재찬",
+   "cert": "정보시스템감리협회 제1594호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-6916",
+   "name": "박재한",
+   "cert": "정보시스템감리협회 제5171호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-4650",
+   "name": "박정근",
+   "cert": "정보시스템감리협회 제2906호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-4438",
+   "name": "박정로",
+   "cert": "정보시스템감리협회 제2694호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2477",
+   "name": "박정우",
+   "cert": "정보시스템감리협회 제2477호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-5647",
+   "name": "박정혜",
+   "cert": "정보시스템감리협회 제3901호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-3168",
+   "name": "박정희",
+   "cert": "서울 제621호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-609",
+   "name": "박종민",
+   "cert": "정보시스템감리협회 제609호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-610",
+   "name": "박종삼",
+   "cert": "정보시스템감리협회 제610호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-4440",
+   "name": "박춘희",
+   "cert": "정보시스템감리협회 제2696호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-1597",
+   "name": "박훈성",
+   "cert": "정보시스템감리협회 제1597호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2827",
+   "name": "박휘문",
+   "cert": "서울 제280호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-6595",
+   "name": "방보웅",
+   "cert": "정보시스템감리협회 제4847호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2134",
+   "name": "배강호",
+   "cert": "정보시스템감리협회 제2134호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-4559",
+   "name": "배광현",
+   "cert": "정보시스템감리협회 제2815호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-5728",
+   "name": "배진용",
+   "cert": "정보시스템감리협회 제3982호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2631",
+   "name": "배형문",
+   "cert": "서울 제84호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-6367",
+   "name": "백건효",
+   "cert": "정보시스템감리협회 제4619호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-3184",
+   "name": "백서경",
+   "cert": "서울 제637호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-4560",
+   "name": "백예균",
+   "cert": "정보시스템감리협회 제2816호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-4609",
+   "name": "서홍경",
+   "cert": "정보시스템감리협회 제2865호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-5813",
+   "name": "석기석",
+   "cert": "정보시스템감리협회 제4067호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-188",
+   "name": "설영주",
+   "cert": "정보시스템감리협회 제188호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-3000",
+   "name": "손정순",
+   "cert": "서울 제453호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-1508",
+   "name": "송규석",
+   "cert": "정보시스템감리협회 제1508호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-4562",
+   "name": "송옥경",
+   "cert": "정보시스템감리협회 제2818호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-4564",
+   "name": "송제환",
+   "cert": "정보시스템감리협회 제2820호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-7168",
+   "name": "송지웅",
+   "cert": "정보시스템감리협회 제5422호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-5818",
+   "name": "송하섭",
+   "cert": "정보시스템감리협회 제4072호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-6688",
+   "name": "신경희",
+   "cert": "정보시스템감리협회 제4941호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-5939",
+   "name": "신근동",
+   "cert": "정보시스템감리협회 제4193호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2247",
+   "name": "신미정",
+   "cert": "정보시스템감리협회 제2247호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-5409",
+   "name": "신영균",
+   "cert": "정보시스템감리협회 제3663호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-5981",
+   "name": "신은식",
+   "cert": "정보시스템감리협회 제4235호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-1512",
+   "name": "신인식",
+   "cert": "정보시스템감리협회 제1512호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-4566",
+   "name": "심문수",
+   "cert": "정보시스템감리협회 제2822호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-1445",
+   "name": "심형섭",
+   "cert": "정보시스템감리협회 제1445호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-894",
+   "name": "안길한",
+   "cert": "정보시스템감리협회 제894호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-4157",
+   "name": "안병기",
+   "cert": "행정안전부 제637호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-895",
+   "name": "안성엽",
+   "cert": "정보시스템감리협회 제895호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-1204",
+   "name": "안성지",
+   "cert": "정보시스템감리협회 제1204호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-1603",
+   "name": "양권묵",
+   "cert": "정보시스템감리협회 제1603호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-228",
+   "name": "양성건",
+   "cert": "정보시스템감리협회 제228호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-5613",
+   "name": "양희구",
+   "cert": "정보시스템감리협회 제3867호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2483",
+   "name": "오세청",
+   "cert": "정보시스템감리협회 제2483호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-7318",
+   "name": "오수진",
+   "cert": "정보시스템감리협회 제5261호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-6323",
+   "name": "오제훈",
+   "cert": "정보시스템감리협회 제4575호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2484",
+   "name": "오지영",
+   "cert": "정보시스템감리협회 제2484호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-7400",
+   "name": "우정민",
+   "cert": "정보시스템감리협회 제5654호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-4677",
+   "name": "원희창",
+   "cert": "서울 제496호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-5730",
+   "name": "유승주",
+   "cert": "정보시스템감리협회 제3984호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2900",
+   "name": "유의종",
+   "cert": "서울 제353호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2569",
+   "name": "유지호",
+   "cert": "서울 제22호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-133",
+   "name": "유태영",
+   "cert": "정보시스템감리협회 제133호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-1759",
+   "name": "유현주",
+   "cert": "정보시스템감리협회 제1759호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2725",
+   "name": "유홍준",
+   "cert": "서울 제178호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-5135",
+   "name": "윤동호",
+   "cert": "정보시스템감리협회 제3390호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-5027",
+   "name": "윤미숙",
+   "cert": "정보시스템감리협회 제3282호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-618",
+   "name": "윤용식",
+   "cert": "정보시스템감리협회 제618호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2820",
+   "name": "윤은기",
+   "cert": "서울  제273호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2488",
+   "name": "윤태호",
+   "cert": "정보시스템감리협회 제2488호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-1607",
+   "name": "이건환",
+   "cert": "정보시스템감리협회 제1607호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-5710",
+   "name": "이규화",
+   "cert": "정보시스템감리협회 제5527호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-373",
+   "name": "이동규",
+   "cert": "정보시스템감리협회 제373호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-3302",
+   "name": "이동길",
+   "cert": "서울 제755호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-4009",
+   "name": "이동석",
+   "cert": "행정안전부 제489호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-5711",
+   "name": "이동현",
+   "cert": "정보시스템감리협회 제3965호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-374",
+   "name": "이명우",
+   "cert": "정보시스템감리협회 제374호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-6858",
+   "name": "이명희",
+   "cert": "정보시스템감리협회 제5113호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-5985",
+   "name": "이문규",
+   "cert": "정보시스템감리협회 제4239호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2254",
+   "name": "이미경",
+   "cert": "정보시스템감리협회 제2254호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-1796",
+   "name": "이미애",
+   "cert": "정보시스템감리협회 제1796호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-5313",
+   "name": "이백희",
+   "cert": "정보시스템감리협회 제3567호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-1734",
+   "name": "이부원",
+   "cert": "정보시스템감리협회 제1734호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2086",
+   "name": "이상헌",
+   "cert": "정보시스템감리협회 제2086호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-4290",
+   "name": "이승원",
+   "cert": "경북 제13호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-6626",
+   "name": "이승현",
+   "cert": "정보시스템감리협회 제4878호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-5186",
+   "name": "이승호",
+   "cert": "정보시스템감리협회 제3441호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2490",
+   "name": "이시찬",
+   "cert": "정보시스템감리협회 제2490호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2747",
+   "name": "이원석",
+   "cert": "서울 제200호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-6740",
+   "name": "이윤숙",
+   "cert": "정보시스템감리협회 제4994호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-1348",
+   "name": "이윤희",
+   "cert": "정보시스템감리협회 제1348호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-4569",
+   "name": "이의준",
+   "cert": "정보시스템감리협회 제2825호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-5449",
+   "name": "이인숙",
+   "cert": "정보시스템감리협회 제3703호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-4571",
+   "name": "이정일",
+   "cert": "정보시스템감리협회 제2827호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2975",
+   "name": "이정훈",
+   "cert": "서울 제428호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-4572",
+   "name": "이종철",
+   "cert": "정보시스템감리협회 제2828호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2646",
+   "name": "이종호",
+   "cert": "서울 제99호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-4573",
+   "name": "이지은",
+   "cert": "정보시스템감리협회 제2829호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-1124",
+   "name": "이지환",
+   "cert": "정보시스템감리협회 제1124호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2255",
+   "name": "이진표",
+   "cert": "정보시스템감리협회 제2255호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-7182",
+   "name": "이창열",
+   "cert": "정보시스템감리협회 제5436호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-6411",
+   "name": "이창희",
+   "cert": "정보시스템감리협회 제4663호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-5036",
+   "name": "이향배",
+   "cert": "정보시스템감리협회 제3291호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-3085",
+   "name": "이현철",
+   "cert": "서울 제538호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-4576",
+   "name": "이효중",
+   "cert": "정보시스템감리협회 제2832호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2495",
+   "name": "임대용",
+   "cert": "정보시스템감리협회 제2495호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-3400",
+   "name": "임한신",
+   "cert": "서울 제853호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2008",
+   "name": "장덕호",
+   "cert": "정보시스템감리협회 제2008호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2009",
+   "name": "장명호",
+   "cert": "정보시스템감리협회 제2009호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-5190",
+   "name": "장승한",
+   "cert": "정보시스템감리협회 제3445호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2012",
+   "name": "장준영",
+   "cert": "정보시스템감리협회 제2012호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2497",
+   "name": "장지숙",
+   "cert": "정보시스템감리협회 제2497호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-5504",
+   "name": "장현주",
+   "cert": "정보시스템감리협회 제3758호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-5764",
+   "name": "장호석",
+   "cert": "정보시스템감리협회 제4018호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-3766",
+   "name": "장화영",
+   "cert": "행정안전부 제246호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-626",
+   "name": "전경석",
+   "cert": "정보시스템감리협회 제626호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-5765",
+   "name": "전경수",
+   "cert": "정보시스템감리협회 제4019호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-4579",
+   "name": "전병용",
+   "cert": "정보시스템감리협회 제2835호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-5191",
+   "name": "전정훈",
+   "cert": "정보시스템감리협회 제3446호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2013",
+   "name": "전지웅",
+   "cert": "정보시스템감리협회 제2013호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2354",
+   "name": "전창국",
+   "cert": "정보시스템감리협회 제2354호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-4013",
+   "name": "전현덕",
+   "cert": "행정안전부 제493호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-380",
+   "name": "전혜영",
+   "cert": "정보시스템감리협회 제380호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-1620",
+   "name": "정갑규",
+   "cert": "정보시스템감리협회 제1620호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2014",
+   "name": "정길선",
+   "cert": "정보시스템감리협회 제2014호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2015",
+   "name": "정숙향",
+   "cert": "정보시스템감리협회 제2015호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2016",
+   "name": "정승국",
+   "cert": "정보시스템감리협회 제2016호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2458",
+   "name": "정승필",
+   "cert": "정보시스템감리협회 제2458호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2500",
+   "name": "정용석",
+   "cert": "정보시스템감리협회 제2500호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-4581",
+   "name": "정재훈",
+   "cert": "정보시스템감리협회 제2837호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2501",
+   "name": "정진국",
+   "cert": "정보시스템감리협회 제2501호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2459",
+   "name": "정창신",
+   "cert": "정보시스템감리협회 제2459호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-736",
+   "name": "정현수",
+   "cert": "정보시스템감리협회 제736호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-6350",
+   "name": "정현욱",
+   "cert": "정보시스템감리협회 제4602호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-4583",
+   "name": "정혜정",
+   "cert": "정보시스템감리협회 제2839호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-961",
+   "name": "조건효",
+   "cert": "정보시스템감리협회 제961호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2865",
+   "name": "조기식",
+   "cert": "서울 제318호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2260",
+   "name": "조동현",
+   "cert": "정보시스템감리협회 제2260호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-1354",
+   "name": "조민상",
+   "cert": "정보시스템감리협회 제1354호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2301",
+   "name": "조수연",
+   "cert": "정보시스템감리협회 제2301호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2714",
+   "name": "조영주",
+   "cert": "서울 제167호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-4210",
+   "name": "조영주",
+   "cert": "충청 제43호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-4584",
+   "name": "조영준",
+   "cert": "정보시스템감리협회 제2840호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-5859",
+   "name": "조용래",
+   "cert": "정보시스템감리협회 제4113호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-1808",
+   "name": "조종호",
+   "cert": "정보시스템감리협회 제1808호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-4233",
+   "name": "조형화",
+   "cert": "부산 제16호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-6420",
+   "name": "지경엽",
+   "cert": "정보시스템감리협회 제4672호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2795",
+   "name": "지광열",
+   "cert": "서울 제248호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-5911",
+   "name": "진병운",
+   "cert": "정보시스템감리협회 제4165호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-4767",
+   "name": "진우석",
+   "cert": "정보시스템감리협회 제3022호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2019",
+   "name": "채민수",
+   "cert": "정보시스템감리협회 제2019호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-1535",
+   "name": "최규상",
+   "cert": "정보시스템감리협회 제1535호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-6076",
+   "name": "최동인",
+   "cert": "정보시스템감리협회 제4330호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-6464",
+   "name": "최상호",
+   "cert": "정보시스템감리협회 제4716호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-4946",
+   "name": "최석홍",
+   "cert": "정보시스템감리협회 제3201호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-3623",
+   "name": "최성주",
+   "cert": "행정안전부 제103호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-5256",
+   "name": "최승희",
+   "cert": "정보시스템감리협회 제3510호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2263",
+   "name": "최용타",
+   "cert": "정보시스템감리협회 제2263호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2948",
+   "name": "최우림",
+   "cert": "정보시스템감리협회 제3453호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-5198",
+   "name": "최일연",
+   "cert": "서울  제401호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2966",
+   "name": "최재균",
+   "cert": "서울 제419호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2264",
+   "name": "최주영",
+   "cert": "정보시스템감리협회 제2264호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-6422",
+   "name": "최준성",
+   "cert": "정보시스템감리협회 제4674호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-4855",
+   "name": "최지윤",
+   "cert": "정보시스템감리협회 제3110호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2022",
+   "name": "최학원",
+   "cert": "정보시스템감리협회 제2022호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-4318",
+   "name": "탁근선",
+   "cert": "정보시스템감리협회 제2574호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-1365",
+   "name": "한용석",
+   "cert": "정보시스템감리협회 제1365호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-5057",
+   "name": "홍민혜",
+   "cert": "정보시스템감리협회 제3312호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2267",
+   "name": "홍병기",
+   "cert": "정보시스템감리협회 제2267호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2882",
+   "name": "홍성예",
+   "cert": "서울 제335호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2268",
+   "name": "홍제숙",
+   "cert": "정보시스템감리협회 제2268호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2025",
+   "name": "황규문",
+   "cert": "정보시스템감리협회 제2025호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-6002",
+   "name": "황동환",
+   "cert": "정보시스템감리협회 제4256호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-5778",
+   "name": "황동훈",
+   "cert": "정보시스템감리협회 제4032호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2639",
+   "name": "황병록",
+   "cert": "서울 제92호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2505",
+   "name": "황원일",
+   "cert": "정보시스템감리협회 제2505호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-1982",
+   "name": "김민수",
+   "cert": "정보시스템감리협회 제1982호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-6563",
+   "name": "김영상",
+   "cert": "정보시스템감리협회 제4815호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2952",
+   "name": "김용근",
+   "cert": "서울 제405호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2584",
+   "name": "김원재",
+   "cert": "서울 제37호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-4551",
+   "name": "김정열",
+   "cert": "정보시스템감리협회 제2807호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-4552",
+   "name": "김종현",
+   "cert": "정보시스템감리협회 제2808호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-6953",
+   "name": "김창연",
+   "cert": "정보시스템감리협회 제5208호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-603",
+   "name": "김희영",
+   "cert": "정보시스템감리협회 제603호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-5605",
+   "name": "서강은",
+   "cert": "정보시스템감리협회 제3859호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-892",
+   "name": "송승범",
+   "cert": "정보시스템감리협회 제892호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-7167",
+   "name": "송정현",
+   "cert": "서울 제1509호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-3139",
+   "name": "신민홍",
+   "cert": "서울 제593호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2224",
+   "name": "오명섭",
+   "cert": "정보시스템감리협회 제2224호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-1833",
+   "name": "원상연",
+   "cert": "정보시스템감리협회 제1833호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-900",
+   "name": "이기택",
+   "cert": "정보시스템감리협회 제900호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-5577",
+   "name": "이성갑",
+   "cert": "정보시스템감리협회 제3831호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-1349",
+   "name": "이은숙",
+   "cert": "정보시스템감리협회 제1349호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-4570",
+   "name": "이정빈",
+   "cert": "정보시스템감리협회 제2826호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2173",
+   "name": "이종선",
+   "cert": "정보시스템감리협회 제2173호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-1350",
+   "name": "임혁민",
+   "cert": "정보시스템감리협회 제1350호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-1802",
+   "name": "전영희",
+   "cert": "정보시스템감리협회 제1802호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-3280",
+   "name": "전재영",
+   "cert": "서울 제733호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-6380",
+   "name": "정광술",
+   "cert": "정보시스템감리협회 제4632호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-5857",
+   "name": "정재훈",
+   "cert": "정보시스템감리협회 제4111호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-908",
+   "name": "정진욱",
+   "cert": "정보시스템감리협회 제908호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-564",
+   "name": "정현욱",
+   "cert": "정보시스템감리협회 제564호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-6756",
+   "name": "최욱지",
+   "cert": "정보시스템감리협회 제5010호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-6000",
+   "name": "함경윤",
+   "cert": "정보시스템감리협회 제4254호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-3458",
+   "name": "홍대기",
+   "cert": "서울 제911호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-2647",
+   "name": "조왕호",
+   "cert": "서울 제100호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-3389",
+   "name": "박을용",
+   "cert": "서울 제842호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-6712",
+   "name": "금장철",
+   "cert": "정보시스템감리협회 제4966호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2005-7136",
+   "name": "정원배",
+   "cert": "정보시스템감리협회 제5390호",
+   "start": {
+    "excel": null,
+    "db": "2025-11-29"
+   },
+   "end": {
+    "excel": null,
+    "db": "2025-11-29"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2093-182",
+   "name": "김선주",
+   "cert": "정보시스템감리협회 제182호",
+   "start": {
+    "excel": "2025-09-15",
+    "db": "2025-12-28"
+   },
+   "end": {
+    "excel": "2025-09-16",
+    "db": "2026-01-25"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2094-182",
+   "name": "김선주",
+   "cert": "정보시스템감리협회 제182호",
+   "start": {
+    "excel": "2026-01-12",
+    "db": "2026-01-01"
+   },
+   "end": {
+    "excel": "2026-01-13",
+    "db": "2026-01-19"
+   }
+  },
+  {
+   "record_no": "LEG-EDC-2095-182",
+   "name": "김선주",
+   "cert": "정보시스템감리협회 제182호",
+   "start": {
+    "excel": "2026-02-23",
+    "db": "2025-12-28"
+   },
+   "end": {
+    "excel": "2026-02-24",
+    "db": "2026-01-25"
+   }
+  }
+ ],
+ "db_extra_not_in_canonical": [],
+ "new_only_count": 122,
+ "new_only_in_db": 0,
+ "new_only_missing": [
+  {
+   "row": 12878,
+   "schdl_raw": "2382",
+   "partc_raw": "5395",
+   "schdl_sn": 2382,
+   "partc_no": 5395,
+   "hours": 14.0,
+   "recognized": 14.0,
+   "session_name": "컨소시엄",
+   "subject": "개인정보 보호관리체계 전문가 양성과정",
+   "cert_no": "정보시스템감리협회 제3649호",
+   "name": "최해형",
+   "birth": "1968-06-07"
+  },
+  {
+   "row": 12879,
+   "schdl_raw": "2384",
+   "partc_raw": "2242",
+   "schdl_sn": 2384,
+   "partc_no": 2242,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "SW보안약점",
+   "subject": "2026년 SW보안약점 진단원 보수교육(4차)",
+   "cert_no": "정보시스템감리협회 제2242호",
+   "name": "방성훈",
+   "birth": "1969-01-23"
+  },
+  {
+   "row": 12880,
+   "schdl_raw": "2385",
+   "partc_raw": "2493",
+   "schdl_sn": 2385,
+   "partc_no": 2493,
+   "hours": 16.0,
+   "recognized": 16.0,
+   "session_name": "감리원특급",
+   "subject": "감리원특급(온라인집합)",
+   "cert_no": "정보시스템감리협회 제2493호",
+   "name": "이철",
+   "birth": "1965-02-02"
+  },
+  {
+   "row": 12881,
+   "schdl_raw": "2386",
+   "partc_raw": "6563",
+   "schdl_sn": 2386,
+   "partc_no": 6563,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "Agentic AI",
+   "subject": "기업용 자율 에이전트 개발",
+   "cert_no": "정보시스템감리협회 제4815호",
+   "name": "김영상",
+   "birth": "1964-07-08"
+  },
+  {
+   "row": 12882,
+   "schdl_raw": "2387",
+   "partc_raw": "2253",
+   "schdl_sn": 2387,
+   "partc_no": 2253,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "SW보안약점",
+   "subject": "2026년 SW보안약점 진단원 보수교육(4차)",
+   "cert_no": "정보시스템감리협회 제2253호",
+   "name": "윤성태",
+   "birth": "1974-05-01"
+  },
+  {
+   "row": 12883,
+   "schdl_raw": "2389",
+   "partc_raw": "2118",
+   "schdl_sn": 2389,
+   "partc_no": 2118,
+   "hours": 16.0,
+   "recognized": 16.0,
+   "session_name": "인공지능 중급(일반)",
+   "subject": "인공지능 중급(일반)",
+   "cert_no": "정보시스템감리협회 제2118호",
+   "name": "이화숙",
+   "birth": "1954-12-01"
+  },
+  {
+   "row": 12884,
+   "schdl_raw": "2390",
+   "partc_raw": "3670",
+   "schdl_sn": 2390,
+   "partc_no": 3670,
+   "hours": 16.0,
+   "recognized": 16.0,
+   "session_name": "[컨소시엄] 초거대 AI(생성형AI) 이해 및 활용 과정",
+   "subject": "[컨소시엄] 초거대 AI(생성형AI) 이해 및 활용 과정",
+   "cert_no": "행정안전부 제150호",
+   "name": "장중훈",
+   "birth": "1957-04-27"
+  },
+  {
+   "row": 12885,
+   "schdl_raw": "2393",
+   "partc_raw": "7785",
+   "schdl_sn": 2393,
+   "partc_no": 7785,
+   "hours": 1.0,
+   "recognized": 1.0,
+   "session_name": "공공데이터 품질관리",
+   "subject": "공공데이터 품질관리",
+   "cert_no": "정보시스템감리협회 제6036호",
+   "name": "우석근",
+   "birth": "1969-10-25"
+  },
+  {
+   "row": 12886,
+   "schdl_raw": "2394",
+   "partc_raw": "7785",
+   "schdl_sn": 2394,
+   "partc_no": 7785,
+   "hours": 1.0,
+   "recognized": 1.0,
+   "session_name": "코딩으로 AI 인공지능 배우기 (햄스터S활용)",
+   "subject": "코딩으로 AI 인공지능 배우기 (햄스터S활용)",
+   "cert_no": "정보시스템감리협회 제6036호",
+   "name": "우석근",
+   "birth": "1969-10-25"
+  },
+  {
+   "row": 12887,
+   "schdl_raw": "2395",
+   "partc_raw": "7785",
+   "schdl_sn": 2395,
+   "partc_no": 7785,
+   "hours": 1.0,
+   "recognized": 1.0,
+   "session_name": "2026 AI 리터러시와 업무 활용과정",
+   "subject": "2026 AI 리터러시와 업무 활용과정",
+   "cert_no": "정보시스템감리협회 제6036호",
+   "name": "우석근",
+   "birth": "1969-10-25"
+  },
+  {
+   "row": 12888,
+   "schdl_raw": "2397",
+   "partc_raw": "7112",
+   "schdl_sn": 2397,
+   "partc_no": 7112,
+   "hours": 7.0,
+   "recognized": 7.0,
+   "session_name": "IT프로젝트 성과관리",
+   "subject": "IT프로젝트 성과관리",
+   "cert_no": "정보시스템감리협회 제5366호",
+   "name": "박재현",
+   "birth": "1964-05-04"
+  },
+  {
+   "row": 12889,
+   "schdl_raw": "2399",
+   "partc_raw": "7112",
+   "schdl_sn": 2399,
+   "partc_no": 7112,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "[K-디지털] 클라우드 인프라 아키텍처 설계",
+   "subject": "[K-디지털] 클라우드 인프라 아키텍처 설계",
+   "cert_no": "정보시스템감리협회 제5366호",
+   "name": "박재현",
+   "birth": "1964-05-04"
+  },
+  {
+   "row": 12890,
+   "schdl_raw": "2400",
+   "partc_raw": "7112",
+   "schdl_sn": 2400,
+   "partc_no": 7112,
+   "hours": 5.0,
+   "recognized": 5.0,
+   "session_name": "인공지능(AI) 서비스 목표 수립(이해와 방향 설정)",
+   "subject": "인공지능(AI) 서비스 목표 수립(이해와 방향 설정)",
+   "cert_no": "정보시스템감리협회 제5366호",
+   "name": "박재현",
+   "birth": "1964-05-04"
+  },
+  {
+   "row": 12891,
+   "schdl_raw": "2402",
+   "partc_raw": "3670",
+   "schdl_sn": 2402,
+   "partc_no": 3670,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "[컨소시엄] 멀티모달(Multimodal) 프롬프트 과정",
+   "subject": "[컨소시엄] 멀티모달(Multimodal) 프롬프트 과정",
+   "cert_no": "행정안전부 제150호",
+   "name": "장중훈",
+   "birth": "1957-04-27"
+  },
+  {
+   "row": 12892,
+   "schdl_raw": "2403",
+   "partc_raw": "4698",
+   "schdl_sn": 2403,
+   "partc_no": 4698,
+   "hours": 7.0,
+   "recognized": 7.0,
+   "session_name": "코드품질 향상을 위한 SonarQube 활용",
+   "subject": "코드품질 향상을 위한 SonarQube 활용",
+   "cert_no": "정보시스템감리협회 제2953호",
+   "name": "안영근",
+   "birth": "1966-12-12"
+  },
+  {
+   "row": 12893,
+   "schdl_raw": "2405",
+   "partc_raw": "4698",
+   "schdl_sn": 2405,
+   "partc_no": 4698,
+   "hours": 7.0,
+   "recognized": 7.0,
+   "session_name": "클라우드 환경하에서 소프트웨어 테스트기법",
+   "subject": "클라우드 환경하에서 소프트웨어 테스트기법",
+   "cert_no": "정보시스템감리협회 제2953호",
+   "name": "안영근",
+   "birth": "1966-12-12"
+  },
+  {
+   "row": 12894,
+   "schdl_raw": "2406",
+   "partc_raw": "3667",
+   "schdl_sn": 2406,
+   "partc_no": 3667,
+   "hours": 16.0,
+   "recognized": 16.0,
+   "session_name": "(2026년) 감리원 중급이하 비대면 실시간 화상교육 제8기(2차)",
+   "subject": "(2026년) 감리원 중급이하 비대면 실시간 화상교육 제8기(2차)",
+   "cert_no": "행정안전부 제147호",
+   "name": "정회영",
+   "birth": "1970-07-20"
+  },
+  {
+   "row": 12895,
+   "schdl_raw": "2407",
+   "partc_raw": "7785",
+   "schdl_sn": 2407,
+   "partc_no": 7785,
+   "hours": 16.0,
+   "recognized": 16.0,
+   "session_name": "2026년 개인정보 영향평가 전군교육(하반기,1차)",
+   "subject": "2026년 개인정보 영향평가 전군교육(하반기,1차)",
+   "cert_no": "정보시스템감리협회 제6036호",
+   "name": "우석근",
+   "birth": "1969-10-25"
+  },
+  {
+   "row": 12896,
+   "schdl_raw": "2409",
+   "partc_raw": "3670",
+   "schdl_sn": 2409,
+   "partc_no": 3670,
+   "hours": 2.0,
+   "recognized": 2.0,
+   "session_name": "[컨소시엄] 초거대 AI 트렌드 이해 과정",
+   "subject": "[컨소시엄] 초거대 AI 트렌드 이해 과정",
+   "cert_no": "행정안전부 제150호",
+   "name": "장중훈",
+   "birth": "1957-04-27"
+  },
+  {
+   "row": 12897,
+   "schdl_raw": "2411",
+   "partc_raw": "3670",
+   "schdl_sn": 2411,
+   "partc_no": 3670,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "[컨소시엄] 현장 중심의 PM(Project Manager) 양성 과정",
+   "subject": "[컨소시엄] 현장 중심의 PM(Project Manager) 양성 과정",
+   "cert_no": "행정안전부 제150호",
+   "name": "장중훈",
+   "birth": "1957-04-27"
+  },
+  {
+   "row": 12898,
+   "schdl_raw": "2413",
+   "partc_raw": "3670",
+   "schdl_sn": 2413,
+   "partc_no": 3670,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "[컨소시엄] 생성형 AI를 활용한 업무혁신 과정",
+   "subject": "[컨소시엄] 생성형 AI를 활용한 업무혁신 과정",
+   "cert_no": "행정안전부 제150호",
+   "name": "장중훈",
+   "birth": "1957-04-27"
+  },
+  {
+   "row": 12899,
+   "schdl_raw": "2415",
+   "partc_raw": "3667",
+   "schdl_sn": 2415,
+   "partc_no": 3667,
+   "hours": 3.0,
+   "recognized": 3.0,
+   "session_name": "2026년 7월 스마트공장 수준확인 심사원 정기 교육",
+   "subject": "2026년 7월 스마트공장 수준확인 심사원 정기 교육",
+   "cert_no": "행정안전부 제147호",
+   "name": "정회영",
+   "birth": "1970-07-20"
+  },
+  {
+   "row": 12900,
+   "schdl_raw": "2416",
+   "partc_raw": "3667",
+   "schdl_sn": 2416,
+   "partc_no": 3667,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "2026년 SW보안약점 진단원 보수교육(1차)",
+   "subject": "2026년 SW보안약점 진단원 보수교육(1차)",
+   "cert_no": "행정안전부 제147호",
+   "name": "정회영",
+   "birth": "1970-07-20"
+  },
+  {
+   "row": 12901,
+   "schdl_raw": "2416",
+   "partc_raw": "4698",
+   "schdl_sn": 2416,
+   "partc_no": 4698,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "2026년 SW보안약점 진단원 보수교육(1차)",
+   "subject": "2026년 SW보안약점 진단원 보수교육(1차)",
+   "cert_no": "정보시스템감리협회 제2953호",
+   "name": "안영근",
+   "birth": "1966-12-12"
+  },
+  {
+   "row": 12902,
+   "schdl_raw": "2417",
+   "partc_raw": "4698",
+   "schdl_sn": 2417,
+   "partc_no": 4698,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "SW보안약점 진단원 보수교육[1차]",
+   "subject": "SW보안약점 진단원 보수교육[1차]",
+   "cert_no": "정보시스템감리협회 제2953호",
+   "name": "안영근",
+   "birth": "1966-12-12"
+  },
+  {
+   "row": 12903,
+   "schdl_raw": "2083",
+   "partc_raw": "4698",
+   "schdl_sn": 2083,
+   "partc_no": 4698,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "개발보안 및 소스코드 품질",
+   "subject": "개발보안 및 소스코드 품질",
+   "cert_no": "정보시스템감리협회 제2953호",
+   "name": "안영근",
+   "birth": "1966-12-12"
+  },
+  {
+   "row": 12904,
+   "schdl_raw": "2418",
+   "partc_raw": "3670",
+   "schdl_sn": 2418,
+   "partc_no": 3670,
+   "hours": 16.0,
+   "recognized": 16.0,
+   "session_name": "감리원 중급이하(온라인집합)",
+   "subject": "감리원 중급이하(온라인집합)",
+   "cert_no": "행정안전부 제150호",
+   "name": "장중훈",
+   "birth": "1957-04-27"
+  },
+  {
+   "row": 12905,
+   "schdl_raw": "2083",
+   "partc_raw": "6126",
+   "schdl_sn": 2083,
+   "partc_no": 6126,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "개발보안 및 소스코드 품질",
+   "subject": "개발보안 및 소스코드 품질",
+   "cert_no": "정보시스템감리협회 제4379호",
+   "name": "백승원",
+   "birth": "1997-08-23"
+  },
+  {
+   "row": 12906,
+   "schdl_raw": "2083",
+   "partc_raw": "5616",
+   "schdl_sn": 2083,
+   "partc_no": 5616,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "개발보안 및 소스코드 품질",
+   "subject": "개발보안 및 소스코드 품질",
+   "cert_no": "정보시스템감리협회 제3870호",
+   "name": "유진영",
+   "birth": "1968-09-05"
+  },
+  {
+   "row": 12907,
+   "schdl_raw": "2083",
+   "partc_raw": "4996",
+   "schdl_sn": 2083,
+   "partc_no": 4996,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "개발보안 및 소스코드 품질",
+   "subject": "개발보안 및 소스코드 품질",
+   "cert_no": "정보시스템감리협회 제3251호",
+   "name": "권혁천",
+   "birth": "1959-11-02"
+  },
+  {
+   "row": 12908,
+   "schdl_raw": "2083",
+   "partc_raw": "3678",
+   "schdl_sn": 2083,
+   "partc_no": 3678,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "개발보안 및 소스코드 품질",
+   "subject": "개발보안 및 소스코드 품질",
+   "cert_no": "행정안전부 제158호",
+   "name": "김성경",
+   "birth": "1964-09-03"
+  },
+  {
+   "row": 12909,
+   "schdl_raw": "2083",
+   "partc_raw": "1588",
+   "schdl_sn": 2083,
+   "partc_no": 1588,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "개발보안 및 소스코드 품질",
+   "subject": "개발보안 및 소스코드 품질",
+   "cert_no": "정보시스템감리협회 제1588호",
+   "name": "김욱환",
+   "birth": "1972-06-27"
+  },
+  {
+   "row": 12910,
+   "schdl_raw": "2083",
+   "partc_raw": "5278",
+   "schdl_sn": 2083,
+   "partc_no": 5278,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "개발보안 및 소스코드 품질",
+   "subject": "개발보안 및 소스코드 품질",
+   "cert_no": "정보시스템감리협회 제3532호",
+   "name": "김제유",
+   "birth": "1965-02-22"
+  },
+  {
+   "row": 12911,
+   "schdl_raw": "2083",
+   "partc_raw": "5797",
+   "schdl_sn": 2083,
+   "partc_no": 5797,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "개발보안 및 소스코드 품질",
+   "subject": "개발보안 및 소스코드 품질",
+   "cert_no": "정보시스템감리협회 제4051호",
+   "name": "김주홍",
+   "birth": "1968-04-01"
+  },
+  {
+   "row": 12912,
+   "schdl_raw": "2083",
+   "partc_raw": "2279",
+   "schdl_sn": 2083,
+   "partc_no": 2279,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "개발보안 및 소스코드 품질",
+   "subject": "개발보안 및 소스코드 품질",
+   "cert_no": "정보시스템감리협회 제2279호",
+   "name": "남재근",
+   "birth": "1957-10-27"
+  },
+  {
+   "row": 12913,
+   "schdl_raw": "2083",
+   "partc_raw": "4037",
+   "schdl_sn": 2083,
+   "partc_no": 4037,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "개발보안 및 소스코드 품질",
+   "subject": "개발보안 및 소스코드 품질",
+   "cert_no": "행정안전부 제 517호",
+   "name": "박경용",
+   "birth": "1959-11-15"
+  },
+  {
+   "row": 12914,
+   "schdl_raw": "2083",
+   "partc_raw": "4434",
+   "schdl_sn": 2083,
+   "partc_no": 4434,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "개발보안 및 소스코드 품질",
+   "subject": "개발보안 및 소스코드 품질",
+   "cert_no": "정보시스템감리협회 제2690호",
+   "name": "박명수",
+   "birth": "1962-05-22"
+  },
+  {
+   "row": 12915,
+   "schdl_raw": "2083",
+   "partc_raw": "2168",
+   "schdl_sn": 2083,
+   "partc_no": 2168,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "개발보안 및 소스코드 품질",
+   "subject": "개발보안 및 소스코드 품질",
+   "cert_no": "정보시스템감리협회 제2168호",
+   "name": "박용진",
+   "birth": "1961-08-14"
+  },
+  {
+   "row": 12916,
+   "schdl_raw": "2083",
+   "partc_raw": "3389",
+   "schdl_sn": 2083,
+   "partc_no": 3389,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "개발보안 및 소스코드 품질",
+   "subject": "개발보안 및 소스코드 품질",
+   "cert_no": "서울 제 842호",
+   "name": "박을용",
+   "birth": "1963-01-05"
+  },
+  {
+   "row": 12917,
+   "schdl_raw": "2083",
+   "partc_raw": "5303",
+   "schdl_sn": 2083,
+   "partc_no": 5303,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "개발보안 및 소스코드 품질",
+   "subject": "개발보안 및 소스코드 품질",
+   "cert_no": "정보시스템감리협회 제3557호",
+   "name": "신태갑",
+   "birth": "1962-08-05"
+  },
+  {
+   "row": 12918,
+   "schdl_raw": "2083",
+   "partc_raw": "3809",
+   "schdl_sn": 2083,
+   "partc_no": 3809,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "개발보안 및 소스코드 품질",
+   "subject": "개발보안 및 소스코드 품질",
+   "cert_no": "행정안전부 제289호",
+   "name": "원종빈",
+   "birth": "1961-01-27"
+  },
+  {
+   "row": 12919,
+   "schdl_raw": "2083",
+   "partc_raw": "6324",
+   "schdl_sn": 2083,
+   "partc_no": 6324,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "개발보안 및 소스코드 품질",
+   "subject": "개발보안 및 소스코드 품질",
+   "cert_no": "정보시스템감리협회 제4576호",
+   "name": "이동욱",
+   "birth": "1965-08-01"
+  },
+  {
+   "row": 12920,
+   "schdl_raw": "2083",
+   "partc_raw": "3280",
+   "schdl_sn": 2083,
+   "partc_no": 3280,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "개발보안 및 소스코드 품질",
+   "subject": "개발보안 및 소스코드 품질",
+   "cert_no": "서울 제 733호",
+   "name": "전재영",
+   "birth": "1957-09-22"
+  },
+  {
+   "row": 12921,
+   "schdl_raw": "2083",
+   "partc_raw": "3019",
+   "schdl_sn": 2083,
+   "partc_no": 3019,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "개발보안 및 소스코드 품질",
+   "subject": "개발보안 및 소스코드 품질",
+   "cert_no": "서울 제 472호",
+   "name": "정은주",
+   "birth": "1959-01-24"
+  },
+  {
+   "row": 12922,
+   "schdl_raw": "2083",
+   "partc_raw": "4912",
+   "schdl_sn": 2083,
+   "partc_no": 4912,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "개발보안 및 소스코드 품질",
+   "subject": "개발보안 및 소스코드 품질",
+   "cert_no": "정보시스템감리협회 제3167호",
+   "name": "정하영",
+   "birth": "1956-02-13"
+  },
+  {
+   "row": 12923,
+   "schdl_raw": "2083",
+   "partc_raw": "564",
+   "schdl_sn": 2083,
+   "partc_no": 564,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "개발보안 및 소스코드 품질",
+   "subject": "개발보안 및 소스코드 품질",
+   "cert_no": "정보시스템감리협회 제564호",
+   "name": "정현욱",
+   "birth": "1962-11-21"
+  },
+  {
+   "row": 12924,
+   "schdl_raw": "2083",
+   "partc_raw": "6535",
+   "schdl_sn": 2083,
+   "partc_no": 6535,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "개발보안 및 소스코드 품질",
+   "subject": "개발보안 및 소스코드 품질",
+   "cert_no": "정보시스템감리협회 제4787호",
+   "name": "조민진",
+   "birth": "1964-04-01"
+  },
+  {
+   "row": 12925,
+   "schdl_raw": "2083",
+   "partc_raw": "2464",
+   "schdl_sn": 2083,
+   "partc_no": 2464,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "개발보안 및 소스코드 품질",
+   "subject": "개발보안 및 소스코드 품질",
+   "cert_no": "정보시스템감리협회 제2464호",
+   "name": "최원영",
+   "birth": "1962-04-29"
+  },
+  {
+   "row": 12926,
+   "schdl_raw": "2083",
+   "partc_raw": "4857",
+   "schdl_sn": 2083,
+   "partc_no": 4857,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "개발보안 및 소스코드 품질",
+   "subject": "개발보안 및 소스코드 품질",
+   "cert_no": "정보시스템감리협회 제3112호",
+   "name": "한경훈",
+   "birth": "1969-09-14"
+  },
+  {
+   "row": 12927,
+   "schdl_raw": "2083",
+   "partc_raw": "3330",
+   "schdl_sn": 2083,
+   "partc_no": 3330,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "개발보안 및 소스코드 품질",
+   "subject": "개발보안 및 소스코드 품질",
+   "cert_no": "서울 제 783호",
+   "name": "홍기선",
+   "birth": "1963-07-27"
+  },
+  {
+   "row": 12928,
+   "schdl_raw": "2083",
+   "partc_raw": "3458",
+   "schdl_sn": 2083,
+   "partc_no": 3458,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "개발보안 및 소스코드 품질",
+   "subject": "개발보안 및 소스코드 품질",
+   "cert_no": "서울 제 911호",
+   "name": "홍대기",
+   "birth": "1963-10-29"
+  },
+  {
+   "row": 12929,
+   "schdl_raw": "2083",
+   "partc_raw": "6284",
+   "schdl_sn": 2083,
+   "partc_no": 6284,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "개발보안 및 소스코드 품질",
+   "subject": "개발보안 및 소스코드 품질",
+   "cert_no": "정보시스템감리협회 제 4536호",
+   "name": "황선환",
+   "birth": "1969-07-01"
+  },
+  {
+   "row": 12930,
+   "schdl_raw": "2419",
+   "partc_raw": "7785",
+   "schdl_sn": 2419,
+   "partc_no": 7785,
+   "hours": 3.0,
+   "recognized": 3.0,
+   "session_name": "HCI와 함께하는 소프트웨어 공학",
+   "subject": "HCI와 함께하는 소프트웨어 공학",
+   "cert_no": "정보시스템감리협회 제6036호",
+   "name": "우석근",
+   "birth": "1969-10-25"
+  },
+  {
+   "row": 12931,
+   "schdl_raw": "2420",
+   "partc_raw": "7785",
+   "schdl_sn": 2420,
+   "partc_no": 7785,
+   "hours": 3.0,
+   "recognized": 3.0,
+   "session_name": "코팅의 기술 실습편",
+   "subject": "코팅의 기술 실습편",
+   "cert_no": "정보시스템감리협회 제6036호",
+   "name": "우석근",
+   "birth": "1969-10-25"
+  },
+  {
+   "row": 12932,
+   "schdl_raw": "2421",
+   "partc_raw": "4698",
+   "schdl_sn": 2421,
+   "partc_no": 4698,
+   "hours": 16.0,
+   "recognized": 16.0,
+   "session_name": "데이터거래사 교육 12기",
+   "subject": "데이터거래사 교육 12기",
+   "cert_no": "정보시스템감리협회 제2953호",
+   "name": "안영근",
+   "birth": "1966-12-12"
+  },
+  {
+   "row": 12933,
+   "schdl_raw": "2422",
+   "partc_raw": "4214",
+   "schdl_sn": 2422,
+   "partc_no": 4214,
+   "hours": 7.0,
+   "recognized": 7.0,
+   "session_name": "MDD 방법론 / 오픈소스 기반 개발 방법론",
+   "subject": "MDD 방법론 / 오픈소스 기반 개발 방법론",
+   "cert_no": "충주 제47호",
+   "name": "김재춘",
+   "birth": "1962-10-14"
+  },
+  {
+   "row": 12934,
+   "schdl_raw": "2423",
+   "partc_raw": "1717",
+   "schdl_sn": 2423,
+   "partc_no": 1717,
+   "hours": 7.0,
+   "recognized": 7.0,
+   "session_name": "웹 개발 기술 / EVM",
+   "subject": "웹 개발 기술 / EVM",
+   "cert_no": "정보시스템감리협회 제1717호",
+   "name": "고용진",
+   "birth": "1965-02-16"
+  },
+  {
+   "row": 12935,
+   "schdl_raw": "2424",
+   "partc_raw": "2464",
+   "schdl_sn": 2424,
+   "partc_no": 2464,
+   "hours": 7.0,
+   "recognized": 7.0,
+   "session_name": "감리 프레임워크 아키텍처 / ITA & ISP 감리",
+   "subject": "감리 프레임워크 아키텍처 / ITA & ISP 감리",
+   "cert_no": "정보시스템감리협회 제2464호",
+   "name": "최원영",
+   "birth": "1962-04-29"
+  },
+  {
+   "row": 12936,
+   "schdl_raw": "2425",
+   "partc_raw": "3203",
+   "schdl_sn": 2425,
+   "partc_no": 3203,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "전자정부프레임워크 전문과정",
+   "subject": "전자정부프레임워크 전문과정",
+   "cert_no": "서울 제656호",
+   "name": "김미령",
+   "birth": "1952-06-05"
+  },
+  {
+   "row": 12937,
+   "schdl_raw": "2425",
+   "partc_raw": "2088",
+   "schdl_sn": 2425,
+   "partc_no": 2088,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "전자정부프레임워크 전문과정",
+   "subject": "전자정부프레임워크 전문과정",
+   "cert_no": "정보시스템감리협회 제2088호",
+   "name": "이재원",
+   "birth": "1963-03-12"
+  },
+  {
+   "row": 12938,
+   "schdl_raw": "2425",
+   "partc_raw": "6411",
+   "schdl_sn": 2425,
+   "partc_no": 6411,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "전자정부프레임워크 전문과정",
+   "subject": "전자정부프레임워크 전문과정",
+   "cert_no": "정보시스템감리협회 제4663호",
+   "name": "이창희",
+   "birth": "1965-03-22"
+  },
+  {
+   "row": 12939,
+   "schdl_raw": "2425",
+   "partc_raw": "915",
+   "schdl_sn": 2425,
+   "partc_no": 915,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "전자정부프레임워크 전문과정",
+   "subject": "전자정부프레임워크 전문과정",
+   "cert_no": "정보시스템감리협회 제915호",
+   "name": "이수석",
+   "birth": "1967-09-13"
+  },
+  {
+   "row": 12940,
+   "schdl_raw": "2426",
+   "partc_raw": "3203",
+   "schdl_sn": 2426,
+   "partc_no": 3203,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "정보시스템감리원을 위한 논리적 글쓰기",
+   "subject": "정보시스템감리원을 위한 논리적 글쓰기",
+   "cert_no": "서울 제656호",
+   "name": "김미령",
+   "birth": "1952-06-05"
+  },
+  {
+   "row": 12941,
+   "schdl_raw": "2426",
+   "partc_raw": "345",
+   "schdl_sn": 2426,
+   "partc_no": 345,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "정보시스템감리원을 위한 논리적 글쓰기",
+   "subject": "정보시스템감리원을 위한 논리적 글쓰기",
+   "cert_no": "정보시스템감리협회 제345호",
+   "name": "강신학",
+   "birth": "1966-05-07"
+  },
+  {
+   "row": 12942,
+   "schdl_raw": "2426",
+   "partc_raw": "2464",
+   "schdl_sn": 2426,
+   "partc_no": 2464,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "정보시스템감리원을 위한 논리적 글쓰기",
+   "subject": "정보시스템감리원을 위한 논리적 글쓰기",
+   "cert_no": "정보시스템감리협회 제2464호",
+   "name": "최원영",
+   "birth": "1962-04-29"
+  },
+  {
+   "row": 12943,
+   "schdl_raw": "2426",
+   "partc_raw": "2088",
+   "schdl_sn": 2426,
+   "partc_no": 2088,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "정보시스템감리원을 위한 논리적 글쓰기",
+   "subject": "정보시스템감리원을 위한 논리적 글쓰기",
+   "cert_no": "정보시스템감리협회 제2088호",
+   "name": "이재원",
+   "birth": "1963-03-12"
+  },
+  {
+   "row": 12944,
+   "schdl_raw": "2426",
+   "partc_raw": "6378",
+   "schdl_sn": 2426,
+   "partc_no": 6378,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "정보시스템감리원을 위한 논리적 글쓰기",
+   "subject": "정보시스템감리원을 위한 논리적 글쓰기",
+   "cert_no": "정보시스템감리협회 제4630호",
+   "name": "장정화",
+   "birth": "1963-01-21"
+  },
+  {
+   "row": 12945,
+   "schdl_raw": "2426",
+   "partc_raw": "6002",
+   "schdl_sn": 2426,
+   "partc_no": 6002,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "정보시스템감리원을 위한 논리적 글쓰기",
+   "subject": "정보시스템감리원을 위한 논리적 글쓰기",
+   "cert_no": "정보시스템감리협회 제4256호",
+   "name": "황동환",
+   "birth": "1970-10-27"
+  },
+  {
+   "row": 12946,
+   "schdl_raw": "2426",
+   "partc_raw": "915",
+   "schdl_sn": 2426,
+   "partc_no": 915,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "정보시스템감리원을 위한 논리적 글쓰기",
+   "subject": "정보시스템감리원을 위한 논리적 글쓰기",
+   "cert_no": "정보시스템감리협회 제915호",
+   "name": "이수석",
+   "birth": "1967-09-13"
+  },
+  {
+   "row": 12947,
+   "schdl_raw": "2427",
+   "partc_raw": "7105",
+   "schdl_sn": 2427,
+   "partc_no": 7105,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "PMO 1차 과정",
+   "subject": "PMO 1차 과정",
+   "cert_no": "정보시스템감리협회 제5359호",
+   "name": "김영민",
+   "birth": "1977-01-14"
+  },
+  {
+   "row": 12948,
+   "schdl_raw": "2427",
+   "partc_raw": "3780",
+   "schdl_sn": 2427,
+   "partc_no": 3780,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "PMO 1차 과정",
+   "subject": "PMO 1차 과정",
+   "cert_no": "행정안전부 제260호",
+   "name": "이광인",
+   "birth": "1971-11-09"
+  },
+  {
+   "row": 12949,
+   "schdl_raw": "2427",
+   "partc_raw": "736",
+   "schdl_sn": 2427,
+   "partc_no": 736,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "PMO 1차 과정",
+   "subject": "PMO 1차 과정",
+   "cert_no": "정보시스템감리협회 제736호",
+   "name": "정현수",
+   "birth": "1959-01-22"
+  },
+  {
+   "row": 12950,
+   "schdl_raw": "2427",
+   "partc_raw": "6905",
+   "schdl_sn": 2427,
+   "partc_no": 6905,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "PMO 1차 과정",
+   "subject": "PMO 1차 과정",
+   "cert_no": "정보시스템감리협회 제5160호",
+   "name": "김병권",
+   "birth": "1969-10-30"
+  },
+  {
+   "row": 12951,
+   "schdl_raw": "2427",
+   "partc_raw": "915",
+   "schdl_sn": 2427,
+   "partc_no": 915,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "PMO 1차 과정",
+   "subject": "PMO 1차 과정",
+   "cert_no": "정보시스템감리협회 제915호",
+   "name": "이수석",
+   "birth": "1967-09-13"
+  },
+  {
+   "row": 12952,
+   "schdl_raw": "2428",
+   "partc_raw": "3780",
+   "schdl_sn": 2428,
+   "partc_no": 3780,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "PMO 2차 과정",
+   "subject": "PMO 2차 과정",
+   "cert_no": "행정안전부 제260호",
+   "name": "이광인",
+   "birth": "1971-11-09"
+  },
+  {
+   "row": 12953,
+   "schdl_raw": "2428",
+   "partc_raw": "6541",
+   "schdl_sn": 2428,
+   "partc_no": 6541,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "PMO 2차 과정",
+   "subject": "PMO 2차 과정",
+   "cert_no": "정보시스템감리협회 제4793호",
+   "name": "안희학",
+   "birth": "1956-09-21"
+  },
+  {
+   "row": 12954,
+   "schdl_raw": "2428",
+   "partc_raw": "1022",
+   "schdl_sn": 2428,
+   "partc_no": 1022,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "PMO 2차 과정",
+   "subject": "PMO 2차 과정",
+   "cert_no": "정보시스템감리협회 제1022호",
+   "name": "박정욱",
+   "birth": "1973-06-29"
+  },
+  {
+   "row": 12955,
+   "schdl_raw": "2428",
+   "partc_raw": "915",
+   "schdl_sn": 2428,
+   "partc_no": 915,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "PMO 2차 과정",
+   "subject": "PMO 2차 과정",
+   "cert_no": "정보시스템감리협회 제915호",
+   "name": "이수석",
+   "birth": "1967-09-13"
+  },
+  {
+   "row": 12956,
+   "schdl_raw": "2429",
+   "partc_raw": "915",
+   "schdl_sn": 2429,
+   "partc_no": 915,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "PMO 3차 과정",
+   "subject": "PMO 3차 과정",
+   "cert_no": "정보시스템감리협회 제915호",
+   "name": "이수석",
+   "birth": "1967-09-13"
+  },
+  {
+   "row": 12957,
+   "schdl_raw": "2364",
+   "partc_raw": "3203",
+   "schdl_sn": 2364,
+   "partc_no": 3203,
+   "hours": 24.0,
+   "recognized": 24.0,
+   "session_name": "PMO 통합과정",
+   "subject": "PMO 통합과정",
+   "cert_no": "서울 제656호",
+   "name": "김미령",
+   "birth": "1952-06-05"
+  },
+  {
+   "row": 12958,
+   "schdl_raw": "2364",
+   "partc_raw": "6002",
+   "schdl_sn": 2364,
+   "partc_no": 6002,
+   "hours": 24.0,
+   "recognized": 24.0,
+   "session_name": "PMO 통합과정",
+   "subject": "PMO 통합과정",
+   "cert_no": "정보시스템감리협회 제4256호",
+   "name": "황동환",
+   "birth": "1970-10-27"
+  },
+  {
+   "row": 12959,
+   "schdl_raw": "2430",
+   "partc_raw": "4574",
+   "schdl_sn": 2430,
+   "partc_no": 4574,
+   "hours": 16.0,
+   "recognized": 16.0,
+   "session_name": "2026년 SW개발보안 진단원 기본과정(1차)",
+   "subject": "2026년 SW개발보안 진단원 기본과정(1차)",
+   "cert_no": "정보시스템감리협회 제2830호",
+   "name": "이태현",
+   "birth": "1972-06-05"
+  },
+  {
+   "row": 12960,
+   "schdl_raw": "2431",
+   "partc_raw": "7234",
+   "schdl_sn": 2431,
+   "partc_no": 7234,
+   "hours": 16.0,
+   "recognized": 16.0,
+   "session_name": "SW보안약점 진단원 기(양성)본과정 [오프라인][3차]",
+   "subject": "SW보안약점 진단원 기(양성)본과정 [오프라인][3차]",
+   "cert_no": "정보시스템감리협회 제5488호",
+   "name": "하영석",
+   "birth": "1966-07-06"
+  },
+  {
+   "row": 12961,
+   "schdl_raw": "2432",
+   "partc_raw": "3599",
+   "schdl_sn": 2432,
+   "partc_no": 3599,
+   "hours": 7.0,
+   "recognized": 7.0,
+   "session_name": "웹 개발 기술 / EVM",
+   "subject": "웹 개발 기술 / EVM",
+   "cert_no": "행정안전부 제79호",
+   "name": "류경창",
+   "birth": "1970-11-01"
+  },
+  {
+   "row": 12962,
+   "schdl_raw": "2433",
+   "partc_raw": "5754",
+   "schdl_sn": 2433,
+   "partc_no": 5754,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "정보시스템감리원을 위한 논리적 글쓰기",
+   "subject": "정보시스템감리원을 위한 논리적 글쓰기",
+   "cert_no": "정보시스템감리협회 제4008호",
+   "name": "배상호",
+   "birth": "1963-11-14"
+  },
+  {
+   "row": 12963,
+   "schdl_raw": "2434",
+   "partc_raw": "3599",
+   "schdl_sn": 2434,
+   "partc_no": 3599,
+   "hours": 24.0,
+   "recognized": 24.0,
+   "session_name": "PMO 통합과정",
+   "subject": "PMO 통합과정",
+   "cert_no": "행정안전부 제79호",
+   "name": "류경창",
+   "birth": "1970-11-01"
+  },
+  {
+   "row": 12964,
+   "schdl_raw": "2434",
+   "partc_raw": "4610",
+   "schdl_sn": 2434,
+   "partc_no": 4610,
+   "hours": 24.0,
+   "recognized": 24.0,
+   "session_name": "PMO 통합과정",
+   "subject": "PMO 통합과정",
+   "cert_no": "정보시스템감리협회 제2866호",
+   "name": "송맹규",
+   "birth": "1967-08-15"
+  },
+  {
+   "row": 12965,
+   "schdl_raw": "2435",
+   "partc_raw": "6563",
+   "schdl_sn": 2435,
+   "partc_no": 6563,
+   "hours": 3.0,
+   "recognized": 3.0,
+   "session_name": "[온라인] 클라우드와 클라우드 네이티브를 위한 기본 기술과정",
+   "subject": "[온라인] 클라우드와 클라우드 네이티브를 위한 기본 기술과정",
+   "cert_no": "정보시스템감리협회 제4815호",
+   "name": "김영상",
+   "birth": "1964-07-08"
+  },
+  {
+   "row": 12966,
+   "schdl_raw": "2436",
+   "partc_raw": "5791",
+   "schdl_sn": 2436,
+   "partc_no": 5791,
+   "hours": 2.0,
+   "recognized": 2.0,
+   "session_name": "인공지능 신뢰성 인증을 통한 AI 품질 향상 방법론 과정",
+   "subject": "인공지능 신뢰성 인증을 통한 AI 품질 향상 방법론 과정",
+   "cert_no": "정보시스템감리협회 제4045호",
+   "name": "김성갑",
+   "birth": "1959-11-01"
+  },
+  {
+   "row": 12967,
+   "schdl_raw": "2437",
+   "partc_raw": "5791",
+   "schdl_sn": 2437,
+   "partc_no": 5791,
+   "hours": 7.0,
+   "recognized": 7.0,
+   "session_name": "CSTS 품질 전문가 양성 심화",
+   "subject": "CSTS 품질 전문가 양성 심화",
+   "cert_no": "정보시스템감리협회 제4045호",
+   "name": "김성갑",
+   "birth": "1959-11-01"
+  },
+  {
+   "row": 12968,
+   "schdl_raw": "2438",
+   "partc_raw": "5791",
+   "schdl_sn": 2438,
+   "partc_no": 5791,
+   "hours": 7.0,
+   "recognized": 7.0,
+   "session_name": "JMeter 기반 실전 성능테스트",
+   "subject": "JMeter 기반 실전 성능테스트",
+   "cert_no": "정보시스템감리협회 제4045호",
+   "name": "김성갑",
+   "birth": "1959-11-01"
+  },
+  {
+   "row": 12969,
+   "schdl_raw": "2439",
+   "partc_raw": "6563",
+   "schdl_sn": 2439,
+   "partc_no": 6563,
+   "hours": 16.0,
+   "recognized": 16.0,
+   "session_name": "데이터거래사 교육 15기",
+   "subject": "데이터거래사 교육 15기",
+   "cert_no": "정보시스템감리협회 제4815호",
+   "name": "김영상",
+   "birth": "1964-07-08"
+  },
+  {
+   "row": 12970,
+   "schdl_raw": "2440",
+   "partc_raw": "2118",
+   "schdl_sn": 2440,
+   "partc_no": 2118,
+   "hours": 3.0,
+   "recognized": 3.0,
+   "session_name": "제 2차 기업 실무자 대상 인공지능 신뢰성 및 인증 교육",
+   "subject": "제 2차 기업 실무자 대상 인공지능 신뢰성 및 인증 교육",
+   "cert_no": "정보시스템감리협회 제2118호",
+   "name": "이화숙",
+   "birth": "1954-12-01"
+  },
+  {
+   "row": 12971,
+   "schdl_raw": "2441",
+   "partc_raw": "783",
+   "schdl_sn": 2441,
+   "partc_no": 783,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "정보통신설비 유지보수 관리자",
+   "subject": "정보통신설비 유지보수 관리자",
+   "cert_no": "정보시스템감리협회 제783호",
+   "name": "김문기",
+   "birth": "1963-08-12"
+  },
+  {
+   "row": 12972,
+   "schdl_raw": "2442",
+   "partc_raw": "783",
+   "schdl_sn": 2442,
+   "partc_no": 783,
+   "hours": 8.0,
+   "recognized": 8.0,
+   "session_name": "AI훈련코치 역량 강화 교육_기본과정",
+   "subject": "AI훈련코치 역량 강화 교육_기본과정",
+   "cert_no": "정보시스템감리협회 제783호",
+   "name": "김문기",
+   "birth": "1963-08-12"
+  },
+  {
+   "row": 12973,
+   "schdl_raw": "2443",
+   "partc_raw": "783",
+   "schdl_sn": 2443,
+   "partc_no": 783,
+   "hours": 6.0,
+   "recognized": 6.0,
+   "session_name": "[빅데이터분석] 파이썬 웹 데이터 수집(웹API/웹스크래핑)",
+   "subject": "[빅데이터분석] 파이썬 웹 데이터 수집(웹API/웹스크래핑)",
+   "cert_no": "정보시스템감리협회 제783호",
+   "name": "김문기",
+   "birth": "1963-08-12"
+  },
+  {
+   "row": 12974,
+   "schdl_raw": "2444",
+   "partc_raw": "783",
+   "schdl_sn": 2444,
+   "partc_no": 783,
+   "hours": 3.0,
+   "recognized": 3.0,
+   "session_name": "(특별교육)[인공지능] 효율적인 LLM 서비스 개발를 위한 LangChain 입문",
+   "subject": "(특별교육)[인공지능] 효율적인 LLM 서비스 개발를 위한 LangChain 입문",
+   "cert_no": "정보시스템감리협회 제783호",
+   "name": "김문기",
+   "birth": "1963-08-12"
+  },
+  {
+   "row": 12975,
+   "schdl_raw": "2447",
+   "partc_raw": "783",
+   "schdl_sn": 2447,
+   "partc_no": 783,
+   "hours": 3.0,
+   "recognized": 3.0,
+   "session_name": "한국기술교육대학교 능력개발교육원",
+   "subject": "(특별교육)온디바이스 LLM 앱 개발 - Local LLM 의 장점 이해와 이를 활용한 온디바이스 앱 개발",
+   "cert_no": "정보시스템감리협회 제783호",
+   "name": "김문기",
+   "birth": "1963-08-12"
+  },
+  {
+   "row": 12976,
+   "schdl_raw": "2448",
+   "partc_raw": "783",
+   "schdl_sn": 2448,
+   "partc_no": 783,
+   "hours": 3.0,
+   "recognized": 3.0,
+   "session_name": "한국기술교육대학교 능력개발교육원",
+   "subject": "(특별교육) 생성형 AI(diffusion)를 활용한 영상 콘텐츠 제작",
+   "cert_no": "정보시스템감리협회 제783호",
+   "name": "김문기",
+   "birth": "1963-08-12"
+  },
+  {
+   "row": 12977,
+   "schdl_raw": "2449",
+   "partc_raw": "2903",
+   "schdl_sn": 2449,
+   "partc_no": 2903,
+   "hours": 1.0,
+   "recognized": 1.0,
+   "session_name": "(스마트제조)디지털전환(DX)멘토단 사업성실수행 교육(코칭단)",
+   "subject": "(스마트제조)디지털전환(DX)멘토단 사업성실수행 교육(코칭단)",
+   "cert_no": "서울 제356호",
+   "name": "리강민",
+   "birth": "1962-10-18"
+  },
+  {
+   "row": 12978,
+   "schdl_raw": "2450",
+   "partc_raw": "2864",
+   "schdl_sn": 2450,
+   "partc_no": 2864,
+   "hours": 2.0,
+   "recognized": 2.0,
+   "session_name": "정보보호 및 개인정보보호 관리체계(ISMS-P) 구축운영",
+   "subject": "정보보호 및 개인정보보호 관리체계(ISMS-P) 구축운영",
+   "cert_no": "서울 제317호",
+   "name": "황철구",
+   "birth": "1956-10-03"
+  },
+  {
+   "row": 12979,
+   "schdl_raw": "2451",
+   "partc_raw": "2864",
+   "schdl_sn": 2451,
+   "partc_no": 2864,
+   "hours": 1.0,
+   "recognized": 1.0,
+   "session_name": "CPO 제도 시행령,고시 개정 및 주요내용 안내",
+   "subject": "CPO 제도 시행령,고시 개정 및 주요내용 안내",
+   "cert_no": "서울 제317호",
+   "name": "황철구",
+   "birth": "1956-10-03"
+  },
+  {
+   "row": 12980,
+   "schdl_raw": "2452",
+   "partc_raw": "2864",
+   "schdl_sn": 2452,
+   "partc_no": 2864,
+   "hours": 2.0,
+   "recognized": 2.0,
+   "session_name": "해킹과 정보보안",
+   "subject": "해킹과 정보보안",
+   "cert_no": "서울 제317호",
+   "name": "황철구",
+   "birth": "1956-10-03"
+  },
+  {
+   "row": 12981,
+   "schdl_raw": "2453",
+   "partc_raw": "2864",
+   "schdl_sn": 2453,
+   "partc_no": 2864,
+   "hours": 2.0,
+   "recognized": 2.0,
+   "session_name": "SWA와 AA, 개발자에서 아키텍트되기",
+   "subject": "SWA와 AA, 개발자에서 아키텍트되기",
+   "cert_no": "서울 제317호",
+   "name": "황철구",
+   "birth": "1956-10-03"
+  },
+  {
+   "row": 12982,
+   "schdl_raw": "2457",
+   "partc_raw": "2864",
+   "schdl_sn": 2457,
+   "partc_no": 2864,
+   "hours": 1.0,
+   "recognized": 1.0,
+   "session_name": "IT인프라스트럭처 가상화 및 클라우드 컴퓨팅",
+   "subject": "IT인프라스트럭처 가상화 및 클라우드 컴퓨팅",
+   "cert_no": "서울 제317호",
+   "name": "황철구",
+   "birth": "1956-10-03"
+  },
+  {
+   "row": 12983,
+   "schdl_raw": "2459",
+   "partc_raw": "1336",
+   "schdl_sn": 2459,
+   "partc_no": 1336,
+   "hours": 16.0,
+   "recognized": 16.0,
+   "session_name": "SW보안약점 진단원 양성과정(오프라인) [3차]",
+   "subject": "SW보안약점 진단원 양성과정(오프라인) [3차]",
+   "cert_no": "정보시스템감리협회 제1336호",
+   "name": "변상선",
+   "birth": "1970-01-08"
+  },
+  {
+   "row": 12984,
+   "schdl_raw": "2467",
+   "partc_raw": "7150",
+   "schdl_sn": 2467,
+   "partc_no": 7150,
+   "hours": 7.0,
+   "recognized": 7.0,
+   "session_name": "정보보호 관리 운영 및 보안성 검토",
+   "subject": "정보보호 관리 운영 및 보안성 검토",
+   "cert_no": "정보시스템감리협회 제5404호",
+   "name": "강영원",
+   "birth": "1966-02-10"
+  },
+  {
+   "row": 12985,
+   "schdl_raw": "2468",
+   "partc_raw": "7150",
+   "schdl_sn": 2468,
+   "partc_no": 7150,
+   "hours": 7.0,
+   "recognized": 7.0,
+   "session_name": "정보보안을 위한 모델링 및 시뮬레이션",
+   "subject": "정보보안을 위한 모델링 및 시뮬레이션",
+   "cert_no": "정보시스템감리협회 제5404호",
+   "name": "강영원",
+   "birth": "1966-02-10"
+  },
+  {
+   "row": 12986,
+   "schdl_raw": "2469",
+   "partc_raw": "7150",
+   "schdl_sn": 2469,
+   "partc_no": 7150,
+   "hours": 2.0,
+   "recognized": 2.0,
+   "session_name": "[기초직업능력] 정보처리능력",
+   "subject": "[기초직업능력] 정보처리능력",
+   "cert_no": "정보시스템감리협회 제5404호",
+   "name": "강영원",
+   "birth": "1966-02-10"
+  },
+  {
+   "row": 12987,
+   "schdl_raw": "2471",
+   "partc_raw": "7150",
+   "schdl_sn": 2471,
+   "partc_no": 7150,
+   "hours": 7.0,
+   "recognized": 7.0,
+   "session_name": "정보보호 관리 운영 및 보안성 검토",
+   "subject": "정보보호 관리 운영 및 보안성 검토",
+   "cert_no": "정보시스템감리협회 제5404호",
+   "name": "강영원",
+   "birth": "1966-02-10"
+  },
+  {
+   "row": 12988,
+   "schdl_raw": "2472",
+   "partc_raw": "7150",
+   "schdl_sn": 2472,
+   "partc_no": 7150,
+   "hours": 2.0,
+   "recognized": 2.0,
+   "session_name": "[기초직업능력] 정보처리능력",
+   "subject": "[기초직업능력] 정보처리능력",
+   "cert_no": "정보시스템감리협회 제5404호",
+   "name": "강영원",
+   "birth": "1966-02-10"
+  },
+  {
+   "row": 12990,
+   "schdl_raw": "2476",
+   "partc_raw": "7150",
+   "schdl_sn": 2476,
+   "partc_no": 7150,
+   "hours": 7.0,
+   "recognized": 7.0,
+   "session_name": "정보보호 관리 운영 및 보안성 검토",
+   "subject": "정보보호 관리 운영 및 보안성 검토",
+   "cert_no": "정보시스템감리협회 제5404호",
+   "name": "강영원",
+   "birth": "1966-02-10"
+  },
+  {
+   "row": 12991,
+   "schdl_raw": "2477",
+   "partc_raw": "7150",
+   "schdl_sn": 2477,
+   "partc_no": 7150,
+   "hours": 7.0,
+   "recognized": 7.0,
+   "session_name": "정보보안을 위한 모델링 및 시뮬레이션",
+   "subject": "정보보안을 위한 모델링 및 시뮬레이션",
+   "cert_no": "정보시스템감리협회 제5404호",
+   "name": "강영원",
+   "birth": "1966-02-10"
+  },
+  {
+   "row": 12992,
+   "schdl_raw": "2478",
+   "partc_raw": "7150",
+   "schdl_sn": 2478,
+   "partc_no": 7150,
+   "hours": 2.0,
+   "recognized": 2.0,
+   "session_name": "[기초직업능력] 정보처리능력",
+   "subject": "[기초직업능력] 정보처리능력",
+   "cert_no": "정보시스템감리협회 제5404호",
+   "name": "강영원",
+   "birth": "1966-02-10"
+  },
+  {
+   "row": 12993,
+   "schdl_raw": "2480",
+   "partc_raw": "783",
+   "schdl_sn": 2480,
+   "partc_no": 783,
+   "hours": 6.0,
+   "recognized": 6.0,
+   "session_name": "[정보기술전략계획] Power BI를 활용한 데이터 분석과 시각화(기본)",
+   "subject": "[정보기술전략계획] Power BI를 활용한 데이터 분석과 시각화(기본)",
+   "cert_no": "정보시스템감리협회 제783호",
+   "name": "김문기",
+   "birth": "1963-08-12"
+  },
+  {
+   "row": 12994,
+   "schdl_raw": "2481",
+   "partc_raw": "783",
+   "schdl_sn": 2481,
+   "partc_no": 783,
+   "hours": 3.0,
+   "recognized": 3.0,
+   "session_name": "(특별교육)[인공지능] 라마인덱스(LLAMA INDEX) 활용 실습",
+   "subject": "(특별교육)[인공지능] 라마인덱스(LLAMA INDEX) 활용 실습",
+   "cert_no": "정보시스템감리협회 제783호",
+   "name": "김문기",
+   "birth": "1963-08-12"
+  },
+  {
+   "row": 12995,
+   "schdl_raw": "2482",
+   "partc_raw": "783",
+   "schdl_sn": 2482,
+   "partc_no": 783,
+   "hours": 6.0,
+   "recognized": 6.0,
+   "session_name": "(스마트공장)온디바이스 기반 인공지능 비전인식 모델 학습",
+   "subject": "(스마트공장)온디바이스 기반 인공지능 비전인식 모델 학습",
+   "cert_no": "정보시스템감리협회 제783호",
+   "name": "김문기",
+   "birth": "1963-08-12"
+  },
+  {
+   "row": 12996,
+   "schdl_raw": "2484",
+   "partc_raw": "557",
+   "schdl_sn": 2484,
+   "partc_no": 557,
+   "hours": 3.0,
+   "recognized": 3.0,
+   "session_name": "ChatGTP활용한 빅데이터분석",
+   "subject": "ChatGTP활용한 빅데이터분석",
+   "cert_no": "정보시스템감리협회 제557호",
+   "name": "홍종권",
+   "birth": "1956-08-25"
+  },
+  {
+   "row": 12997,
+   "schdl_raw": "2485",
+   "partc_raw": "557",
+   "schdl_sn": 2485,
+   "partc_no": 557,
+   "hours": 7.0,
+   "recognized": 7.0,
+   "session_name": "자율 이동체 시뮬레이션 프로그래밍",
+   "subject": "자율 이동체 시뮬레이션 프로그래밍",
+   "cert_no": "정보시스템감리협회 제557호",
+   "name": "홍종권",
+   "birth": "1956-08-25"
+  },
+  {
+   "row": 12998,
+   "schdl_raw": "2486",
+   "partc_raw": "557",
+   "schdl_sn": 2486,
+   "partc_no": 557,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "생성형 AI를 활용한 비즈니스 서비스 개발",
+   "subject": "생성형 AI를 활용한 비즈니스 서비스 개발",
+   "cert_no": "정보시스템감리협회 제557호",
+   "name": "홍종권",
+   "birth": "1956-08-25"
+  },
+  {
+   "row": 12999,
+   "schdl_raw": "2488",
+   "partc_raw": "2497",
+   "schdl_sn": 2488,
+   "partc_no": 2497,
+   "hours": 4.0,
+   "recognized": 4.0,
+   "session_name": "2026년 SW보안약점 진단원 보수교육(4차)",
+   "subject": "2026년 SW보안약점 진단원 보수교육(4차)",
+   "cert_no": "정보시스템감리협회 제2497호",
+   "name": "장지숙",
+   "birth": "1971-07-01"
+  },
+  {
+   "row": 13000,
+   "schdl_raw": "2490",
+   "partc_raw": "1336",
+   "schdl_sn": 2490,
+   "partc_no": 1336,
+   "hours": 13.0,
+   "recognized": 13.0,
+   "session_name": "개인정보 보호책임자(CPO) 기본교육 - 1회차",
+   "subject": "개인정보 보호책임자(CPO) 기본교육 - 1회차",
+   "cert_no": "정보시스템감리협회 제1336호",
+   "name": "변상선",
+   "birth": "1970-01-08"
+  }
+ ]
+}
