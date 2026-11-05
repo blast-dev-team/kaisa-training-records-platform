@@ -25,11 +25,13 @@
 | admin | `VITE_SENTRY_DSN`, `VITE_RELEASE` | AWS Amplify 콘솔 — admin 앱 환경변수 (이미 주입됨) |
 | backend | `SENTRY_DSN`, `RELEASE`, `ENVIRONMENT` | Secrets Manager / EC2 docker-compose env (kaisa-staging·kaisa-prod 시크릿에 병합 완료) |
 
-**브랜치별 수집 정책** — amplify.yml 빌드 명령이 분기한다:
+**브랜치·환경별 수집 정책** — **운영(master + kaisa-prod)만 수집한다.**
 
-- `master`(운영): `VITE_ENV=production` + DSN 유효 → 수집
-- `dev`(스테이징): `VITE_ENV=staging` + DSN 비움 → **수집 안 함** (코드는 dev 에도 존재 — master 와 동기화 목적)
-- BE staging 시크릿에도 SENTRY_DSN 이 들어가 있음 — api-dev 백엔드는 운영 admin UI 가 쓰고 있어 수집 유지 (`ENVIRONMENT=staging` 태그)
+- FE `master`(운영): `VITE_ENV=production` + DSN 유효 → 수집
+- FE `dev`(스테이징): amplify.yml 이 DSN 을 비움 → **수집 안 함** (코드는 dev 에도 존재 — master 와 동기화 목적)
+- BE staging(kaisa-staging 시크릿): SENTRY_DSN 제거함 (2026-11-04) — **수집 안 함**
+  - 주의: api-dev 백엔드가 운영 admin UI 의 API 라서, admin 화면 에러의 백엔드 원인은 Sentry 에 안 잡힌다. 다시 잡고 싶으면 시크릿에 SENTRY_DSN 키만 다시 추가하고 컨테이너 재시작
+- 로컬: `.env`에 DSN 없음 — 기본 비활성 (검증 필요 시 임시로 넣고 지우기)
 
 - `VITE_RELEASE` / `RELEASE`: 배포 식별자(예: git SHA나 날짜 태그). 비우면 릴리즈 미지정 —
   이슈가 "어느 배포부터 생겼는지" 추적하려면 채우는 걸 권장.
