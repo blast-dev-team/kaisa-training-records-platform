@@ -8,7 +8,7 @@ import { cn } from "@/src/shared/utils/cn";
 import { getIssuanceBundles } from "../../issuance-complete/api/get-issuance-result";
 import { useAuthStore } from "@/src/shared/store/auth-store";
 import {
-  certificatePdfFileName,
+  trainingHistoryPdfFileName,
   generateCertificatePdf,
 } from "../api/generate-certificate-pdf";
 import { getCertificatePrice } from "../api/get-certificate-price";
@@ -221,9 +221,9 @@ export function IssuePaymentModal({
       if (elements.length === 0) return;
       await generateCertificatePdf(
         elements,
-        certificatePdfFileName(
-          (details ?? []).map((detail) => detail.courseName),
-          "교육 확인서",
+        trainingHistoryPdfFileName(
+          issuedSheets[0]?.bundle.issuedAt ?? new Date(),
+          memberName,
         ),
       );
       showToast("다운로드했어요");
