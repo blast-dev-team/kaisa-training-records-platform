@@ -21,6 +21,8 @@
 import asyncio
 import logging
 import sys
+import uuid
+from collections import defaultdict
 from datetime import date
 from decimal import Decimal
 
@@ -373,7 +375,20 @@ async def import_legacy_education(xlsx_path: str) -> None:
                 )
             ).scalars()
         )
-        created_record = skipped_enroll = fallback = no_session = 0
+        # 사전 필터 — 요청건·외부 어드민 등록(EXT/REC 등)이 이미 가진
+        # (교육생, 과정명) 조합. 같은 교육이 LEG-EDC 로 재등록되는 것을 막는다 (2026-11-04)
+        existing_other: dict[uuid.UUID, set[str]] = defaultdict(set)
+        for t_id, cn in (
+            await db.execute(
+                select(TrainingRecord.trainee_id, TrainingRecord.course_name).where(
+                    ~TrainingRecord.training_record_no.like("LEG-EDC-%"),
+                    TrainingRecord.deleted_at.is_(None),
+                )
+            )
+        ):
+            if cn:
+                existing_other[t_id].add(_norm(cn))
+        created_record = skipped_enroll = fallback = no_session = skipped_dup = 0
         for row in wb["수강신청"].iter_rows(min_row=2, values_only=True):
             schedule_no = _as_int(row[1])
             partc_no = _as_int(row[2])
@@ -407,6 +422,15 @@ async def import_legacy_education(xlsx_path: str) -> None:
                         break
             hours = _parse_hours(row[4])
             cert_no, grade = supervisor_meta.get(partc_no, (None, None))
+            # 사전 필터 — 요청건·외부로 이미 등록된 (교육생, 과정)은 스킵해 중복을 막는다
+            cnorm = _norm(course.name if course else "")
+            if (
+                course is not None
+                and cnorm
+                and any(cnorm in ex or ex in cnorm for ex in existing_other.get(trainee.id, ()))
+            ):
+                skipped_dup += 1
+                continue
             existing_record_nos.add(record_no)
             created_record += 1
             db.add(
@@ -437,8 +461,8 @@ async def import_legacy_education(xlsx_path: str) -> None:
                 logger.info("  … %s건", created_record)
         await db.flush()
         logger.info(
-            "[수강신청] 이력 신규 %s (fallback 조인 %s · 일정없음 %s · 제외 %s)",
-            created_record, fallback, no_session, skipped_enroll,
+            "[수강신청] 이력 신규 %s (fallback 조인 %s · 일정없음 %s · 제외 %s · 중복스킵 %s)",
+            created_record, fallback, no_session, skipped_enroll, skipped_dup,
         )
 
         # ── 5. 외부교육수강기록 → external 과정 + 이력 ────────────────────
@@ -465,6 +489,23 @@ async def import_legacy_education(xlsx_path: str) -> None:
                 )
             ).scalars()
         )
+        # 외부교육 재이관 중복 방지 — (교육생, 과정명, 시작일)이 이미 어떤 소스로든
+        # 등록돼 있으면 스킵한다. 시트 안에 동일 교육이 다른 행으로 중복 기재된
+        # 사례(이선준 LEG-EXT 623~628 vs 629~634)의 재발을 막는다 (2026-11-04)
+        existing_any: set[tuple[uuid.UUID, str, str]] = set()
+        for t_id, cn, st in (
+            await db.execute(
+                select(
+                    TrainingRecord.trainee_id,
+                    TrainingRecord.course_name,
+                    TrainingRecord.started_at,
+                ).where(TrainingRecord.deleted_at.is_(None))
+            )
+        ):
+            if cn:
+                existing_any.add(
+                    (t_id, _norm(cn), st.isoformat() if st else "NULL")
+                )
 
         created_ext_course = created_ext_record = 0
         skipped_ext = 0
@@ -523,6 +564,12 @@ async def import_legacy_education(xlsx_path: str) -> None:
             ext_courses[course_key] = course
 
             hours = _parse_hours(row[5]) or _parse_hours(row[4])
+            # 사전 필터 — (교육생, 과정, 시작일) 동일 건이 이미 있으면 스킵
+            started = _parse_date(row[2])
+            dup_key = (trainee.id, _norm(subject_name), started.isoformat() if started else "NULL")
+            if dup_key in existing_any:
+                skipped_ext += 1
+                continue
             existing_record_nos.add(record_no)
             ext_record_nos.add(record_no)
             created_ext_record += 1
