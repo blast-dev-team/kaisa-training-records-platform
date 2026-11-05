@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { toast } from "react-toastify";
 import { Dialog } from "@/src/shared/ui/dialog";
 import {
-  certificatePdfFileName,
+  trainingHistoryPdfFileName,
   generateCertificatePdf,
 } from "@/src/shared/utils/generate-certificate-pdf";
 import type { TrainingRecord } from "@/src/entities/training-record";
@@ -200,7 +200,7 @@ export function CertificatePreviewModal({ isOpen, onClose, records, onDownloaded
         if (els.length === 0) continue;
         await generateCertificatePdf(
           els,
-          certificatePdfFileName(group.courseNames, "교육 확인서"),
+          trainingHistoryPdfFileName(new Date(), group.traineeName),
         );
         savedCount += 1;
       }

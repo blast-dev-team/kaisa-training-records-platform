@@ -30,6 +30,24 @@ export function certificatePdfFileName(
   return `${head} - ${docLabel}.pdf`;
 }
 
+/**
+ * 계속교육내역확인서 파일명 — "{발급일 YYYYMMDD}-계속교육내역확인서-{이름}.pdf"
+ * 발급일은 문서에 찍히는 발급일 표기와 같은 기준(브라우저 로컬 날짜)으로 만든다.
+ */
+export function trainingHistoryPdfFileName(
+  issuedAt: Date | string,
+  memberName: string,
+): string {
+  const date = new Date(issuedAt);
+  const ymd = [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, "0"),
+    String(date.getDate()).padStart(2, "0"),
+  ].join("");
+  const name = sanitizeFileName(memberName) || "감리원";
+  return `${ymd}-계속교육내역확인서-${name}.pdf`;
+}
+
 export async function generateCertificatePdf(
   elements: PdfPageElement[],
   fileName: string,
