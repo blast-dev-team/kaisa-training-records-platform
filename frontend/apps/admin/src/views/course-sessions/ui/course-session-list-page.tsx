@@ -383,6 +383,7 @@ export function CourseSessionListPage() {
         data={items}
         isLoading={!data}
         onRowClick={(s) => toggleRow(s, !selectedIds.has(s.id))}
+        isRowSelected={(s) => selectedIds.has(s.id)}
         emptyMessage="등록된 교육 일정이 없어요. 일정을 등록하고 감리원을 연결해 보세요"
         page={page}
         totalPages={totalPages}

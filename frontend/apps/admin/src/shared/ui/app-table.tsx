@@ -34,6 +34,8 @@ interface AppTableProps<TData extends RowData> {
   onRowClick?: (row: TData) => void;
   /** 행별 클래스 — 상태 강조(만료 임박 등). hover 배경이 이후 덮으므로 조합 전제 */
   getRowClassName?: (row: TData) => string;
+  /** 체크박스로 선택된 행 — 강조색 배경으로 표시(hover·행 강조보다 우선) */
+  isRowSelected?: (row: TData) => boolean;
   /** 컬럼 사이 세로 구분선(절반 높이, 가운데) — 컬럼 많은 테이블 가독성용 */
   columnDividers?: boolean;
   /** 셀 패딩 축소(px-2.5 py-2) — 너비 확보가 중요한 와이드 테이블용 */
@@ -119,6 +121,7 @@ export function AppTable<TData extends RowData>({
   emptyMessage = "데이터가 없습니다",
   onRowClick,
   getRowClassName,
+  isRowSelected,
   columnDividers,
   dense,
   fixedLayout,
@@ -308,43 +311,54 @@ export function AppTable<TData extends RowData>({
                 </td>
               </tr>
             ) : (
-              table.getRowModel().rows.map((row) => (
-                <tr
-                  key={row.id}
-                  onClick={onRowClick ? () => onRowClick(row.original) : undefined}
-                  className={`group transition-colors border-b border-line-2 last:border-0 ${
-                    onRowClick ? "cursor-pointer " : ""
-                  }hover:bg-panel-2 ${getRowClassName?.(row.original) ?? ""}`}
-                >
-                  {row.getVisibleCells().map((cell, idx, arr) => {
-                    const align = cell.column.columnDef.meta?.align;
-                    const sticky = cell.column.columnDef.meta?.sticky === "right";
-                    const nextSticky = arr[idx + 1]?.column.columnDef.meta?.sticky === "right";
-                    const divider =
-                      columnDividers && idx < arr.length - 1 && !sticky && !nextSticky;
-                    return (
-                      <td
-                        key={cell.id}
-                        className={`${cellPad} whitespace-nowrap ${
-                          // 고정 레이아웃에선 셀 폭이 설계값으로 묶이므로 넘치는 텍스트를 잘라낸다 — 안 그러면 다음 컬럼에 겹쳐 그려진다
-                          fixedLayout || customized ? "overflow-hidden text-ellipsis" : ""
-                        } ${
-                          align === "right" ? "text-right" : align === "center" ? "text-center" : ""
-                        } ${divider ? COL_DIVIDER : ""} ${
-                          sticky
-                            ? "sticky z-[1] bg-panel group-hover:bg-panel-2 border-l border-line"
-                            : ""
-                        }`}
-                        style={
-                          sticky ? { right: stickyRightOffset[cell.column.id] ?? 0 } : undefined
-                        }
-                      >
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                      </td>
-                    );
-                  })}
-                </tr>
-              ))
+              table.getRowModel().rows.map((row) => {
+                const selected = isRowSelected?.(row.original) ?? false;
+                return (
+                  <tr
+                    key={row.id}
+                    onClick={onRowClick ? () => onRowClick(row.original) : undefined}
+                    aria-selected={isRowSelected ? selected : undefined}
+                    className={`group transition-colors border-b border-line-2 last:border-0 ${
+                      onRowClick ? "cursor-pointer " : ""
+                    }${
+                      // 선택 행은 hover 에도 강조색 유지 — 행 강조(만료 임박 등)와 겹치면 선택 표시가 우선
+                      selected
+                        ? "bg-accent-soft"
+                        : `hover:bg-panel-2 ${getRowClassName?.(row.original) ?? ""}`
+                    }`}
+                  >
+                    {row.getVisibleCells().map((cell, idx, arr) => {
+                      const align = cell.column.columnDef.meta?.align;
+                      const sticky = cell.column.columnDef.meta?.sticky === "right";
+                      const nextSticky = arr[idx + 1]?.column.columnDef.meta?.sticky === "right";
+                      const divider =
+                        columnDividers && idx < arr.length - 1 && !sticky && !nextSticky;
+                      return (
+                        <td
+                          key={cell.id}
+                          className={`${cellPad} whitespace-nowrap ${
+                            // 고정 레이아웃에선 셀 폭이 설계값으로 묶이므로 넘치는 텍스트를 잘라낸다 — 안 그러면 다음 컬럼에 겹쳐 그려진다
+                            fixedLayout || customized ? "overflow-hidden text-ellipsis" : ""
+                          } ${
+                            align === "right" ? "text-right" : align === "center" ? "text-center" : ""
+                          } ${divider ? COL_DIVIDER : ""} ${
+                            sticky
+                              ? `sticky z-[1] border-l border-line ${
+                                  selected ? "bg-accent-soft" : "bg-panel group-hover:bg-panel-2"
+                                }`
+                              : ""
+                          }`}
+                          style={
+                            sticky ? { right: stickyRightOffset[cell.column.id] ?? 0 } : undefined
+                          }
+                        >
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>

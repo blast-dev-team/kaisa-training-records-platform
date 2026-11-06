@@ -80,3 +80,41 @@ describe("AppTable 열 너비 조절", () => {
     expect(screen.getByRole("columnheader", { name: /과정명/ }).style.width).toBe("200px");
   });
 });
+
+describe("AppTable 선택 행 표시", () => {
+  const rows: Row[] = [
+    { id: "1", name: "선택된 과정" },
+    { id: "2", name: "선택 안 된 과정" },
+  ];
+  const rowOf = (text: string) => screen.getByText(text).closest("tr")!;
+
+  it("선택된 행만 강조색 배경이 된다", () => {
+    render(<AppTable columns={columns} data={rows} isRowSelected={(r) => r.id === "1"} />);
+    expect(rowOf("선택된 과정").className).toContain("bg-accent-soft");
+    expect(rowOf("선택 안 된 과정").className).not.toContain("bg-accent-soft");
+  });
+
+  it("선택 표시가 행 강조(getRowClassName)보다 우선한다", () => {
+    render(
+      <AppTable
+        columns={columns}
+        data={rows}
+        isRowSelected={(r) => r.id === "1"}
+        getRowClassName={() => "bg-warn-soft"}
+      />,
+    );
+    expect(rowOf("선택된 과정").className).not.toContain("bg-warn-soft");
+    expect(rowOf("선택 안 된 과정").className).toContain("bg-warn-soft");
+  });
+
+  it("우측 고정 컬럼 셀도 선택 색을 따른다", () => {
+    const stickyCols: ColumnDef<Row, unknown>[] = [
+      { accessorKey: "name", header: "과정명" },
+      { id: "actions", header: "", meta: { width: 100, sticky: "right" }, cell: () => "수정" },
+    ];
+    render(<AppTable columns={stickyCols} data={rows} isRowSelected={(r) => r.id === "1"} />);
+    const stickyCell = rowOf("선택된 과정").lastElementChild!;
+    expect(stickyCell.className).toContain("bg-accent-soft");
+    expect(stickyCell.className).not.toContain("bg-panel ");
+  });
+});
