@@ -7,6 +7,8 @@ import {
   type RowData,
 } from "@tanstack/react-table";
 import { useEffect, useRef, useState } from "react";
+import { ChevronsLeftRight } from "lucide-react";
+import { useColumnResize } from "@/src/shared/hooks/use-column-widths";
 import { Pagination } from "./pagination";
 import { Select } from "./select";
 
@@ -61,6 +63,7 @@ function TableFooter({
   limit,
   onLimitChange,
   info,
+  onResetWidths,
 }: {
   page: number;
   totalPages: number;
@@ -68,10 +71,14 @@ function TableFooter({
   limit?: number;
   onLimitChange?: (limit: number) => void;
   info?: string;
+  onResetWidths?: () => void;
 }) {
   return (
     <div className="flex items-center justify-between px-4 py-2.5 border-t border-line gap-3">
-      {info && <span className="text-11 text-ink-3">{info}</span>}
+      <div className="flex items-center gap-3">
+        {info && <span className="text-11 text-ink-3">{info}</span>}
+        {onResetWidths && <ResetWidthsButton onClick={onResetWidths} />}
+      </div>
       <div className="flex items-center gap-2">
         {onLimitChange && (
           <Select
@@ -90,6 +97,18 @@ function TableFooter({
         <Pagination page={page} totalPages={totalPages} onPageChange={onPageChange} />
       </div>
     </div>
+  );
+}
+
+function ResetWidthsButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      className="text-11 text-ink-3 underline-offset-2 hover:text-ink hover:underline"
+      onClick={onClick}
+    >
+      열 너비 초기화
+    </button>
   );
 }
 
@@ -122,6 +141,22 @@ export function AppTable<TData extends RowData>({
   const hasPagination =
     page !== undefined && totalPages !== undefined && onPageChange !== undefined;
 
+  // ── 열 너비 드래그 조절 — 이 브라우저에 화면·컬럼 구성별로 저장 ─────────────
+  // 같은 경로라도 탭마다 컬럼 구성이 다르므로 컬럼 id 목록까지 키에 넣는다
+  const leafIds = table.getAllLeafColumns().map((c) => c.id);
+  const { widths, customized, thRefs, startResize, reset: resetWidths } = useColumnResize(
+    leafIds,
+    `app-table-widths:${window.location.pathname}:${leafIds.join(",")}`,
+  );
+  const customTableWidth = leafIds.reduce(
+    (sum, id) =>
+      sum +
+      (widths[id] ??
+        table.getColumn(id)?.columnDef.meta?.width ??
+        120),
+    0,
+  );
+
   // sticky:'right' 컬럼들의 right offset(px) 계산 — 우측부터 누적(여러 컬럼 고정 지원).
   // 고정 컬럼은 meta.width 필수(offset 계산용). 없으면 0.
   const stickyRightOffset: Record<string, number> = {};
@@ -132,7 +167,7 @@ export function AppTable<TData extends RowData>({
       const c = leaf[i];
       if (c?.columnDef.meta?.sticky === "right") {
         stickyRightOffset[c.id] = acc;
-        acc += typeof c.columnDef.meta?.width === "number" ? c.columnDef.meta.width : 0;
+        acc += widths[c.id] ?? c.columnDef.meta?.width ?? 0;
       }
     }
   }
@@ -189,11 +224,13 @@ export function AppTable<TData extends RowData>({
         }}
       >
         <table
-          className="w-full text-13"
+          className={customized ? "text-13" : "w-full text-13"}
           style={
-            fixedLayout && minTableWidth > 0
-              ? { minWidth: `${minTableWidth}px`, tableLayout: "fixed" }
-              : undefined
+            customized
+              ? { width: `${customTableWidth}px`, tableLayout: "fixed" }
+              : fixedLayout && minTableWidth > 0
+                ? { minWidth: `${minTableWidth}px`, tableLayout: "fixed" }
+                : undefined
           }
         >
           <thead>
@@ -206,10 +243,17 @@ export function AppTable<TData extends RowData>({
                   // 고정 컬럼은 border-l 로 구분 → 자신/바로 왼쪽 셀엔 COL_DIVIDER 미적용(이중선 방지)
                   const divider =
                     columnDividers && idx < hg.headers.length - 1 && !sticky && !nextSticky;
+                  // 글자 헤더만 조절 — 체크박스·액션 버튼(빈 헤더)·우측 고정 컬럼은 폭 고정
+                  const headerDef = header.column.columnDef.header;
+                  const resizable = !sticky && typeof headerDef === "string" && headerDef !== "";
+                  const width = widths[header.column.id] ?? header.column.columnDef.meta?.width;
                   return (
                     <th
                       key={header.id}
-                      className={`${cellPad} text-12 font-medium text-ink-3 whitespace-nowrap select-none ${
+                      ref={(el) => {
+                        thRefs.current[header.column.id] = el;
+                      }}
+                      className={`group/th relative ${cellPad} text-12 font-medium text-ink-3 whitespace-nowrap select-none ${
                         align === "right"
                           ? "text-right"
                           : align === "center"
@@ -219,15 +263,31 @@ export function AppTable<TData extends RowData>({
                         sticky ? "sticky z-[2] bg-panel-2 border-l border-line" : ""
                       }`}
                       style={{
-                        ...(header.column.columnDef.meta?.width
-                          ? { width: header.column.columnDef.meta.width }
-                          : {}),
+                        ...(width ? { width } : {}),
                         ...(sticky ? { right: stickyRightOffset[header.column.id] ?? 0 } : {}),
                       }}
                     >
-                      <span className="inline-flex items-center gap-1">
+                      <span className="inline-flex max-w-full items-center gap-1 overflow-hidden text-ellipsis">
                         {flexRender(header.column.columnDef.header, header.getContext())}
                       </span>
+                      {resizable && (
+                        <span
+                          role="separator"
+                          aria-orientation="vertical"
+                          aria-label={`${headerDef} 열 너비 조절`}
+                          title="드래그해서 열 너비 조절"
+                          className="group/handle absolute right-0 top-0 z-[3] flex h-full w-4 cursor-col-resize touch-none items-center justify-end pr-px"
+                          onPointerDown={(e) => startResize(e, header.column.id)}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {/* 조절 가능 표시 — 평소엔 옅은 막대, 헤더에 올리면 ↔ 아이콘(핸들 위에선 강조색) */}
+                          <span className="h-4 w-[3px] rounded-full bg-ink-3/30 group-hover/th:hidden" />
+                          <ChevronsLeftRight
+                            aria-hidden
+                            className="hidden size-3.5 rounded-sm bg-panel-2 text-ink-3 group-hover/th:block group-hover/handle:text-accent"
+                          />
+                        </span>
+                      )}
                     </th>
                   );
                 })}
@@ -267,7 +327,7 @@ export function AppTable<TData extends RowData>({
                         key={cell.id}
                         className={`${cellPad} whitespace-nowrap ${
                           // 고정 레이아웃에선 셀 폭이 설계값으로 묶이므로 넘치는 텍스트를 잘라낸다 — 안 그러면 다음 컬럼에 겹쳐 그려진다
-                          fixedLayout ? "overflow-hidden text-ellipsis" : ""
+                          fixedLayout || customized ? "overflow-hidden text-ellipsis" : ""
                         } ${
                           align === "right" ? "text-right" : align === "center" ? "text-center" : ""
                         } ${divider ? COL_DIVIDER : ""} ${
@@ -311,7 +371,13 @@ export function AppTable<TData extends RowData>({
           limit={limit}
           onLimitChange={onLimitChange}
           info={paginationInfo}
+          onResetWidths={customized ? resetWidths : undefined}
         />
+      )}
+      {!hasPagination && customized && (
+        <div className="border-t border-line px-4 py-2">
+          <ResetWidthsButton onClick={resetWidths} />
+        </div>
       )}
     </div>
   );
