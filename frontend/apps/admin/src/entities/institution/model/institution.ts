@@ -34,6 +34,8 @@ export interface Course {
   category: string | null
   isActive: boolean
   createdAt: string
+  /** 마지막 수정 시각 — 구버전 응답엔 없을 수 있다 */
+  updatedAt?: string | null
 }
 
 export interface CourseInput {

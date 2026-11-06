@@ -14,6 +14,9 @@ export interface CourseListQuery {
   category?: string
   /** 외부 교육과정 필터 */
   isExternal?: boolean
+  /** 정렬 기준 — 미지정 시 과정명 asc */
+  sort?: 'name' | 'created_at' | 'updated_at'
+  order?: 'asc' | 'desc'
   page?: number
   limit?: number
 }

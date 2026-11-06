@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
+import { createPortal } from "react-dom";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { ChevronDown, Search, X } from "lucide-react";
 import { apiClient, type PagedResponse } from "@/src/shared/api";
@@ -33,6 +34,16 @@ interface Props {
   createLabel?: (search: string) => string;
   /** true 면 '+ 새로 추가' 자유입력 행을 숨긴다 — 마스터에서 선택만 하는 용도 */
   disableCreate?: boolean;
+  /**
+   * true 면 드롭다운을 document.body 포털(fixed)로 띄운다.
+   * 스크롤/overflow 로 잘리는 컨테이너(모달 안 테이블 등) 안에서 써도 밖으로 펼쳐진다.
+   */
+  portal?: boolean;
+  /**
+   * true 면 입력하던 검색어를 유지한다 — 바깥 클릭으로 닫혀도 지우지 않고,
+   * 선택값이 있는 상태로 다시 열면 현재 라벨을 검색창에 채워 이어서 고칠 수 있게 한다.
+   */
+  keepSearchText?: boolean;
 }
 
 /**
@@ -53,13 +64,19 @@ export function SearchableSelect({
   onCreate,
   createLabel,
   disableCreate = false,
+  portal = false,
+  keepSearchText = false,
 }: Props) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [creating, setCreating] = useState(false);
   const debouncedSearch = useDebouncedValue(search, 300);
   const containerRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const [portalStyle, setPortalStyle] = useState<CSSProperties | null>(null);
 
   const query = useInfiniteQuery({
     queryKey: [...queryKeyPrefix, debouncedSearch],
@@ -76,11 +93,14 @@ export function SearchableSelect({
 
   useEffect(() => {
     if (!open) {
-      setSearch("");
+      if (!keepSearchText) setSearch("");
       return;
     }
     const onClickOutside = (e: MouseEvent) => {
-      if (!containerRef.current?.contains(e.target as Node)) setOpen(false);
+      const target = e.target as Node;
+      // 포털 패널은 container 밖(body)에 있으므로 따로 확인한다
+      if (containerRef.current?.contains(target) || panelRef.current?.contains(target)) return;
+      setOpen(false);
     };
     document.addEventListener("mousedown", onClickOutside);
     return () => document.removeEventListener("mousedown", onClickOutside);
@@ -99,26 +119,92 @@ export function SearchableSelect({
     options.find((o) => o.value === value)?.label ??
     (value ? (selectedLabel ?? "•••") : null);
 
+  // 포털 모드 — 트리거 위치를 따라 fixed 로 배치. 아래 공간이 부족하면 위로 펼친다
+  useLayoutEffect(() => {
+    if (!open || !portal) {
+      setPortalStyle(null);
+      return;
+    }
+    const place = () => {
+      const el = triggerRef.current;
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      const PANEL_MAX = 300; // 검색줄 + 목록(max-h-56) 대략치
+      const below = window.innerHeight - r.bottom;
+      const openUp = below < PANEL_MAX && r.top > below;
+      setPortalStyle({
+        position: "fixed",
+        left: r.left,
+        width: r.width,
+        ...(openUp ? { bottom: window.innerHeight - r.top + 4 } : { top: r.bottom + 4 }),
+      });
+    };
+    place();
+    // 모달 본문·테이블 스크롤에도 따라가도록 capture 로 듣는다
+    window.addEventListener("scroll", place, true);
+    window.addEventListener("resize", place);
+    return () => {
+      window.removeEventListener("scroll", place, true);
+      window.removeEventListener("resize", place);
+    };
+  }, [open, portal]);
+
+  // 열릴 때 검색창 포커스 — keepSearchText 면 현재 라벨을 채우고 전체 선택(바로 덮어쓰기·이어 고치기 둘 다 가능)
+  useEffect(() => {
+    if (!open) return;
+    if (keepSearchText && search === "" && value && currentLabel && currentLabel !== "•••") {
+      setSearch(currentLabel);
+    }
+    const raf = requestAnimationFrame(() => {
+      searchInputRef.current?.focus();
+      if (keepSearchText) searchInputRef.current?.select();
+    });
+    return () => cancelAnimationFrame(raf);
+    // 열리는 순간에만 — search/label 변화로 다시 돌지 않게
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
+  const closeAfterSelect = () => {
+    setOpen(false);
+    setSearch("");
+  };
+
   return (
     <div ref={containerRef} className={`relative ${className}`}>
       <button
+        ref={triggerRef}
         type="button"
         disabled={disabled}
         className="flex h-9 w-full items-center justify-between gap-2 rounded-md border border-line bg-white px-3 text-14 text-ink disabled:cursor-not-allowed disabled:bg-bg-2"
         onClick={() => setOpen((v) => !v)}
+        title={currentLabel ?? undefined}
       >
-        <span className={currentLabel ? "" : "text-ink-3"}>
+        {/* 긴 라벨(이름 + 증번호 등)은 줄바꿈 대신 말줄임 */}
+        <span className={`min-w-0 truncate ${currentLabel ? "" : "text-ink-3"}`}>
           {currentLabel ?? placeholder}
         </span>
         <ChevronDown className="size-4 shrink-0 text-ink-3" />
       </button>
 
-      {open && (
-        <div className="absolute z-30 mt-1 w-full rounded-md border border-line bg-white shadow-lg">
+      {open && (!portal || portalStyle !== null) && renderPanel()}
+    </div>
+  );
+
+  function renderPanel() {
+    const panel = (
+        <div
+          ref={panelRef}
+          className={
+            portal
+              ? "z-[1200] rounded-md border border-line bg-white shadow-lg"
+              : "absolute z-30 mt-1 w-full rounded-md border border-line bg-white shadow-lg"
+          }
+          style={portal ? (portalStyle ?? undefined) : undefined}
+        >
           <div className="flex items-center gap-2 border-b border-line px-3 py-2">
             <Search className="size-3.5 shrink-0 text-ink-3" />
             <input
-              autoFocus
+              ref={searchInputRef}
               className="w-full text-14 outline-none placeholder:text-ink-3"
               placeholder="검색"
               value={search}
@@ -142,7 +228,7 @@ export function SearchableSelect({
                 className="w-full px-3 py-2 text-left text-14 text-ink-3 hover:bg-bg-2"
                 onClick={() => {
                   onChange(null);
-                  setOpen(false);
+                  closeAfterSelect();
                 }}
               >
                 선택 취소
@@ -171,8 +257,7 @@ export function SearchableSelect({
                       label: search.trim(),
                     });
                   }
-                  setOpen(false);
-                  setSearch("");
+                  closeAfterSelect();
                 }}
               >
                 +{" "}
@@ -188,12 +273,15 @@ export function SearchableSelect({
                 }`}
                 onClick={() => {
                   onChange(o.value, o);
-                  setOpen(false);
+                  closeAfterSelect();
                 }}
+                title={o.hint ? `${o.label} · ${o.hint}` : o.label}
               >
-                <span className="truncate text-ink">{o.label}</span>
+                <span className="min-w-0 truncate text-ink">{o.label}</span>
                 {o.hint && (
-                  <span className="shrink-0 text-11 text-ink-3">{o.hint}</span>
+                  <span className="max-w-[60%] shrink-0 truncate text-11 text-ink-3">
+                    {o.hint}
+                  </span>
                 )}
               </button>
             ))}
@@ -202,9 +290,9 @@ export function SearchableSelect({
             )}
           </div>
         </div>
-      )}
-    </div>
-  );
+    );
+    return portal ? createPortal(panel, document.body) : panel;
+  }
 }
 
 /** API paged 응답을 옵션 페이지로 변환하는 헬퍼 */
