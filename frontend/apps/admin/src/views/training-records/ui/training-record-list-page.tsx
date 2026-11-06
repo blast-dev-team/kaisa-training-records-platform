@@ -625,6 +625,7 @@ export function TrainingRecordListPage() {
         data={items}
         isLoading={!data}
         onRowClick={toggleRow}
+        isRowSelected={(r) => selected.has(r.id)}
         emptyMessage={
           traineeId && selectedTrainee
             ? `${selectedTrainee.name}(${selectedTrainee.traineeNo ?? "미지정"}) 감리원의 교육내역이 없어요`

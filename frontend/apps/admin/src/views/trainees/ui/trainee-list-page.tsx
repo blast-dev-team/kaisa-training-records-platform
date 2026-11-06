@@ -468,6 +468,7 @@ export function TraineeListPage() {
         isLoading={!data}
         onRowClick={toggleRow}
         getRowClassName={getRowClassName}
+        isRowSelected={(t) => t.id in selected}
         emptyMessage="조건에 맞는 감리원이 없어요"
         page={page}
         totalPages={totalPages}
