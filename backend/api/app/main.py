@@ -1,6 +1,7 @@
+import asyncio
 import logging
 import uuid
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, suppress
 
 import sentry_sdk
 from fastapi import FastAPI, HTTPException, Request
@@ -10,6 +11,7 @@ from fastapi.responses import JSONResponse
 from scalar_fastapi import get_scalar_api_reference
 
 from app.core.config import settings
+from app.core.scheduler import run_daily_task
 from app.domain.audit.router import router as audit_log_router
 from app.domain.auth.router import (
     admin_user_router,
@@ -95,10 +97,39 @@ def _sentry_feature(path: str) -> str:
     return path
 
 
+logger = logging.getLogger(__name__)
+
+
+async def membership_expiry_job() -> None:
+    """연간 회원 만료 자동 일반 전환 — 일일 스케줄러가 매일 KST 09:00 실행한다."""
+    from app.core.database import async_session
+    from app.domain.trainee.service import trainee_service
+
+    async with async_session() as db:
+        count = await trainee_service.expire_due_memberships(db)
+    if count:
+        logger.info("연간 만료 자동 일반 전환 %s건", count)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # 앱 시작/종료 시 초기화·정리 훅. (스케줄러·워밍업 등이 필요하면 여기에)
-    yield
+    # 앱 시작/종료 시 초기화·정리 훅.
+    # 일일 스케줄러 — 연간 회원 만료 자동 일반 전환 (트래픽 없는 날에도 전환 보장).
+    # workers=1 고정이라 인프로세스 태스크로 충분 (app/core/scheduler.py 참고)
+    scheduler_task = asyncio.create_task(
+        run_daily_task(
+            hour=0,
+            minute=0,
+            name="membership_expiry_transition",
+            job=membership_expiry_job,
+        )
+    )
+    try:
+        yield
+    finally:
+        scheduler_task.cancel()
+        with suppress(asyncio.CancelledError):
+            await scheduler_task
 
 
 app = FastAPI(
