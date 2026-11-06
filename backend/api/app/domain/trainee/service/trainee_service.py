@@ -180,10 +180,19 @@ async def _check_duplicate_trainee(
 async def create_trainee(
     db: AsyncSession, data: TraineeCreate, actor: AdminUser
 ) -> Trainee:
-    """어드민 수기 등록 — 신원 확인 완료 가정으로 approved. 등급 지정 시 초기 등급으로 배정."""
+    """어드민 수기 등록 — 신원 확인 완료 가정으로 approved. 등급 지정 시 초기 등급으로 배정.
+
+    등급 미지정 시 일반 등급 기본값 — 미지정(등급 미판별) 상태로 남지 않게 한다 (2026-11-04 정책).
+    """
+    membership_grade_id = data.membership_grade_id
+    general_grade = None
+    if membership_grade_id is None:
+        general_grade = await repo.find_grade_by_code(db, GENERAL_GRADE_CODE)
+        membership_grade_id = general_grade.id if general_grade else None
+
     grade_expires_at = None
-    if data.membership_grade_id is not None:
-        grade = await repo.find_grade_by_id(db, data.membership_grade_id)
+    if membership_grade_id is not None:
+        grade = await repo.find_grade_by_id(db, membership_grade_id)
         if grade is None:
             raise api_error("NOT_FOUND", message="회원등급을 찾을 수 없어요")
         grade_expires_at = _resolve_grade_expiry(grade, data.grade_expires_at)
@@ -216,7 +225,7 @@ async def create_trainee(
         phone_encrypted=encrypt_field(data.phone) if data.phone else None,
         email=data.email,
         memo=data.memo,
-        membership_grade_id=data.membership_grade_id,
+        membership_grade_id=membership_grade_id,
         grade_expires_at=grade_expires_at,
         review_status="approved",
         reviewed_at=now_kst(),
@@ -233,9 +242,7 @@ async def create_trainee(
             "trainee_no": trainee.trainee_no,
             # 감사로그 JSONB 에 평문 이름을 남기지 않는다 — 번호로 식별
             "name": mask_name(data.name),
-            "grade_id": str(data.membership_grade_id)
-            if data.membership_grade_id
-            else None,
+            "grade_id": str(membership_grade_id) if membership_grade_id else None,
         },
     )
     await db.commit()
@@ -792,6 +799,7 @@ async def confirm_import(
     by_pair = {(t.name_hash, t.birth_date): t for t in existing if t.birth_date}
 
     created: list[Trainee] = []
+    general_grade = await repo.find_grade_by_code(db, GENERAL_GRADE_CODE)
     promoted: list[Trainee] = []
     skipped = 0
     failed: list[tuple[int, str]] = []
@@ -830,6 +838,8 @@ async def confirm_import(
             name_hash=name_hash(name),
             birth_date=item.birth_date,
             phone_encrypted=encrypt_field(item.phone) if item.phone else None,
+            # 등급 미지정(엑셀에 회원등급 없음) 시 일반 기본값 — 미판별 상태로 남지 않게
+            membership_grade_id=general_grade.id if general_grade else None,
             review_status="approved",
             reviewed_at=now_kst(),
         )

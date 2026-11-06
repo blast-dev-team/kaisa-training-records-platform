@@ -123,12 +123,14 @@ async def list_courses(
     search: str | None = None,
     category: str | None = None,
     is_external: bool | None = None,
+    sort: Literal["name", "created_at", "updated_at"] | None = None,
+    order: Literal["asc", "desc"] = "desc",
     page: int = Query(1, ge=1),
     limit: int = Query(20, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
     _: AdminUser = Depends(require_admin),
 ):
-    """과정명·과정코드·회차명·기관명 검색 + 분류·외부 필터."""
+    """과정명·과정코드·회차명·기관명 검색 + 분류·외부 필터. sort 미지정 시 과정명순."""
     courses, total = await institution_service.list_courses(
         db,
         institution_id=institution_id,
@@ -136,6 +138,8 @@ async def list_courses(
         search=search,
         category=category,
         is_external=is_external,
+        sort=sort,
+        order=order,
         page=page,
         limit=limit,
     )

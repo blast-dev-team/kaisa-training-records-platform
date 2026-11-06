@@ -86,6 +86,7 @@ class CourseResponse(BaseModel):
     # 기관 내부/외부 — 일정 등록 시 '외부 교육' 체크박스 기본값 판단용
     institution_type: str | None = None
     created_at: datetime
+    updated_at: datetime | None = None
 
     @classmethod
     def from_orm(cls, c) -> "CourseResponse":
@@ -106,4 +107,5 @@ class CourseResponse(BaseModel):
             category=c.category,
             is_active=c.is_active,
             created_at=c.created_at,
+            updated_at=c.updated_at,
         )

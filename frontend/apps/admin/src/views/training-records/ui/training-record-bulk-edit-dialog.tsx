@@ -189,6 +189,8 @@ export function TrainingRecordBulkEditDialog({ isOpen, onClose, records, onSaved
                     disableCreate
                     queryKeyPrefix={["options", "courses"]}
                     selectedLabel={row.courseName}
+                    // 모달 안 스크롤 테이블에 잘리지 않게 body 포털로 띄운다
+                    portal
                   />
                 </td>
                 <td className={TD}>

@@ -12,6 +12,8 @@ export const getCourseList = async (query: CourseListQuery): Promise<Paged<Cours
       search: query.search || undefined,
       category: query.category || undefined,
       is_external: query.isExternal,
+      sort: query.sort || undefined,
+      order: query.sort ? query.order : undefined,
       page: query.page ?? 1,
       limit: query.limit ?? 20,
     },

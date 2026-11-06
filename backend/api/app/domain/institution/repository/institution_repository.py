@@ -1,6 +1,6 @@
 import uuid
 
-from sqlalchemy import func, or_, select
+from sqlalchemy import func, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.domain.institution.model import (
@@ -79,6 +79,13 @@ async def find_course_by_code(db: AsyncSession, code: str) -> TrainingCourse | N
     return result.scalar_one_or_none()
 
 
+COURSE_SORT_COLUMNS = {
+    "name": TrainingCourse.name,
+    "created_at": TrainingCourse.created_at,
+    "updated_at": TrainingCourse.updated_at,
+}
+
+
 async def list_courses(
     db: AsyncSession,
     institution_id: uuid.UUID | None = None,
@@ -86,6 +93,8 @@ async def list_courses(
     search: str | None = None,
     category: str | None = None,
     is_external: bool | None = None,
+    sort: str | None = None,
+    order: str = "desc",
     page: int = 1,
     limit: int = 20,
 ) -> tuple[list[TrainingCourse], int]:
@@ -121,13 +130,34 @@ async def list_courses(
         stmt = stmt.where(cond)
         count_stmt = count_stmt.where(cond)
     total = (await db.execute(count_stmt)).scalar_one()
+    # 정렬 지정 없으면 기존 기본(과정명 asc). id 타이브레이커로 페이지네이션 순서 고정.
+    column = COURSE_SORT_COLUMNS.get(sort or "name", TrainingCourse.name)
+    if sort is None:
+        order_clause = column.asc()
+    else:
+        order_clause = column.asc() if order == "asc" else column.desc()
     stmt = (
-        stmt.order_by(TrainingCourse.name.asc())
+        stmt.order_by(order_clause, TrainingCourse.id.asc())
         .offset((page - 1) * limit)
         .limit(limit)
     )
     rows = (await db.execute(stmt)).scalars().all()
     return list(rows), total
+
+
+async def sync_record_course_name(
+    db: AsyncSession, course_id: uuid.UUID, name: str
+) -> int:
+    """과정명 변경 시 이 과정에 연결된 교육내역의 course_name 스냅샷을 새 이름으로 맞춘다."""
+    from app.domain.training_record.model import TrainingRecord
+
+    result = await db.execute(
+        update(TrainingRecord)
+        .where(TrainingRecord.course_id == course_id, TrainingRecord.course_name != name)
+        .values(course_name=name)
+        .execution_options(synchronize_session=False)
+    )
+    return result.rowcount or 0
 
 
 async def list_categories(db: AsyncSession, search: str | None = None) -> list[str]:

@@ -34,5 +34,6 @@ export function mapCourse(dto: CourseDto): Course {
     category: dto.category,
     isActive: dto.is_active,
     createdAt: dto.created_at,
+    updatedAt: dto.updated_at ?? null,
   }
 }

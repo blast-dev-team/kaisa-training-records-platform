@@ -154,6 +154,26 @@ export function TrainingRecordFormDialog({
       toast.error("기관을 먼저 선택해 주세요");
       return null;
     }
+    // 이 창에서 방금 만든 과정의 이름을 고치는 경우 — 새로 만들지 않고 그 과정의 이름을 바꾼다
+    // (오타 하나 고치려다 같은 과정이 마스터에 두 개 쌓이는 것 방지)
+    if (createdCourseId) {
+      try {
+        await patchCourse(createdCourseId, {
+          institution_id: institutionId,
+          name,
+          session_name_id: null,
+          total_hours: totalHours === "" ? 0 : Number(totalHours),
+          is_external: source === "external",
+          is_active: true,
+        });
+        queryClient.invalidateQueries({ queryKey: ["courses"] });
+        setCourseLabel(name);
+        return createdCourseId;
+      } catch (e) {
+        toast.error((e as Error).message);
+        return null;
+      }
+    }
     try {
       const created = await postCourse({
         institution_id: institutionId,
@@ -244,6 +264,8 @@ export function TrainingRecordFormDialog({
     setInstitutionLabel(option?.label ?? null);
     setCourseId("");
     setCourseLabel(null);
+    // 다른 기관으로 바꾸면 방금 만든 과정은 더 이상 이름 수정 대상이 아니다
+    setCreatedCourseId(null);
   };
 
   // 과정 마스터 선택 → 총 시수 스냅샷 자동 채움
@@ -488,7 +510,13 @@ export function TrainingRecordFormDialog({
             disabled={!institutionId}
             clearable
             onCreate={createCourse}
-            createLabel={(q) => `'${q}' 새 과정으로 추가`}
+            createLabel={(q) =>
+              createdCourseId && courseId === createdCourseId
+                ? `'${q}'(으)로 과정명 수정`
+                : `'${q}' 새 과정으로 추가`
+            }
+            // 다시 열면 입력했던 과정명이 검색창에 남아 있어 이어서 고칠 수 있다
+            keepSearchText
           />
           <p className="text-11 text-ink-3">
             과정을 선택하면 총 시수가 자동으로 채워져요. 없는 기관·과정은 검색어로 바로 추가할 수 있어요

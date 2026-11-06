@@ -148,6 +148,8 @@ async def list_courses(
     search: str | None = None,
     category: str | None = None,
     is_external: bool | None = None,
+    sort: str | None = None,
+    order: str = "desc",
     page: int = 1,
     limit: int = 20,
 ) -> tuple[list[TrainingCourse], int]:
@@ -158,6 +160,8 @@ async def list_courses(
         search=search,
         category=category,
         is_external=is_external,
+        sort=sort,
+        order=order,
         page=page,
         limit=limit,
     )
@@ -200,6 +204,12 @@ async def update_course(
     before = {"name": course.name, "is_active": course.is_active}
     for field, value in data.model_dump(exclude_unset=True).items():
         setattr(course, field, value)
+    after: dict = {"name": course.name, "is_active": course.is_active}
+    # 과정명 변경 → 이 과정에 연결된 교육내역의 과정명 스냅샷도 맞춘다.
+    # (발급 끝난 확인서·수료증은 자체 스냅샷을 가지므로 영향 없음)
+    if course.name and course.name != before["name"]:
+        synced = await repo.sync_record_course_name(db, course.id, course.name)
+        after["synced_records"] = synced
     record_audit(
         db,
         actor_admin_id=actor.id,
@@ -207,7 +217,7 @@ async def update_course(
         entity_type="training_course",
         entity_id=course.id,
         before=before,
-        after={"name": course.name, "is_active": course.is_active},
+        after=after,
     )
     await db.commit()
     await db.refresh(course)

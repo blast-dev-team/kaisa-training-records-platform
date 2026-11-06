@@ -53,6 +53,11 @@ export function InstitutionListPage() {
   const status = searchParams.get("status") ?? "";
   /** 기관 구분(내부/외부) — 기관 탭 전용 필터. 과정 탭에선 무시 */
   const type = searchParams.get("type") ?? "";
+  /** 과정 탭 정렬 — 등록일/수정일. 미지정이면 기본(과정명순) */
+  const courseSort = searchParams.get("sort");
+  const courseOrder = searchParams.get("order") === "asc" ? "asc" : "desc";
+  const courseSortField =
+    courseSort === "created_at" || courseSort === "updated_at" ? courseSort : undefined;
   const page = Math.max(1, Number(searchParams.get("page") ?? 1) || 1);
   const limit = Math.max(1, Number(searchParams.get("limit") ?? 10) || 10);
   const [searchInput, setSearchInput] = useState(q);
@@ -65,6 +70,8 @@ export function InstitutionListPage() {
     courseQueries.list({
       search: q || undefined,
       isActive,
+      sort: courseSortField,
+      order: courseSortField ? courseOrder : undefined,
       page,
       limit,
     }),
@@ -90,8 +97,10 @@ export function InstitutionListPage() {
     const next = new URLSearchParams(searchParams);
     if (key === "institution") next.delete("tab");
     else next.set("tab", key);
-    // 구분 필터는 기관 탭 전용 — 탭 전환 시 함께 해제
-    if (key === "institution") next.delete("type");
+    // 구분 필터는 기관 탭, 정렬은 과정 탭 전용 — 탭 전환 시 함께 해제
+    next.delete("type");
+    next.delete("sort");
+    next.delete("order");
     next.delete("page");
     setSearchParams(next, { replace: false });
   };
@@ -247,6 +256,12 @@ export function InstitutionListPage() {
         cell: ({ row }) => toYMD(row.original.createdAt) ?? "—",
       },
       {
+        id: "updatedAt",
+        header: "수정일",
+        meta: { width: 120 },
+        cell: ({ row }) => toYMD(row.original.updatedAt) ?? "—",
+      },
+      {
         id: "actions",
         header: "",
         meta: { width: 130, align: "right" },
@@ -366,6 +381,29 @@ export function InstitutionListPage() {
             <option value="inactive">비활성</option>
           </Select>
         </FilterRow>
+        {tab === "course" && (
+          <FilterRow label="정렬">
+            <Select
+              className="w-40"
+              value={courseSortField ? `${courseSortField}:${courseOrder}` : ""}
+              onChange={(e) => {
+                const v = e.target.value;
+                if (!v) {
+                  updateTabParam({ sort: null, order: null });
+                  return;
+                }
+                const [s = "", o = ""] = v.split(":");
+                updateTabParam({ sort: s, order: o });
+              }}
+            >
+              <option value="">기본순</option>
+              <option value="created_at:desc">등록일 최신순</option>
+              <option value="created_at:asc">등록일 오래된순</option>
+              <option value="updated_at:desc">수정일 최신순</option>
+              <option value="updated_at:asc">수정일 오래된순</option>
+            </Select>
+          </FilterRow>
+        )}
         {tab === "institution" && (
           <FilterRow label="구분">
             <Select
@@ -401,7 +439,7 @@ export function InstitutionListPage() {
           data={courses?.items ?? []}
           isLoading={!courses}
           fixedLayout
-          minWidth={1200}
+          minWidth={1320}
           emptyMessage="등록된 과정이 없어요. 첫 과정을 등록해 보세요"
           page={page}
           totalPages={courses?.totalPages ?? 1}

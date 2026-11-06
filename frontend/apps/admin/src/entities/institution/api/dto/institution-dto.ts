@@ -24,4 +24,5 @@ export interface CourseDto {
   /** 기관 내부/외부 — 일정 등록 '외부 교육' 체크박스 기본값 판단용 */
   institution_type?: string | null
   created_at: string
+  updated_at?: string | null
 }
