@@ -5,6 +5,7 @@ import { useMutation } from "@tanstack/react-query";
 import { postPassLogout } from "@/src/shared/api/post-pass-logout";
 import { postSessionExtend } from "@/src/shared/api/post-session-extend";
 import { formatAuthCountdown, useAuthCountdown } from "@/src/shared/hooks/use-auth-countdown";
+import { usePageMeta } from "@/src/shared/lib/seo/use-page-meta";
 import { useAuthStore } from "@/src/shared/store/auth-store";
 import { cn } from "@/src/shared/utils/cn";
 import { AuthReleaseModal } from "@/src/widget/auth-modal";
@@ -15,6 +16,7 @@ import { Sidebar, SIDEBAR_NAV_ITEMS } from "@/src/widget/sidebar";
 /** 인증 완료 후 본문 레이아웃 — 헤더 + 좌측 사이드바 + 콘텐츠 + 푸터 */
 export function MainLayout() {
   const navigate = useNavigate();
+  usePageMeta();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const userName = useAuthStore((state) => state.userName);
   const signIn = useAuthStore((state) => state.signIn);

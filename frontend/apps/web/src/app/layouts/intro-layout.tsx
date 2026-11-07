@@ -1,5 +1,6 @@
 import { Outlet, useLocation, useNavigate } from "react-router";
 
+import { usePageMeta } from "@/src/shared/lib/seo/use-page-meta";
 import { useAuthStore } from "@/src/shared/store/auth-store";
 import { SessionExpireModal } from "@/src/widget/payment-modal";
 import { Footer } from "@/src/widget/footer";
@@ -11,6 +12,7 @@ export function IntroLayout() {
   const navigate = useNavigate();
   const isSessionExpired = useAuthStore((state) => state.isSessionExpired);
   const clearSessionExpired = useAuthStore((state) => state.clearSessionExpired);
+  usePageMeta();
 
   // 페이지별 헤더 구성 — 이용약관(node 44:114) · 비인증 진위확인(node 29:2434)
   const variant = pathname.startsWith("/terms")

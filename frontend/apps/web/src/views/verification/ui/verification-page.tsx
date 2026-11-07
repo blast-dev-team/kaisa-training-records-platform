@@ -121,10 +121,6 @@ export function VerificationPage() {
               </p>
             )}
           </form>
-
-          <p className="text-13 text-gray-500 mobile:text-12">
-            QR 코드로 접속한 경우 번호가 자동 입력됩니다.
-          </p>
         </div>
       </div>
 
