@@ -97,7 +97,7 @@ export function HeroSection() {
               온라인 발급 서비스
             </h1>
             <p className="text-16 leading-[1.5] tracking-[-0.03em] text-gray-600 mobile:text-14">
-              기존에는 협회 담당자가 수동으로 발급하였던 교육내역 확인서를, 본인인증을 통해 직접
+              기존에는 정보시스템감리협회 담당자가 수동으로 발급하였던 교육내역 확인서를, 본인인증을 통해 직접
               조회·발급하실 수 있습니다.
             </p>
           </div>

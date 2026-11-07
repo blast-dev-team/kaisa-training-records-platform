@@ -6,25 +6,55 @@
     <link rel="icon" type="image/x-icon" href="/favicon.ico?v=2" />
     <meta name="robots" content="index, follow" />
     <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="정보처리시스템감리협회" />
-    <meta property="og:title" content="교육내역 서비스 - 정보처리시스템감리협회" />
+    <meta property="og:site_name" content="정보시스템감리협회" />
+    <meta property="og:title" content="정보시스템감리협회 교육내역 서비스" />
     <meta
       property="og:description"
       content="정보처리시스템감리협회 교육내역 조회·진위확인·확인서 발급 서비스"
     />
     <meta property="og:image" content="/og-image.png" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="교육내역 서비스 - 정보처리시스템감리협회" />
+    <meta name="twitter:title" content="정보시스템감리협회 교육내역 서비스" />
     <meta
       name="twitter:description"
       content="정보처리시스템감리협회 교육내역 조회·진위확인·확인서 발급 서비스"
     />
-    <meta name="twitter:image" content="/og-image.png" />
-    <title>교육내역 서비스 - 정보처리시스템감리협회</title>
+    <meta name="twitter:image" content="https://edu.kaisa.or.kr/og-image.png" />
+    <title>정보시스템감리협회 교육내역 서비스</title>
     <meta
       name="description"
       content="정보처리시스템감리협회 교육내역 조회·진위확인·확인서 발급 서비스"
     />
+    <meta
+      name="keywords"
+      content="정보시스템감리협회, (사)정보시스템감리협회, 정보처리시스템감리협회, KAISA, 정보시스템감리, 감리원 교육, 교육내역 조회, 교육이수 확인서, 진위확인"
+    />
+    <link rel="canonical" href="https://edu.kaisa.or.kr/" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "https://edu.kaisa.or.kr/#organization",
+            "name": "(사)정보시스템감리협회",
+            "alternateName": ["정보시스템감리협회", "한국정보시스템감리협회", "정보처리시스템감리협회", "KAISA"],
+            "url": "https://www.kaisa.or.kr/",
+            "logo": "https://edu.kaisa.or.kr/icon-512.png",
+            "sameAs": ["https://www.kaisa.or.kr/"]
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://edu.kaisa.or.kr/#website",
+            "name": "정보시스템감리협회 교육내역 서비스",
+            "alternateName": "KAISA 교육내역 서비스",
+            "url": "https://edu.kaisa.or.kr/",
+            "inLanguage": "ko-KR",
+            "publisher": { "@id": "https://edu.kaisa.or.kr/#organization" }
+          }
+        ]
+      }
+    </script>
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
     <link
       rel="stylesheet"
@@ -45,7 +75,24 @@
     </script>
   </head>
   <body>
-    <div id="root"></div>
+    <!--
+      JS 를 실행하지 않는 검색 크롤러용 본문 — React 가 마운트되면 통째로 교체된다.
+      실제 서비스 내용과 같은 문구만 둔다(숨김 텍스트·키워드 나열 금지).
+    -->
+    <div id="root">
+      <main style="max-width:640px;margin:15vh auto 0;padding:0 24px;font-family:sans-serif;color:#333">
+        <h1 style="font-size:22px">정보시스템감리협회 교육내역 서비스</h1>
+        <p style="font-size:15px;line-height:1.6">
+          (사)정보시스템감리협회(KAISA)의 계속교육내역확인서 온라인 발급 서비스입니다.
+          본인인증 후 교육내역을 조회하고 확인서를 발급받을 수 있으며, 발급된 확인서의 진위를 확인할 수 있습니다.
+        </p>
+        <p style="font-size:14px">
+          <a href="/verification-no-auth">확인서 진위확인</a> ·
+          <a href="/inquiry">문의하기</a> ·
+          <a href="https://www.kaisa.or.kr/">정보시스템감리협회 홈페이지</a>
+        </p>
+      </main>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
