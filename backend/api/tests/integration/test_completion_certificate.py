@@ -289,6 +289,50 @@ class TestUnifiedVerification:
             assert body["issued_name_masked"] == "홍**"
             assert "홍길동" not in resp.text
 
+    async def test_verify_completion_number_variants(self, client, db):
+        """'호' 유무·띄어쓰기·'제' 접두사·하이픈 생략·연번 앞자리 0 생략 모두 같은 수료증으로 본다."""
+        record, _, _ = await _internal_record(db)
+        record.started_at = record.ended_at
+        _, token = await make_admin(db)
+        await db.commit()
+
+        cert = (await _issue(client, db, record.id, token)).json()[0]
+        no = cert["certificate_no"]  # 예: 2026-11-001호
+        year, month, seq = no.rstrip("호").split("-")
+        variants = (
+            no,
+            no.rstrip("호"),
+            f" {no} ",
+            f"{year}-{month}-{seq} 호",
+            f"제{no}",
+            f"제 {year} - {month} - {seq} 호",
+            f"{year}{month}{seq}",
+            f"{year}-{month}-{int(seq)}",
+        )
+        for raw in variants:
+            resp = await self._verify(client, raw)
+            body = resp.json()
+            assert body["result"] == "valid", raw
+            assert body["certificate_no"] == no, raw
+
+    async def test_completion_kind_selected_also_normalizes(self, client, db):
+        """WEB 이 문서 종류(수료증)를 지정해 보내도 같은 정규화가 적용된다."""
+        record, _, _ = await _internal_record(db)
+        record.started_at = record.ended_at
+        _, token = await make_admin(db)
+        await db.commit()
+        cert = (await _issue(client, db, record.id, token)).json()[0]
+
+        resp = await client.post(
+            "/api/public/certificate-verifications",
+            json={
+                "certificate_no": cert["certificate_no"].rstrip("호") + " 호",
+                "name": "홍길동",
+                "doc_type": "completion_certificate",
+            },
+        )
+        assert resp.json()["result"] == "valid"
+
     async def test_certificate_kind_still_works(self, client, db):
         resp = await self._verify(client, "CERT-DOES-NOT-EXIST")
         assert resp.status_code == 200
