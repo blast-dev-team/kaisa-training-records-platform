@@ -134,3 +134,47 @@ describe("SearchableSelect 긴 라벨", () => {
     expect(label.className).toContain("min-w-0");
   });
 });
+
+describe("SearchableSelect 최신 목록", () => {
+  it("다시 열면 서버에서 목록을 새로 받는다 — 앱 기본 staleTime(60초) 안이어도", async () => {
+    let names = ["기존 과정"];
+    let calls = 0;
+    const fetchLatest = async () => {
+      calls += 1;
+      return {
+        items: names.map((n, i) => ({ value: `c${i}`, label: n })),
+        total: names.length,
+        page: 1,
+        limit: 30,
+        total_pages: 1,
+      };
+    };
+    // 앱(providers.tsx)과 같은 기본값 — 이 설정에서 캐시가 묵어 새 과정이 안 보이던 버그
+    const client = new QueryClient({
+      defaultOptions: { queries: { retry: false, staleTime: 60 * 1000 } },
+    });
+    render(
+      <QueryClientProvider client={client}>
+        <SearchableSelect
+          value={null}
+          onChange={() => {}}
+          fetchPage={fetchLatest}
+          queryKeyPrefix={["options", "fresh"]}
+          placeholder="과정 선택"
+          disableCreate
+        />
+      </QueryClientProvider>,
+    );
+    const trigger = screen.getByRole("button", { name: "과정 선택" });
+
+    fireEvent.click(trigger);
+    await screen.findByText("기존 과정");
+    fireEvent.mouseDown(document.body); // 닫기
+
+    // 그사이 다른 화면·다른 관리자가 과정을 등록
+    names = ["기존 과정", "새로 등록한 과정"];
+    fireEvent.click(trigger);
+    expect(await screen.findByText("새로 등록한 과정")).toBeTruthy();
+    expect(calls).toBe(2);
+  });
+});
