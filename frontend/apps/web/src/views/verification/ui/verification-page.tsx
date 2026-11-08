@@ -121,6 +121,13 @@ export function VerificationPage() {
               </p>
             )}
           </form>
+
+          {/* 선택한 문서 종류에 맞는 안내 */}
+          <p className="text-13 text-gray-500 mobile:text-12">
+            {docType === "certificate"
+              ? "문서 좌측 하단에서 확인서 번호를 확인할 수 있습니다."
+              : "정보시스템감리협회 교육에 한해 수료증 발급이 가능합니다."}
+          </p>
         </div>
       </div>
 

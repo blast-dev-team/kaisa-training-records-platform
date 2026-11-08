@@ -49,6 +49,25 @@ def canonical_doc_no(raw: str) -> str | None:
     return f"정감 제{match.group(1)}-E{int(match.group(2)):04d}호"
 
 
+# 수료증 번호 `{YYYY}-{MM}-{연번}` — 하이픈을 다 쓰거나(월 1~2자리) 다 생략(월 2자리)
+_COMPLETION_NO_RE = re.compile(r"(\d{4})-(\d{1,2})-(\d+)|(\d{4})(\d{2})(\d+)")
+
+
+def canonical_completion_no(raw: str) -> str | None:
+    """수료증 번호 입력을 저장 형식(`{YYYY}-{MM}-{NNN}호`)으로 정규화한다.
+
+    띄어쓰기·'제'·'호' 유무·하이픈 생략·연번 앞자리 0 생략을 무시한다 —
+    `2026-09-001호`, `2026-09-001`, `제 2026 - 09 - 1 호`, `202609001` 모두 같은 번호.
+    형식이 아니면 None.
+    """
+    compact = re.sub(r"\s+", "", raw).removeprefix("제").removesuffix("호")
+    match = _COMPLETION_NO_RE.fullmatch(compact)
+    if match is None:
+        return None
+    year, month, seq = (g for g in match.groups() if g is not None)
+    return f"{year}-{int(month):02d}-{int(seq):03d}호"
+
+
 def _name_matches(input_name: str, stored_hash: str | None) -> bool:
     """입력 성명이 발급 성명과 일치하는지 — blind index(HMAC) 끼리 비교한다.
 
@@ -142,8 +161,10 @@ async def verify_certificate(
 
 
 async def _find_completion(db: AsyncSession, input_no: str):
-    """수료증 번호 조회 — '호' 접미사 유무 양쪽을 시도한다."""
-    for candidate in dict.fromkeys((input_no, f"{input_no}호")):
+    """수료증 번호 조회 — 정규화한 번호를 먼저, 이어서 입력 그대로·'호' 붙인 값을 시도한다."""
+    canonical = canonical_completion_no(input_no)
+    candidates = (canonical, input_no, f"{input_no}호") if canonical else (input_no, f"{input_no}호")
+    for candidate in dict.fromkeys(candidates):
         completion = await completion_repo.find_by_no(db, candidate)
         if completion is not None:
             return completion

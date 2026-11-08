@@ -87,6 +87,9 @@ export function SearchableSelect({
       return last.page < totalPages ? last.page + 1 : undefined;
     },
     enabled: open,
+    // 열 때마다 서버 최신 목록 — 옵션 캐시(["options", …])는 어떤 등록·수정에서도 무효화되지 않아
+    // 앱 기본 staleTime(60초) 동안 방금 만든 과정·기관이 안 보였다. 다른 관리자 등록분도 바로 반영된다
+    staleTime: 0,
   });
 
   const options = query.data?.pages.flatMap((p) => p.items) ?? [];
@@ -104,7 +107,7 @@ export function SearchableSelect({
     };
     document.addEventListener("mousedown", onClickOutside);
     return () => document.removeEventListener("mousedown", onClickOutside);
-  }, [open]);
+  }, [open, keepSearchText]);
 
   // 스크롤 끝 도달 → 다음 페이지
   const onScroll = () => {
