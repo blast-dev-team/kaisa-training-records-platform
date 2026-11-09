@@ -374,9 +374,18 @@ async def kaisa_login(
     슈퍼 계정(전 회원 조회)과 달리 일반 회원 스코프다 — 본인 이력만 보고
     발급·결제까지 실제 플로우를 탄다. 고정 CI 로 find-or-create 하고,
     교육생과 발급용 이력 1건(_ensure_kaisa_record)을 연결한다.
+
+    local·staging 에서는 성명이 KAISA 가 아니어도 휴대전화가 01012345678 이면
+    그 성명·생년월일의 감리원으로 로그인한다 (_test_trainee_login — 운영 미적용).
     """
     birth = "".join(ch for ch in body.birth if ch.isdigit())
     phone = "".join(ch for ch in body.phone if ch.isdigit())
+    if (
+        body.name.strip() != KAISA_NAME
+        and settings.ENVIRONMENT != "production"
+        and phone == KAISA_PHONE
+    ):
+        return await _test_trainee_login(db, body.name.strip(), birth)
     if (
         body.name.strip() != KAISA_NAME
         or birth != KAISA_BIRTH
@@ -436,6 +445,85 @@ async def kaisa_login(
         PassCompleteResponse(
             id=user.id,
             name=decrypt_field(user.name_encrypted),
+            matched=matched,
+            review_status="approved",
+        ),
+        token,
+    )
+
+
+async def _test_trainee_login(
+    db: AsyncSession, name: str, birth: str
+) -> tuple[PassCompleteResponse, str]:
+    """테스트 로그인 (local·staging 전용) — 감리원 성명 + 생년월일 + 휴대전화 01012345678.
+
+    PASS 없이 그 감리원 계정으로 로그인한다. 운영(production)에서는 호출되지 않는다
+    (kaisa_login 이 환경을 먼저 검사). 회원 계정이 없는 감리원(이관분)은 테스트 CI 로
+    계정을 만들어 연결한다 — 이후 같은 환경에서 실제 PASS 인증 시 이름·생년월일 자동
+    매칭 대상에서 빠지므로 테스트 환경 데이터에만 쓴다.
+    """
+    try:
+        birth_date = date(int(birth[:4]), int(birth[4:6]), int(birth[6:8])) if len(birth) == 8 else None
+    except ValueError:
+        birth_date = None
+    if not name or birth_date is None:
+        raise api_error("NOT_FOUND", status_code=404, message="일치하는 감리원을 찾을 수 없어요")
+    candidates = (
+        await db.execute(
+            select(Trainee).where(
+                Trainee.deleted_at.is_(None),
+                Trainee.name_hash == name_hash(name),
+                Trainee.birth_date == birth_date,
+            )
+        )
+    ).scalars().all()
+    if not candidates:
+        raise api_error("NOT_FOUND", status_code=404, message="일치하는 감리원을 찾을 수 없어요")
+    if len(candidates) > 1:
+        raise api_error(
+            "DUPLICATE_TRAINEE_SUSPECTED",
+            message="같은 성명·생년월일의 감리원이 여러 명이라 테스트 로그인할 수 없어요",
+        )
+    trainee = candidates[0]
+
+    user = await db.get(User, trainee.user_id) if trainee.user_id else None
+    matched = user is not None
+    if user is None:
+        ci_hash = sha256_hex(f"test:trainee:{trainee.id}")
+        user = await repo.find_user_by_ci_hash(db, ci_hash)
+        if user is None:
+            user = User(
+                ci_hash=ci_hash,
+                name_encrypted=trainee.name_encrypted,
+                name_hash=trainee.name_hash,
+                birth=birth,
+            )
+            db.add(user)
+            await db.flush()
+        trainee.user_id = user.id
+    user.last_login_at = now_kst()
+
+    db.add(
+        IdentityVerification(
+            user_id=user.id,
+            provider_verification_id=f"test-{uuid.uuid4()}",
+            status="verified",
+            verified_name_encrypted=trainee.name_encrypted,
+            verified_name_hash=trainee.name_hash,
+            ci_hash=user.ci_hash,
+            verified_at=now_kst(),
+        )
+    )
+    if trainee.review_status != "approved":
+        trainee.review_status = "approved"
+        trainee.reviewed_at = now_kst()
+
+    token = await create_user_session(db, user.id, "pass")
+    await db.commit()
+    return (
+        PassCompleteResponse(
+            id=user.id,
+            name=decrypt_field(trainee.name_encrypted),
             matched=matched,
             review_status="approved",
         ),
