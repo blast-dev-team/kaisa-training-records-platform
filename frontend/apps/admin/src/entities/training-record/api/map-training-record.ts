@@ -1,5 +1,5 @@
 import type { TrainingRecordDto } from './dto/training-record-dto'
-import type { TrainingRecord } from '../model/training-record'
+import type { TrainingRecord, TrainingSource } from '../model/training-record'
 
 export function mapTrainingRecord(dto: TrainingRecordDto): TrainingRecord {
   return {
@@ -25,7 +25,7 @@ export function mapTrainingRecord(dto: TrainingRecordDto): TrainingRecord {
     completedHours: dto.completed_hours != null ? Number(dto.completed_hours) : null,
     startedAt: dto.started_at,
     endedAt: dto.ended_at,
-    source: dto.source,
+    source: dto.source as TrainingSource,
     completionStatus: dto.completion_status,
     memo: dto.memo,
     createdAt: dto.created_at,

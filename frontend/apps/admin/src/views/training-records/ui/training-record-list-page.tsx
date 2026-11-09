@@ -645,7 +645,6 @@ export function TrainingRecordListPage() {
         isOpen={formOpen}
         onClose={() => setFormOpen(false)}
         record={editTarget}
-        defaultSource="internal"
       />
 
       <CertificatePreviewModal

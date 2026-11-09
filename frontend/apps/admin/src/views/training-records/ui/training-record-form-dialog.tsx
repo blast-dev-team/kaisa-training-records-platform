@@ -30,7 +30,6 @@ import {
   postTrainingRecord,
   trainingRecordQueries,
   COMPLETION_STATUS_LABELS,
-  TRAINING_SOURCE_LABELS,
   isExternalInstitutionType,
   type CompletionStatus,
   type TrainingRecord,
@@ -49,8 +48,6 @@ interface Props {
   onClose: () => void;
   /** 수정 대상 — null이면 신규 등록 */
   record: TrainingRecord | null;
-  /** 외부 수료 뷰에서는 'external' 고정 */
-  defaultSource: TrainingSource;
   /** 딥링크 등록 — 교육생 미리 선택 */
   presetTrainee?: TraineeEntity | null;
 }
@@ -69,7 +66,6 @@ export function TrainingRecordFormDialog({
   isOpen,
   onClose,
   record,
-  defaultSource,
   presetTrainee,
 }: Props) {
   const queryClient = useQueryClient();
@@ -85,12 +81,13 @@ export function TrainingRecordFormDialog({
   const [institutionLabel, setInstitutionLabel] = useState<string | null>(null);
   /** 선택한 기관 구분 — undefined 는 아직 기관을 고르지 않음(외부교육 한도 판정 안 함) */
   const [institutionType, setInstitutionType] = useState<string | null | undefined>(undefined);
+  /** 구분은 기관 구분을 따른다 — 사내 기관이면 사내, 그 외(미선택·신규·외부)는 외부 */
+  const derivedSource: TrainingSource = institutionType === "internal" ? "internal" : "external";
   const [courseId, setCourseId] = useState("");
   const [courseLabel, setCourseLabel] = useState<string | null>(null);
   /** 이 세션에서 그 자리 생성한 과정 — 저장 시 최종 총 시수를 마스터에 반영한다 */
   const [createdCourseId, setCreatedCourseId] = useState<string | null>(null);
   const [totalHours, setTotalHours] = useState("");
-  const [source, setSource] = useState<TrainingSource>(defaultSource);
   const [completionStatus, setCompletionStatus] = useState<CompletionStatus>("completed");
   const [startedAt, setStartedAt] = useState("");
   const [endedAt, setEndedAt] = useState("");
@@ -173,7 +170,7 @@ export function TrainingRecordFormDialog({
           name,
           session_name_id: null,
           total_hours: totalHours === "" ? 0 : Number(totalHours),
-          is_external: source === "external",
+          is_external: derivedSource === "external",
           is_active: true,
         });
         queryClient.invalidateQueries({ queryKey: ["courses"] });
@@ -190,7 +187,7 @@ export function TrainingRecordFormDialog({
         name,
         session_name_id: null,
         total_hours: totalHours === "" ? 0 : Number(totalHours),
-        is_external: source === "external",
+        is_external: derivedSource === "external",
       });
       queryClient.invalidateQueries({ queryKey: ["courses"] });
       setCourseLabel(name);
@@ -242,11 +239,9 @@ export function TrainingRecordFormDialog({
       setCourseId(record.courseId ?? "");
       setCourseLabel(record.courseName);
       setTotalHours(record.totalHours !== null ? String(record.totalHours) : "");
-      setSource(record.source);
       setCompletionStatus(record.completionStatus);
       setStartedAt(record.startedAt ?? "");
       setEndedAt(record.endedAt ?? "");
-      setMemo(record.memo ?? "");
       if (record.courseId && !record.institutionId) {
         // courseId 만 있고 기관 연결이 없는 레거시 이력 — 과정 상세에서 기관을 채운다
         getCourseDetail(record.courseId).then((course) => {
@@ -263,13 +258,12 @@ export function TrainingRecordFormDialog({
       setCourseId("");
       setCourseLabel(null);
       setTotalHours("");
-      setSource(defaultSource);
       setCompletionStatus("completed");
       setStartedAt("");
       setEndedAt("");
       setMemo("");
     }
-  }, [isOpen, record, presetTrainee, defaultSource]);
+  }, [isOpen, record, presetTrainee]);
 
   // 기관 변경 — 과정은 기관 소속이라 선택을 무효로 한다
   const handleInstitutionChange = (value: string | null, option?: SearchableOption) => {
@@ -320,7 +314,7 @@ export function TrainingRecordFormDialog({
           name: courseLabel?.trim() || "과정",
           session_name_id: null,
           total_hours: totalHours === "" ? 0 : Number(totalHours),
-          is_external: source === "external",
+          is_external: derivedSource === "external",
           is_active: true,
         });
         queryClient.invalidateQueries({ queryKey: ["courses"] });
@@ -332,7 +326,7 @@ export function TrainingRecordFormDialog({
         total_hours: totalHours === "" ? null : Number(totalHours),
         started_at: startedAt || null,
         ended_at: endedAt || null,
-        source,
+        source: derivedSource,
         completion_status: completionStatus,
         memo: memo.trim() || null,
       };
@@ -548,19 +542,6 @@ export function TrainingRecordFormDialog({
           <p className="text-11 text-ink-3">
             과정을 선택하면 총 시수가 자동으로 채워져요. 없는 기관·과정은 검색어로 바로 추가할 수 있어요
           </p>
-        </div>
-
-        <div className="grid grid-cols-1 gap-2">
-          <div className="space-y-1.5">
-            <Label>구분</Label>
-            <Select value={source} onChange={(e) => setSource(e.target.value as TrainingSource)}>
-              {Object.entries(TRAINING_SOURCE_LABELS).map(([value, label]) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              ))}
-            </Select>
-          </div>
         </div>
 
         <div className="grid grid-cols-2 gap-2">

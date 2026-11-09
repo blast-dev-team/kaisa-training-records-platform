@@ -1,9 +1,8 @@
-export type TrainingSource = "internal" | "external" | "legacy_import";
+export type TrainingSource = "internal" | "external";
 
 export const TRAINING_SOURCE_LABELS: Record<TrainingSource, string> = {
   internal: "사내",
   external: "외부",
-  legacy_import: "이관",
 };
 
 export type CompletionStatus = "in_progress" | "completed" | "canceled";
