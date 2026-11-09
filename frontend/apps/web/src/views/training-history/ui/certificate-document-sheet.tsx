@@ -109,6 +109,8 @@ export interface CertificateDocumentSheetProps {
   rows: (CertificateSheetRow | null)[];
   /** 문서 전체 총 이수시간 — 마감 합계 표기. 기본은 이 페이지 rows 합 */
   totalHours?: number;
+  /** 외부교육 합계가 16시간을 넘어 합계가 고정된 문서 — 합계 칸에 각주를 단다 */
+  externalCapped?: boolean;
   /** 문서 머리(서식·문서번호·제목·신청인·컬럼헤더) — 계속 페이지에서 생략 */
   showHead?: boolean;
   /** 마감(합계·증명문구·도장) — 마지막 페이지에서만 */
@@ -201,6 +203,7 @@ function formatHours(hours: number): string {
 export function CertificateDocumentSheet({
   rows,
   totalHours: documentTotalHours,
+  externalCapped = false,
   showHead = true,
   showClosing = true,
   memberName,
@@ -385,6 +388,12 @@ export function CertificateDocumentSheet({
                 {/* 마감만 있는 장도 위의 1px 선 행이 최상단을 그린다 */}
                 <td colSpan={17} style={{ height: 52, ...lineStyle({ left: true }), ...cell }}>
                   합계
+                  {/* 합계 행 높이(52px) 안에 두 줄로 — 페이지 용량 계산(마감 263px)이 바뀌지 않게 */}
+                  {externalCapped && (
+                    <div style={{ fontSize: 11, lineHeight: 1.3 }}>
+                      ※ 외부교육은 최대 16시간까지만 인정되어 합계에 16시간만 반영됩니다
+                    </div>
+                  )}
                 </td>
                 <td colSpan={3} style={{ ...lineStyle({}), ...cell }}>
                   {formatHours(closingHours)}시간

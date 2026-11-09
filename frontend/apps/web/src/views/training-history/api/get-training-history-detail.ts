@@ -14,6 +14,8 @@ export interface TrainingHistoryDetail {
   hours: number;
   /** 교육기관명 — 확인서 표기용 */
   institutionName?: string;
+  /** 기관 구분 — 확인서 합계의 외부교육 16시간 상한 판정용 (internal | external | null=미선택·미연결) */
+  institutionType: string | null;
   /** 확인서 서식번호 (예: 제31호) — 좌측 상단 표기 */
   /** 확인서 문서번호 (예: 대축-2026-0001) — 우측 상단 표기 */
   /** 감리원 등급 — 신청인 칸 표기 */
@@ -54,6 +56,7 @@ export async function getTrainingHistoryDetail(id: string): Promise<TrainingHist
     trainedOn: data.started_at ?? data.ended_at ?? "",
     hours: Number(data.total_hours),
     institutionName: data.institution_name ?? undefined,
+    institutionType: data.institution_type ?? null,
     supervisorGrade: data.supervisor_grade ?? undefined,
     supervisorCertNo: data.supervisor_cert_no ?? undefined,
     traineeName: data.trainee_name ?? undefined,
