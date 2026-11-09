@@ -6,8 +6,13 @@ export const postTrainingRecordBulk = async (body: {
   trainee_ids: string[]
   completion_status?: 'in_progress' | 'completed' | 'canceled'
   memo?: string | null
-}): Promise<{ created: number; skipped: number }> => {
-  const { data } = await apiClient.post<{ created: number; skipped: number }>(
+}): Promise<{ created: number; skipped: number; external_cap_excluded?: string[] }> => {
+  const { data } = await apiClient.post<{
+    created: number
+    skipped: number
+    /** 외부교육 최근 3년 한도(16시간) 초과로 연결하지 않은 교육생 이름 */
+    external_cap_excluded?: string[]
+  }>(
     '/training-records/bulk',
     body,
   )

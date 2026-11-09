@@ -10,6 +10,8 @@ export interface SearchableOption {
   label: string;
   /** 옵션 우측 보조 텍스트 (예: 기관명) */
   hint?: string;
+  /** 화면에 그리지 않는 부가 값 — onChange 로 받은 쪽이 쓰는 원본 필드(예: 기관 구분) */
+  meta?: Record<string, unknown>;
 }
 
 interface Props {

@@ -5,7 +5,12 @@ import {
   trainingHistoryPdfFileName,
   generateCertificatePdf,
 } from "@/src/shared/utils/generate-certificate-pdf";
-import type { TrainingRecord } from "@/src/entities/training-record";
+import {
+  documentHoursSummary,
+  isExternalInstitutionType,
+  type DocumentHoursRow,
+  type TrainingRecord,
+} from "@/src/entities/training-record";
 import { postIssueCertificates } from "@/src/entities/certificate";
 import {
   CertificateDocumentSheet,
@@ -15,6 +20,7 @@ import {
   type CertificateSheetPage,
   type CertificateSheetRow,
 } from "./certificate-document-sheet";
+import { DocumentHoursNotice } from "./document-hours-notice";
 
 /** A4 시트 원본 폭 @96dpi — 미리보기 스케일 계산용 */
 const SHEET_WIDTH = 794;
@@ -38,8 +44,12 @@ export interface CertificateDownloadGroup {
   /** 빈 행으로 채우지 않은 원본 행 — 미리보기에서 여러 페이지를 한 문서로 이어 보여줄 때 쓴다 */
   rows: CertificateSheetRow[];
   pages: CertificateSheetPage[];
-  /** 문서 전체 총 이수시간 — 마지막 페이지 합계 표기 */
+  /** 문서 전체 총 이수시간 — 마지막 페이지 합계 표기. 사내 합계 + min(외부 합계, 16) */
   totalHours: number;
+  /** 외부교육 행 합계 (상한 적용 전) — 고정 안내 문구용 */
+  externalHours: number;
+  /** 외부교육 합계가 16시간을 넘어 합계가 고정된 문서 */
+  externalCapped: boolean;
   issuedOnLabel: string;
 }
 
@@ -50,7 +60,10 @@ export function buildDownloadGroups(records: TrainingRecord[]): CertificateDownl
   // 한 페이지에 행 1개짜리 페이지가 이력 수만큼 생긴다
   const rowsByTrainee = new Map<
     string,
-    Omit<CertificateDownloadGroup, "pages" | "totalHours"> & { rows: CertificateSheetRow[] }
+    Omit<CertificateDownloadGroup, "pages" | "totalHours" | "externalHours" | "externalCapped"> & {
+      rows: CertificateSheetRow[];
+      hourRows: DocumentHoursRow[];
+    }
   >();
   for (const record of records) {
     let group = rowsByTrainee.get(record.traineeId);
@@ -64,20 +77,29 @@ export function buildDownloadGroups(records: TrainingRecord[]): CertificateDownl
         recordIds: [],
         courseNames: [],
         rows: [],
+        hourRows: [],
         issuedOnLabel,
       };
     }
     group.recordIds.push(record.id);
     group.courseNames.push(record.courseName);
-    group.rows.push(...toSheetRows([record]));
+    const sheetRows = toSheetRows([record]);
+    const isExternal = isExternalInstitutionType(record.institutionType);
+    group.rows.push(...sheetRows);
+    group.hourRows.push(...sheetRows.map((row) => ({ hours: row.hours, isExternal })));
     rowsByTrainee.set(record.traineeId, group);
   }
-  return [...rowsByTrainee.values()].map(({ rows, ...header }) => ({
-    ...header,
-    rows,
-    pages: paginateRows(rows),
-    totalHours: rows.reduce((sum, row) => sum + row.hours, 0),
-  }));
+  return [...rowsByTrainee.values()].map(({ rows, hourRows, ...header }) => {
+    const hours = documentHoursSummary(hourRows);
+    return {
+      ...header,
+      rows,
+      pages: paginateRows(rows),
+      totalHours: hours.total,
+      externalHours: hours.externalHours,
+      externalCapped: hours.capped,
+    };
+  });
 }
 
 interface Props {
@@ -245,6 +267,7 @@ export function CertificatePreviewModal({ isOpen, onClose, records, onDownloaded
             문서번호는 저장 시 발급 건마다 자동으로 부여돼요 — 내역마다가 아니라 발급 1건에 번호 1개예요
           </p>
         )}
+        <DocumentHoursNotice groups={groups} />
         <div className="max-h-[60vh] overflow-auto rounded-lg border border-line bg-bg p-4">
           {groups.map((group) => (
             <section key={group.key} className="mb-6 last:mb-0">
@@ -272,6 +295,7 @@ export function CertificatePreviewModal({ isOpen, onClose, records, onDownloaded
                   certificateNumber={certNosByTrainee[group.key] ?? null}
                   rows={group.rows}
                   totalHours={group.totalHours}
+                  externalCapped={group.externalCapped}
                   issuedOnLabel={group.issuedOnLabel}
                 />
               </ScaledContinuousPreview>
@@ -303,6 +327,7 @@ export function CertificatePreviewModal({ isOpen, onClose, records, onDownloaded
                     pageNo={pageIndex + 1}
                     pageCount={group.pages.length}
                     totalHours={group.totalHours}
+                    externalCapped={group.externalCapped}
                     issuedOnLabel={group.issuedOnLabel}
                   />
                 </div>

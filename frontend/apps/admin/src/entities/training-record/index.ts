@@ -1,4 +1,5 @@
 export * from './model/training-record'
+export * from './model/external-hours'
 export { trainingRecordQueries } from './api/training-record-queries'
 export { getTrainingRecordList } from './api/get-training-record-list'
 export { getTrainingRecordDetail } from './api/get-training-record-detail'

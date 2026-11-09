@@ -31,6 +31,7 @@ import {
   trainingRecordQueries,
   COMPLETION_STATUS_LABELS,
   TRAINING_SOURCE_LABELS,
+  isExternalInstitutionType,
   type CompletionStatus,
   type TrainingRecord,
   type TrainingSource,
@@ -41,6 +42,7 @@ import {
   traineeQueries,
   type Trainee as TraineeEntity,
 } from "@/src/entities/trainee";
+import { ExternalHoursNotice, useExternalCap } from "./external-hours-notice";
 
 interface Props {
   isOpen: boolean;
@@ -53,9 +55,14 @@ interface Props {
   presetTrainee?: TraineeEntity | null;
 }
 
+const INSTITUTION_TYPE_HINT: Record<string, string> = { internal: "사내", external: "외부" };
+
+/** 기관 옵션 — 보조 표기로 사내/외부 구분을 보여 주고, 외부교육 한도 판정용으로 구분값을 실어 둔다 */
 const institutionFetcher = fetchOptions("/institutions", {}, (i) => ({
   value: i.id as string,
   label: i.name as string,
+  hint: INSTITUTION_TYPE_HINT[(i.institution_type as string) ?? ""] ?? "구분 미선택",
+  meta: { institutionType: (i.institution_type as string | null) ?? null },
 }));
 
 export function TrainingRecordFormDialog({
@@ -76,6 +83,8 @@ export function TrainingRecordFormDialog({
   const [newTraineePhone, setNewTraineePhone] = useState("");
   const [institutionId, setInstitutionId] = useState("");
   const [institutionLabel, setInstitutionLabel] = useState<string | null>(null);
+  /** 선택한 기관 구분 — undefined 는 아직 기관을 고르지 않음(외부교육 한도 판정 안 함) */
+  const [institutionType, setInstitutionType] = useState<string | null | undefined>(undefined);
   const [courseId, setCourseId] = useState("");
   const [courseLabel, setCourseLabel] = useState<string | null>(null);
   /** 이 세션에서 그 자리 생성한 과정 — 저장 시 최종 총 시수를 마스터에 반영한다 */
@@ -142,6 +151,7 @@ export function TrainingRecordFormDialog({
       const created = await postInstitution({ name });
       queryClient.invalidateQueries({ queryKey: ["institutions"] });
       setInstitutionLabel(name);
+      setInstitutionType(null); // 그 자리에서 만든 기관은 구분 미선택 = 외부
       return created.id;
     } catch (e) {
       toast.error((e as Error).message);
@@ -228,6 +238,7 @@ export function TrainingRecordFormDialog({
       );
       setInstitutionId(record.institutionId ?? "");
       setInstitutionLabel(record.institutionName ?? "");
+      setInstitutionType(record.institutionType);
       setCourseId(record.courseId ?? "");
       setCourseLabel(record.courseName);
       setTotalHours(record.totalHours !== null ? String(record.totalHours) : "");
@@ -241,12 +252,14 @@ export function TrainingRecordFormDialog({
         getCourseDetail(record.courseId).then((course) => {
           setInstitutionId(course.institutionId);
           setInstitutionLabel(course.institutionName);
+          setInstitutionType(course.institutionType);
         });
       }
     } else {
       setTrainee(presetTrainee ?? null);
       setInstitutionId("");
       setInstitutionLabel(null);
+      setInstitutionType(undefined);
       setCourseId("");
       setCourseLabel(null);
       setTotalHours("");
@@ -262,6 +275,9 @@ export function TrainingRecordFormDialog({
   const handleInstitutionChange = (value: string | null, option?: SearchableOption) => {
     setInstitutionId(value ?? "");
     setInstitutionLabel(option?.label ?? null);
+    setInstitutionType(
+      value ? ((option?.meta?.institutionType as string | null | undefined) ?? null) : undefined,
+    );
     setCourseId("");
     setCourseLabel(null);
     // 다른 기관으로 바꾸면 방금 만든 과정은 더 이상 이름 수정 대상이 아니다
@@ -336,9 +352,20 @@ export function TrainingRecordFormDialog({
     },
   });
 
+  // 외부교육 최근 3년 한도(16시간) — 서버가 최종 판정하고, 여기선 저장 전에 미리 막는다
+  const externalCap = useExternalCap({
+    traineeId: trainee?.id ?? null,
+    institutionType,
+    startedAt,
+    totalHours,
+    completionStatus,
+    record,
+  });
+  const externalBlocked = externalCap.result?.blocked ?? false;
+
   const canSubmit = useMemo(
-    () => !!trainee && !!institutionId && !!courseId && !mutation.isPending,
-    [trainee, institutionId, courseId, mutation.isPending],
+    () => !!trainee && !!institutionId && !!courseId && !mutation.isPending && !externalBlocked,
+    [trainee, institutionId, courseId, mutation.isPending, externalBlocked],
   );
 
   return (
@@ -573,6 +600,11 @@ export function TrainingRecordFormDialog({
             onChange={(e) => setTotalHours(e.target.value)}
           />
           <p className="text-11 text-ink-3">입력한 총 시수가 이수 시수로 인정돼요</p>
+          <ExternalHoursNotice
+            summary={externalCap.summary}
+            result={externalCap.result}
+            isExternal={institutionType !== undefined && isExternalInstitutionType(institutionType)}
+          />
         </div>
 
         <div className="space-y-1.5">

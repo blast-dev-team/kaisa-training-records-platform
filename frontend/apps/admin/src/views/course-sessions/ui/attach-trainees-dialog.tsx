@@ -226,10 +226,17 @@ export function AttachTraineesDialog({ isOpen, onClose, session }: Props) {
         trainee_ids: Object.keys(selected),
         memo: memo.trim() || null,
       }),
-    onSuccess: ({ created, skipped }) => {
+    onSuccess: ({ created, skipped, external_cap_excluded: capExcluded = [] }) => {
       toast.success(
         `교육 내역 ${created}건을 생성했어요${skipped > 0 ? ` (이미 같은 교육내역이 있는 ${skipped}명 제외)` : ""}`,
       );
+      // 외부 일정 — 최근 3년 외부교육이 16시간을 넘게 되는 교육생은 서버가 연결하지 않는다
+      if (capExcluded.length > 0) {
+        toast.warning(
+          `외부교육 한도(최근 3년 16시간) 초과로 ${capExcluded.length}명은 연결하지 않았어요 — ${capExcluded.join(", ")}`,
+          { autoClose: false },
+        );
+      }
       queryClient.invalidateQueries({ queryKey: trainingRecordQueries.all() });
       queryClient.invalidateQueries({ queryKey: courseSessionQueries.all() });
       setSelected({});
