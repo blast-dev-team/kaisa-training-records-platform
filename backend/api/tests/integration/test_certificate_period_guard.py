@@ -4,7 +4,6 @@
 발급되면 안 된다 — WEB 신청·어드민 발급 전 경로에서 게이트로 막는다.
 """
 
-import uuid
 
 from app.domain.institution.model import TrainingInstitution
 from tests.integration.helpers import (

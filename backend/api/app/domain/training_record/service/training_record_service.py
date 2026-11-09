@@ -45,7 +45,7 @@ from app.domain.training_record.schema import (
 from app.domain.training_record.service import external_hours
 from app.utils.cert_no import normalize_cert_no
 
-ALLOWED_SOURCES = {"internal", "external", "legacy_import"}
+ALLOWED_SOURCES = {"internal", "external"}
 ALLOWED_COMPLETION = {"in_progress", "completed", "canceled"}
 
 
@@ -148,8 +148,6 @@ async def create_record(
     db: AsyncSession, data: TrainingRecordCreate, actor: AdminUser
 ) -> TrainingRecord:
     """스냅샷 자동 채움 — 마스터 연결 시 과정명·기관명·총시간을 마스터에서 가져온다."""
-    if data.source not in ALLOWED_SOURCES:
-        raise api_error("VALIDATION_ERROR", message="올바르지 않은 이력 출처예요")
     if data.completion_status not in ALLOWED_COMPLETION:
         raise api_error("VALIDATION_ERROR", message="올바르지 않은 수료 상태예요")
 
@@ -167,6 +165,13 @@ async def create_record(
         institution = await inst_repo.find_institution_by_id(db, data.institution_id)
         if institution is None:
             raise api_error("NOT_FOUND", message="교육기관을 찾을 수 없어요")
+
+    # 소스는 기관 구분을 따른다 — 외부 기관이면 external, 그 외(사내·미연결)는 internal
+    source = (
+        "external"
+        if institution is not None and institution.institution_type == "external"
+        else "internal"
+    )
 
     course_name = course.name if course else data.course_name
     institution_name = institution.name if institution else data.institution_name
@@ -214,7 +219,7 @@ async def create_record(
                     completed_hours=completed_hours,
                     started_at=data.started_at,
                     ended_at=data.ended_at,
-                    source=data.source,
+                    source=source,
                     evidence_file_key=data.evidence_file_key,
                     completion_status=data.completion_status,
                     completed_at=now_kst()

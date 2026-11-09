@@ -19,7 +19,7 @@ class TrainingRecordCreate(BaseModel):
     total_hours: Decimal | None = None  # 미지정 시 과정 마스터 값. completed_hours 는 서버가 total_hours 로 채운다
     started_at: date | None = None
     ended_at: date | None = None
-    source: str = "internal"  # internal | external | legacy_import
+    source: str = "internal"  # 기관 구분을 따른다 — external 기관이면 서버가 external로 파생
     evidence_file_key: str | None = None
     completion_status: str = "completed"  # in_progress | completed | canceled
     memo: str | None = None

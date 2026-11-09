@@ -20,8 +20,6 @@ from app.domain.trainee.model.enums import SupervisorGrade
 if TYPE_CHECKING:
     from app.domain.trainee.model.membership_grade import MembershipGrade
     from app.domain.user.model.user import User
-    from app.domain.trainee.model.membership_grade import MembershipGrade
-    from app.domain.user.model.user import User
 
 
 class Trainee(Base):

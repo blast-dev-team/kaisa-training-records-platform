@@ -9,16 +9,16 @@ from app.core.dependencies import require_admin
 from app.core.response import PagedResponse
 from app.domain.auth.model import AdminUser
 from app.domain.training_record.schema import (
+    ExternalHoursSummary,
     TraineeMatchPreviewResult,
-    TrainingRecordImportConfirmRequest,
-    TrainingRecordImportPreviewResult,
-    TrainingRecordImportResult,
     TrainingRecordBulkCreate,
     TrainingRecordBulkDelete,
     TrainingRecordBulkResult,
-    ExternalHoursSummary,
     TrainingRecordBulkUpdate,
     TrainingRecordCreate,
+    TrainingRecordImportConfirmRequest,
+    TrainingRecordImportPreviewResult,
+    TrainingRecordImportResult,
     TrainingRecordResponse,
     TrainingRecordUpdate,
 )
