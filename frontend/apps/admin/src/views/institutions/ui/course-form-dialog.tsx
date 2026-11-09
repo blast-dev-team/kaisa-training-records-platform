@@ -20,9 +20,16 @@ interface Props {
   course: Course | null;
 }
 
+const INSTITUTION_TYPE_HINT: Record<string, string> = {
+  internal: "사내",
+  external: "외부",
+};
+
 const institutionFetcher = fetchOptions("/institutions", {}, (i) => ({
   value: i.id as string,
   label: i.name as string,
+  hint: INSTITUTION_TYPE_HINT[(i.institution_type as string) ?? ""] ?? "구분 미설정",
+  meta: { institutionType: (i.institution_type as string | null) ?? null },
 }));
 
 const sessionNameFetcher = fetchOptions("/session-names", {}, (s) => ({

@@ -414,7 +414,6 @@ export function InstitutionListPage() {
               <option value="">전체</option>
               <option value="internal">사내</option>
               <option value="external">외부</option>
-              <option value="none">미선택</option>
             </Select>
           </FilterRow>
         )}

@@ -23,14 +23,14 @@ export function InstitutionFormDialog({ isOpen, onClose, institution }: Props) {
   const queryClient = useQueryClient()
   const [name, setName] = useState('')
   const [code, setCode] = useState('')
-  const [institutionType, setInstitutionType] = useState<InstitutionType>(null)
+  const [institutionType, setInstitutionType] = useState<InstitutionType>("external")
   const [isActive, setIsActive] = useState(true)
 
   useEffect(() => {
     if (!isOpen) return
     setName(institution?.name ?? '')
     setCode(institution?.institutionCode ?? '')
-    setInstitutionType(institution?.institutionType ?? null)
+    setInstitutionType(institution?.institutionType ?? "external")
     setIsActive(institution?.isActive ?? true)
   }, [isOpen, institution])
 
@@ -98,7 +98,6 @@ export function InstitutionFormDialog({ isOpen, onClose, institution }: Props) {
               )
             }
           >
-            <option value="">미선택</option>
             <option value="internal">사내</option>
             <option value="external">외부</option>
           </Select>
