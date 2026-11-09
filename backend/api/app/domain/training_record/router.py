@@ -16,12 +16,13 @@ from app.domain.training_record.schema import (
     TrainingRecordBulkCreate,
     TrainingRecordBulkDelete,
     TrainingRecordBulkResult,
+    ExternalHoursSummary,
     TrainingRecordBulkUpdate,
     TrainingRecordCreate,
     TrainingRecordResponse,
     TrainingRecordUpdate,
 )
-from app.domain.training_record.service import training_record_service
+from app.domain.training_record.service import external_hours, training_record_service
 
 router = APIRouter(prefix="/training-records", tags=["training-records"])
 
@@ -76,10 +77,12 @@ async def create_records_bulk(
     actor: AdminUser = Depends(require_admin),
 ):
     """일정에 교육생 일괄 연결 — 선택한 교육생 수만큼 이력 생성, 중복은 건너뜀."""
-    created, skipped = await training_record_service.create_records_bulk(
+    created, skipped, cap_excluded = await training_record_service.create_records_bulk(
         db, body, actor
     )
-    return TrainingRecordBulkResult(created=created, skipped=skipped)
+    return TrainingRecordBulkResult(
+        created=created, skipped=skipped, external_cap_excluded=cap_excluded
+    )
 
 
 @router.patch("/bulk", status_code=200)
@@ -145,6 +148,27 @@ async def confirm_training_import(
         created=created,
         skipped=skipped,
         failed=[{"row_number": n, "error": msg} for n, msg in failed],
+    )
+
+
+@router.get("/external-hours", response_model=ExternalHoursSummary)
+async def get_external_hours(
+    trainee_id: uuid.UUID,
+    exclude_record_id: uuid.UUID | None = None,
+    db: AsyncSession = Depends(get_db),
+    _: AdminUser = Depends(require_admin),
+):
+    """감리원의 최근 3년 외부교육 합계·남은 한도. 수정 중인 이력은 exclude_record_id 로 뺀다."""
+    current = (
+        await external_hours.external_hours_by_trainee(
+            db, [trainee_id], [exclude_record_id] if exclude_record_id else None
+        )
+    )[trainee_id]
+    return ExternalHoursSummary(
+        window_start=external_hours.window_start(),
+        external_hours=float(current),
+        max_hours=float(external_hours.max_hours()),
+        remaining_hours=float(external_hours.remaining_hours(current)),
     )
 
 

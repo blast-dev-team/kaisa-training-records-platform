@@ -138,7 +138,7 @@ class TestSessionAttachDuplicate:
             cookies=admin_cookie(token),
         )
         assert resp.status_code == 200
-        assert resp.json() == {"created": 1, "skipped": 1}
+        assert resp.json() == {"created": 1, "skipped": 1, "external_cap_excluded": []}
         assert await _count_records(db, t1.id) == 1
 
 

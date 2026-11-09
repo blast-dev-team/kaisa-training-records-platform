@@ -5,6 +5,7 @@ from sqlalchemy import and_, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.audit import record_audit
+from app.core.crypto import decrypt_field
 from app.core.error_codes import api_error
 from app.core.kst import now_kst, today_kst
 from app.domain.auth.model import AdminUser
@@ -20,6 +21,7 @@ from app.domain.institution.schema import (
 )
 from app.domain.trainee.model import Trainee
 from app.domain.training_record.model import TrainingRecord
+from app.domain.training_record.service import external_hours
 from app.domain.training_record.service.training_record_service import _record_no
 
 
@@ -218,10 +220,12 @@ async def create_records_for_session(
     completion_status: str,
     memo: str | None,
     actor: AdminUser,
-) -> tuple[list[TrainingRecord], int]:
+) -> tuple[list[TrainingRecord], int, list[str]]:
     """일정에 교육생 일괄 연결 — 연결 즉시 교육이력 생성. 중복 연결은 건너뛴다.
 
     이력의 총·이수 시수는 일정의 총 시수를 그대로 인정한다.
+    외부 기관 일정이면 최근 3년 외부교육 한도(16시간)를 넘게 되는 교육생은 연결하지 않고
+    이름을 돌려준다 — 나머지 교육생은 정상 연결(부분 성공).
     """
     if not trainee_ids:
         raise api_error("VALIDATION_ERROR", message="연결할 교육생을 선택해 주세요")
@@ -260,6 +264,16 @@ async def create_records_for_session(
     # 종료일이 미래여도 강등하지 않는다 — 현장에서는 교육 시작 전에도 선수료 처리를 한다.
     records: list[TrainingRecord] = []
     skipped = 0
+    cap_excluded: list[str] = []
+    # 외부교육 한도 — 외부 기관 일정이고 수강 시작일이 최근 3년 안이면 교육생별로 판정
+    checks_cap = external_hours.is_external_type(
+        course.institution.institution_type if course.institution else None
+    ) and external_hours.counts_in_window(session.started_at)
+    external_now = (
+        await external_hours.external_hours_by_trainee(db, list(dict.fromkeys(trainee_ids)))
+        if checks_cap and completion_status != "canceled"
+        else {}
+    )
     for trainee_id in dict.fromkeys(trainee_ids):  # 요청 내 중복 제거
         if trainee_id in existing:
             skipped += 1
@@ -267,6 +281,11 @@ async def create_records_for_session(
         trainee = await db.get(Trainee, trainee_id)
         if trainee is None:
             raise api_error("NOT_FOUND", message="교육생을 찾을 수 없어요")
+        if trainee_id in external_now:
+            before = external_now[trainee_id]
+            if external_hours.would_exceed(before, before + session.total_hours):
+                cap_excluded.append(decrypt_field(trainee.name_encrypted))
+                continue
         records.append(
             TrainingRecord(
                 training_record_no=_record_no(),
@@ -303,8 +322,9 @@ async def create_records_for_session(
         after={
             "created": len(records),
             "skipped": skipped,
+            "external_cap_excluded": len(cap_excluded),
             "trainee_ids": [str(t) for t in trainee_ids],
         },
     )
     await db.commit()
-    return records, skipped
+    return records, skipped, cap_excluded

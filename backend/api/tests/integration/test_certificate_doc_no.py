@@ -129,8 +129,10 @@ class TestIssuanceEventNumbering:
                 "course_name": "직업안전보건교육",
                 "institution_name": "카이사안전교육원",
                 "total_hours": 8,
-                "started_at": "2026-09-01",
-                "ended_at": "2026-09-01",
+                # 3년 창 밖 날짜 — _member 가 만든 외부 16시간 이력 위에 쌓이면 외부교육
+                # 등록 한도(16시간)에 걸린다. 이 테스트는 문서번호 키 부재만 본다
+                "started_at": "2020-09-01",
+                "ended_at": "2020-09-01",
             },
             cookies=admin_cookie(admin_token),
         )

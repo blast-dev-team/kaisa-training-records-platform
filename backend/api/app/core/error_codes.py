@@ -37,6 +37,7 @@ _ERRORS: dict[str, tuple[int, str]] = {
     "TRAINEE_ALREADY_LINKED": (409, "이미 다른 계정에 연결된 교육생이에요"),
     # 중복 등록 — 감리원증번호 중복만 차단, 나머지 둘은 확인 후 allow_duplicate 로 강제 가능
     "DUPLICATE_TRAINING_RECORD": (409, "같은 교육내역이 이미 있어요"),
+    "EXTERNAL_HOURS_EXCEEDED": (422, "외부교육은 최근 3년 동안 최대 16시간까지 등록할 수 있어요"),
     "DUPLICATE_TRAINEE": (409, "같은 감리원증번호의 감리원이 이미 있어요"),
     "DUPLICATE_TRAINEE_SUSPECTED": (409, "같은 이름·생년월일의 감리원이 이미 있어요"),
     "GRADE_NOT_DETERMINED": (409, "회원등급을 확정할 수 없어요"),

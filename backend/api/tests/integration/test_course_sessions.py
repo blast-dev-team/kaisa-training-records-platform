@@ -103,7 +103,7 @@ class TestCourseSessions:
             cookies=admin_cookie(token),
         )
         assert resp.status_code == 200
-        assert resp.json() == {"created": 2, "skipped": 0}
+        assert resp.json() == {"created": 2, "skipped": 0, "external_cap_excluded": []}
 
         records = list(
             (
@@ -129,7 +129,7 @@ class TestCourseSessions:
                   "trainee_ids": [str(t1.id), str(t2.id)]},
             cookies=admin_cookie(token),
         )
-        assert resp.json() == {"created": 0, "skipped": 2}
+        assert resp.json() == {"created": 0, "skipped": 2, "external_cap_excluded": []}
 
         # 일정별 이력 조회 (역방향 — 일정 상세 수강생 목록)
         resp = await client.get(
@@ -162,7 +162,7 @@ class TestCourseSessions:
             json={"session_id": session_id, "trainee_ids": [str(t1.id)]},
             cookies=admin_cookie(token),
         )
-        assert resp.json() == {"created": 1, "skipped": 0}
+        assert resp.json() == {"created": 1, "skipped": 0, "external_cap_excluded": []}
 
         record = (
             await db.execute(
@@ -294,7 +294,7 @@ class TestCourseSessions:
             json={"session_id": session_id, "trainee_ids": [str(t1.id), str(t2.id)]},
             cookies=admin_cookie(token),
         )
-        assert resp.json() == {"created": 2, "skipped": 0}
+        assert resp.json() == {"created": 2, "skipped": 0, "external_cap_excluded": []}
 
         record_ids = [
             str(r.id)

@@ -158,9 +158,20 @@ class TrainingRecordBulkDelete(BaseModel):
     ids: list[uuid.UUID] = Field(min_length=1)
 
 
+class ExternalHoursSummary(BaseModel):
+    """감리원의 최근 3년 외부교육 합계 — 등록 모달이 저장 전에 한도를 안내하는 용도."""
+
+    window_start: date
+    external_hours: float
+    max_hours: float
+    remaining_hours: float
+
+
 class TrainingRecordBulkResult(BaseModel):
     created: int
     skipped: int
+    # 외부교육 최근 3년 한도(16시간) 초과로 연결하지 않은 교육생 이름
+    external_cap_excluded: list[str] = []
 
 
 class MatchPreviewMatched(BaseModel):

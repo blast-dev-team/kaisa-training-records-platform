@@ -42,6 +42,7 @@ from app.domain.training_record.schema import (
     TrainingRecordImportRow,
     TrainingRecordUpdate,
 )
+from app.domain.training_record.service import external_hours
 from app.utils.cert_no import normalize_cert_no
 
 ALLOWED_SOURCES = {"internal", "external", "legacy_import"}
@@ -121,7 +122,9 @@ async def list_records(
     )
 
 
-async def create_records_bulk(db: AsyncSession, data, actor: AdminUser) -> tuple[int, int]:
+async def create_records_bulk(
+    db: AsyncSession, data, actor: AdminUser
+) -> tuple[int, int, list[str]]:
     """일정 → 교육생 일괄 연결. 로직은 course_session_service 쪽에 있다.
 
     (course_session_service 가 _record_no 를 가져다 쓰므로 lazy import — 순환 회피)
@@ -130,7 +133,7 @@ async def create_records_bulk(db: AsyncSession, data, actor: AdminUser) -> tuple
         create_records_for_session,
     )
 
-    records, skipped = await create_records_for_session(
+    records, skipped, cap_excluded = await create_records_for_session(
         db,
         data.session_id,
         data.trainee_ids,
@@ -138,7 +141,7 @@ async def create_records_bulk(db: AsyncSession, data, actor: AdminUser) -> tuple
         data.memo,
         actor,
     )
-    return len(records), skipped
+    return len(records), skipped, cap_excluded
 
 
 async def create_record(
@@ -192,6 +195,9 @@ async def create_record(
     # 시수는 총 시수 하나로 관리 — 이수 시수는 총 시수를 그대로 인정한다
     completed_hours = total_hours if total_hours is not None else Decimal(0)
 
+    # 외부교육 한도 — 저장 전 합계를 잡아 두고, 저장 후 합계가 늘면서 16시간을 넘으면 차단
+    external_before = await external_hours.external_hours_by_trainee(db, [data.trainee_id])
+
     # savepoint 재시도 — training_record_no 가 확률적 채번이라 충돌 시 재생성
     record: TrainingRecord | None = None
     for _ in range(5):
@@ -225,6 +231,7 @@ async def create_record(
         break
     if record is None:  # 5회 재시도 후에도 유니크 충돌 — 사실상 없음
         raise api_error("INTERNAL_ERROR", message="문서번호 채번에 실패했어요")
+    await external_hours.guard_external_increase(db, external_before)
     record_audit(
         db,
         actor_admin_id=actor.id,
@@ -246,6 +253,7 @@ async def update_record(
 ) -> TrainingRecord:
     record = await get_record(db, record_id)
     updates = data.model_dump(exclude_unset=True)
+    external_before = await external_hours.external_hours_by_trainee(db, [record.trainee_id])
 
     if (
         "completion_status" in updates
@@ -265,6 +273,7 @@ async def update_record(
     if "total_hours" in updates:
         record.completed_hours = record.total_hours
     record.updated_by = actor.id
+    await external_hours.guard_external_increase(db, external_before)
     after = {k: str(v) for k, v in updates.items()}
     if "total_hours" in updates:
         after["completed_hours"] = str(record.completed_hours)
@@ -289,6 +298,11 @@ async def bulk_update_records(
     중간에 하나라도 실패하면 전체가 반영되지 않는다(부분 수정 없음).
     """
     updated = 0
+    # 외부교육 한도 — 바꾸기 전 감리원별 합계. 같은 감리원 행이 여럿이면 변경 후 합계로 함께 판정된다
+    targets = [await get_record(db, item.id) for item in data.updates]
+    external_before = await external_hours.external_hours_by_trainee(
+        db, list(dict.fromkeys(r.trainee_id for r in targets))
+    )
     for item in data.updates:
         record = await get_record(db, item.id)
         updates = item.model_dump(exclude_unset=True, exclude={"id"})
@@ -334,8 +348,21 @@ async def bulk_update_records(
         )
         updated += 1
 
+    await external_hours.guard_external_increase(
+        db, external_before, await _trainee_names(db, list(external_before))
+    )
     await db.commit()
     return updated
+
+
+async def _trainee_names(db: AsyncSession, trainee_ids: list[uuid.UUID]) -> dict[uuid.UUID, str]:
+    """일괄 처리 오류 문구에 감리원 이름을 넣기 위한 조회 — 여러 명 중 누구인지 알려 준다."""
+    names: dict[uuid.UUID, str] = {}
+    for trainee_id in trainee_ids:
+        trainee = await trainee_repo.find_by_id(db, trainee_id)
+        if trainee is not None:
+            names[trainee_id] = decrypt_field(trainee.name_encrypted)
+    return names
 
 
 async def bulk_delete_records(
@@ -817,7 +844,50 @@ async def import_preview(db: AsyncSession, content: bytes) -> TrainingRecordImpo
         if key in existing_keys:
             row.is_duplicate = True
         existing_keys.add(key)  # 같은 파일 안의 반복 행도 두 번째부터 중복
+
+    await _mark_external_cap_rows(db, result_rows)
     return TrainingRecordImportPreviewResult(rows=result_rows, total=len(result_rows))
+
+
+async def _internal_institution_names(db: AsyncSession) -> set[str]:
+    """사내 기관 이름 — 확정 시 같은 이름이면 사내 기관을 먼저 고르므로 이름 하나라도 사내면 사내 교육."""
+    return set(
+        (
+            await db.execute(
+                select(TrainingInstitution.name).where(
+                    TrainingInstitution.institution_type == "internal"
+                )
+            )
+        ).scalars()
+    )
+
+
+async def _mark_external_cap_rows(db: AsyncSession, rows: list[TrainingRecordImportRow]) -> None:
+    """프리뷰 — 등록 시 외부교육 최근 3년 한도(16시간)를 넘게 되는 행에 오류를 단다.
+
+    파일 위에서부터 차례로 쌓아 판정한다(확정과 같은 순서) — 같은 감리원 행이 여럿이면
+    앞 행까지 더한 합계로 뒤 행을 본다. 이미 오류·중복인 행은 확정 대상이 아니라 뺀다.
+    """
+    internal_names = await _internal_institution_names(db)
+    candidates = [
+        row
+        for row in rows
+        if row.trainee_id is not None
+        and not row.errors
+        and not row.is_duplicate
+        and row.institution not in internal_names
+        and external_hours.counts_in_window(_import_date(row.start_date))
+    ]
+    running = await external_hours.external_hours_by_trainee(
+        db, list(dict.fromkeys(row.trainee_id for row in candidates))
+    )
+    for row in candidates:
+        hours = _import_hours(row.hours_recog) or _import_hours(row.hours_total) or Decimal(0)
+        before = running[row.trainee_id]
+        if external_hours.would_exceed(before, before + hours):
+            row.errors.append(external_hours.exceeded_message(before))
+            continue
+        running[row.trainee_id] = before + hours
 
 
 async def import_confirm(
@@ -829,6 +899,8 @@ async def import_confirm(
     """
     created = skipped = 0
     failed: list[tuple[int, str]] = []
+    # 외부교육 한도 — 감리원별 최근 3년 합계를 처음 볼 때 조회하고, 등록할 때마다 더해 간다
+    external_running: dict[uuid.UUID, Decimal] = {}
     grade_map = {}
     if data.paid_only:
         await expire_due_memberships(db)
@@ -905,6 +977,16 @@ async def import_confirm(
             continue
 
         hours = _import_hours(item.hours_recog) or _import_hours(item.hours_total) or Decimal(0)
+        counts_toward_cap = not is_internal and external_hours.counts_in_window(started)
+        if counts_toward_cap:
+            if trainee.id not in external_running:
+                external_running.update(
+                    await external_hours.external_hours_by_trainee(db, [trainee.id])
+                )
+            before = external_running[trainee.id]
+            if external_hours.would_exceed(before, before + hours):
+                failed.append((item.row_number, external_hours.exceeded_message(before)))
+                continue
         saved = False
         for _ in range(5):
             try:
@@ -934,6 +1016,8 @@ async def import_confirm(
             break
         if saved:
             created += 1
+            if counts_toward_cap:
+                external_running[trainee.id] += hours
         else:
             failed.append((item.row_number, "이력 번호 채번에 반복 실패했어요"))
     await db.commit()
