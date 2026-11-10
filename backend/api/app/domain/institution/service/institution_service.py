@@ -1,10 +1,11 @@
 import uuid
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.audit import record_audit
 from app.core.error_codes import api_error
+from app.core.kst import now_kst
 from app.domain.auth.model import AdminUser
 from app.domain.institution.model import TrainingCourse, TrainingInstitution
 from app.domain.institution.repository import institution_repository as repo
@@ -14,6 +15,7 @@ from app.domain.institution.schema import (
     InstitutionCreate,
     InstitutionUpdate,
 )
+from app.domain.training_record.model import TrainingRecord
 
 
 async def get_institution(
@@ -81,8 +83,33 @@ async def update_institution(
     # 바뀐 필드만 before/after 에 남긴다 — 내부·외부 지정(institution_type) 포함
     updates = data.model_dump(exclude_unset=True)
     before = {k: getattr(institution, k) for k in updates}
+    old_type = institution.institution_type
     for field, value in updates.items():
         setattr(institution, field, value)
+    # 기관 유형 변경 → 그 기관의 교육내역 소스·과정 플래그를 같이 맞춘다.
+    # 소스는 생성 시점 파생이라 타입이 바뀌면 기존 내역이 뒤처진다.
+    synced_records = 0
+    new_type = institution.institution_type
+    if old_type != new_type and new_type in ("internal", "external"):
+        derived_source = "external" if new_type == "external" else "internal"
+        result = await db.execute(
+            update(TrainingRecord)
+            .where(
+                TrainingRecord.institution_id == institution.id,
+                TrainingRecord.deleted_at.is_(None),
+                TrainingRecord.source != derived_source,
+            )
+            .values(source=derived_source, updated_at=now_kst())
+        )
+        synced_records = result.rowcount
+        await db.execute(
+            update(TrainingCourse)
+            .where(
+                TrainingCourse.institution_id == institution.id,
+                TrainingCourse.is_external != (new_type == "external"),
+            )
+            .values(is_external=new_type == "external")
+        )
     record_audit(
         db,
         actor_admin_id=actor.id,
@@ -90,7 +117,10 @@ async def update_institution(
         entity_type="training_institution",
         entity_id=institution.id,
         before=before,
-        after={k: getattr(institution, k) for k in updates},
+        after={
+            **{k: getattr(institution, k) for k in updates},
+            "synced_records": synced_records,
+        },
     )
     await db.commit()
     await db.refresh(institution)
@@ -181,7 +211,10 @@ async def create_course(
         raise api_error(
             "VALIDATION_ERROR", status_code=409, message="이미 등록된 과정 코드예요"
         )
-    course = TrainingCourse(**data.model_dump())
+    dump = data.model_dump()
+    # 사내/외부 플래그는 소속 기관 구분을 따른다 — 요청 값은 무시한다 (기관↔플래그 어긋남 방지)
+    dump["is_external"] = institution.institution_type == "external"
+    course = TrainingCourse(**dump)
     db.add(course)
     await db.flush()
     record_audit(
@@ -204,6 +237,9 @@ async def update_course(
     before = {"name": course.name, "is_active": course.is_active}
     for field, value in data.model_dump(exclude_unset=True).items():
         setattr(course, field, value)
+    # 사내/외부 플래그는 소속 기관 구분을 따른다 — 요청의 is_external 은 무시한다
+    if course.institution is not None:
+        course.is_external = course.institution.institution_type == "external"
     after: dict = {"name": course.name, "is_active": course.is_active}
     # 과정명 변경 → 이 과정에 연결된 교육내역의 과정명 스냅샷도 맞춘다.
     # (발급 끝난 확인서·수료증은 자체 스냅샷을 가지므로 영향 없음)

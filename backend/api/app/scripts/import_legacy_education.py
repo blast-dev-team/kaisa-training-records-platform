@@ -450,7 +450,13 @@ async def import_legacy_education(xlsx_path: str) -> None:
                     completed_hours=hours,
                     started_at=session.started_at if session else None,
                     ended_at=session.ended_at if session else None,
-                    source="legacy_import",
+                    # 내역 구분은 기관 구분을 따른다 — policy: source = institution_type
+                    source=(
+                        "external"
+                        if course is not None
+                        and course.institution.institution_type == "external"
+                        else "internal"
+                    ),
                     completion_status="completed",
                 )
             )
@@ -585,7 +591,12 @@ async def import_legacy_education(xlsx_path: str) -> None:
                     completed_hours=hours,
                     started_at=_parse_date(row[2]),
                     ended_at=_parse_date(row[3]),
-                    source="external",
+                    # 내역 구분은 기관 구분을 따른다 — 외부교육 시트라도 협회 과정이면 internal
+                    source=(
+                        "external"
+                        if institution.institution_type == "external"
+                        else "internal"
+                    ),
                     completion_status="completed",
                 )
             )

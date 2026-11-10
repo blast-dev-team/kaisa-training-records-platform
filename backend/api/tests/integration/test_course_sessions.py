@@ -387,3 +387,34 @@ class TestCourseSessions:
         assert resp.json()["code"] == "NOT_FOUND"
         # 부분 처리 없음 — 존재 확인 후 한 번에 삭제
         assert await db.get(CourseSession, uuid.UUID(session_id)) is not None
+
+
+class TestSessionSourceDerivation:
+    """일정·이력의 내역 구분은 소속 기관 구분을 따른다."""
+
+    async def test_session_source_follows_institution_type(self, client, db):
+        _actor, token = await make_admin(db)
+        ext = TrainingInstitution(name="외부기관-세션", institution_type="external")
+        db.add(ext)
+        await db.flush()
+        course = TrainingCourse(institution_id=ext.id, name="외부 세션 과정")
+        db.add(course)
+        await db.commit()
+
+        resp = await client.post(
+            "/api/course-sessions",
+            json={
+                "course_id": str(course.id),
+                "started_at": "2026-09-01",
+                "ended_at": "2026-09-02",
+                "total_hours": "8",
+            },
+            cookies=admin_cookie(token),
+        )
+        assert resp.status_code == 201, resp.text
+        session = (
+            await db.execute(
+                select(CourseSession).where(CourseSession.course_id == course.id)
+            )
+        ).scalar_one()
+        assert session.source == "external"

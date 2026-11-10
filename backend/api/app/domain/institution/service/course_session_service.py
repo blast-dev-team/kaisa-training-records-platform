@@ -80,6 +80,13 @@ async def create_session(
     dump = data.model_dump()
     # 시수는 총 시수 하나로 관리 — 인정 시수는 총 시수를 그대로 인정한다
     dump["recognized_hours"] = dump["total_hours"]
+    # 일정의 내역 구분도 소속 기관 구분을 따른다 — 연결 이력의 source 가 된다
+    dump["source"] = (
+        "external"
+        if course.institution is not None
+        and course.institution.institution_type == "external"
+        else "internal"
+    )
     session = await session_repo.save(db, CourseSession(**dump))
     record_audit(
         db,
@@ -302,7 +309,13 @@ async def create_records_for_session(
                 completed_hours=session.total_hours,
                 started_at=session.started_at,
                 ended_at=session.ended_at,
-                source=session.source,
+                # 내역 구분은 기관 구분을 따른다 — 일정 기본값이 아니라 원칙 적용
+                source=(
+                    "external"
+                    if course.institution is not None
+                    and course.institution.institution_type == "external"
+                    else "internal"
+                ),
                 completion_status=completion_status,
                 completed_at=now_kst() if completion_status == "completed" else None,
                 memo=memo,

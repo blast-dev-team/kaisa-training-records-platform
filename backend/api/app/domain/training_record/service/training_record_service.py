@@ -587,6 +587,7 @@ async def match_preview(db: AsyncSession, content: bytes) -> TraineeMatchPreview
 _IMPORT_HEADERS = {
     "name": ("교육생명", "감리원명", "성명", "이름", "회원명"),
     "cert_no": ("감리원증번호", "감리원증 번호", "감리원번호", "증번호", "자격번호", "감리원증"),
+    "birth": ("생년월일", "생년", "생일"),
     "institution": ("교육기관명", "기관명", "교육기관", "주관기관", "기관"),
     "subject": ("과목명", "교육과목", "과정명", "교육명", "교육내용", "과목"),
     "start": ("시작일자", "시작일", "교육시작일", "시작"),
@@ -628,11 +629,26 @@ def _import_hours(value) -> Decimal | None:
         return None
 
 
+def _narrow_by_birth(hits, birth):
+    """동명·동증번호 후보를 생년월일로 좁힌다 — 파일에 생년월일이 있을 때만.
+
+    후보가 여러 명이어도 생년월일이 정확히 1명만 맞으면 그 교육생을 돌려주고,
+    파일에 생년월일이 없거나 좁혀도 여러 명·0명이면 None (수동 구분 유도).
+    """
+    if birth is None:
+        return None
+    matched = [
+        t for t in hits if t.birth_date is not None and str(t.birth_date) == str(birth)
+    ]
+    return matched[0] if len(matched) == 1 else None
+
+
 async def import_preview(db: AsyncSession, content: bytes) -> TrainingRecordImportPreviewResult:
     """교육내역 엑셀 파싱 + 감리원 매칭 — 확정 전 프리뷰용.
 
     감리원 매칭은 감리원증번호(cert_no·senior_cert_no 양쪽) → 이름 순으로 하고,
-    이름은 동명이인이 2명 이상이면 미매칭으로 돌려 사용자가 수동으로 고르게 한다.
+    후보가 여러 명이면 파일의 생년월일로 좁힌다(생년월일 열이 있을 때).
+    그래도 안 좁혀지면 미매칭으로 돌려 사용자가 수동으로 고르게 한다.
     """
     try:
         wb = openpyxl.load_workbook(io.BytesIO(content), data_only=True, read_only=True)
@@ -724,6 +740,8 @@ async def import_preview(db: AsyncSession, content: bytes) -> TrainingRecordImpo
             )
             for field in _IMPORT_HEADERS
         }
+        # 생년월일은 표시용이 아니라 동명·동증번호 좁히기에 쓴다 — date 로 파싱해 둔다
+        cells["birth"] = _import_date(cells.get("birth"))
         if not any(cells.values()):
             continue  # 완전히 빈 행
         parsed.append({"row_number": offset, **cells})
@@ -786,13 +804,19 @@ async def import_preview(db: AsyncSession, content: bytes) -> TrainingRecordImpo
             if len(hits) == 1:
                 hit = hits[0]
             elif len(hits) > 1:
-                errors.append("동일한 감리원증번호의 감리원이 여러 명이에요")
+                # 동일 증번호 후보가 여러 명이면 생년월일로 좁힌다 (파일에 있을 때)
+                hit = _narrow_by_birth(hits, r["birth"])
+                if hit is None:
+                    errors.append("동일한 감리원증번호의 감리원이 여러 명이에요")
         if hit is None and r["name"]:
             hits = by_name.get(name_hash(r["name"]), [])
             if len(hits) == 1:
                 hit = hits[0]
             elif len(hits) > 1:
-                errors.append("동일한 이름의 감리원이 여러 명이에요 — 감리원증번호로 구분해 주세요")
+                # 동명이인은 생년월일로 좁힌다 — 없으면 수동 구분(증번호 기입) 유도
+                hit = _narrow_by_birth(hits, r["birth"])
+                if hit is None:
+                    errors.append("동일한 이름의 감리원이 여러 명이에요 — 감리원증번호로 구분해 주세요")
         if hit is None and not any("감리원" in e for e in errors):
             errors.append("감리원을 찾을 수 없어요")
 
