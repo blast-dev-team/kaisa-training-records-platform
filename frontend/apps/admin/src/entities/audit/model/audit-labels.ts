@@ -106,6 +106,8 @@ export const FIELD_LABELS: Record<string, string> = {
   // 교육 내역·일정 (training_record.updated / course_session.updated·bulk_updated after)
   form_no: "서식 번호", // 폐지됨(migration d2f3a4b5c6d7) — 구 로그에만 남음
   completion_status: "수료 상태",
+  course_name: "과정명",
+  institution_name: "기관명",
   supervisor_grade: "감리원 등급",
   supervisor_cert_no: "감리원증 번호",
   total_hours: "총 시수",

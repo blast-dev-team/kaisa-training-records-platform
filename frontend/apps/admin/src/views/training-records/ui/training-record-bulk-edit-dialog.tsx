@@ -15,17 +15,29 @@ import {
   type TrainingRecordBulkUpdateItem,
 } from "@/src/entities/training-record";
 
-/** 과정 선택 옵션 — 등록 폼과 같은 매핑 (보조 표기: 기관명) */
-const courseOptionsFetcher = fetchOptions("/courses", {}, (c) => ({
-  value: c.id as string,
-  label: c.name as string,
-  hint: c.institution_name as string | undefined,
+const INSTITUTION_TYPE_HINT: Record<string, string> = { internal: "사내", external: "외부" };
+
+/** 기관 선택 옵션 — 등록 폼과 같은 매핑 (보조 표기: 사내/외부) */
+const institutionOptionsFetcher = fetchOptions("/institutions", {}, (i) => ({
+  value: i.id as string,
+  label: i.name as string,
+  hint: INSTITUTION_TYPE_HINT[(i.institution_type as string) ?? ""],
 }));
 
+/** 과정 선택 옵션 — 기관을 고른 행은 그 기관의 과정만 보여 준다 */
+const courseOptionsFetcherFor = (institutionId: string | null) =>
+  fetchOptions("/courses", institutionId ? { institution_id: institutionId } : {}, (c) => ({
+    value: c.id as string,
+    label: c.name as string,
+    hint: institutionId ? undefined : (c.institution_name as string | undefined),
+  }));
+
 /** 모달 내 한 행의 입력 상태 — input 은 문자열로 든다 */
-interface EditRow {
+export interface EditRow {
   id: string;
   traineeName: string | null;
+  institutionId: string | null;
+  institutionName: string;
   courseName: string;
   courseId: string | null;
   completionStatus: string;
@@ -34,10 +46,12 @@ interface EditRow {
   totalHours: string;
 }
 
-function toRow(record: TrainingRecord): EditRow {
+export function toRow(record: TrainingRecord): EditRow {
   return {
     id: record.id,
     traineeName: record.traineeName,
+    institutionId: record.institutionId,
+    institutionName: record.institutionName ?? "",
     courseName: record.courseName,
     courseId: record.courseId,
     completionStatus: record.completionStatus,
@@ -48,7 +62,7 @@ function toRow(record: TrainingRecord): EditRow {
 }
 
 /** 변경된 필드만 모은다 — 없은 필드는 생략(변경 없음), 빈값은 null(지우기) */
-function buildUpdates(
+export function buildUpdates(
   rows: EditRow[],
   originals: Map<string, TrainingRecord>,
 ): TrainingRecordBulkUpdateItem[] {
@@ -98,6 +112,14 @@ function buildUpdates(
   return updates;
 }
 
+/** 기관을 바꿨는데 그 기관의 과정을 아직 고르지 않은 행 — 저장하면 기관만 어긋나므로 막는다 */
+export function rowsMissingCourse(rows: EditRow[], originals: Map<string, TrainingRecord>): EditRow[] {
+  return rows.filter((row) => {
+    const orig = originals.get(row.id);
+    return !!orig && row.institutionId !== orig.institutionId && row.courseId === null;
+  });
+}
+
 interface Props {
   isOpen: boolean;
   onClose: () => void;
@@ -134,7 +156,27 @@ export function TrainingRecordBulkEditDialog({ isOpen, onClose, records, onSaved
     setRows((prev) => prev.map((r) => (r.id === id ? { ...r, ...patch } : r)));
   };
 
+  /** 기관 변경 — 과정은 기관에 딸리므로 새 기관의 과정을 다시 고르게 비운다(원래 기관으로 되돌리면 원래 과정 복원) */
+  const changeInstitution = (row: EditRow, institutionId: string | null, label?: string) => {
+    const orig = originals.get(row.id);
+    if (orig && institutionId === orig.institutionId) {
+      setField(row.id, {
+        institutionId,
+        institutionName: orig.institutionName ?? "",
+        courseId: orig.courseId,
+        courseName: orig.courseName,
+      });
+      return;
+    }
+    setField(row.id, { institutionId, institutionName: label ?? "", courseId: null, courseName: "" });
+  };
+
   const handleSave = () => {
+    const missing = rowsMissingCourse(rows, originals);
+    if (missing.length > 0) {
+      toast.error(`기관을 바꾼 ${missing.length}건은 그 기관의 과정을 선택해 주세요`);
+      return;
+    }
     const updates = buildUpdates(rows, originals);
     if (updates.length === 0) {
       toast.info("변경된 내용이 없어요");
@@ -148,7 +190,7 @@ export function TrainingRecordBulkEditDialog({ isOpen, onClose, records, onSaved
       isOpen={isOpen}
       onClose={onClose}
       title={`이력 일괄 수정 (${records.length}건)`}
-      description="빈 칸으로 저장하면 그 값이 지워져요. 변경한 행만 반영됩니다."
+      description="빈 칸으로 저장하면 그 값이 지워져요. 기관을 바꾸면 그 기관의 과정을 다시 골라 주세요. 변경한 행만 반영됩니다."
       size="2xl"
       actions={[
         { label: "취소", onClick: onClose },
@@ -156,9 +198,10 @@ export function TrainingRecordBulkEditDialog({ isOpen, onClose, records, onSaved
       ]}
     >
       <div className="max-h-[60vh] overflow-auto rounded-lg border border-line">
-        <table className="w-full min-w-[760px] text-13" style={{ tableLayout: "fixed" }}>
+        <table className="w-full min-w-[940px] text-13" style={{ tableLayout: "fixed" }}>
           <colgroup>
             <col style={{ width: 110 }} />
+            <col style={{ width: 190 }} />
             <col className="flex-1" />
             <col style={{ width: 150 }} />
             <col style={{ width: 150 }} />
@@ -167,6 +210,7 @@ export function TrainingRecordBulkEditDialog({ isOpen, onClose, records, onSaved
           <thead>
             <tr>
               <th className={TH}>감리원</th>
+              <th className={TH}>기관</th>
               <th className={TH}>과정</th>
               <th className={TH}>시작일</th>
               <th className={TH}>종료일</th>
@@ -182,12 +226,27 @@ export function TrainingRecordBulkEditDialog({ isOpen, onClose, records, onSaved
                 <td className={TD}>
                   <SearchableSelect
                     className="w-full"
+                    value={row.institutionId}
+                    onChange={(v, option) => changeInstitution(row, v, option?.label)}
+                    fetchPage={institutionOptionsFetcher}
+                    placeholder={row.institutionName || "기관 선택"}
+                    disableCreate
+                    queryKeyPrefix={["options", "bulk-institutions"]}
+                    selectedLabel={row.institutionName}
+                    portal
+                  />
+                </td>
+                <td className={TD}>
+                  <SearchableSelect
+                    className="w-full"
                     value={row.courseId}
-                    onChange={(v) => setField(row.id, { courseId: v })}
-                    fetchPage={courseOptionsFetcher}
+                    onChange={(v, option) =>
+                      setField(row.id, { courseId: v, courseName: option?.label ?? row.courseName })
+                    }
+                    fetchPage={courseOptionsFetcherFor(row.institutionId)}
                     placeholder={row.courseName || "과정 선택"}
                     disableCreate
-                    queryKeyPrefix={["options", "courses"]}
+                    queryKeyPrefix={["options", "bulk-courses", row.institutionId ?? "all"]}
                     selectedLabel={row.courseName}
                     // 모달 안 스크롤 테이블에 잘리지 않게 body 포털로 띄운다
                     portal
