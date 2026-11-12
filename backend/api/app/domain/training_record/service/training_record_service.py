@@ -326,14 +326,24 @@ async def bulk_update_records(
             record.completed_at = now_kst()
 
         # 과정 변경 — 과정 마스터 값으로 스냅샷(과정명·기관)을 같이 맞춘다
+        course = None
         if updates.get("course_id") is not None:
             course = await inst_repo.find_course_by_id(db, updates["course_id"])
             if course is None:
                 raise api_error("NOT_FOUND", message="과정을 찾을 수 없어요")
             updates["institution_id"] = course.institution_id
+
+        # 감사 로그 변경 전 값 — 바꾸는 필드만. 과정을 바꾸면 기관명·과정명도 남겨
+        # 감사 로그에서 ID 가 아니라 이름으로 무엇이 무엇으로 바뀌었는지 읽히게 한다
+        snapshot_fields = ("institution_name", "course_name") if course else ()
+        tracked = [*updates, *(("completed_hours",) if "total_hours" in updates else ())]
+        before = {
+            k: _audit_str(getattr(record, k)) for k in (*tracked, *snapshot_fields)
+        }
+
+        if course is not None:
             record.course_name = course.name
             record.institution_name = course.institution.name
-
         for field, value in updates.items():
             setattr(record, field, value)
         # 시수는 총 시수 하나로 관리 — 이수 시수는 총 시수를 따라간다
@@ -343,12 +353,15 @@ async def bulk_update_records(
         after = {k: str(v) for k, v in updates.items()}
         if "total_hours" in updates:
             after["completed_hours"] = str(record.completed_hours)
+        for k in snapshot_fields:
+            after[k] = getattr(record, k)
         record_audit(
             db,
             actor_admin_id=actor.id,
             action="training_record.updated",
             entity_type="training_record",
             entity_id=record.id,
+            before=before,
             after=after,
         )
         updated += 1
@@ -358,6 +371,11 @@ async def bulk_update_records(
     )
     await db.commit()
     return updated
+
+
+def _audit_str(value) -> str | None:
+    """감사 로그 값 — after 와 같은 문자열 표기. 비어 있던 값은 None 으로 남긴다."""
+    return None if value is None else str(value)
 
 
 async def _trainee_names(db: AsyncSession, trainee_ids: list[uuid.UUID]) -> dict[uuid.UUID, str]:
