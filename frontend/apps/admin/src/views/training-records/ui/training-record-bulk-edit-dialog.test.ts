@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { TrainingRecord } from "@/src/entities/training-record";
-import { buildUpdates, rowsMissingCourse, toRow } from "./training-record-bulk-edit-dialog";
+import { buildUpdates, rowsMissingCourse, toRow } from "./training-record-bulk-edit-rows";
 
 const record: TrainingRecord = {
   id: "r1",

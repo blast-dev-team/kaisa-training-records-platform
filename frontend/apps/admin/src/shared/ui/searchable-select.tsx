@@ -42,6 +42,11 @@ interface Props {
    */
   portal?: boolean;
   /**
+   * 포털 드롭다운의 최소 폭(px) — 좁은 칸(테이블 셀 등)에서도 목록 항목이 덜 잘리게 트리거보다
+   * 넓게 펼친다. 화면 오른쪽을 넘으면 왼쪽으로 당긴다. portal 일 때만 적용.
+   */
+  panelMinWidth?: number;
+  /**
    * true 면 입력하던 검색어를 유지한다 — 바깥 클릭으로 닫혀도 지우지 않고,
    * 선택값이 있는 상태로 다시 열면 현재 라벨을 검색창에 채워 이어서 고칠 수 있게 한다.
    */
@@ -67,6 +72,7 @@ export function SearchableSelect({
   createLabel,
   disableCreate = false,
   portal = false,
+  panelMinWidth,
   keepSearchText = false,
 }: Props) {
   const [open, setOpen] = useState(false);
@@ -137,10 +143,13 @@ export function SearchableSelect({
       const PANEL_MAX = 300; // 검색줄 + 목록(max-h-56) 대략치
       const below = window.innerHeight - r.bottom;
       const openUp = below < PANEL_MAX && r.top > below;
+      const width = Math.max(r.width, panelMinWidth ?? 0);
+      // 넓힌 패널이 화면 오른쪽을 넘으면 왼쪽으로 당긴다(트리거 폭 그대로면 기존과 같다)
+      const left = Math.max(8, Math.min(r.left, window.innerWidth - width - 8));
       setPortalStyle({
         position: "fixed",
-        left: r.left,
-        width: r.width,
+        left: width === r.width ? r.left : left,
+        width,
         ...(openUp ? { bottom: window.innerHeight - r.top + 4 } : { top: r.bottom + 4 }),
       });
     };
@@ -152,7 +161,7 @@ export function SearchableSelect({
       window.removeEventListener("scroll", place, true);
       window.removeEventListener("resize", place);
     };
-  }, [open, portal]);
+  }, [open, portal, panelMinWidth]);
 
   // 열릴 때 검색창 포커스 — keepSearchText 면 현재 라벨을 채우고 전체 선택(바로 덮어쓰기·이어 고치기 둘 다 가능)
   useEffect(() => {

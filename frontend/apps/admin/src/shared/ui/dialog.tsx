@@ -22,7 +22,7 @@ interface DialogProps {
   titleAside?: ReactNode;
   description?: ReactNode;
   /** default: 'md' */
-  size?: "sm" | "md" | "lg" | "xl" | "2xl";
+  size?: "sm" | "md" | "lg" | "xl" | "2xl" | "3xl";
   /** default: true */
   closeOnBackdrop?: boolean;
   /** default: true */
@@ -43,6 +43,8 @@ const SIZES: Record<NonNullable<DialogProps["size"]>, string> = {
   lg: "max-w-[520px]",
   xl: "max-w-[760px]",
   "2xl": "max-w-[1100px]",
+  /** 입력 칸이 많은 편집 테이블용 — 1440 화면에서 좌우 여백만 남기고 쓴다 */
+  "3xl": "max-w-[1360px]",
 };
 
 const VARIANT_CLASSES: Record<DialogActionVariant, string> = {

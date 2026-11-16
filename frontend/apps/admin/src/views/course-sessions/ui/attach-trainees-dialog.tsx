@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { Check, ChevronDown, ChevronUp, X } from "lucide-react";
 import { Dialog } from "@/src/shared/ui/dialog";
@@ -16,8 +16,10 @@ import {
 import { getTraineeList, postTrainee, traineeQueries } from "@/src/entities/trainee";
 import { useDebouncedValue } from "@/src/shared/hooks/use-debounced-value";
 import { courseSessionQueries, type CourseSession } from "@/src/entities/course-session";
+import { courseQueries } from "@/src/entities/institution";
 import {
   getTrainingRecordList,
+  isExternalInstitutionType,
   postTrainingRecordBulk,
   postTrainingRecordMatchPreview,
   trainingRecordQueries,
@@ -64,6 +66,11 @@ interface Props {
 /** 일정에 교육생 일괄 연결 — 저장 시 교육 이력이 생성된다 */
 export function AttachTraineesDialog({ isOpen, onClose, session }: Props) {
   const queryClient = useQueryClient();
+  // 일정 소속 과정의 현재 기관 구분 — 연결 시 한도 판정도 BE 가 현재 구분으로 하므로 같은 기준
+  const { data: course } = useQuery({
+    ...courseQueries.detail(session?.courseId ?? ""),
+    enabled: isOpen && !!session?.courseId,
+  });
   const [searchInput, setSearchInput] = useState("");
   const [selected, setSelected] = useState<Record<string, string>>({});
   const search = useDebouncedValue(searchInput.trim(), 300);
@@ -323,6 +330,18 @@ export function AttachTraineesDialog({ isOpen, onClose, session }: Props) {
       {/* 중복 경고 — 포털로 뜨므로 위치는 무관 */}
       {dupConfirm.dialog}
       <div className="space-y-3">
+        {/* 외부교육 한도 안내 — BE 연결 검증과 같은 기준(현재 기관 구분) */}
+        {course &&
+          (isExternalInstitutionType(course.institutionType) ? (
+            <div className="rounded-md bg-warn-soft px-3 py-2 text-12 text-warn-ink">
+              이 일정은 외부 기관 교육이에요 — 연결하면 각 감리원의 외부교육 16시간(최근 3년)
+              한도에 합산되고, 한도를 초과하는 감리원은 연결에서 제외돼요
+            </div>
+          ) : (
+            <p className="text-12 text-ink-3">
+              사내 기관 교육이라 외부교육 16시간 한도에 포함되지 않아요
+            </p>
+          ))}
         {/* 이미 연결된 감리원 */}
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">

@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import type { ColumnDef } from "@tanstack/react-table";
 import { toast } from "react-toastify";
+import { AppTable } from "@/src/shared/ui/app-table";
 import { Button } from "@/src/shared/ui/button";
 import { Dialog } from "@/src/shared/ui/dialog";
 import { Input } from "@/src/shared/ui/input";
@@ -14,6 +16,12 @@ import {
   type TrainingRecord,
   type TrainingRecordBulkUpdateItem,
 } from "@/src/entities/training-record";
+import {
+  buildUpdates,
+  rowsMissingCourse,
+  toRow,
+  type EditRow,
+} from "./training-record-bulk-edit-rows";
 
 const INSTITUTION_TYPE_HINT: Record<string, string> = { internal: "사내", external: "외부" };
 
@@ -32,94 +40,6 @@ const courseOptionsFetcherFor = (institutionId: string | null) =>
     hint: institutionId ? undefined : (c.institution_name as string | undefined),
   }));
 
-/** 모달 내 한 행의 입력 상태 — input 은 문자열로 든다 */
-export interface EditRow {
-  id: string;
-  traineeName: string | null;
-  institutionId: string | null;
-  institutionName: string;
-  courseName: string;
-  courseId: string | null;
-  completionStatus: string;
-  startedAt: string;
-  endedAt: string;
-  totalHours: string;
-}
-
-export function toRow(record: TrainingRecord): EditRow {
-  return {
-    id: record.id,
-    traineeName: record.traineeName,
-    institutionId: record.institutionId,
-    institutionName: record.institutionName ?? "",
-    courseName: record.courseName,
-    courseId: record.courseId,
-    completionStatus: record.completionStatus,
-    startedAt: record.startedAt ?? "",
-    endedAt: record.endedAt ?? "",
-    totalHours: record.totalHours === null ? "" : String(record.totalHours),
-  };
-}
-
-/** 변경된 필드만 모은다 — 없은 필드는 생략(변경 없음), 빈값은 null(지우기) */
-export function buildUpdates(
-  rows: EditRow[],
-  originals: Map<string, TrainingRecord>,
-): TrainingRecordBulkUpdateItem[] {
-  const updates: TrainingRecordBulkUpdateItem[] = [];
-  for (const row of rows) {
-    const orig = originals.get(row.id);
-    if (!orig) continue;
-    const patch: TrainingRecordBulkUpdateItem = { id: row.id };
-    let changed = false;
-
-    const date = (key: "startedAt" | "endedAt") => {
-      if (row[key] !== (orig[key] ?? "")) {
-        patch[key] = row[key] === "" ? null : row[key];
-        changed = true;
-      }
-    };
-    const hours = (key: "totalHours") => {
-      const value = row[key].trim();
-      const before = orig[key] === null ? "" : String(orig[key]);
-      if (value !== before) {
-        if (value === "") {
-          patch[key] = null;
-        } else {
-          const num = Number(value);
-          if (Number.isNaN(num)) return; // 잘못된 숫자 — 이 필드만 건너뜀
-          patch[key] = num;
-        }
-        changed = true;
-      }
-    };
-
-    if (row.completionStatus !== orig.completionStatus) {
-      patch.completionStatus = row.completionStatus;
-      changed = true;
-    }
-    date("startedAt");
-    date("endedAt");
-    hours("totalHours");
-    // 과정 변경 — 마스터에서만 선택(해제는 스냅샷 정합성 문제로 미지원)
-    if (row.courseId !== orig.courseId && row.courseId !== null) {
-      patch.courseId = row.courseId;
-      changed = true;
-    }
-
-    if (changed) updates.push(patch);
-  }
-  return updates;
-}
-
-/** 기관을 바꿨는데 그 기관의 과정을 아직 고르지 않은 행 — 저장하면 기관만 어긋나므로 막는다 */
-export function rowsMissingCourse(rows: EditRow[], originals: Map<string, TrainingRecord>): EditRow[] {
-  return rows.filter((row) => {
-    const orig = originals.get(row.id);
-    return !!orig && row.institutionId !== orig.institutionId && row.courseId === null;
-  });
-}
-
 interface Props {
   isOpen: boolean;
   onClose: () => void;
@@ -128,9 +48,6 @@ interface Props {
   onSaved: () => void;
 }
 
-const TH =
-  "sticky top-0 z-10 bg-panel-2 px-2 py-2 text-left text-11 font-medium text-ink-3 whitespace-nowrap";
-const TD = "px-2 py-1.5 align-middle";
 
 export function TrainingRecordBulkEditDialog({ isOpen, onClose, records, onSaved }: Props) {
   const [rows, setRows] = useState<EditRow[]>([]);
@@ -185,111 +102,125 @@ export function TrainingRecordBulkEditDialog({ isOpen, onClose, records, onSaved
     mutation.mutate(updates);
   };
 
+  // 셀 안이 입력 칸이라 폭이 곧 보이는 글자 수다 — 기관·과정은 넉넉히, 헤더 드래그로 더 넓힐 수 있다
+  const columns: ColumnDef<EditRow, unknown>[] = [
+    {
+      id: "trainee",
+      header: "감리원",
+      meta: { width: 110 },
+      cell: ({ row: { original: row } }) => (
+        <span title={row.traineeName ?? undefined}>{row.traineeName ?? "—"}</span>
+      ),
+    },
+    {
+      id: "institution",
+      header: "기관",
+      meta: { width: 280 },
+      cell: ({ row: { original: row } }) => (
+        <SearchableSelect
+          className="w-full"
+          value={row.institutionId}
+          onChange={(v, option) => changeInstitution(row, v, option?.label)}
+          fetchPage={institutionOptionsFetcher}
+          placeholder={row.institutionName || "기관 선택"}
+          disableCreate
+          queryKeyPrefix={["options", "bulk-institutions"]}
+          selectedLabel={row.institutionName}
+          portal
+          panelMinWidth={360}
+        />
+      ),
+    },
+    {
+      id: "course",
+      header: "과정",
+      meta: { width: 400 },
+      cell: ({ row: { original: row } }) => (
+        <SearchableSelect
+          className="w-full"
+          value={row.courseId}
+          onChange={(v, option) =>
+            setField(row.id, { courseId: v, courseName: option?.label ?? row.courseName })
+          }
+          fetchPage={courseOptionsFetcherFor(row.institutionId)}
+          placeholder={row.courseName || "과정 선택"}
+          disableCreate
+          queryKeyPrefix={["options", "bulk-courses", row.institutionId ?? "all"]}
+          selectedLabel={row.courseName}
+          // 모달 안 스크롤 테이블에 잘리지 않게 body 포털로 띄운다
+          portal
+          panelMinWidth={480}
+        />
+      ),
+    },
+    {
+      id: "startedAt",
+      header: "시작일",
+      meta: { width: 160 },
+      cell: ({ row: { original: row } }) => (
+        <DateField
+          ariaLabel={`교육 시작일 ${row.id}`}
+          className="text-13"
+          value={row.startedAt}
+          onChange={(v) => {
+            setField(row.id, { startedAt: v });
+            if (v && row.endedAt && v > row.endedAt) setField(row.id, { endedAt: v });
+          }}
+        />
+      ),
+    },
+    {
+      id: "endedAt",
+      header: "종료일",
+      meta: { width: 160 },
+      cell: ({ row: { original: row } }) => (
+        <DateField
+          ariaLabel={`교육 종료일 ${row.id}`}
+          className="text-13"
+          value={row.endedAt}
+          onChange={(v) => {
+            setField(row.id, { endedAt: v });
+            if (v && row.startedAt && v < row.startedAt) setField(row.id, { startedAt: v });
+          }}
+        />
+      ),
+    },
+    {
+      id: "totalHours",
+      header: "총시수",
+      meta: { width: 90 },
+      cell: ({ row: { original: row } }) => (
+        <Input
+          type="number"
+          step="0.5"
+          min="0"
+          className="h-8 w-full px-2 text-right text-13"
+          value={row.totalHours}
+          onChange={(e) => setField(row.id, { totalHours: e.target.value })}
+        />
+      ),
+    },
+  ];
+
   return (
     <Dialog
       isOpen={isOpen}
       onClose={onClose}
       title={`이력 일괄 수정 (${records.length}건)`}
       description="빈 칸으로 저장하면 그 값이 지워져요. 기관을 바꾸면 그 기관의 과정을 다시 골라 주세요. 변경한 행만 반영됩니다."
-      size="2xl"
+      size="3xl"
       actions={[
         { label: "취소", onClick: onClose },
         { label: "저장", isLoading: mutation.isPending, onClick: handleSave },
       ]}
     >
-      <div className="max-h-[60vh] overflow-auto rounded-lg border border-line">
-        <table className="w-full min-w-[940px] text-13" style={{ tableLayout: "fixed" }}>
-          <colgroup>
-            <col style={{ width: 110 }} />
-            <col style={{ width: 190 }} />
-            <col className="flex-1" />
-            <col style={{ width: 150 }} />
-            <col style={{ width: 150 }} />
-            <col style={{ width: 80 }} />
-          </colgroup>
-          <thead>
-            <tr>
-              <th className={TH}>감리원</th>
-              <th className={TH}>기관</th>
-              <th className={TH}>과정</th>
-              <th className={TH}>시작일</th>
-              <th className={TH}>종료일</th>
-              <th className={`${TH}`}>총시수</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((row) => (
-              <tr key={row.id} className="border-t border-line-2">
-                <td className={`${TD} truncate`} title={row.traineeName ?? undefined}>
-                  {row.traineeName ?? "—"}
-                </td>
-                <td className={TD}>
-                  <SearchableSelect
-                    className="w-full"
-                    value={row.institutionId}
-                    onChange={(v, option) => changeInstitution(row, v, option?.label)}
-                    fetchPage={institutionOptionsFetcher}
-                    placeholder={row.institutionName || "기관 선택"}
-                    disableCreate
-                    queryKeyPrefix={["options", "bulk-institutions"]}
-                    selectedLabel={row.institutionName}
-                    portal
-                  />
-                </td>
-                <td className={TD}>
-                  <SearchableSelect
-                    className="w-full"
-                    value={row.courseId}
-                    onChange={(v, option) =>
-                      setField(row.id, { courseId: v, courseName: option?.label ?? row.courseName })
-                    }
-                    fetchPage={courseOptionsFetcherFor(row.institutionId)}
-                    placeholder={row.courseName || "과정 선택"}
-                    disableCreate
-                    queryKeyPrefix={["options", "bulk-courses", row.institutionId ?? "all"]}
-                    selectedLabel={row.courseName}
-                    // 모달 안 스크롤 테이블에 잘리지 않게 body 포털로 띄운다
-                    portal
-                  />
-                </td>
-                <td className={TD}>
-                  <DateField
-                    ariaLabel={`교육 시작일 ${row.id}`}
-                    className="text-13"
-                    value={row.startedAt}
-                    onChange={(v) => {
-                      setField(row.id, { startedAt: v });
-                      if (v && row.endedAt && v > row.endedAt) setField(row.id, { endedAt: v });
-                    }}
-                  />
-                </td>
-                <td className={TD}>
-                  <DateField
-                    ariaLabel={`교육 종료일 ${row.id}`}
-                    className="text-13"
-                    value={row.endedAt}
-                    onChange={(v) => {
-                      setField(row.id, { endedAt: v });
-                      if (v && row.startedAt && v < row.startedAt)
-                        setField(row.id, { startedAt: v });
-                    }}
-                  />
-                </td>
-                <td className={TD}>
-                  <Input
-                    type="number"
-                    step="0.5"
-                    min="0"
-                    className="h-8 w-full px-2 text-right text-13"
-                    value={row.totalHours}
-                    onChange={(e) => setField(row.id, { totalHours: e.target.value })}
-                  />
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <AppTable<EditRow>
+        columns={columns}
+        data={rows}
+        dense
+        fixedLayout
+        columnDividers
+      />
     </Dialog>
   );
 }

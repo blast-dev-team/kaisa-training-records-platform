@@ -104,6 +104,16 @@ export function InstitutionFormDialog({ isOpen, onClose, institution }: Props) {
           <p className="text-12 text-ink-3">
             사내 기관의 수료내역만 수료증 발급이 가능해요
           </p>
+          <div className="space-y-1 rounded-md bg-warn-soft px-3 py-2 text-12 text-warn-ink">
+            <p className="font-medium">
+              구분을 바꾸면 이 기관의 기존 수료내역에도 소급 적용돼요
+            </p>
+            <p>
+              사내 → 외부: 기존 내역이 외부교육 16시간(최근 3년) 한도에 합쳐져요 — 초과해도
+              기존 내역은 유지되고 이후 외부교육 등록만 제한돼요
+            </p>
+            <p>외부 → 사내: 기존 내역이 외부 한도 집계에서 빠져나가요</p>
+          </div>
         </div>
         <label className="flex items-center gap-2 text-13 text-ink-2">
           <input

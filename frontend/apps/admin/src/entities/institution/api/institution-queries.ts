@@ -1,6 +1,7 @@
 import { queryOptions } from '@tanstack/react-query'
 import { getInstitutionList } from './get-institution-list'
 import { getCourseList, getCourseCategories } from './get-course-list'
+import { getCourseDetail } from './get-course-detail'
 import { getSessionNameList } from './get-session-name-list'
 import type {
   InstitutionListQuery,
@@ -33,6 +34,12 @@ export const courseQueries = {
     queryOptions({
       queryKey: [...courseQueries.all(), 'categories', query],
       queryFn: () => getCourseCategories(query.search),
+    }),
+  details: () => [...courseQueries.all(), 'detail'] as const,
+  detail: (courseId: string) =>
+    queryOptions({
+      queryKey: [...courseQueries.details(), courseId],
+      queryFn: () => getCourseDetail(courseId),
     }),
 }
 
