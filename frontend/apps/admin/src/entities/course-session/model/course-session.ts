@@ -7,6 +7,8 @@ export interface CourseSession {
   courseName: string
   institutionId: string
   institutionName: string
+  /** 소속 기관의 현재 구분 — 'internal' | 'external' | null(미설정) */
+  institutionType: string | null
   /** 내역 구분 — 외부 교육이면 연결된 감리원 내역도 external 로 저장 */
   source: CourseSessionSource
   /** 구 시스템 EDC_SCHDL_SN — 이관분만 보유 */
@@ -35,6 +37,8 @@ export interface CourseSessionInput {
 }
 
 export interface CourseSessionUpdateInput {
+  /** 과정(기관) 변경 — 연결된 감리원이 없는 일정만 서버가 허용 */
+  course_id?: string
   started_at?: string | null
   ended_at?: string | null
   total_hours?: number | null

@@ -8,6 +8,7 @@ export function mapCourseSession(dto: CourseSessionDto): CourseSession {
     courseName: dto.course_name,
     institutionId: dto.institution_id,
     institutionName: dto.institution_name,
+    institutionType: dto.institution_type ?? null,
     source: dto.source === 'external' ? 'external' : 'internal',
     scheduleNo: dto.schedule_no,
     startedAt: dto.started_at,
