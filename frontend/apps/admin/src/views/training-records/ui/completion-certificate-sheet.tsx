@@ -46,13 +46,31 @@ function formatPeriodLabel(
   return parts.join("");
 }
 
-/** 항목 행 — '○ 성　　명 : 홍길동'. 라벨은 4자 폭으로 패딩해 콜론 위치를 맞춘다 */
+/**
+ * 항목 행 — '○ 성　　명 : 홍길동'. 라벨은 4자 폭으로 패딩해 콜론 위치를 맞춘다.
+ * 기호·라벨·콜론은 폭 고정(줄어들지 않음), 값만 남은 폭 안에서 줄바꿈된다 —
+ * 긴 교육주제가 라벨을 밀어내거나 겹치지 않고 콜론 뒤 시작선에 맞춰 내려 쓴다.
+ */
 function EntryRow({ label, value }: { label: string; value: string }) {
   return (
     <div style={{ display: "flex", alignItems: "baseline", fontSize: 18, lineHeight: 2.2 }}>
-      <span style={{ width: 34 }}>○</span>
-      <span style={{ width: 96, whiteSpace: "nowrap" }}>{label}</span>
-      <span>{value ? `: ${value}` : ""}</span>
+      <span style={{ width: 34, flexShrink: 0 }}>○</span>
+      <span style={{ width: 96, flexShrink: 0, whiteSpace: "nowrap" }}>{label}</span>
+      <span style={{ width: 14, flexShrink: 0 }}>{value ? ":" : ""}</span>
+      {/* 줄바꿈된 줄은 행 간격(2.2)보다 좁게(1.6) — 한 항목으로 읽히게.
+          위아래 0.3em 으로 한 줄일 때 높이·기준선을 다른 행(2.2)과 같게 맞춘다 */}
+      <span
+        style={{
+          flex: 1,
+          minWidth: 0,
+          lineHeight: 1.6,
+          padding: "0.3em 0",
+          wordBreak: "keep-all",
+          overflowWrap: "anywhere",
+        }}
+      >
+        {value}
+      </span>
     </div>
   );
 }
