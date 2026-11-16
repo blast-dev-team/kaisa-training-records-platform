@@ -18,6 +18,7 @@ import { SearchInput } from "@/src/shared/ui/search-input";
 import { Select } from "@/src/shared/ui/select";
 import { cn } from "@/src/shared/utils/cn";
 import { formatNumber, toYMD, todayYMD, yearsAgoYMD } from "@/src/shared/utils/format";
+import { useShiftRangeSelect } from "@/src/shared/hooks/use-shift-range-select";
 import {
   deleteTrainingRecord,
   deleteTrainingRecordBulk,
@@ -121,15 +122,31 @@ export function TrainingRecordListPage() {
     }),
   );
 
+  // Shift+클릭 범위 선택 — 현재 페이지에 보이는 순서 기준
+  const { pick: pickRange } = useShiftRangeSelect({
+    items: data?.items ?? [],
+    getKey: (r: TrainingRecord) => r.id,
+  });
+
+  /** 누른 행(Shift 면 범위)을 checked 상태로 맞춘다 — checked 생략 시 누른 행의 반대 상태 */
+  const setRowsChecked = useCallback(
+    (record: TrainingRecord, checked?: boolean) => {
+      const targets = pickRange(record);
+      setSelected((prev) => {
+        const next = new Map(prev);
+        const on = checked ?? !prev.has(record.id);
+        for (const t of targets) {
+          if (on) next.set(t.id, t);
+          else next.delete(t.id);
+        }
+        return next;
+      });
+    },
+    [pickRange],
+  );
+
   /** 행 클릭·체크박스 공용 토글 — 행 자체를 클릭해도 선택이 바뀐다 */
-  const toggleRow = useCallback((record: TrainingRecord) => {
-    setSelected((prev) => {
-      const next = new Map(prev);
-      if (next.has(record.id)) next.delete(record.id);
-      else next.set(record.id, record);
-      return next;
-    });
-  }, []);
+  const toggleRow = useCallback((record: TrainingRecord) => setRowsChecked(record), [setRowsChecked]);
 
   // 검색·필터가 바뀌면 행 집합의 의미가 달라진다 — 안 보이는 내역이 남지 않게 선택 해제
   useEffect(() => {
@@ -223,12 +240,7 @@ export function TrainingRecordListPage() {
             type="checkbox"
             className="size-4 accent-accent cursor-pointer"
             checked={selected.has(row.original.id)}
-            onChange={(e) => {
-              const next = new Map(selected);
-              if (e.target.checked) next.set(row.original.id, row.original);
-              else next.delete(row.original.id);
-              setSelected(next);
-            }}
+            onChange={(e) => setRowsChecked(row.original, e.target.checked)}
             onClick={(e) => e.stopPropagation()}
           />
         ),
@@ -376,8 +388,8 @@ export function TrainingRecordListPage() {
         },
       },
     ],
-    // toggleRow 는 useCallback([]) 로 안정적이라 deps 제외
-    [selected],
+    // toggleRow 는 setRowsChecked 를 감싼 useCallback 이라 함께 안정적이다
+    [selected, setRowsChecked],
   );
 
   const items = data?.items ?? [];

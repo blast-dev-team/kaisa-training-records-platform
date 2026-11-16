@@ -13,6 +13,10 @@ import { PageHead } from "@/src/shared/ui/page-head";
 import { PageContainer } from "@/src/shared/ui/page-container";
 import { Select } from "@/src/shared/ui/select";
 import { toYMD } from "@/src/shared/utils/format";
+import {
+  forwardShiftClickToCheckbox,
+  useShiftRangeSelect,
+} from "@/src/shared/hooks/use-shift-range-select";
 import { Check, FileSpreadsheet, Info, Minus, Plus } from "lucide-react";
 import { AlertTriangle } from "lucide-react";
 import {
@@ -113,11 +117,19 @@ export function TraineeListPage() {
   const total = data?.total ?? 0;
   const totalPages = data?.totalPages ?? 1;
 
+  // Shift+클릭 범위 선택 — 현재 페이지에 보이는 순서 기준
+  const { pick: pickRange } = useShiftRangeSelect({ items, getKey: (t: Trainee) => t.id });
+
+  /** 누른 행(Shift 면 범위)을 누른 행의 반대 상태로 맞춘다 */
   const toggleRow = (t: Trainee) => {
+    const targets = pickRange(t);
     setSelected((prev) => {
       const next = { ...prev };
-      if (t.id in next) delete next[t.id];
-      else next[t.id] = t;
+      const on = !(t.id in prev);
+      for (const target of targets) {
+        if (on) next[target.id] = target;
+        else delete next[target.id];
+      }
       return next;
     });
   };
@@ -551,7 +563,10 @@ function RowCheckbox({
 }) {
   const shown = checked || indeterminate;
   return (
-    <label className="flex cursor-pointer items-center justify-center cursor-pointer">
+    <label
+      className="flex cursor-pointer items-center justify-center cursor-pointer"
+      onClick={forwardShiftClickToCheckbox}
+    >
       <input type="checkbox" className="sr-only" checked={checked} onChange={onChange} />
       <span
         className={`flex size-4 shrink-0 items-center justify-center rounded border ${

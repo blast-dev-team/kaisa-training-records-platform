@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import type { ColumnDef } from "@tanstack/react-table";
 import { PencilLine, Plus, Trash2, Users } from "lucide-react";
+import { useShiftRangeSelect } from "@/src/shared/hooks/use-shift-range-select";
 import { AppTable } from "@/src/shared/ui/app-table";
 import { Button } from "@/src/shared/ui/button";
 import { Dialog } from "@/src/shared/ui/dialog";
@@ -110,11 +111,21 @@ export function CourseSessionListPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  // Shift+클릭 범위 선택 — 현재 페이지에 보이는 순서 기준
+  const { pick: pickRange } = useShiftRangeSelect({
+    items: data?.items ?? [],
+    getKey: (s: CourseSession) => s.id,
+  });
+
+  /** 누른 행(Shift 면 범위)을 checked 상태로 맞춘다 */
   const toggleRow = (s: CourseSession, checked: boolean) => {
+    const targets = pickRange(s);
     setSelectedIds((prev) => {
       const next = new Set(prev);
-      if (checked) next.add(s.id);
-      else next.delete(s.id);
+      for (const t of targets) {
+        if (checked) next.add(t.id);
+        else next.delete(t.id);
+      }
       return next;
     });
   };

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { Search, Upload, UserPlus } from "lucide-react";
+import { useShiftRangeSelect } from "@/src/shared/hooks/use-shift-range-select";
 import { Dialog } from "@/src/shared/ui/dialog";
 import { Button } from "@/src/shared/ui/button";
 import { FileDropZone } from "@/src/shared/ui/file-drop-zone";
@@ -283,6 +284,18 @@ export function TrainingRecordImportDialog({ isOpen, onClose }: Props) {
       ? drafts
       : drafts.filter((d) => (matchingFilter === "matched" ? d.traineeId : !d.traineeId));
 
+  // Shift+클릭 범위 선택 — 지금 보이는(필터된) 행 순서 기준, 체크 못 하는 행은 건너뛴다
+  const { pick: pickRange } = useShiftRangeSelect({
+    items: filtered,
+    getKey: (d: ImportDraft) => d.key,
+    canSelect: (d: ImportDraft) => !!d.traineeId && !d.isDuplicate && !isBlockedByPaid(d),
+  });
+  /** 누른 행(Shift 면 범위)의 포함 여부를 같이 바꾼다 */
+  const setIncludeWithRange = (d: ImportDraft, include: boolean) => {
+    const keys = new Set(pickRange(d).map((t) => t.key));
+    setDrafts((prev) => prev.map((x) => (keys.has(x.key) ? { ...x, include } : x)));
+  };
+
   const included = drafts.filter(isIncluded);
   const paidBlockedCount = drafts.filter(isBlockedByPaid).length;
   const hasBlockingError = included.some((d) => !d.traineeId || d.errors.length > 0);
@@ -454,7 +467,7 @@ export function TrainingRecordImportDialog({ isOpen, onClose }: Props) {
                         className="accent-accent disabled:opacity-40"
                         disabled={!d.traineeId || d.isDuplicate || isBlockedByPaid(d)}
                         checked={isIncluded(d)}
-                        onChange={(e) => setDraft(d.key, { include: e.target.checked })}
+                        onChange={(e) => setIncludeWithRange(d, e.target.checked)}
                       />
                       {/* 매칭된 행 — 감리원·기관·과정 정보는 수정 불가 */}
                       <Input disabled value={d.name} onChange={() => {}} />

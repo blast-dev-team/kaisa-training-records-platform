@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { FileSpreadsheet, Upload } from "lucide-react";
 import { Dialog } from "@/src/shared/ui/dialog";
+import { useShiftRangeSelect } from "@/src/shared/hooks/use-shift-range-select";
 import { Input } from "@/src/shared/ui/input";
 import { DateField } from "@/src/shared/ui/date-picker/date-field";
 import { Label } from "@/src/shared/ui/label";
@@ -68,6 +69,17 @@ export function TraineeImportDialog({ isOpen, onClose }: Props) {
 
   const setDraft = (key: string, patch: Partial<ImportDraft>) => {
     setDrafts((prev) => prev.map((d) => (d.key === key ? { ...d, ...patch } : d)));
+  };
+
+  // Shift+클릭 범위 선택 — 미리보기 행 순서 기준
+  const { pick: pickRange } = useShiftRangeSelect({
+    items: drafts,
+    getKey: (d: ImportDraft) => d.key,
+  });
+  /** 누른 행(Shift 면 범위)의 포함 여부를 같이 바꾼다 */
+  const setIncludeWithRange = (d: ImportDraft, include: boolean) => {
+    const keys = new Set(pickRange(d).map((t) => t.key));
+    setDrafts((prev) => prev.map((x) => (keys.has(x.key) ? { ...x, include } : x)));
   };
 
   const previewMutation = useMutation({
@@ -292,7 +304,7 @@ export function TraineeImportDialog({ isOpen, onClose }: Props) {
                         type="checkbox"
                         className="accent-accent"
                         checked={d.include}
-                        onChange={(e) => setDraft(d.key, { include: e.target.checked })}
+                        onChange={(e) => setIncludeWithRange(d, e.target.checked)}
                       />
                       {/* 체크 안 한 행은 편집 잠금 — 포함할 행만 고친다 */}
                       <Input

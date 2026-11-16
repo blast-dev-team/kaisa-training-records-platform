@@ -15,6 +15,10 @@ import {
 } from "@/src/shared/ui/use-duplicate-confirm";
 import { getTraineeList, postTrainee, traineeQueries } from "@/src/entities/trainee";
 import { useDebouncedValue } from "@/src/shared/hooks/use-debounced-value";
+import {
+  forwardShiftClickToCheckbox,
+  useShiftRangeSelect,
+} from "@/src/shared/hooks/use-shift-range-select";
 import { courseSessionQueries, type CourseSession } from "@/src/entities/course-session";
 import { courseQueries } from "@/src/entities/institution";
 import {
@@ -182,6 +186,24 @@ export function AttachTraineesDialog({ isOpen, onClose, session }: Props) {
     enabled: isOpen,
   });
   const trainees = traineeQuery.data?.pages.flatMap((p) => p.items) ?? [];
+  // Shift+클릭 범위 선택 — 검색 결과 목록 순서 기준
+  const { pick: pickRange } = useShiftRangeSelect({
+    items: trainees,
+    getKey: (t: (typeof trainees)[number]) => t.id,
+  });
+  /** 누른 감리원(Shift 면 범위)을 누른 감리원의 반대 상태로 맞춘다 */
+  const toggleWithRange = (t: (typeof trainees)[number]) => {
+    const targets = pickRange(t);
+    setSelected((prev) => {
+      const next = { ...prev };
+      const on = !(t.id in prev);
+      for (const target of targets) {
+        if (on) next[target.id] = target.name;
+        else delete next[target.id];
+      }
+      return next;
+    });
+  };
 
   // 이미 이 일정에 연결된 교육생 — 무한 스크롤
   const connectedQuery = useInfiniteQuery({
@@ -623,6 +645,7 @@ export function AttachTraineesDialog({ isOpen, onClose, session }: Props) {
                       return (
                         <label
                           key={t.id}
+                          onClick={forwardShiftClickToCheckbox}
                           className={`flex cursor-pointer items-center gap-2.5 border-b border-line px-3 py-2 text-13 last:border-b-0 hover:bg-bg-2 ${
                             already ? "opacity-45" : ""
                           }`}
@@ -638,7 +661,7 @@ export function AttachTraineesDialog({ isOpen, onClose, session }: Props) {
                             type="checkbox"
                             className="sr-only"
                             checked={checked}
-                            onChange={() => toggle(t.id, t.name)}
+                            onChange={() => toggleWithRange(t)}
                           />
                           <span className="text-ink">{t.name}</span>
                           <span className="text-11 text-ink-3">

@@ -2,6 +2,7 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router";
 
+import { useShiftRangeSelect } from "@/src/shared/hooks/use-shift-range-select";
 import { WarningCircleIcon } from "@/src/shared/icon";
 import { Button, Pagination } from "@/src/shared/ui";
 import { DateField } from "@/src/shared/ui/date-picker/date-field";
@@ -186,13 +187,27 @@ export function TrainingHistoryPage() {
   const allSelected =
     checkableIds.length > 0 && checkableIds.every((id) => selectedIds.includes(id));
 
+  // Shift+클릭 범위 선택 — 이 페이지에 보이는 순서 기준, 체크 못 하는 행(발급 불가·다른 상태)은 건너뛴다
+  const { pick: pickRange } = useShiftRangeSelect({
+    items,
+    getKey: (item: TrainingHistoryItem) => item.id,
+    canSelect: isRowCheckable,
+  });
+
+  /** 누른 행(Shift 면 범위)을 누른 행의 반대 상태로 맞춘다 */
   const toggleRow = (item: TrainingHistoryItem) => {
     const exists = selectedIds.includes(item.id);
-    const next = exists ? selectedIds.filter((id) => id !== item.id) : [...selectedIds, item.id];
+    // 실제로 상태가 바뀌는 행만 — 이미 같은 상태인 행은 카운트에서 뺀다
+    const changed = pickRange(item).filter((t) => selectedIds.includes(t.id) === exists);
+    const changedIds = new Set(changed.map((t) => t.id));
+    const next = exists
+      ? selectedIds.filter((id) => !changedIds.has(id))
+      : [...selectedIds, ...changed.map((t) => t.id)];
     setSelectedIds(next);
     // 수료증 버튼 활성 판정용 — 자격 없는 건(외부 기관 등)이 선택에 섞이면 막는다
-    if (!item.completionCertIssuable) {
-      setSelectedNotCertEligible((count) => Math.max(0, count + (exists ? -1 : 1)));
+    const ineligible = changed.filter((t) => !t.completionCertIssuable).length;
+    if (ineligible > 0) {
+      setSelectedNotCertEligible((count) => Math.max(0, count + (exists ? -ineligible : ineligible)));
     }
     // 비면 잠금 해제, 처음 체크하면 그 행의 상태로 범위 고정
     setSelectedCategory(next.length === 0 ? null : (selectedCategory ?? rowCategory(item)));
