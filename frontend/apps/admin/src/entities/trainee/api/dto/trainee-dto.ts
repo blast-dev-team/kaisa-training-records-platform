@@ -17,6 +17,8 @@ export interface TraineeDto {
   memo: string | null
   created_at: string
   updated_at: string
+  internal_hours?: string | number | null
+  external_hours?: string | number | null
 }
 
 export interface MembershipGradeDto {

@@ -26,6 +26,9 @@ export interface Trainee {
   memo: string | null
   createdAt: string
   updatedAt: string
+  /** 사내·외부 교육 시간 합계 — 목록 응답에만 있다. 기관의 현재 구분 기준(삭제·취소 제외) */
+  internalHours?: number | null
+  externalHours?: number | null
 }
 
 export interface TraineeUpdateInput {

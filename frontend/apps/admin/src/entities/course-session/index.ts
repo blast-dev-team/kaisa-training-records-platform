@@ -10,4 +10,8 @@ export type {
   CourseSessionBulkUpdateInput,
   CourseSessionBulkUpdateItemInput,
 } from './model/course-session'
-export type { CourseSessionListQuery } from './api/query/course-session-list-query'
+export { COURSE_SESSION_SORTS } from './api/query/course-session-list-query'
+export type {
+  CourseSessionListQuery,
+  CourseSessionSort,
+} from './api/query/course-session-list-query'

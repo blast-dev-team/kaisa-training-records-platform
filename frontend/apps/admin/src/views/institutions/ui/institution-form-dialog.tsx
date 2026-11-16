@@ -13,6 +13,8 @@ import {
   type InstitutionType,
 } from '@/src/entities/institution'
 
+const TYPE_LABEL: Record<string, string> = { internal: '사내', external: '외부' }
+
 interface Props {
   isOpen: boolean
   onClose: () => void
@@ -33,6 +35,12 @@ export function InstitutionFormDialog({ isOpen, onClose, institution }: Props) {
     setInstitutionType(institution?.institutionType ?? "external")
     setIsActive(institution?.isActive ?? true)
   }, [isOpen, institution])
+
+  // 수정 중에 구분을 실제로 바꾼 경우 — 기존 내역에 소급되니 저장 전에 한 번 더 눈에 띄게 알린다
+  const typeChange =
+    institution && institution.institutionType !== institutionType
+      ? `${TYPE_LABEL[institution.institutionType ?? ''] ?? '미선택'} → ${TYPE_LABEL[institutionType ?? ''] ?? '미선택'}`
+      : null
 
   const mutation = useMutation({
     mutationFn: async () => {
@@ -63,7 +71,7 @@ export function InstitutionFormDialog({ isOpen, onClose, institution }: Props) {
       actions={[
         { label: '취소', onClick: onClose },
         {
-          label: institution ? '수정' : '등록',
+          label: institution ? (typeChange ? '구분 바꾸고 수정' : '수정') : '등록',
           variant: 'primary',
           isLoading: mutation.isPending,
           isDisabled: !name.trim(),
@@ -113,7 +121,15 @@ export function InstitutionFormDialog({ isOpen, onClose, institution }: Props) {
               기존 내역은 유지되고 이후 외부교육 등록만 제한돼요
             </p>
             <p>외부 → 사내: 기존 내역이 외부 한도 집계에서 빠져나가요</p>
+            <p>
+              교육 내역의 구분, 감리원 목록의 사내·외부 교육시간, 확인서 합계도 저장 즉시 바뀌어요
+            </p>
           </div>
+          {typeChange && (
+            <p className="rounded-md border border-warn px-3 py-2 text-12 font-semibold text-warn-ink">
+              구분 변경: {typeChange} — 이 기관의 기존 교육 내역 전체에 적용돼요
+            </p>
+          )}
         </div>
         <label className="flex items-center gap-2 text-13 text-ink-2">
           <input

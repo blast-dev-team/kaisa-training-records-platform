@@ -24,6 +24,7 @@ import {
   membershipGradeQueries,
   traineeQueries,
   type Trainee,
+  type TraineeSortKey,
 } from "@/src/entities/trainee";
 import { BulkEditDialog } from "./bulk-edit-dialog";
 import { BulkGradeDialog } from "./bulk-grade-dialog";
@@ -62,8 +63,7 @@ export function TraineeListPage() {
       gradeId: gradeId || undefined,
       supervisorGrade: supervisorGrade || undefined,
       birthDate: birth || undefined,
-      sort: (sort || undefined) as
-        "grade_expires_at" | "created_at" | "updated_at" | undefined,
+      sort: (sort || undefined) as TraineeSortKey | undefined,
       order: (order === "asc" || order === "desc" ? order : undefined) as
         "asc" | "desc" | undefined,
       page,
@@ -231,6 +231,33 @@ export function TraineeListPage() {
                   </span>
                 </span>
               )}
+            </span>
+          );
+        },
+      },
+      // 사내/외부는 기관의 현재 구분 기준 — 기관 구분을 바꾸면 다음 조회부터 바로 반영된다
+      {
+        id: "internalHours",
+        header: "사내 교육",
+        meta: { width: 90 },
+        cell: ({ row }) => formatHours(row.original.internalHours),
+      },
+      {
+        id: "externalHours",
+        header: "외부 교육",
+        meta: { width: 90 },
+        cell: ({ row }) => formatHours(row.original.externalHours),
+      },
+      {
+        id: "totalHours",
+        header: "총 교육시간",
+        meta: { width: 100 },
+        cell: ({ row }) => {
+          const t = row.original;
+          if (t.internalHours == null && t.externalHours == null) return "—";
+          return (
+            <span className="font-semibold">
+              {formatHours((t.internalHours ?? 0) + (t.externalHours ?? 0))}
             </span>
           );
         },
@@ -415,7 +442,7 @@ export function TraineeListPage() {
         <FilterRow label="정렬">
           <Select
             className="w-40"
-            value={sort === "created_at" || sort === "updated_at" ? `${sort}:${order}` : ""}
+            value={sort && sort !== "grade_expires_at" && order ? `${sort}:${order}` : ""}
             onChange={(e) => {
               const v = e.target.value;
               if (!v) {
@@ -431,6 +458,12 @@ export function TraineeListPage() {
             <option value="created_at:asc">등록일 오래된순</option>
             <option value="updated_at:desc">수정일 최신순</option>
             <option value="updated_at:asc">수정일 오래된순</option>
+            <option value="total_hours:desc">총 교육시간 많은순</option>
+            <option value="total_hours:asc">총 교육시간 적은순</option>
+            <option value="internal_hours:desc">사내 교육시간 많은순</option>
+            <option value="internal_hours:asc">사내 교육시간 적은순</option>
+            <option value="external_hours:desc">외부 교육시간 많은순</option>
+            <option value="external_hours:asc">외부 교육시간 적은순</option>
           </Select>
         </FilterRow>
         <FilterRow label="생년월일">
@@ -549,6 +582,11 @@ export function TraineeListPage() {
       />
     </PageContainer>
   );
+}
+
+/** 8 → "8시간", 7.5 → "7.5시간" */
+function formatHours(hours: number | null | undefined) {
+  return hours == null ? "—" : `${hours.toLocaleString()}시간`;
 }
 
 /** 커스텀 체크박스 — sr-only input + 스타일 span (attach-trainees-dialog 와 같은 패턴) */

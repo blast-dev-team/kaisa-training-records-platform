@@ -18,10 +18,12 @@ import { Pill } from "@/src/shared/ui/pill";
 import { Select } from "@/src/shared/ui/select";
 import { todayYMD, toYMD } from "@/src/shared/utils/format";
 import {
+  COURSE_SESSION_SORTS,
   courseSessionQueries,
   deleteCourseSession,
   deleteCourseSessionBulk,
   type CourseSession,
+  type CourseSessionSort,
 } from "@/src/entities/course-session";
 import { CourseSessionFormDialog } from "./course-session-form-dialog";
 import { CourseSessionBulkEditDialog } from "./course-session-bulk-edit-dialog";
@@ -59,7 +61,8 @@ export function CourseSessionListPage() {
   const to = searchParams.get("to") ?? "";
   const status = searchParams.get("status") ?? "";
   // 정렬 — 일정순(시작일 최신)이 기본. 등록순은 이관 데이터가 created_at 일괄 반영이라 실등록분만 의미
-  const sort = searchParams.get("sort") === "registration" ? "registration" : "period";
+  const rawSort = searchParams.get("sort");
+  const sort: CourseSessionSort = COURSE_SESSION_SORTS.find((s) => s === rawSort) ?? "period";
   const page = Math.max(1, Number(searchParams.get("page") ?? 1) || 1);
   const limit = Math.max(1, Number(searchParams.get("limit") ?? 10) || 10);
 
@@ -357,14 +360,18 @@ export function CourseSessionListPage() {
         </FilterRow>
         <FilterRow label="정렬">
           <Select
-            className="w-36"
+            className="w-40"
             value={sort}
             onChange={(e) =>
-              updateParams({ sort: e.target.value === "registration" ? e.target.value : null })
+              updateParams({ sort: e.target.value === "period" ? null : e.target.value })
             }
           >
             <option value="period">일정순</option>
             <option value="registration">등록순</option>
+            <option value="recognized_hours_desc">인정시수 많은순</option>
+            <option value="recognized_hours_asc">인정시수 적은순</option>
+            <option value="enrolled_desc">수강생 많은순</option>
+            <option value="enrolled_asc">수강생 적은순</option>
           </Select>
         </FilterRow>
       </FilterBar>
