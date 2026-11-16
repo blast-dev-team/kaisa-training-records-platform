@@ -270,7 +270,7 @@ async def import_legacy_education(xlsx_path: str) -> None:
                 continue
             institution = existing_institutions.get(institution_name)
             if institution is None:
-                institution = TrainingInstitution(name=institution_name)
+                institution = TrainingInstitution(name=institution_name, institution_type="external")
                 db.add(institution)
                 await db.flush()  # course FK 에 id 필요
                 existing_institutions[institution_name] = institution
@@ -540,7 +540,7 @@ async def import_legacy_education(xlsx_path: str) -> None:
                 existing_institutions.get(institution_name)
             )
             if institution is None:
-                institution = TrainingInstitution(name=institution_name)
+                institution = TrainingInstitution(name=institution_name, institution_type="external")
                 db.add(institution)
                 await db.flush()
                 existing_institutions[institution_name] = institution

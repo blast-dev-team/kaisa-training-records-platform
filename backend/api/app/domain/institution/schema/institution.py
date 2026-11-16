@@ -5,7 +5,7 @@ from typing import Literal
 
 from pydantic import BaseModel, EmailStr
 
-# 내부/외부 구분 — None(미선택) 허용. internal 인 기관의 수료내역만 수료증 발급 가능
+# 내부/외부 구분 — 미선택은 없다(기본 external). internal 인 기관의 수료내역만 수료증 발급 가능
 InstitutionType = Literal["internal", "external"]
 
 
@@ -17,7 +17,8 @@ class InstitutionCreate(BaseModel):
     contact_phone: str | None = None
     contact_email: EmailStr | None = None
     address: str | None = None
-    institution_type: InstitutionType | None = None
+    # 미선택 정책 폐지 — API 등록·임포트도 기본 external. 명시 없이는 외부다
+    institution_type: InstitutionType = "external"
 
 
 class InstitutionUpdate(BaseModel):

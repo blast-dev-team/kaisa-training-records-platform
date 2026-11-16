@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.crypto import name_hash
 from app.core.kst import KST
+from app.domain.institution.model import TrainingInstitution
 from app.domain.trainee.model import Trainee
 from app.domain.training_record.model import TrainingRecord
 
@@ -30,6 +31,7 @@ async def list_records(
     trainee_id: uuid.UUID | None = None,
     session_id: uuid.UUID | None = None,
     source: str | None = None,
+    institution_type: str | None = None,
     exclude_source: str | None = None,
     completion_status: str | None = None,
     search: str | None = None,
@@ -55,6 +57,27 @@ async def list_records(
         conditions.append(TrainingRecord.session_id == session_id)
     if source:
         conditions.append(TrainingRecord.source == source)
+    if institution_type:
+        # 기관의 현재 구분 기준 — 확인서 합계·16시간 한도와 같은 판정. 미선택(NULL)은 외부 취급
+        if institution_type == "internal":
+            conditions.append(
+                TrainingRecord.institution_id.in_(
+                    select(TrainingInstitution.id).where(
+                        TrainingInstitution.institution_type == "internal"
+                    )
+                )
+            )
+        else:
+            conditions.append(
+                or_(
+                    TrainingRecord.institution_id.is_(None),
+                    TrainingRecord.institution_id.not_in(
+                        select(TrainingInstitution.id).where(
+                            TrainingInstitution.institution_type == "internal"
+                        )
+                    ),
+                )
+            )
     if exclude_source:
         conditions.append(TrainingRecord.source != exclude_source)
     if date_from is not None or date_to is not None:

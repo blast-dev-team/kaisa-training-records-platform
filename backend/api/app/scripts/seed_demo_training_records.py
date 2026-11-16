@@ -79,7 +79,9 @@ async def _find_or_create_institutions(
     for name in names:
         institution = found.get(name)
         if institution is None:
-            institution = TrainingInstitution(name=name)
+            # 데모 기관은 협회 본부·지회라 사내 — 이력 source(internal) 와 같은 기준.
+            # 구분을 비워 두면 확인서 합계·외부 16시간 한도에서 외부로 분류된다
+            institution = TrainingInstitution(name=name, institution_type="internal")
             db.add(institution)
             await db.flush()
             logger.info("교육기관 마스터 생성: %s", name)
