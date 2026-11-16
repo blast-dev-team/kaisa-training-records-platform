@@ -15,13 +15,14 @@ export interface TrainingHistoryTableProps {
   onToggleAll: () => void;
 }
 
-/** 표 헤더·본문 공용 열 폭 — Figma node 25:2458 */
+/** 표 헤더·본문 공용 열 폭 — Figma node 25:2458 에 구분 열 추가 */
 const COLUMNS = [
   "w-[40px] shrink-0", // 선택 (체크박스)
   "w-[100px] shrink-0", // 수강 시작일
   "w-[100px] shrink-0", // 수강 종료일
   "min-w-px flex-1", // 교육명
   "w-[150px] shrink-0", // 교육 기관
+  "w-[70px] shrink-0 text-center", // 구분
   "w-[100px] shrink-0 text-center", // 교육 이수시간
 ] as const;
 
@@ -31,6 +32,7 @@ const HEADER_LABELS = [
   "수강 종료일",
   "교육명",
   "교육 기관",
+  "구분",
   "교육 이수시간",
 ] as const;
 
@@ -63,7 +65,7 @@ export function TrainingHistoryTable({
   return (
     /* 좁은 화면에서는 표를 가로로 쓸어넘긴다 — 열 폭은 Figma 고정값 유지 (node 125:8531 w-1000) */
     <div className="w-full overflow-x-auto rounded-xl border border-solid border-gray-200">
-      <div className="flex min-w-[1000px] flex-col">
+      <div className="flex min-w-[1070px] flex-col">
       {/* 헤더 전체선택 — 체크 가능한 행만 토글 대상 */}
       <div className="flex w-full items-center border-b border-solid border-gray-200 bg-gray-100 px-4 py-3">
         <div className={cn("flex items-center", COLUMNS[0])}>
@@ -141,7 +143,10 @@ export function TrainingHistoryTable({
               )}
             </div>
             <p className={cn(CELL_BASE, COLUMNS[4], textColor)}>{item.organizer}</p>
-            <p className={cn(CELL_BASE, COLUMNS[5], textColor)}>{item.hours}시간</p>
+            <p className={cn(CELL_BASE, COLUMNS[5], textColor)}>
+              {item.institutionType === "internal" ? "사내" : "외부"}
+            </p>
+            <p className={cn(CELL_BASE, COLUMNS[6], textColor)}>{item.hours}시간</p>
           </div>
         );
       })}

@@ -24,6 +24,8 @@ export interface TrainingHistoryItem {
   courseName: string;
   /** 교육기관 */
   organizer: string;
+  /** 기관 구분 — 사내 수료만 수료증 대상. 미선택(NULL)은 외부 취급 */
+  institutionType: "internal" | "external" | null;
   /** 교육 이수시간 (시간 단위) */
   hours: number;
   certificateStatus: CertificateStatus;
@@ -70,7 +72,7 @@ interface TrainingRecordDto {
   /** 회원별 발급 상태 — 데모 이력 공유 대응으로 서버가 certificates 에서 산출 */
   certificate_status?: CertificateStatus | null;
   last_issued_at?: string | null;
-  institution_type?: string | null; // internal | external | null(미선택)
+  institution_type?: string | null; // internal | external | null(null 은 외부 취급)
   completion_status?: string | null; // in_progress | completed | canceled
   /** 공용 데모 이력 — 여러 회원이 공유하므로 수료증 대상 제외 */
   is_demo?: boolean;
@@ -85,6 +87,10 @@ function toItem(dto: TrainingRecordDto): TrainingHistoryItem {
     endedOn,
     courseName: dto.course_name,
     organizer: dto.institution_name,
+    institutionType:
+      dto.institution_type === "internal" || dto.institution_type === "external"
+        ? dto.institution_type
+        : null,
     hours: Number(dto.total_hours),
     // 발급 게이트(3년·수료·기발급)는 서버가 최종 판단 — 회원별 상태를 그대로 쓴다
     certificateStatus: dto.certificate_status ?? "unavailable",
