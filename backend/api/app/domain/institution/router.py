@@ -207,7 +207,11 @@ async def list_sessions(
     db: AsyncSession = Depends(get_db),
     _: AdminUser = Depends(require_admin),
 ):
-    """일정 목록 — 기간(from~to 교육 기간 겹침)·상태 필터. sort=period(일정순)·registration(등록순)."""
+    """일정 목록 — 기간(from~to 교육 기간 겹침)·상태 필터.
+
+    sort=period(일정순)·registration(등록순)·recognized_hours_desc/asc(인정시수순)·
+    enrolled_desc/asc(수강생순). 모르는 값은 일정순.
+    """
     sessions, total, counts = await course_session_service.list_sessions(
         db,
         course_id=course_id,

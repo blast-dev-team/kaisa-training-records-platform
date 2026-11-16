@@ -1,5 +1,6 @@
 import uuid
 from datetime import date, datetime
+from decimal import Decimal
 
 from pydantic import BaseModel, EmailStr, Field
 
@@ -28,6 +29,9 @@ class TraineeResponse(BaseModel):
     memo: str | None
     created_at: datetime
     updated_at: datetime
+    # 목록에서만 채운다 — 기관 현재 구분 기준 사내·외부 교육 시간 합계(삭제·취소 제외)
+    internal_hours: Decimal | None = None
+    external_hours: Decimal | None = None
 
     @classmethod
     def from_orm(cls, t) -> "TraineeResponse":

@@ -107,7 +107,14 @@ async def list_trainees(
     limit: int = 20,
 ) -> tuple[list[Trainee], int]:
     # 정렬 키 화이트리스트 — 연간 만료일 + 등록일·수정일. 허용 조합만 repo 로 전달한다
-    allowed_sorts = ("grade_expires_at", "created_at", "updated_at")
+    allowed_sorts = (
+        "grade_expires_at",
+        "created_at",
+        "updated_at",
+        "total_hours",
+        "internal_hours",
+        "external_hours",
+    )
     sort_key: str | None = None
     sort_order: str | None = None
     if sort is not None or order is not None:
