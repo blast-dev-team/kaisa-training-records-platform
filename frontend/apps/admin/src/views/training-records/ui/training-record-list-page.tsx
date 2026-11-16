@@ -24,7 +24,6 @@ import {
   postCompletionCertificatesIssue,
   trainingRecordQueries,
   COMPLETION_STATUS_LABELS,
-  TRAINING_SOURCE_LABELS,
   type CompletionCertificate,
   type TrainingRecord,
 } from "@/src/entities/training-record";
@@ -66,7 +65,7 @@ const traineeOptionsFetcher = fetchOptions("/trainees", {}, (t) => ({
 export function TrainingRecordListPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const traineeId = searchParams.get("trainee_id") ?? "";
-  const source = searchParams.get("source") ?? "";
+  const institutionType = searchParams.get("type") ?? "";
   const status = searchParams.get("status") ?? "";
   const q = searchParams.get("q") ?? "";
   const from = searchParams.get("from") ?? "";
@@ -111,7 +110,7 @@ export function TrainingRecordListPage() {
   const { data } = useQuery(
     trainingRecordQueries.list({
       traineeId: traineeId || undefined,
-      source: source || undefined,
+      institutionType: institutionType || undefined,
       completionStatus: status || undefined,
       search: q || undefined,
       dateFrom: effFrom || undefined,
@@ -135,7 +134,7 @@ export function TrainingRecordListPage() {
   // 검색·필터가 바뀌면 행 집합의 의미가 달라진다 — 안 보이는 내역이 남지 않게 선택 해제
   useEffect(() => {
     setSelected(new Map());
-  }, [traineeId, source, status, q, from, to, period, sort]);
+  }, [traineeId, institutionType, status, q, from, to, period, sort]);
 
   /** 선택된 교육생 이름 — 옵션 목록에 없어도 드롭다운에 표시 */
   const { data: selectedTrainee } = useQuery({
@@ -246,10 +245,15 @@ export function TrainingRecordListPage() {
         ),
       },
       {
-        accessorKey: "source",
+        accessorKey: "institutionType",
         header: "구분",
         meta: { width: 60 },
-        cell: ({ row }) => TRAINING_SOURCE_LABELS[row.original.source],
+        cell: ({ row }) => {
+          // 이력 source(생성 시점 스냅샷) 말고 기관의 현재 구분 — 확인서 합계·16시간 한도와 같은 기준.
+          // 구분 미선택은 없다 — NULL 도 외부 취급
+          const type = row.original.institutionType;
+          return type === "internal" ? "사내" : "외부";
+        },
       },
       {
         accessorKey: "institutionName",
@@ -457,15 +461,12 @@ export function TrainingRecordListPage() {
         <FilterRow label="구분">
           <Select
             className="w-36"
-            value={source}
-            onChange={(e) => updateParams({ source: e.target.value || null })}
+            value={institutionType}
+            onChange={(e) => updateParams({ type: e.target.value || null })}
           >
             <option value="">전체</option>
-            {Object.entries(TRAINING_SOURCE_LABELS).map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
+            <option value="internal">사내</option>
+            <option value="external">외부</option>
           </Select>
         </FilterRow>
         <FilterRow label="정렬">

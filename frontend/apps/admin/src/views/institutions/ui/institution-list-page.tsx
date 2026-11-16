@@ -136,8 +136,8 @@ export function InstitutionListPage() {
         cell: ({ row }) => {
           const type = row.original.institutionType;
           return (
-            <Pill tone={type === "internal" ? "ok" : type === "external" ? "info" : "default"}>
-              {type === "internal" ? "사내" : type === "external" ? "외부" : "미선택"}
+            <Pill tone={type === "internal" ? "ok" : "info"}>
+              {type === "internal" ? "사내" : "외부"}
             </Pill>
           );
         },
