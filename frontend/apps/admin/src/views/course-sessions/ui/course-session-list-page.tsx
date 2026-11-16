@@ -326,7 +326,7 @@ export function CourseSessionListPage() {
           <div className="flex items-center gap-1.5">
             <DateField
               ariaLabel="시작일"
-              className="w-36"
+              className="w-40"
               value={from}
               onChange={(v) => {
                 const r = adjustDateRange({ from, to }, "from", v);
@@ -337,7 +337,7 @@ export function CourseSessionListPage() {
             <span className="text-ink-3">~</span>
             <DateField
               ariaLabel="종료일"
-              className="w-36"
+              className="w-40"
               value={to}
               onChange={(v) => {
                 const r = adjustDateRange({ from, to }, "to", v);
@@ -349,7 +349,7 @@ export function CourseSessionListPage() {
         </FilterRow>
         <FilterRow label="상태">
           <Select
-            className="w-36"
+            className="w-40"
             value={status}
             onChange={(e) => updateParams({ status: e.target.value || null })}
           >

@@ -397,7 +397,7 @@ export function TraineeListPage() {
         <FilterRow label="감리원">
           {/* 등급은 enum 고정(감리원/수석감리원) — distinct 조회 대신 상수 옵션 */}
           <Select
-            className="w-40"
+            className="w-44"
             value={supervisorGrade}
             onChange={(e) => updateParams({ supervisor_grade: e.target.value || null })}
           >
@@ -409,7 +409,7 @@ export function TraineeListPage() {
         </FilterRow>
         <FilterRow label="회원등급">
           <Select
-            className="w-40"
+            className="w-44"
             value={gradeId}
             onChange={(e) => updateParams({ grade: e.target.value || null })}
           >
@@ -424,7 +424,7 @@ export function TraineeListPage() {
         {isAnnualFilter && (
           <FilterRow label="만료일 정렬">
             <Select
-              className="w-40"
+              className="w-44"
               value={sort === "grade_expires_at" ? order : ""}
               onChange={(e) =>
                 updateParams({
@@ -441,7 +441,7 @@ export function TraineeListPage() {
         )}
         <FilterRow label="정렬">
           <Select
-            className="w-40"
+            className="w-44"
             value={sort && sort !== "grade_expires_at" && order ? `${sort}:${order}` : ""}
             onChange={(e) => {
               const v = e.target.value;
@@ -469,7 +469,7 @@ export function TraineeListPage() {
         <FilterRow label="생년월일">
           <DateField
             ariaLabel="생년월일 필터"
-            className="w-40"
+            className="w-44"
             value={birth}
             onChange={(v) => updateParams({ birth: v || null })}
           />
