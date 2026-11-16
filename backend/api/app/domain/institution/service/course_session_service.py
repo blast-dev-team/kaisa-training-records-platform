@@ -67,6 +67,16 @@ async def count_records_for_sessions(
     return await session_repo.count_records_by_session(db, session_ids)
 
 
+def _source_for(course: TrainingCourse) -> str:
+    """일정 내역 구분 = 소속 기관 구분. 외부 기관만 external."""
+    institution = course.institution
+    return (
+        "external"
+        if institution is not None and institution.institution_type == "external"
+        else "internal"
+    )
+
+
 async def create_session(
     db: AsyncSession, data: SessionCreate, actor: AdminUser
 ) -> CourseSession:
@@ -81,12 +91,7 @@ async def create_session(
     # 시수는 총 시수 하나로 관리 — 인정 시수는 총 시수를 그대로 인정한다
     dump["recognized_hours"] = dump["total_hours"]
     # 일정의 내역 구분도 소속 기관 구분을 따른다 — 연결 이력의 source 가 된다
-    dump["source"] = (
-        "external"
-        if course.institution is not None
-        and course.institution.institution_type == "external"
-        else "internal"
-    )
+    dump["source"] = _source_for(course)
     session = await session_repo.save(db, CourseSession(**dump))
     record_audit(
         db,
@@ -110,6 +115,24 @@ async def update_session(
     session = await get_session(db, session_id)
     # 바뀐 필드만 before/after 에 기록 — Decimal·date 는 str 로 직렬화(bulk_updated 와 같은 형태)
     updates = data.model_dump(exclude_unset=True)
+    if updates.get("course_id") in (None, session.course_id):
+        updates.pop("course_id", None)
+    else:
+        # 과정을 바꾸면 이미 만들어진 내역의 과정·기관·구분과 어긋나므로 연결 전 일정만 허용
+        counts = await session_repo.count_records_by_session(db, [session.id])
+        if counts.get(session.id, 0) > 0:
+            raise api_error(
+                "VALIDATION_ERROR",
+                message="감리원이 연결된 일정은 과정을 바꿀 수 없어요. 연결을 해제한 뒤 다시 시도해 주세요",
+            )
+        course = await db.get(TrainingCourse, updates["course_id"])
+        if course is None:
+            raise api_error("NOT_FOUND", message="과정을 찾을 수 없어요")
+        session.course = course
+        updates["source"] = _source_for(course)
+    # 내역 구분은 기관 구분에 고정 — 보내온 값 대신 기관 기준으로 다시 맞춘다(기관 구분이 바뀐 뒤 수정해도 정합)
+    if "source" in updates and "course_id" not in updates:
+        updates["source"] = _source_for(session.course)
     before = {field: getattr(session, field) for field in updates}
     for field, value in updates.items():
         setattr(session, field, value)

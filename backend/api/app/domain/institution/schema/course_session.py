@@ -22,6 +22,8 @@ class SessionCreate(BaseModel):
 
 
 class SessionUpdate(BaseModel):
+    # 과정(기관) 변경 — 연결된 감리원(교육 내역)이 없는 일정만 가능
+    course_id: uuid.UUID | None = None
     started_at: date | None = None
     ended_at: date | None = None
     total_hours: Decimal | None = None
@@ -62,6 +64,8 @@ class SessionResponse(BaseModel):
     course_name: str
     institution_id: uuid.UUID
     institution_name: str
+    # 소속 기관의 현재 구분 — 일정 폼에서 '외부 교육' 표시를 기관 구분에 고정할 때 쓴다
+    institution_type: str | None = None
     schedule_no: int | None
     started_at: date | None
     ended_at: date | None
@@ -83,6 +87,7 @@ class SessionResponse(BaseModel):
             course_name=course.name,
             institution_id=course.institution_id,
             institution_name=course.institution.name if course.institution else "",
+            institution_type=course.institution.institution_type if course.institution else None,
             schedule_no=s.schedule_no,
             started_at=s.started_at,
             ended_at=s.ended_at,
