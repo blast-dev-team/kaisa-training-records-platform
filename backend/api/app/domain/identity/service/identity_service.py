@@ -369,7 +369,9 @@ async def _ensure_kaisa_record(db: AsyncSession, trainee: Trainee) -> None:
 async def kaisa_login(
     db: AsyncSession, body: PassKaisaLoginRequest
 ) -> tuple[PassCompleteResponse, str]:
-    """KAISA 계정 로그인 — 성명 KAISA + 지정 생년월일·휴대전화로 PASS 없이 로그인. 전 환경 허용.
+    """KAISA 계정 로그인 — 성명 KAISA + 지정 생년월일·휴대전화로 PASS 없이 로그인. local·staging 전용.
+
+    운영(production)에서는 막는다 — PASS 없이 세션을 내주는 우회 경로라 공개 서버에 두지 않는다.
 
     슈퍼 계정(전 회원 조회)과 달리 일반 회원 스코프다 — 본인 이력만 보고
     발급·결제까지 실제 플로우를 탄다. 고정 CI 로 find-or-create 하고,
@@ -387,7 +389,8 @@ async def kaisa_login(
     ):
         return await _test_trainee_login(db, body.name.strip(), birth)
     if (
-        body.name.strip() != KAISA_NAME
+        settings.ENVIRONMENT == "production"
+        or body.name.strip() != KAISA_NAME
         or birth != KAISA_BIRTH
         or phone != KAISA_PHONE
     ):

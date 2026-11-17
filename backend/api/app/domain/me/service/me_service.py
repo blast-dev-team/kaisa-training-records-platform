@@ -233,7 +233,7 @@ async def list_member_records(
     page: int = 1,
     limit: int = 20,
 ) -> tuple[list[TrainingRecordResponse], int, Decimal]:
-    """회원 포털 교육이력 — 본인 이력 + 공용 데모 이력 + 회원별 발급 상태.
+    """회원 포털 교육이력 — 본인 이력(감리원 미연결이면 공용 데모 이력) + 회원별 발급 상태.
 
     교육생 미연결 신규 회원은 데모 이력만 본다 (get_current_trainee 403 회피).
     """
@@ -291,7 +291,7 @@ async def get_demo_download_url(db: AsyncSession, user: User, record_id: uuid.UU
 
 
 async def get_my_record(db: AsyncSession, trainee: Trainee, record_id: uuid.UUID):
-    """본인 이력 또는 공용 데모 이력 — 목록·신청 게이트와 같은 범위 (가격 미리보기용)."""
+    """본인 이력 — 목록·신청 게이트와 같은 범위 (가격 미리보기용)."""
     record = await repo.find_downloadable_record(db, record_id, trainee.id)
     if record is None:
         raise api_error("NOT_FOUND", message="교육이력을 찾을 수 없어요")
@@ -301,7 +301,7 @@ async def get_my_record(db: AsyncSession, trainee: Trainee, record_id: uuid.UUID
 async def get_member_record_response(
     db: AsyncSession, user: User, record_id: uuid.UUID
 ) -> TrainingRecordResponse:
-    """회원 포털 상세 — 본인/공용 데모 이력 + 회원별 발급 상태. 교육생 미연결도 데모는 본다.
+    """회원 포털 상세 — 본인 이력(감리원 미연결이면 공용 데모 이력) + 회원별 발급 상태.
 
     슈퍼 계정은 소속 무관 조회(미리보기)다 — 상태도 실제 소유자 기준.
     """

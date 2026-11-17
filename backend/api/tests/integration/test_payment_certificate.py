@@ -7,6 +7,7 @@ from sqlalchemy import select
 
 from app.core.config import settings
 from app.domain.certificate.model import Certificate
+from app.domain.user.model import User
 from app.integrations import portone
 from tests.integration.helpers import (
     make_grade,
@@ -505,7 +506,7 @@ class TestBatchFlow:
 
 
 class TestDemoRecordIssuance:
-    """공용 데모 이력 — 모든 회원이 발급 가능하고 발급 상태는 회원별로 분리된다."""
+    """공용 데모 이력 — 감리원 미연결 회원 체험용. 연결 회원 목록·발급에서는 본인 이력만."""
 
     async def _setup_demo(self, db, *, price=0):
         grade = await make_grade(db, code="g-demo", name="데모등급")
@@ -523,26 +524,30 @@ class TestDemoRecordIssuance:
         await db.commit()
         return record, token_a, token_b
 
-    async def test_demo_record_issuable_by_any_trainee(self, client, db):
-        """소유 trainee가 아닌 회원도 데모 이력 발급 신청이 가능하다."""
+    async def test_demo_record_not_issuable_by_other_trainee(self, client, db):
+        """감리원 연결 회원은 본인 이력만 발급 — 남의 소속 데모 이력은 404."""
         record, _, token_b = await self._setup_demo(db)
         resp = await _request(client, token_b, record.id)
-        assert resp.status_code == 201, resp.json()
-        assert resp.json()["status"] == "issued"
+        assert resp.status_code == 404, resp.json()
 
-    async def test_issuance_scoped_per_trainee(self, client, db):
-        """A가 발급한 데모 이력도 B가 발급할 수 있다 — 발급은 회원별 문서."""
-        record, token_a, token_b = await self._setup_demo(db)
-        first = await _request(client, token_a, record.id)
-        assert first.status_code == 201
+    async def test_linked_member_sees_only_own_records(self, client, db):
+        """감리원 연결 회원 목록에는 공용 데모 이력이 섞이지 않는다."""
+        record, _, token_b = await self._setup_demo(db)
+        resp = await client.get("/api/me/training-records", cookies=member_cookie(token_b))
+        assert resp.status_code == 200
+        assert str(record.id) not in {i["id"] for i in resp.json()["items"]}
 
-        second = await _request(client, token_b, record.id)
-        assert second.status_code == 201, second.json()
-
-        # A가 다시 발급해도 A/B 각자의 문서로 유효하다
-        third = await _request(client, token_a, record.id)
-        assert third.status_code == 201
-        assert third.json()["amount_krw"] == 0
+    async def test_unlinked_member_sees_demo_records(self, client, db):
+        """감리원 미연결 회원은 체험용으로 공용 데모 이력만 본다."""
+        record, _, _ = await self._setup_demo(db)
+        user = User(ci_hash="ci-demo-unlinked")
+        db.add(user)
+        await db.flush()
+        token = await member_token(db, user)
+        await db.commit()
+        resp = await client.get("/api/me/training-records", cookies=member_cookie(token))
+        assert resp.status_code == 200
+        assert [i["id"] for i in resp.json()["items"]] == [str(record.id)]
 
     async def test_me_records_reflect_certificate_status(self, client, db):
         """교육이력 목록 — 발급 전후 모두 issuable, 기발급분은 last_issued_at."""

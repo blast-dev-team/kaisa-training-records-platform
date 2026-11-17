@@ -20,21 +20,16 @@ async def list_member_records(
     limit: int = 20,
     all_records: bool = False,
 ) -> tuple[list[TrainingRecord], int, Decimal]:
-    """회원 포털 교육이력 — 본인 이력 + 공용 데모 이력(is_demo).
+    """회원 포털 교육이력 — 감리원 연결 회원은 본인 이력만, 미연결 회원은 공용 데모 이력(is_demo)만.
 
-    데모 이력은 교육생 소속과 무관하게 모든 로그인 회원에게 노출된다.
+    데모 이력은 감리원 연결 전 회원이 화면을 체험하는 용도 — 연결된 회원의 실제 이력에 섞이지 않게 한다.
     목록·건수·시수 합계가 같은 필터 조건을 공유한다 (집합 불일치 방지).
     all_records 는 슈퍼 계정 전용 — 소속 무관 전 회원 이력(미리보기)을 본다.
     """
     conditions: list[ColumnElement[bool]] = [TrainingRecord.deleted_at.is_(None)]
     if not all_records:
         if trainee_id is not None:
-            conditions.append(
-                or_(
-                    TrainingRecord.trainee_id == trainee_id,
-                    TrainingRecord.is_demo.is_(True),
-                )
-            )
+            conditions.append(TrainingRecord.trainee_id == trainee_id)
         else:
             # 교육생 미연결 신규 회원 — 데모 이력만
             conditions.append(TrainingRecord.is_demo.is_(True))
@@ -76,7 +71,7 @@ async def find_downloadable_record(
     trainee_id: uuid.UUID | None,
     all_records: bool = False,
 ) -> TrainingRecord | None:
-    """다운로드 가능한 이력 — 본인 소속이거나 공용 데모. 타인 소속은 None(404).
+    """다운로드 가능한 이력 — 연결 회원은 본인 소속, 미연결 회원은 공용 데모만. 그 외 None(404).
 
     all_records 는 슈퍼 계정 전용 — 소속 무관 조회(미리보기).
     """
@@ -86,12 +81,7 @@ async def find_downloadable_record(
     )
     if not all_records:
         if trainee_id is not None:
-            stmt = stmt.where(
-                or_(
-                    TrainingRecord.trainee_id == trainee_id,
-                    TrainingRecord.is_demo.is_(True),
-                )
-            )
+            stmt = stmt.where(TrainingRecord.trainee_id == trainee_id)
         else:
             stmt = stmt.where(TrainingRecord.is_demo.is_(True))
     return (await db.execute(stmt)).scalar_one_or_none()

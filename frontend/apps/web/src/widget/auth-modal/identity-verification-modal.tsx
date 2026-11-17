@@ -17,13 +17,13 @@ import { Button, TextField } from "@/src/shared/ui";
  * 흐름: 서버에 인증 건 등록(start) → SDK 인증창 → 완료(complete — 고객 생성·세션 쿠키).
  * 인증 성공 시 onSuccess로 로그인된 고객명을 알린다.
  * 성명 KAISA + 생년월일 19900101 + 휴대전화 01012345678 이면 일반 회원 스코프의
- * KAISA 계정으로 바로 로그인한다 — 연결된 교육이력 1건으로 발급까지 가능 (전 환경 허용).
+ * KAISA 계정으로 바로 로그인한다 — 연결된 교육이력 1건으로 발급까지 가능 (로컬·dev 전용, 운영은 서버도 거절).
  * 로컬·dev(staging) 에서는 감리원 성명·생년월일 + 휴대전화 01012345678 이면 그 감리원으로
  * 바로 로그인한다 (테스트 로그인 — 서버도 운영에서는 거절한다).
  * 기존 모달 관례에 따라 배경 클릭·ESC 로도 닫는다 (인증 진행 중 제외).
  */
 
-/** KAISA 계정 — 성명 KAISA + 이 생년월일·휴대전화면 PASS 인증 없이 로그인 (전 환경) */
+/** KAISA 계정 — 성명 KAISA + 이 생년월일·휴대전화면 PASS 인증 없이 로그인 (로컬·dev 전용) */
 const KAISA_LOGIN_NAME = "KAISA";
 const KAISA_LOGIN_BIRTH = "19900101";
 const KAISA_LOGIN_PHONE = "01012345678";
@@ -51,8 +51,10 @@ export function IdentityVerificationModal({ onSuccess, onClose }: IdentityVerifi
   const [isPending, setIsPending] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-  // KAISA 계정 — KAISA + 지정 생년월일·휴대전화(전 환경). 본인 이력만 보고 발급까지 가능
+  // KAISA 계정 — KAISA + 지정 생년월일·휴대전화(로컬·dev 전용). 본인 이력만 보고 발급까지 가능.
+  // 운영 빌드에서는 일반 본인인증으로 처리한다 — 서버도 운영에서는 404
   const isKaisaLogin =
+    TEST_LOGIN_ENABLED &&
     name.trim() === KAISA_LOGIN_NAME &&
     birth === KAISA_LOGIN_BIRTH &&
     phone === KAISA_LOGIN_PHONE;

@@ -50,4 +50,13 @@ describe("IdentityVerificationModal — 테스트 로그인", () => {
     expect(screen.getByText(/KAISA 계정으로 본인인증 없이 바로 로그인합니다/)).toBeTruthy();
     expect(screen.queryByText(TEST_HINT)).toBeNull();
   });
+
+  it("운영 빌드에서는 KAISA 도 일반 본인인증", async () => {
+    vi.stubEnv("DEV", false);
+    vi.stubEnv("VITE_ENV", "production");
+    await renderModal();
+    fill("KAISA", "19900101", "01012345678");
+    expect(screen.queryByText(/KAISA 계정으로 본인인증 없이 바로 로그인합니다/)).toBeNull();
+    expect(screen.getByRole("button", { name: "본인인증 시작" })).toBeTruthy();
+  });
 });
