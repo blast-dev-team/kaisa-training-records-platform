@@ -28,7 +28,7 @@ docker compose exec api python -m app.scripts.import_legacy_education /tmp/edc.x
 - 기관: 감리협회 컬럼 → find-or-create (이름 기준)
 - 과정명: `{회차명} {과목명}` — 단, 회차명이 과목명을 이미 담고 있으면(외부기관 과정) 회차명만
 - `category`: 교육구분 1=온라인, 2=집체
-- 이력 스냅샷: 감리원증번호 → `supervisor_cert_no`, 감리원등급명 → `supervisor_grade`, `source='legacy_import'`
+- 이력 스냅샷: 감리원증번호 → `supervisor_cert_no`, 감리원등급명 → `supervisor_grade`, `source` 는 기관 구분을 따름(사내 기관만 `internal`, 그 외 `external` — 2026-11-19 이후 `legacy_import` 미사용)
 
 ## 3. 조인 전략 (원본 데이터 결함 검증 완료)
 

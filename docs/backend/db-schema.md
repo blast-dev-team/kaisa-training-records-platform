@@ -264,7 +264,7 @@ CI 는 `users.ci_hash` 단일 소스. CI 없는 이관분은 수동 매칭.
 | total_hours | numeric(8,2) NOT NULL DEFAULT 0 | 교육 시간 |
 | completed_hours | numeric(8,2) NOT NULL DEFAULT 0 | 이수 시간 |
 | started_at / ended_at | date | |
-| source | varchar(30) NOT NULL DEFAULT 'internal' | internal / external / legacy_import |
+| source | varchar(30) NOT NULL DEFAULT 'internal' | internal / external — 기관 구분을 따른다(사내 기관만 internal). legacy_import 는 2026-11-19 폐지·재정렬 |
 | evidence_file_key | text | 외부 수료 증빙 저장소 Key (source=external) |
 | completion_status | varchar(30) NOT NULL DEFAULT 'completed' | in_progress / completed / canceled |
 | completed_at | timestamptz | |

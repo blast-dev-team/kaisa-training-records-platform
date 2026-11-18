@@ -36,6 +36,10 @@
 | `GRADE_NOT_DETERMINED` | 409 | 심사 승인 시 등급 미지정 |
 | `TRAINEE_ALREADY_LINKED` | 409 | 심사 승인 시 이미 연결된 교육생 |
 | `INVALID_STATUS_TRANSITION` | 400 | 이미 처리된 심사·주문 재처리 |
+| `INVALID_CREDENTIALS` (비밀번호 변경) | 401 | 현재 비밀번호 불일치 — 세션 만료가 아니므로 로그아웃하지 않는다. 5회/5분 실패 시 `TOO_MANY_ATTEMPTS` 429 |
+| `VALIDATION_ERROR` | 422 | 스키마 검증 실패 — `errors: [{field, message}]` 포함. `message`·`errors[].message` 는 화면에 그대로 보여 줄 수 있는 한국어 문장(예: "총 시수는 0 이상이어야 해요", "총 시수는 999,999.99 이하로 입력해 주세요", "총 시수는 비울 수 없어요"). 대표 `message` 는 첫 번째 필드 오류. PATCH 로 비울 수 없는 칸(시수·이름·사용 여부 등)에 `null` 을 보내도 422 |
+| (공통) | — | 모든 오류 응답의 `message` 는 사용자용 한국어다 — 영문 원문·코드(`Invalid ...`, `Not authenticated` 등)를 내려보내지 않는다. FE 는 한글이 없는 문구(게이트웨이 기본 응답 등)를 상태별 안내로 바꿔 표시한다 |
+| `NOT_FOUND` / `METHOD_NOT_ALLOWED` | 404 / 405 | 없는 경로·메서드도 같은 `{code, message}` 형태 |
 
 전체 코드표: `backend/api/app/core/error_codes.py`.
 
@@ -87,7 +91,7 @@ PATCH /api/trainees/{trainee_id} { membership_grade_id, grade_change_reason }
 ```
 GET  /api/trainees?search=홍길동            ← 매칭 후보 검색 (전화는 마스킹로 대조)
 GET  /api/identity-reviews?status=manual_review
-POST /api/identity-reviews/{review_id}/approve { trainee_id, determined_grade_id }
+POST /api/identity-reviews/{review_id}/approve { trainee_id | new_trainee, determined_grade_id?, review_note? }
 POST /api/identity-reviews/{review_id}/reject  { review_note }
 ```
 
@@ -132,7 +136,7 @@ PATCH /api/certificate-pricing-rules/{rule_id} { price_krw | valid_to | is_activ
 | Method | Path | 설명 |
 |---|---|---|
 | GET | `/api/admin-users` | 계정 목록 (배열) |
-| PATCH | `/api/admin-users/{admin_id}` | `{status: "active"\|"disabled"}` |
+| PATCH | `/api/admin-users/{admin_id}` | `{status: "active"\|"disabled"}` — 차단(disabled) 시 대상의 모든 세션을 즉시 폐기한다(복구해도 다시 로그인해야 함) |
 
 ### 화이트리스트 (admin)
 
@@ -183,7 +187,7 @@ PATCH /api/certificate-pricing-rules/{rule_id} { price_krw | valid_to | is_activ
   "completed_hours": 8,
   "started_at": "2026-08-01",
   "ended_at": "2026-08-31",
-  "source": "internal | external | legacy_import",
+  "source": "internal | external",
   "evidence_file_key": null,
   "completion_status": "in_progress | completed | canceled",
   "memo": null
@@ -200,7 +204,8 @@ PATCH /api/certificate-pricing-rules/{rule_id} { price_krw | valid_to | is_activ
 | GET | `/api/institutions` | `is_active`,`search` | 기관 목록 (배열) |
 | GET/POST/PATCH | `/api/institutions[/{id}]` | `{name, institution_code?, ...}` | 조회/등록(201)/수정 |
 | GET | `/api/courses` | `institution_id`,`is_active` | 과정 목록 (배열) |
-| GET/POST/PATCH | `/api/courses[/{id}]` | `{institution_id, name, course_code?, description?, total_hours, category?}` | 조회/등록(201)/수정 |
+| GET/POST/PATCH | `/api/courses[/{id}]` | `{institution_id, name, course_code?, description?, total_hours, category?}` | 조회/등록(201)/수정. 수정 시 `institution_id` 를 바꾸면 기관 정정으로 처리 — 이 과정의 일정 `source`, 삭제되지 않은 교육이력의 `institution_id`·`institution_name`·`source` 가 새 기관 기준으로 함께 바뀐다(발급된 확인서·수료증 스냅샷은 그대로, 외부교육 한도로 막지 않음). 없는 기관 404 · 사용 중지 기관 422. 시수는 0 이상 |
+| GET | `/api/courses/{id}/links` | — | `{session_count, record_count}` — 기관 변경 확인 안내용 (삭제된 이력 제외) |
 | GET | `/api/course-sessions` | `course_id`,`search`,`page`,`limit` | 교육 일정 목록 (Paged) — 과정명·기관명 검색 |
 | GET/POST/PATCH | `/api/course-sessions[/{id}]` | `{course_id, started_at?, ended_at?, total_hours, recognized_hours, memo?}` | 조회/등록(201)/수정 |
 | DELETE | `/api/course-sessions/{id}` | | 삭제 (204) — 연결 이력 보존, session_id 만 끊김 |
@@ -222,15 +227,15 @@ POST /api/training-records/bulk
 | Method | Path | Body | 설명 |
 |---|---|---|---|
 | GET | `/api/identity-reviews` | `status`,`page`,`limit` | 목록 (Paged) |
-| POST | `/api/identity-reviews/{review_id}/approve` | `{trainee_id, determined_grade_id?}` | 승인 |
+| POST | `/api/identity-reviews/{review_id}/approve` | `{trainee_id?, new_trainee?: {name, phone?, email?}, determined_grade_id?, review_note?}` | 승인 — 기존 교육생 연결(`trainee_id`) 또는 신규 생성(`new_trainee`, 이때 `determined_grade_id` 필수) 중 하나. 회원이 이미 다른 교육생에 연결돼 있으면 409 `TRAINEE_ALREADY_LINKED` |
 | POST | `/api/identity-reviews/{review_id}/reject` | `{review_note}` | 거절 |
 
 ### 확인서 (admin)
 
 | Method | Path | Query / Body | 설명 |
 |---|---|---|---|
-| GET | `/api/certificates` | `trainee_id`,`status`,`page`,`limit` | 발급 내역 (Paged) |
-| POST | `/api/certificates/{certificate_id}/revoke` | `{reason}` | 철회 |
+| GET | `/api/certificates` | `trainee_id`,`status`,`search`(문서번호·과정명 부분일치, 성명은 전체일치),`date_from`,`date_to`(KST),`page`,`limit` | 발급 내역 (Paged, 발급건=묶음 단위). 각 행 `record_count` = 묶음에 포함된 교육내역 수(검색과 무관하게 전체) |
+| POST | `/api/certificates/{certificate_id}/revoke` | `{reason}` (필수, 공백 불가) | 철회 |
 
 ### 가격 규칙 (admin)
 
@@ -245,8 +250,8 @@ POST /api/training-records/bulk
 | Method | Path | Body | 설명 |
 |---|---|---|---|
 | GET | `/api/payment-orders` | `trainee_id`,`status`,`date_from`,`date_to`(KST),`search`,`page`,`limit` | 목록 (Paged) |
-| POST | `/api/payment-orders/{order_id}/refunds` | `{reason}` | 환불 — 주문 전액, 그 결제의 확인서 전부 폐기. PG 실패 시 502 + 주문·확인서 유지, 처리 중이면 409 |
-| POST | `/api/payment-orders/{order_id}/reconcile` | — | PortOne 재조회 → `{outcome: issued\|closed\|pending\|error, message, order}`. 결제됐으면 즉시 발급 |
+| POST | `/api/payment-orders/{order_id}/refunds` | `{reason}` (필수, 공백 불가) | 환불 — 주문 전액, 그 결제의 확인서 전부 폐기. PG 실패 시 502 + 주문·확인서 유지, 처리 중이면 409 |
+| POST | `/api/payment-orders/{order_id}/reconcile` | — | PortOne 재조회 → `{outcome: issued\|closed\|pending\|in_progress\|error, message, order}`. 결제됐으면 즉시 발급 |
 
 ### 문의함 (admin)
 
@@ -280,7 +285,7 @@ POST /api/training-records/bulk
 | 화이트리스트 | `status` | `pending` \| `joined` |
 | 교육생 | `review_status` | `unverified` \| `pending` \| `approved` \| `rejected` |
 | 심사 | `status` | `pending` \| `approved` \| `rejected` \| `manual_review` |
-| 이력 | `source` | `internal` \| `external` \| `legacy_import` |
+| 이력 | `source` | `internal` \| `external` — 지정된 사내 기관만 `internal`, 그 외(외부·구분 미지정·기관 미연결)는 `external`. '이관'(`legacy_import`)은 쓰지 않는다(2026-11-19, 기존 행은 마이그레이션 `a1b2c3d4e5f7` 로 재정렬) |
 | 이력 | `completion_status` | `in_progress` \| `completed` \| `canceled` |
 | 발급신청 | `status` | `pending` \| `payment_pending` \| `paid` \| `issuing` \| `issued` \| `canceled` \| `failed` |
 | 확인서 | `status` | `issued` \| `revoked` \| `superseded` |
