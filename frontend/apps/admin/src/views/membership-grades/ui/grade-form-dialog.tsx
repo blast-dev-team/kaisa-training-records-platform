@@ -1,3 +1,4 @@
+import { toUserMessage } from "@/src/shared/lib/friendly-error";
 import { useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
@@ -42,7 +43,8 @@ export function GradeFormDialog({ isOpen, onClose, grade }: Props) {
       if (grade) {
         return patchMembershipGrade(grade.id, {
           name: name.trim(),
-          description: description.trim() || undefined,
+          // 비우면 지운다 — undefined 는 키가 빠져 기존 설명이 남았다
+          description: description.trim() || null,
           sort_order: Number(sortOrder || 0),
           price_krw: Number(priceKrw || 0),
           is_active: isActive,
@@ -61,7 +63,7 @@ export function GradeFormDialog({ isOpen, onClose, grade }: Props) {
       queryClient.invalidateQueries({ queryKey: membershipGradeQueries.all() });
       onClose();
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => toast.error(toUserMessage(e)),
   });
 
   return (

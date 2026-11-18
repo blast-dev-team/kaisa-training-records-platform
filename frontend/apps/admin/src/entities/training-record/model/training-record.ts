@@ -128,6 +128,8 @@ export interface TrainingRecordImportConfirmItem {
   start_date: string | null
   end_date: string | null
   hours_total: string | null
+  /** 인정시간 — BE 는 있으면 교육시간보다 우선해 이력 시수로 저장한다 */
+  hours_recog: string | null
   trainee_id: string
 }
 

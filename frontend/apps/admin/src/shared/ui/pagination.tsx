@@ -1,3 +1,5 @@
+import { useEffect } from 'react'
+
 /**
  * 페이지 번호 이동 컨트롤 — « ‹ 1 … 4 5 6 … 12 › »
  *
@@ -15,7 +17,14 @@ export function Pagination({
   /** 현재 페이지 좌우로 몇 개까지 번호를 펼칠지 */
   delta?: number
 }) {
+  // 마지막 페이지에서 삭제·필터로 결과가 줄면 page > totalPages 가 된다 — 마지막 페이지로 보정
+  useEffect(() => {
+    const last = Math.max(1, totalPages)
+    if (page > last) onPageChange(last)
+  }, [page, totalPages, onPageChange])
+
   if (totalPages <= 1) return null
+  page = Math.min(page, totalPages)
 
   const btnCls =
     'px-2 py-1 text-12 text-ink-3 rounded hover:bg-panel-2 disabled:opacity-30 disabled:cursor-not-allowed transition-colors'

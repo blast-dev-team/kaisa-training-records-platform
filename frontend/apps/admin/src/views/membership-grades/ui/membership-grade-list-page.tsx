@@ -1,3 +1,4 @@
+import { toUserMessage } from "@/src/shared/lib/friendly-error";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
@@ -25,7 +26,7 @@ export function MembershipGradeListPage() {
   const [deleteTarget, setDeleteTarget] = useState<MembershipGrade | null>(null);
   const queryClient = useQueryClient();
 
-  const { data: grades } = useQuery(membershipGradeQueries.list());
+  const { data: grades, error: gradesError, refetch: refetchGrades } = useQuery(membershipGradeQueries.list());
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteMembershipGrade(id),
@@ -34,7 +35,7 @@ export function MembershipGradeListPage() {
       setDeleteTarget(null);
       queryClient.invalidateQueries({ queryKey: membershipGradeQueries.all() });
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => toast.error(toUserMessage(e)),
   });
 
   const columns = useMemo<ColumnDef<MembershipGrade, unknown>[]>(
@@ -141,7 +142,9 @@ export function MembershipGradeListPage() {
       <AppTable
         columns={columns}
         data={grades ?? []}
-        isLoading={!grades}
+        isLoading={!grades && !gradesError}
+        error={gradesError}
+        onRetry={() => void refetchGrades()}
         emptyMessage="등록된 등급이 없어요. 첫 등급을 등록해 보세요"
       />
 

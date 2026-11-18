@@ -1,3 +1,5 @@
+import { toUserMessage } from "@/src/shared/lib/friendly-error";
+import { hoursError, isValidHours } from "@/src/shared/utils/hours";
 import { useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
@@ -26,7 +28,7 @@ interface Props {
 const INSTITUTION_TYPE_HINT: Record<string, string> = { internal: "사내", external: "외부" };
 
 /** 기관 선택 옵션 — 보조 표기로 사내/외부. 고른 기관의 구분이 일정의 '외부 교육' 값이 된다 */
-const fetchInstitutions = fetchOptions("/institutions", {}, (i) => ({
+const fetchInstitutions = fetchOptions("/institutions", { is_active: true }, (i) => ({
   value: i.id as string,
   label: i.name as string,
   hint: INSTITUTION_TYPE_HINT[(i.institution_type as string) ?? ""],
@@ -35,14 +37,14 @@ const fetchInstitutions = fetchOptions("/institutions", {}, (i) => ({
 
 /** 과정 선택 옵션 — 고른 기관에 연결된 과정만 */
 const courseFetcherFor = (institutionId: string) =>
-  fetchOptions("/courses", { institution_id: institutionId }, (c) => ({
+  fetchOptions("/courses", { institution_id: institutionId, is_active: true }, (c) => ({
     value: c.id as string,
     label: c.name as string,
   }));
 
-/** 기관 구분 → 일정 내역 구분. 외부 기관만 external (서버와 같은 규칙) */
+/** 기관 구분 → 일정 내역 구분. 지정된 사내 기관만 internal, 그 외는 external (서버와 같은 규칙) */
 const sourceOf = (institutionType: string | null | undefined): CourseSessionSource =>
-  institutionType === "external" ? "external" : "internal";
+  institutionType === "internal" ? "internal" : "external";
 
 /** 교육 일정 등록·수정 — 과정 선택(검색 드롭다운) + 기간·시간·메모 */
 export function CourseSessionFormDialog({ isOpen, onClose, session, onCreated }: Props) {
@@ -86,7 +88,8 @@ export function CourseSessionFormDialog({ isOpen, onClose, session, onCreated }:
           ...(courseId !== session.courseId ? { course_id: courseId } : {}),
           started_at: startedAt || null,
           ended_at: endedAt || null,
-          total_hours: totalHours === "" ? null : Number(totalHours),
+          // 빈 칸은 '변경 없음' — null 을 보내면 서버가 거절(예전엔 500)
+          ...(totalHours.trim() === "" ? {} : { total_hours: Number(totalHours) }),
           is_active: isActive,
           source,
           memo: memo.trim() || null,
@@ -112,7 +115,7 @@ export function CourseSessionFormDialog({ isOpen, onClose, session, onCreated }:
         onClose();
       }
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => toast.error(toUserMessage(e)),
   });
 
   return (
@@ -126,7 +129,7 @@ export function CourseSessionFormDialog({ isOpen, onClose, session, onCreated }:
         {
           label: session ? "수정" : "등록 후 감리원 연결",
           isLoading: mutation.isPending,
-          isDisabled: !courseId,
+          isDisabled: !courseId || (totalHours.trim() !== "" && !isValidHours(totalHours)),
           onClick: () => mutation.mutate(),
         },
       ]}
@@ -210,7 +213,13 @@ export function CourseSessionFormDialog({ isOpen, onClose, session, onCreated }:
               value={totalHours}
               onChange={(e) => setTotalHours(e.target.value)}
             />
-            <p className="text-11 text-ink-3">입력한 총 시수가 이수 시수로 인정돼요</p>
+            {hoursError(totalHours, { label: "총 시수" }) ? (
+              <p role="alert" className="text-11 text-danger">
+                {hoursError(totalHours, { label: "총 시수" })}
+              </p>
+            ) : (
+              <p className="text-11 text-ink-3">입력한 총 시수가 이수 시수로 인정돼요</p>
+            )}
           </div>
         </div>
         <label className="flex flex-col text-13 text-ink-2">

@@ -1,3 +1,4 @@
+import { toUserMessage } from "@/src/shared/lib/friendly-error";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -108,7 +109,7 @@ export function TrainingRecordListPage() {
   const [bulkEditRecords, setBulkEditRecords] = useState<TrainingRecord[]>([]);
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
 
-  const { data } = useQuery(
+  const { data, error: listError, refetch: refetchList } = useQuery(
     trainingRecordQueries.list({
       traineeId: traineeId || undefined,
       institutionType: institutionType || undefined,
@@ -161,14 +162,39 @@ export function TrainingRecordListPage() {
 
   const queryClient = useQueryClient();
 
+  // 선택은 선택 시점의 행 객체를 담는다 — 목록이 다시 오면 보이는 행의 최신 값으로 바꿔 끼운다
+  // (예전에는 다른 곳에서 고친 시수가 확인서 미리보기·일괄 작업에 반영되지 않았다)
+  useEffect(() => {
+    const items = data?.items;
+    if (!items || items.length === 0) return;
+    setSelected((prev) => {
+      let changed = false;
+      const next = new Map(prev);
+      for (const row of items) {
+        if (next.has(row.id) && next.get(row.id) !== row) {
+          next.set(row.id, row);
+          changed = true;
+        }
+      }
+      return changed ? next : prev;
+    });
+  }, [data]);
+
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteTrainingRecord(id),
-    onSuccess: () => {
+    onSuccess: (_result, id) => {
+      // 삭제한 행은 선택에서도 뺀다 — 남아 있으면 일괄 삭제가 404 로 전체 실패했다
+      setSelected((prev) => {
+        if (!prev.has(id)) return prev;
+        const next = new Map(prev);
+        next.delete(id);
+        return next;
+      });
       toast.success("이력을 삭제했어요");
       setDeleteTarget(null);
       queryClient.invalidateQueries({ queryKey: trainingRecordQueries.all() });
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => toast.error(toUserMessage(e)),
   });
 
   const bulkDeleteMutation = useMutation({
@@ -179,7 +205,7 @@ export function TrainingRecordListPage() {
       setSelected(new Map());
       queryClient.invalidateQueries({ queryKey: trainingRecordQueries.all() });
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => toast.error(toUserMessage(e)),
   });
 
   /** 선택 중 수료증 발급 자격 건 — 일괄 발급 버튼 활성·대상 계산에 쓴다 */
@@ -198,7 +224,7 @@ export function TrainingRecordListPage() {
         return next;
       });
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => toast.error(toUserMessage(e)),
   });
 
   const updateParams = (patch: Record<string, string | null>, resetPage = true) => {
@@ -636,7 +662,9 @@ export function TrainingRecordListPage() {
       <AppTable
         columns={columns}
         data={items}
-        isLoading={!data}
+        isLoading={!data && !listError}
+        error={listError}
+        onRetry={() => void refetchList()}
         onRowClick={toggleRow}
         isRowSelected={(r) => selected.has(r.id)}
         emptyMessage={

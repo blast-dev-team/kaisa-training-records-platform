@@ -43,9 +43,10 @@ export function initSentry(): void {
     tracesSampleRate: 0.1,
     // admin은 axios(XHR) — instance.ts 인터셉터가 본문 포함 브레드크럼을 남긴다.
     // SDK 기본 xhr 브레드크럼(본문 없음)은 중복이라 버리고, 본문 있는 것만 남긴다.
+    // 기본 xhr/fetch 브레드크럼은 버리고 인터셉터가 남긴 실패 브레드크럼(error_code 포함)만 둔다
     beforeBreadcrumb: (breadcrumb) =>
       (breadcrumb.category === "fetch" || breadcrumb.category === "xhr") &&
-      breadcrumb.data?.request_body === undefined
+      breadcrumb.level !== "error"
         ? null
         : breadcrumb,
     beforeSend(event) {
@@ -66,9 +67,10 @@ export function initSentry(): void {
  * 서버 5xx 와 네트워크 오류(응답 자체가 없는 경우)만 수집.
  */
 export function captureQueryError(error: unknown): void {
-  // axios AxiosError 의 response.status 를 읽기 위한 좁히기 — 외부 라이브러리 에러라 타입이 여기까지 안 옴
-  const status = (error as { response?: { status?: number } } | null)?.response
-    ?.status;
+  // 인터셉터가 모든 응답 오류를 ApiError(status 필드)로 바꿔 reject 한다 — AxiosError 의
+  // response.status 만 보던 예전 판정은 항상 통과해 4xx 까지 수집했다
+  const err = error as { status?: number; response?: { status?: number } } | null;
+  const status = err?.status ?? err?.response?.status;
   if (typeof status === "number" && status < 500) return;
   Sentry.captureException(error);
 }

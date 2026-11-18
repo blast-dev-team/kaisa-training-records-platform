@@ -1,3 +1,4 @@
+import { toUserMessage } from '@/src/shared/lib/friendly-error';
 import { useEffect, useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'react-toastify'
@@ -46,7 +47,8 @@ export function InstitutionFormDialog({ isOpen, onClose, institution }: Props) {
     mutationFn: async () => {
       const input = {
         name: name.trim(),
-        institution_code: code.trim() || undefined,
+        // 수정에서 코드를 지우면 null 로 지운다 — undefined 는 키가 빠져 기존 코드가 남았다
+        institution_code: code.trim() || (institution ? null : undefined),
         // 구분은 항상 보낸다 — '미선택' 으로 되돌리려면 null 을 명시해야 해서
         institution_type: institutionType,
         is_active: isActive,
@@ -58,9 +60,13 @@ export function InstitutionFormDialog({ isOpen, onClose, institution }: Props) {
     onSuccess: () => {
       toast.success(institution ? '기관을 수정했어요' : '기관을 등록했어요')
       queryClient.invalidateQueries({ queryKey: institutionQueries.all() })
+      // 기관명·구분 변경은 서버가 연결된 이력·일정·과정에 반영한다 — 연관 목록도 새로 읽는다
+      queryClient.invalidateQueries({ queryKey: ['courses'] })
+      queryClient.invalidateQueries({ queryKey: ['course-sessions'] })
+      queryClient.invalidateQueries({ queryKey: ['training-records'] })
       onClose()
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => toast.error(toUserMessage(e)),
   })
 
   return (

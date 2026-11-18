@@ -1,3 +1,4 @@
+import { toUserMessage } from "@/src/shared/lib/friendly-error";
 import { useMemo, useState } from "react";
 import { useSearchParams } from "react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -42,7 +43,7 @@ export function CertificateListPage() {
   const [refundReason, setRefundReason] = useState("");
 
   const queryClient = useQueryClient();
-  const { data } = useQuery(
+  const { data, error: listError, refetch: refetchList } = useQuery(
     certificateQueries.list({
       status,
       search: q || undefined,
@@ -66,7 +67,7 @@ export function CertificateListPage() {
       queryClient.invalidateQueries({ queryKey: paymentOrderQueries.all() });
     },
     onError: (e: Error) => {
-      toast.error(e.message);
+      toast.error(toUserMessage(e));
       queryClient.invalidateQueries({ queryKey: certificateQueries.all() });
       queryClient.invalidateQueries({ queryKey: paymentOrderQueries.all() });
     },
@@ -258,7 +259,9 @@ export function CertificateListPage() {
       <AppTable
         columns={columns}
         data={items}
-        isLoading={!data}
+        isLoading={!data && !listError}
+        error={listError}
+        onRetry={() => void refetchList()}
         emptyMessage="발급 내역이 없어요"
         page={page}
         totalPages={totalPages}

@@ -1,3 +1,4 @@
+import { toUserMessage } from "@/src/shared/lib/friendly-error";
 import "@tanstack/react-table";
 import {
   flexRender,
@@ -30,6 +31,9 @@ interface AppTableProps<TData extends RowData> {
   columns: ColumnDef<TData, unknown>[];
   data: TData[];
   isLoading?: boolean;
+  /** 조회 실패 — 있으면 '불러오는 중' 대신 오류 문구와 다시 시도 버튼을 보여 준다 */
+  error?: unknown;
+  onRetry?: () => void;
   emptyMessage?: string;
   onRowClick?: (row: TData) => void;
   /** 행별 클래스 — 상태 강조(만료 임박 등). hover 배경이 이후 덮으므로 조합 전제 */
@@ -118,6 +122,8 @@ export function AppTable<TData extends RowData>({
   columns,
   data,
   isLoading,
+  error,
+  onRetry,
   emptyMessage = "데이터가 없습니다",
   onRowClick,
   getRowClassName,
@@ -298,7 +304,24 @@ export function AppTable<TData extends RowData>({
             ))}
           </thead>
           <tbody>
-            {isLoading ? (
+            {error && table.getRowModel().rows.length === 0 ? (
+              <tr>
+                <td colSpan={columns.length} className="px-3 py-10 text-center text-ink-3">
+                  <p role="alert">
+                    {toUserMessage(error, "목록을 불러오지 못했어요")}
+                  </p>
+                  {onRetry && (
+                    <button
+                      type="button"
+                      onClick={onRetry}
+                      className="mt-2 text-13 font-semibold text-accent underline"
+                    >
+                      다시 시도
+                    </button>
+                  )}
+                </td>
+              </tr>
+            ) : isLoading ? (
               <tr>
                 <td colSpan={columns.length} className="px-3 py-10 text-center text-ink-3">
                   불러오는 중...

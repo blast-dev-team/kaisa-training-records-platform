@@ -1,3 +1,4 @@
+import { toUserMessage } from "@/src/shared/lib/friendly-error";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { toast } from "react-toastify";
 import { Dialog } from "@/src/shared/ui/dialog";
@@ -232,7 +233,7 @@ export function CertificatePreviewModal({ isOpen, onClose, records, onDownloaded
       onDownloaded?.(groups.flatMap((group) => group.recordIds));
       onClose();
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "발급에 실패했어요");
+      toast.error(toUserMessage(e, "발급에 실패했어요"));
     } finally {
       setIsDownloading(false);
     }

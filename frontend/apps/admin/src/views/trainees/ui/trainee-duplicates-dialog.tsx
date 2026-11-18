@@ -1,3 +1,4 @@
+import { toUserMessage } from "@/src/shared/lib/friendly-error";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
@@ -27,7 +28,7 @@ export function TraineeDuplicatesDialog({ isOpen, onClose, onEdit }: Props) {
       setConfirmingId(null);
       queryClient.invalidateQueries({ queryKey: ["trainees"] });
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => toast.error(toUserMessage(e)),
   });
 
   const rows = data ?? [];

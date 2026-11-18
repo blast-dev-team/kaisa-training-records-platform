@@ -1,3 +1,4 @@
+import { toUserMessage } from "@/src/shared/lib/friendly-error";
 import { useMemo, useState } from "react";
 import { useSearchParams } from "react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -63,10 +64,10 @@ export function InstitutionListPage() {
   const [searchInput, setSearchInput] = useState(q);
 
   const isActive = status === "" ? undefined : status === "active";
-  const { data: institutions } = useQuery(
+  const { data: institutions, error: institutionsError, refetch: refetchInstitutions } = useQuery(
     institutionQueries.list({ q: q || undefined, isActive, institutionType: type || undefined, page, limit }),
   );
-  const { data: courses } = useQuery(
+  const { data: courses, error: coursesError, refetch: refetchCourses } = useQuery(
     courseQueries.list({
       search: q || undefined,
       isActive,
@@ -90,7 +91,7 @@ export function InstitutionListPage() {
       queryClient.invalidateQueries({ queryKey: institutionQueries.all() });
       queryClient.invalidateQueries({ queryKey: courseQueries.all() });
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => toast.error(toUserMessage(e)),
   });
 
   const setTab = (key: string) => {
@@ -422,7 +423,9 @@ export function InstitutionListPage() {
         <AppTable
           columns={institutionColumns}
           data={institutions?.items ?? []}
-          isLoading={!institutions}
+          isLoading={!institutions && !institutionsError}
+        error={institutionsError}
+        onRetry={() => void refetchInstitutions()}
           emptyMessage="등록된 기관이 없어요. 첫 기관을 등록해 보세요"
           page={page}
           totalPages={institutions?.totalPages ?? 1}
@@ -436,7 +439,9 @@ export function InstitutionListPage() {
         <AppTable
           columns={courseColumns}
           data={courses?.items ?? []}
-          isLoading={!courses}
+          isLoading={!courses && !coursesError}
+        error={coursesError}
+        onRetry={() => void refetchCourses()}
           fixedLayout
           minWidth={1320}
           emptyMessage="등록된 과정이 없어요. 첫 과정을 등록해 보세요"

@@ -1,3 +1,4 @@
+import { toUserMessage } from "@/src/shared/lib/friendly-error";
 import { useState } from "react";
 import { useSearchParams } from "react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -52,7 +53,7 @@ export function SessionNameListPage() {
   const [edit, setEdit] = useState<EditState | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
 
-  const { data } = useQuery(
+  const { data, error: listError, refetch: refetchList } = useQuery(
     sessionNameQueries.list({
       q: q || undefined,
       isActive: status === "" ? undefined : status === "active",
@@ -63,7 +64,12 @@ export function SessionNameListPage() {
     }),
   );
   const queryClient = useQueryClient();
-  const invalidate = () => queryClient.invalidateQueries({ queryKey: sessionNameQueries.all() });
+  const invalidate = () => {
+    queryClient.invalidateQueries({ queryKey: sessionNameQueries.all() });
+    // 회차명은 과정·일정 표시에 쓰인다 — 연관 목록도 새로 읽는다
+    queryClient.invalidateQueries({ queryKey: ["courses"] });
+    queryClient.invalidateQueries({ queryKey: ["course-sessions"] });
+  };
 
   const saveMutation = useMutation({
     mutationFn: async () => {
@@ -76,7 +82,7 @@ export function SessionNameListPage() {
       setEdit(null);
       invalidate();
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => toast.error(toUserMessage(e)),
   });
 
   const deleteMutation = useMutation({
@@ -86,7 +92,7 @@ export function SessionNameListPage() {
       setDeleteTarget(null);
       invalidate();
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => toast.error(toUserMessage(e)),
   });
 
   const updateParams = (patch: Record<string, string | null>, resetPage = true) => {
@@ -226,7 +232,9 @@ export function SessionNameListPage() {
           },
         ]}
         data={items}
-        isLoading={!data}
+        isLoading={!data && !listError}
+        error={listError}
+        onRetry={() => void refetchList()}
         emptyMessage="등록된 회차명이 없어요. 첫 회차명을 등록해 보세요"
         page={page}
         totalPages={totalPages}

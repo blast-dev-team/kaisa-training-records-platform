@@ -1,3 +1,4 @@
+import { toUserMessage } from "@/src/shared/lib/friendly-error";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -215,7 +216,30 @@ export function AttachTraineesDialog({ isOpen, onClose, session }: Props) {
     enabled: isOpen && !!session,
   });
   const connected = connectedQuery.data?.pages.flatMap((p) => p.items) ?? [];
-  const connectedIds = new Set(connected.map((r) => r.traineeId));
+  // 연결된 교육생 전체 id — 목록은 10명씩 무한 스크롤이라 첫 페이지만으로 판정하면
+  // 11번째부터는 '이미 연결됨'으로 보이지 않았다. 판정용으로 전체를 따로 조회한다
+  const connectedAllQuery = useQuery({
+    queryKey: [...trainingRecordQueries.lists(), { sessionId: session?.id, all: true }],
+    queryFn: async () => {
+      const ids: string[] = [];
+      for (let page = 1; ; page += 1) {
+        const res = await getTrainingRecordList({ sessionId: session!.id, page, limit: 100 });
+        ids.push(...res.items.map((r) => r.traineeId));
+        if (page >= res.totalPages) break;
+      }
+      return ids;
+    },
+    enabled: isOpen && !!session,
+  });
+  const connectedIds = new Set([
+    ...connected.map((r) => r.traineeId),
+    ...(connectedAllQuery.data ?? []),
+  ]);
+  // 서버는 기관 구분으로 이력 구분을 정한다 — 체크 표시도 일정의 옛 source 가 아니라 기관 구분을 따른다
+  const savesAsExternal =
+    session?.institutionType !== undefined
+      ? session.institutionType !== "internal"
+      : session?.source === "external";
 
   const connectedListRef = useRef<HTMLDivElement>(null);
 
@@ -271,7 +295,7 @@ export function AttachTraineesDialog({ isOpen, onClose, session }: Props) {
       setSelected({});
       onClose();
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => toast.error(toUserMessage(e)),
   });
 
   const matchMutation = useMutation({
@@ -293,7 +317,7 @@ export function AttachTraineesDialog({ isOpen, onClose, session }: Props) {
         }`,
       );
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => toast.error(toUserMessage(e)),
   });
 
   // 미매칭 행 → 이름·전화번호·생년월일·증번호 직접 입력으로 신규 감리원 등록 + 즉시 선택.
@@ -324,7 +348,7 @@ export function AttachTraineesDialog({ isOpen, onClose, session }: Props) {
     },
     onError: (e: Error) => {
       if (e instanceof DuplicateCancelledError) return;
-      toast.error(e.message);
+      toast.error(toUserMessage(e));
     },
   });
 
@@ -709,12 +733,12 @@ export function AttachTraineesDialog({ isOpen, onClose, session }: Props) {
             <input
               type="checkbox"
               className="size-4 accent-[--color-accent]"
-              checked={session?.source === "external"}
+              checked={savesAsExternal}
               disabled
             />
             외부 교육으로 저장
             <span className="text-11 text-ink-3">
-              {session?.source === "external"
+              {savesAsExternal
                 ? "— 일정이 외부 교육이라 연결되는 내역이 외부로 기록돼요"
                 : "— 일정의 구분을 따라 사내로 기록돼요"}
             </span>

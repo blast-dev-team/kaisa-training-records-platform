@@ -1,3 +1,4 @@
+import { toUserMessage } from "@/src/shared/lib/friendly-error";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
@@ -188,7 +189,7 @@ export function GradeImportDialog({ isOpen, onClose }: Props) {
       setDrafts(data.rows.map((row, idx) => ({ idx, row, include: row.default_include })));
       setStage("preview");
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => toast.error(toUserMessage(e)),
   });
 
   const rematchMutation = useMutation({
@@ -212,7 +213,7 @@ export function GradeImportDialog({ isOpen, onClose }: Props) {
         toast.error(newRow.contact_skip_reason);
       }
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => toast.error(toUserMessage(e)),
   });
 
   /** 연락처 셀 제출 — 행의 다른 값은 그대로 두고 연락처만 바꿔 재매칭 */
@@ -255,7 +256,7 @@ export function GradeImportDialog({ isOpen, onClose }: Props) {
       queryClient.invalidateQueries({ queryKey: traineeQueries.all() });
       toast.success(`등급 ${data.grade_updated}명을 적용했어요`);
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => toast.error(toUserMessage(e)),
   });
 
   const included = drafts.filter((d) => d.include);

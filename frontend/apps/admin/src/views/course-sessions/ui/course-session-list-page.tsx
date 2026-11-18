@@ -1,3 +1,4 @@
+import { toUserMessage } from "@/src/shared/lib/friendly-error";
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -78,9 +79,9 @@ export function CourseSessionListPage() {
   // 페이지·필터가 바뀌면 선택은 초기화 — 다른 페이지 행과 뒤섞이지 않는다
   useEffect(() => {
     setSelectedIds(new Set());
-  }, [q, from, to, status, sort, page]);
+  }, [q, from, to, status, sort, page, limit]);
 
-  const { data } = useQuery(
+  const { data, error: listError, refetch: refetchList } = useQuery(
     courseSessionQueries.list({
       q: q || undefined,
       status: status === "" ? undefined : (status as "active" | "ended"),
@@ -95,12 +96,19 @@ export function CourseSessionListPage() {
   const queryClient = useQueryClient();
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteCourseSession(id),
-    onSuccess: () => {
+    onSuccess: (_result, id) => {
+      // 삭제한 일정은 선택에서도 뺀다 — 남아 있으면 일괄 삭제가 404 로 전체 실패했다
+      setSelectedIds((prev) => {
+        if (!prev.has(id)) return prev;
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
       toast.success("일정을 삭제했어요. 연결된 이력은 남아 있어요");
       setDeleteTarget(null);
       queryClient.invalidateQueries({ queryKey: courseSessionQueries.all() });
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => toast.error(toUserMessage(e)),
   });
 
   const bulkDeleteMutation = useMutation({
@@ -111,7 +119,7 @@ export function CourseSessionListPage() {
       setSelectedIds(new Set());
       queryClient.invalidateQueries({ queryKey: courseSessionQueries.all() });
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => toast.error(toUserMessage(e)),
   });
 
   // Shift+클릭 범위 선택 — 현재 페이지에 보이는 순서 기준
@@ -399,7 +407,9 @@ export function CourseSessionListPage() {
       <AppTable
         columns={columns}
         data={items}
-        isLoading={!data}
+        isLoading={!data && !listError}
+        error={listError}
+        onRetry={() => void refetchList()}
         onRowClick={(s) => toggleRow(s, !selectedIds.has(s.id))}
         isRowSelected={(s) => selectedIds.has(s.id)}
         emptyMessage="등록된 교육 일정이 없어요. 일정을 등록하고 감리원을 연결해 보세요"

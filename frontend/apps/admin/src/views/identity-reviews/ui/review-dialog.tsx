@@ -1,3 +1,4 @@
+import { toUserMessage } from "@/src/shared/lib/friendly-error";
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
@@ -59,7 +60,11 @@ export function ReviewDialog({ review, onClose }: Props) {
     }
   }, [review]);
 
-  const invalidate = () => queryClient.invalidateQueries({ queryKey: identityReviewQueries.all() });
+  const invalidate = () => {
+    queryClient.invalidateQueries({ queryKey: identityReviewQueries.all() });
+    // 승인은 감리원을 새로 만들거나 회원과 연결한다 — 감리원 목록·검색도 새로 읽는다
+    queryClient.invalidateQueries({ queryKey: ["trainees"] });
+  };
 
   /** 신규 생성 모드 — 성명·등급 필수 (등급 없으면 발급이 막힌다) */
   const canApprove =
@@ -72,6 +77,8 @@ export function ReviewDialog({ review, onClose }: Props) {
           ? {
               trainee_id: selected!.id,
               determined_grade_id: gradeId || undefined,
+              // 승인 메모(선택) — 서버가 심사 기록(review_note)에 남긴다
+              review_note: note.trim() || undefined,
             }
           : {
               new_trainee: {
@@ -80,6 +87,7 @@ export function ReviewDialog({ review, onClose }: Props) {
                 email: newEmail.trim() || undefined,
               },
               determined_grade_id: gradeId,
+              review_note: note.trim() || undefined,
             };
       return postApproveIdentityReview(review!.id, input);
     },
@@ -88,7 +96,11 @@ export function ReviewDialog({ review, onClose }: Props) {
       invalidate();
       onClose();
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => {
+      toast.error(toUserMessage(e));
+      // 다른 관리자가 먼저 처리했을 수 있다 — 목록을 새로 읽어 최신 상태를 보여 준다
+      invalidate();
+    },
   });
 
   const rejectMutation = useMutation({
@@ -98,7 +110,10 @@ export function ReviewDialog({ review, onClose }: Props) {
       invalidate();
       onClose();
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => {
+      toast.error(toUserMessage(e));
+      invalidate();
+    },
   });
 
   const busy = approveMutation.isPending || rejectMutation.isPending;

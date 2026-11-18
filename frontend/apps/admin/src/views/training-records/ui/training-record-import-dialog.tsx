@@ -1,3 +1,4 @@
+import { toUserMessage } from "@/src/shared/lib/friendly-error";
 import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
@@ -40,6 +41,8 @@ interface ImportDraft {
   startDate: string;
   endDate: string;
   hoursTotal: string;
+  /** 인정시간 — 있으면 서버가 교육시간보다 우선해 시수로 쓴다(프리뷰 한도 판정도 이 값) */
+  hoursRecog: string;
   traineeId: string | null;
   traineeName: string | null;
   /** 매칭된 감리원의 회원등급명 */
@@ -108,8 +111,27 @@ export function TrainingRecordImportDialog({ isOpen, onClose }: Props) {
     fileSeqRef.current = 0;
   }, [isOpen]);
 
+  // 확정 요청 순번 → 원래 파일·행 (결과의 실패 행 표시용)
+  const submittedRowsRef = useRef(new Map<number, { fileName: string; rowNumber: number }>());
+
   const setDraft = (key: string, patch: Partial<ImportDraft>) => {
-    setDrafts((prev) => prev.map((d) => (d.key === key ? { ...d, ...patch } : d)));
+    setDrafts((prev) =>
+      prev.map((d) => {
+        if (d.key !== key) return d;
+        // 고친 칸의 프리뷰 오류는 지운다 — 그대로 두면 등록 버튼이 계속 막혔다.
+        // 값이 여전히 틀리면 확정 시 서버가 그 행만 실패로 돌려준다
+        const touched = [
+          ...("startDate" in patch || "endDate" in patch
+            ? ["시작일자", "종료일자", "종료일이 시작일"]
+            : []),
+          ...("hoursTotal" in patch || "hoursRecog" in patch ? ["교육시간", "인정시간"] : []),
+        ];
+        const errors = touched.length
+          ? d.errors.filter((e) => !touched.some((t) => e.includes(t)))
+          : d.errors;
+        return { ...d, ...patch, errors };
+      }),
+    );
   };
 
   /**
@@ -178,6 +200,7 @@ export function TrainingRecordImportDialog({ isOpen, onClose }: Props) {
           startDate: r.start_date ?? "",
           endDate: r.end_date ?? "",
           hoursTotal: r.hours_total ?? "",
+          hoursRecog: r.hours_recog ?? "",
           traineeId: r.trainee_id ?? null,
           traineeName: r.trainee_name ?? null,
           traineeGradeName: r.trainee_grade_name ?? null,
@@ -192,7 +215,7 @@ export function TrainingRecordImportDialog({ isOpen, onClose }: Props) {
       ]);
       setStage("preview");
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => toast.error(toUserMessage(e)),
   });
 
   const previewFiles = async (picked: File[]) => {
@@ -235,7 +258,7 @@ export function TrainingRecordImportDialog({ isOpen, onClose }: Props) {
     },
     onError: (e: Error) => {
       if (e instanceof DuplicateCancelledError) return;
-      toast.error(e.message);
+      toast.error(toUserMessage(e));
     },
   });
 
@@ -252,10 +275,14 @@ export function TrainingRecordImportDialog({ isOpen, onClose }: Props) {
 
   const confirmMutation = useMutation({
     mutationFn: () => {
-      const items = drafts
-        .filter(isIncluded)
-        .map((d) => ({
-          row_number: d.rowNumber,
+      // 여러 파일을 올리면 행 번호가 겹친다 — 요청에는 고유 순번을 쓰고, 결과 표시는 파일·원래 행으로 되돌린다
+      const included = drafts.filter(isIncluded);
+      submittedRowsRef.current = new Map(
+        included.map((d, i) => [i + 1, { fileName: d.fileName, rowNumber: d.rowNumber }]),
+      );
+      const items = included
+        .map((d, i) => ({
+          row_number: i + 1,
           name: d.name.trim(),
           cert_no: d.certNo.trim() || null,
           institution: d.institution.trim(),
@@ -263,6 +290,7 @@ export function TrainingRecordImportDialog({ isOpen, onClose }: Props) {
           start_date: d.startDate || null,
           end_date: d.endDate || null,
           hours_total: d.hoursTotal || null,
+          hours_recog: d.hoursRecog || null,
           trainee_id: d.traineeId as string,
         }));
       return postTrainingRecordImportConfirm(items, paidOnly);
@@ -273,7 +301,7 @@ export function TrainingRecordImportDialog({ isOpen, onClose }: Props) {
       queryClient.invalidateQueries({ queryKey: trainingRecordQueries.all() });
       toast.success(`교육내역 ${data.created}건을 등록했어요`);
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => toast.error(toUserMessage(e)),
   });
 
   const matchedCount = drafts.filter((d) => d.traineeId).length;
@@ -486,8 +514,16 @@ export function TrainingRecordImportDialog({ isOpen, onClose }: Props) {
                       />
                       <Input
                         disabled={!isIncluded(d)}
-                        value={d.hoursTotal}
-                        onChange={(e) => setDraft(d.key, { hoursTotal: e.target.value })}
+                        // 저장될 시수 = 인정시간(있으면) — 서버와 같은 우선순위로 보여 주고 고친다
+                        value={d.hoursRecog || d.hoursTotal}
+                        onChange={(e) =>
+                          setDraft(
+                            d.key,
+                            d.hoursRecog
+                              ? { hoursRecog: e.target.value }
+                              : { hoursTotal: e.target.value },
+                          )
+                        }
                       />
                       <span className="flex flex-wrap items-center gap-1">
                         {d.traineeId ? (
@@ -665,11 +701,17 @@ export function TrainingRecordImportDialog({ isOpen, onClose }: Props) {
                 등록 못한 행 {result.failed.length}건
               </p>
               <ul className="space-y-0.5 text-12 text-danger">
-                {result.failed.map((f) => (
-                  <li key={f.row_number}>
-                    {f.row_number}행 — {f.error}
-                  </li>
-                ))}
+                {result.failed.map((f) => {
+                  const src = submittedRowsRef.current.get(f.row_number);
+                  const where = src
+                    ? `${fileNames.length > 1 ? `${src.fileName} ` : ""}${src.rowNumber}행`
+                    : `${f.row_number}행`;
+                  return (
+                    <li key={f.row_number}>
+                      {where} — {f.error}
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           )}

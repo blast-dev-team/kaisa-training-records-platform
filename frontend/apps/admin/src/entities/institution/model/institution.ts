@@ -12,7 +12,8 @@ export interface Institution {
 
 export interface InstitutionInput {
   name: string
-  institution_code?: string
+  /** null = 코드 지우기(수정) */
+  institution_code?: string | null
   institution_type?: InstitutionType
   is_active?: boolean
 }
@@ -43,7 +44,8 @@ export interface CourseInput {
   name: string
   session_name_id?: string | null
   is_external?: boolean
-  course_code?: string
+  /** null = 코드 지우기(수정) */
+  course_code?: string | null
   description?: string | null
   total_hours: number
   category?: string | null

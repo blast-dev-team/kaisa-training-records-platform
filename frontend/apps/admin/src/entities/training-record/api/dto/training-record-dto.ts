@@ -19,7 +19,7 @@ export interface TrainingRecordDto {
   completed_hours: string | number | null
   started_at: string | null
   ended_at: string | null
-  source: 'internal' | 'external' | 'legacy_import'
+  source: 'internal' | 'external'
   completion_status: 'in_progress' | 'completed' | 'canceled'
   memo: string | null
   created_at: string

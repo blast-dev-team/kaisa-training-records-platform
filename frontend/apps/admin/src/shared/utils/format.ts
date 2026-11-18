@@ -46,7 +46,8 @@ export function toYMD(value: string | null | undefined): string | null {
   if (!value.includes('T')) return value.slice(0, 10)
   const d = new Date(value)
   if (isNaN(d.getTime())) return value.slice(0, 10)
-  return d.toLocaleDateString('sv-SE')
+  // 브라우저 시간대와 무관하게 KST 날짜 — 해외 접속에서도 문서 날짜가 같게
+  return d.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' })
 }
 
 /** 오늘 날짜 'YYYY-MM-DD' — 브라우저 로컬(=KST) 기준. toISOString()은 UTC라 KST 새벽에 어제가 된다. */

@@ -1,3 +1,5 @@
+import { toUserMessage } from "@/src/shared/lib/friendly-error";
+import { hoursError } from "@/src/shared/utils/hours";
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
@@ -16,12 +18,7 @@ import {
   type TrainingRecord,
   type TrainingRecordBulkUpdateItem,
 } from "@/src/entities/training-record";
-import {
-  buildUpdates,
-  rowsMissingCourse,
-  toRow,
-  type EditRow,
-} from "./training-record-bulk-edit-rows";
+import { buildUpdates, rowsMissingCourse, toRow, type EditRow, invalidHoursRows } from "./training-record-bulk-edit-rows";
 
 const INSTITUTION_TYPE_HINT: Record<string, string> = { internal: "사내", external: "외부" };
 
@@ -66,7 +63,7 @@ export function TrainingRecordBulkEditDialog({ isOpen, onClose, records, onSaved
       onSaved();
       onClose();
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => toast.error(toUserMessage(e)),
   });
 
   const setField = (id: string, patch: Partial<EditRow>) => {
@@ -89,6 +86,14 @@ export function TrainingRecordBulkEditDialog({ isOpen, onClose, records, onSaved
   };
 
   const handleSave = () => {
+    const badHours = invalidHoursRows(rows);
+    if (badHours.length > 0) {
+      // 첫 번째 잘못된 행의 구체적인 사유(음수·숫자 아님·상한 초과)를 함께 알린다
+      toast.error(
+        `${hoursError(badHours[0]?.totalHours, { label: "총 시수" })} (${badHours.length}건)`,
+      );
+      return;
+    }
     const missing = rowsMissingCourse(rows, originals);
     if (missing.length > 0) {
       toast.error(`기관을 바꾼 ${missing.length}건은 그 기관의 과정을 선택해 주세요`);
@@ -207,7 +212,7 @@ export function TrainingRecordBulkEditDialog({ isOpen, onClose, records, onSaved
       isOpen={isOpen}
       onClose={onClose}
       title={`이력 일괄 수정 (${records.length}건)`}
-      description="빈 칸으로 저장하면 그 값이 지워져요. 기관을 바꾸면 그 기관의 과정을 다시 골라 주세요. 변경한 행만 반영됩니다."
+      description="날짜를 비우면 그 값이 지워져요(총 시수는 비우면 변경하지 않아요). 기관을 바꾸면 그 기관의 과정을 다시 골라 주세요. 변경한 행만 반영됩니다."
       size="3xl"
       actions={[
         { label: "취소", onClick: onClose },

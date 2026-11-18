@@ -1,3 +1,4 @@
+import { isValidHours } from "@/src/shared/utils/hours";
 import type {
   TrainingRecord,
   TrainingRecordBulkUpdateItem,
@@ -33,6 +34,11 @@ export function toRow(record: TrainingRecord): EditRow {
 }
 
 /** 변경된 필드만 모은다 — 없은 필드는 생략(변경 없음), 빈값은 null(지우기) */
+/** 시수 칸에 잘못된 값(음수·숫자 아님·상한 초과)이 들어간 행 — 저장 전에 막는다 */
+export function invalidHoursRows(rows: EditRow[]): EditRow[] {
+  return rows.filter((r) => r.totalHours.trim() !== "" && !isValidHours(r.totalHours))
+}
+
 export function buildUpdates(
   rows: EditRow[],
   originals: Map<string, TrainingRecord>,
@@ -53,16 +59,11 @@ export function buildUpdates(
     const hours = (key: "totalHours") => {
       const value = row[key].trim();
       const before = orig[key] === null ? "" : String(orig[key]);
-      if (value !== before) {
-        if (value === "") {
-          patch[key] = null;
-        } else {
-          const num = Number(value);
-          if (Number.isNaN(num)) return; // 잘못된 숫자 — 이 필드만 건너뜀
-          patch[key] = num;
-        }
-        changed = true;
-      }
+      // 시수는 비울 수 없는 칸 — 빈 칸은 '변경 없음'으로 본다(예전엔 null 을 보내 서버 500)
+      if (value === "" || value === before) return;
+      if (!isValidHours(value)) return; // 잘못된 값 — 저장 전 invalidHoursRows 로 막는다
+      patch[key] = Number(value);
+      changed = true;
     };
 
     if (row.completionStatus !== orig.completionStatus) {

@@ -1,3 +1,4 @@
+import { toUserMessage } from "@/src/shared/lib/friendly-error";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -57,7 +58,7 @@ export function TraineeListPage() {
   /** id → Trainee — 페이지를 넘어 선택해도 일괄 모달에서 프리필할 수 있게 객체를 저장 */
   const [selected, setSelected] = useState<Record<string, Trainee>>({});
 
-  const { data } = useQuery(
+  const { data, error: listError, refetch: refetchList } = useQuery(
     traineeQueries.list({
       q,
       gradeId: gradeId || undefined,
@@ -100,7 +101,7 @@ export function TraineeListPage() {
       setDeleteTarget(null);
       queryClient.invalidateQueries({ queryKey: traineeQueries.all() });
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => toast.error(toUserMessage(e)),
   });
 
   const updateParams = (patch: Record<string, string | null>, resetPage = true) => {
@@ -510,7 +511,9 @@ export function TraineeListPage() {
       <AppTable
         columns={columns}
         data={items}
-        isLoading={!data}
+        isLoading={!data && !listError}
+        error={listError}
+        onRetry={() => void refetchList()}
         onRowClick={toggleRow}
         getRowClassName={getRowClassName}
         isRowSelected={(t) => t.id in selected}

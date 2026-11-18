@@ -1,3 +1,5 @@
+import { toUserMessage } from "@/src/shared/lib/friendly-error";
+import { hoursError, isValidHours } from "@/src/shared/utils/hours";
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
@@ -43,8 +45,13 @@ const diffItem = (s: CourseSession, d: RowDraft): CourseSessionBulkUpdateItemInp
   if (d.startedAt !== (s.startedAt ?? ""))
     item.started_at = d.startedAt === "" ? null : d.startedAt;
   if (d.endedAt !== (s.endedAt ?? "")) item.ended_at = d.endedAt === "" ? null : d.endedAt;
-  if (d.totalHours !== (s.totalHours != null ? String(s.totalHours) : ""))
-    item.total_hours = d.totalHours === "" ? null : Number(d.totalHours);
+  // 시수는 비울 수 없는 칸 — 빈 칸은 '변경 없음'(예전엔 null 을 보내 서버 500으로 전체 실패)
+  if (
+    d.totalHours.trim() !== "" &&
+    d.totalHours !== (s.totalHours != null ? String(s.totalHours) : "") &&
+    isValidHours(d.totalHours)
+  )
+    item.total_hours = Number(d.totalHours);
   if (d.isActive !== s.isActive) item.is_active = d.isActive;
   if (d.memo !== (s.memo ?? "")) item.memo = d.memo === "" ? null : d.memo;
   return Object.keys(item).length > 1 ? item : null;
@@ -93,6 +100,11 @@ export function CourseSessionBulkEditDialog({ isOpen, onClose, sessions, onDone 
     const d = rows[s.id];
     return !!d && d.startedAt !== "" && d.endedAt !== "" && d.endedAt < d.startedAt;
   });
+  // 음수·숫자 아님·상한 초과 — 음수 시수는 외부교육 16시간 한도를 우회할 수 있었다
+  const invalidHoursValues = sessions
+    .map((s) => rows[s.id]?.totalHours ?? "")
+    .filter((v) => v.trim() !== "" && !isValidHours(v));
+  const hoursInvalid = invalidHoursValues.length > 0;
 
   const mutation = useMutation({
     mutationFn: () => patchCourseSessionBulk({ items: changedItems }),
@@ -102,7 +114,7 @@ export function CourseSessionBulkEditDialog({ isOpen, onClose, sessions, onDone 
       onDone();
       onClose();
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => toast.error(toUserMessage(e)),
   });
 
   return (
@@ -118,7 +130,7 @@ export function CourseSessionBulkEditDialog({ isOpen, onClose, sessions, onDone 
           label: `${changedItems.length}개 저장`,
           variant: "primary",
           isLoading: mutation.isPending,
-          isDisabled: dateInvalid || changedItems.length === 0,
+          isDisabled: dateInvalid || hoursInvalid || changedItems.length === 0,
           onClick: () => mutation.mutate(),
         },
       ]}
@@ -126,6 +138,11 @@ export function CourseSessionBulkEditDialog({ isOpen, onClose, sessions, onDone 
       <div className="space-y-3">
         {dateInvalid && (
           <p className="text-12 text-danger">종료일이 시작일보다 앞선 일정이 있어요</p>
+        )}
+        {hoursInvalid && (
+          <p role="alert" className="text-12 text-danger">
+            {hoursError(invalidHoursValues[0], { label: "총 시수" })} ({invalidHoursValues.length}건)
+          </p>
         )}
         {sessions.map((s) => {
           const d = rows[s.id];

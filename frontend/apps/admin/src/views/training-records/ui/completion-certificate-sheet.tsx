@@ -1,5 +1,6 @@
 import associationSeal from "@/src/assets/association-seal.png";
 import type { CompletionCertificate } from "@/src/entities/training-record";
+import { toYMD } from "@/src/shared/utils/format";
 
 /** A4 @96dpi — PDF 1페이지와 1:1 대응 (확인서 시트와 같은 규격) */
 const PAGE_WIDTH = 794;
@@ -16,7 +17,10 @@ const PROOF_TEXT =
 /** 'YYYY-MM-DD' → 'YYYY년 M월 D일'. 형식이 아니면 원문 반환 */
 function formatKoreanDate(value: string | null): string {
   if (!value) return "";
-  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(value);
+  // 발급 시각(timestamptz)은 UTC 로 직렬화된다 — 앞 10자리를 자르면 KST 00~09시 발급분이
+  // 전날로 찍혔다. toYMD 로 KST 날짜를 먼저 구한다(날짜만 있는 값은 그대로)
+  const ymd = toYMD(value) ?? value;
+  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(ymd);
   if (!match) return value;
   const [, y, m, d] = match;
   return `${Number(y)}년 ${Number(m)}월 ${Number(d)}일`;

@@ -1,3 +1,4 @@
+import { toUserMessage } from '@/src/shared/lib/friendly-error';
 import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'react-toastify'
@@ -41,7 +42,7 @@ export function AdminUserListPage() {
 
 function AdminUserTable({ me }: { me: Me }) {
   const queryClient = useQueryClient()
-  const { data } = useQuery(adminUserQueries.list())
+  const { data, error: listError, refetch: refetchList } = useQuery(adminUserQueries.list())
 
   const [blockTarget, setBlockTarget] = useState<AdminUser | null>(null)
   const [editTarget, setEditTarget] = useState<AdminUser | null>(null)
@@ -50,11 +51,15 @@ function AdminUserTable({ me }: { me: Me }) {
     mutationFn: (input: { admin: AdminUser; status: 'active' | 'disabled' }) =>
       patchAdminUser(input.admin.id, { status: input.status }),
     onSuccess: (_d, input) => {
-      toast.success(input.status === 'disabled' ? '계정을 차단했어요' : '계정을 복구했어요')
+      toast.success(
+        input.status === 'disabled'
+          ? '계정을 차단하고 로그아웃시켰어요'
+          : '계정을 복구했어요. 다시 로그인하면 사용할 수 있어요',
+      )
       setBlockTarget(null)
       queryClient.invalidateQueries({ queryKey: adminUserQueries.all() })
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => toast.error(toUserMessage(e)),
   })
 
   const editMutation = useMutation({
@@ -69,7 +74,7 @@ function AdminUserTable({ me }: { me: Me }) {
       setEditTarget(null)
       queryClient.invalidateQueries({ queryKey: adminUserQueries.all() })
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => toast.error(toUserMessage(e)),
   })
 
   const columns = useMemo<ColumnDef<AdminUser, unknown>[]>(
@@ -130,14 +135,17 @@ function AdminUserTable({ me }: { me: Me }) {
               수정
             </Button>
             {row.original.status === 'active' ? (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-danger hover:text-danger"
-                onClick={() => setBlockTarget(row.original)}
-              >
-                차단
-              </Button>
+              // 내 계정은 차단할 수 없다(서버도 400) — 버튼을 보이지 않는다
+              row.original.id === me.id ? null : (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-danger hover:text-danger"
+                  onClick={() => setBlockTarget(row.original)}
+                >
+                  차단
+                </Button>
+              )
             ) : (
               <Button
                 variant="ghost"
@@ -154,7 +162,7 @@ function AdminUserTable({ me }: { me: Me }) {
         ),
       },
     ],
-    [statusMutation.isPending],
+    [statusMutation.isPending, me.id],
   )
 
   const items = data ?? []
@@ -169,7 +177,9 @@ function AdminUserTable({ me }: { me: Me }) {
       <AppTable
         columns={columns}
         data={items}
-        isLoading={!data}
+        isLoading={!data && !listError}
+        error={listError}
+        onRetry={() => void refetchList()}
         emptyMessage="관리자 계정이 없어요"
         columnDividers
       />
@@ -177,17 +187,17 @@ function AdminUserTable({ me }: { me: Me }) {
       <Dialog
         isOpen={blockTarget !== null}
         onClose={() => setBlockTarget(null)}
-        title="계정 차단"
+        title="계정을 차단할까요?"
         size="sm"
         description={
           blockTarget
-            ? `${blockTarget.name} (${blockTarget.email}) 님이 로그인할 수 없게 돼요.`
+            ? `${blockTarget.name} (${blockTarget.email}) 님은 지금 바로 로그아웃되고, 복구하기 전까지 로그인할 수 없어요.`
             : undefined
         }
         actions={[
           { label: '취소', onClick: () => setBlockTarget(null) },
           {
-            label: '차단',
+            label: '차단하고 로그아웃',
             variant: 'danger',
             isLoading: statusMutation.isPending,
             onClick: () => blockTarget && statusMutation.mutate({ admin: blockTarget, status: 'disabled' }),
@@ -195,7 +205,9 @@ function AdminUserTable({ me }: { me: Me }) {
         ]}
       >
         <p className="pt-1 text-13 text-ink-2">
-          차단해도 감사 로그는 남아요. 필요하면 복구할 수 있어요.
+          · 작업 중이던 내용은 저장되지 않을 수 있어요.<br />
+          · 복구해도 자동으로 로그인되지 않고, 다시 로그인해야 해요.<br />
+          · 지금까지의 감사 로그는 그대로 남아요.
         </p>
       </Dialog>
 

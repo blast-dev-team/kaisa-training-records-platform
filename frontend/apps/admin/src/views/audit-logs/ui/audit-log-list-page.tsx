@@ -32,7 +32,7 @@ export function AuditLogListPage() {
   const [detail, setDetail] = useState<AuditLog | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
-  const { data } = useQuery(
+  const { data, error: listError, refetch: refetchList } = useQuery(
     auditLogQueries.list({
       entityType: entityType || undefined,
       entityId: entityId || undefined,
@@ -187,7 +187,9 @@ export function AuditLogListPage() {
       <AppTable
         columns={columns}
         data={items}
-        isLoading={!data}
+        isLoading={!data && !listError}
+        error={listError}
+        onRetry={() => void refetchList()}
         emptyMessage="감사 로그가 없어요"
         onRowClick={setDetail}
         page={page}

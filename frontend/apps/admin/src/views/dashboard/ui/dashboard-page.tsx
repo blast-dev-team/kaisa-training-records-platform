@@ -132,7 +132,7 @@ export function DashboardPage() {
         <KpiCard
           title="심사 대기"
           value={reviews?.total}
-          to="/identity-reviews"
+          to="/identity-reviews?status=manual_review"
           hint="자동 매칭 실패 건 — 처리가 필요해요"
           emphasis
         />
@@ -140,13 +140,13 @@ export function DashboardPage() {
         <KpiCard
           title="발급된 확인서"
           value={certificates?.total}
-          to="/certificates"
+          to="/certificates?status=issued"
           hint="현재 유효한 발급 내역"
         />
         <KpiCard
           title="결제 완료"
           value={payments?.total}
-          to="/payment-orders"
+          to="/payment-orders?status=paid"
           hint="결제 완료 주문"
         />
       </div>

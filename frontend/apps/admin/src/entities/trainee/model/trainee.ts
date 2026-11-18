@@ -171,7 +171,8 @@ export interface MembershipGradeCreateInput {
 
 export interface MembershipGradeUpdateInput {
   name?: string
-  description?: string
+  /** null = 설명 지우기 */
+  description?: string | null
   sort_order?: number
   price_krw?: number
   is_active?: boolean

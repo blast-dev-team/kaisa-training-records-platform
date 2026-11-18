@@ -1,3 +1,4 @@
+import { toUserMessage } from "@/src/shared/lib/friendly-error";
 import { useMemo, useState } from "react";
 import { useSearchParams } from "react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -41,7 +42,7 @@ export function PaymentOrderListPage() {
   const [reason, setReason] = useState("");
 
   const queryClient = useQueryClient();
-  const { data } = useQuery(
+  const { data, error: listError, refetch: refetchList } = useQuery(
     paymentOrderQueries.list({
       status,
       search: q || undefined,
@@ -63,7 +64,7 @@ export function PaymentOrderListPage() {
       queryClient.invalidateQueries({ queryKey: certificateQueries.all() });
     },
     onError: (e: Error) => {
-      toast.error(e.message);
+      toast.error(toUserMessage(e));
       // 실패해도 서버 상태(환불 실패 기록 등)를 다시 읽는다
       queryClient.invalidateQueries({ queryKey: paymentOrderQueries.all() });
     },
@@ -80,7 +81,7 @@ export function PaymentOrderListPage() {
         queryClient.invalidateQueries({ queryKey: certificateQueries.all() });
       }
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => toast.error(toUserMessage(e)),
   });
 
   const updateParams = (patch: Record<string, string | null>, resetPage = true) => {
@@ -248,7 +249,9 @@ export function PaymentOrderListPage() {
       <AppTable
         columns={columns}
         data={items}
-        isLoading={!data}
+        isLoading={!data && !listError}
+        error={listError}
+        onRetry={() => void refetchList()}
         emptyMessage="결제 내역이 없어요"
         page={page}
         totalPages={totalPages}
