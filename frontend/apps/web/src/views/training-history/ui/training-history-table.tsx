@@ -41,7 +41,8 @@ const CELL_TEXT = "text-gray-700";
 const CELL_DIMMED = "text-gray-400";
 
 function formatYMD(ymd: string): string {
-  return ymd.replace(/-/g, ".");
+  // 기간 미기재 이력 — 빈 칸 대신 '-'
+  return ymd ? ymd.replace(/-/g, ".") : "-";
 }
 
 /**

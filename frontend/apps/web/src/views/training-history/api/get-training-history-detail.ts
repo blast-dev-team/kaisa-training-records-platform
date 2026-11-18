@@ -62,7 +62,8 @@ export async function getTrainingHistoryDetail(id: string): Promise<TrainingHist
     traineeName: data.trainee_name ?? undefined,
     applicantLabel: `${data.trainee_name ?? userName} (본인인증 완료)`,
     // 발급 게이트(3년·수료·기발급)는 서버 판정 값을 그대로 쓴다
-    certificateStatus: data.certificate_status ?? "issuable",
+    // 값이 없으면 발급 불가로 본다 — 목록 매퍼와 같은 기준(fail-closed)
+    certificateStatus: data.certificate_status ?? "unavailable",
     lastIssuedAt: data.last_issued_at ?? undefined,
   };
 }

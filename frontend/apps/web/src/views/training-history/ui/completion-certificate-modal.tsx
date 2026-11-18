@@ -1,3 +1,4 @@
+import { toUserMessage } from "@/src/shared/lib/friendly-error";
 import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 
@@ -160,9 +161,7 @@ export function CompletionCertificateModal({
       if (!previewOnly) onIssued?.();
     } catch (err) {
       showToast(
-        err instanceof Error
-          ? err.message
-          : "문제가 생겼어요. 잠시 후 다시 시도해 주세요",
+        toUserMessage(err, "문제가 생겼어요. 잠시 후 다시 시도해 주세요"),
       );
     } finally {
       setIsPdfGenerating(false);
@@ -195,9 +194,7 @@ export function CompletionCertificateModal({
         {isError ? (
           <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
             <p className="text-14 text-gray-700">
-              {preview.error instanceof Error
-                ? preview.error.message
-                : "문제가 생겼어요. 잠시 후 다시 시도해 주세요"}
+              {toUserMessage(preview.error, "문제가 생겼어요. 잠시 후 다시 시도해 주세요")}
             </p>
             <div className="flex gap-2">
               <Button

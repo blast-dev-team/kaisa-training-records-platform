@@ -102,7 +102,14 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   });
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
-    throw new Error(body.message ?? "문제가 생겼어요. 잠시 후 다시 시도해 주세요");
+    // 422 는 필드 오류(errors[])를 함께 보여 준다 — 어느 칸이 틀렸는지 알 수 있게
+    const fieldMessages: string[] = Array.isArray(body.errors)
+      ? body.errors
+          .map((e: { message?: unknown }) => (typeof e?.message === "string" ? e.message : ""))
+          .filter((m: string) => m !== "")
+      : [];
+    const base: string = body.message ?? "문제가 생겼어요. 잠시 후 다시 시도해 주세요";
+    throw new Error(fieldMessages.length ? `${base} — ${fieldMessages.join(", ")}` : base);
   }
   return response.json();
 }

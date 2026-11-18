@@ -1,3 +1,4 @@
+import { toUserMessage } from "@/src/shared/lib/friendly-error";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
 import { useSearchParams } from "react-router";
@@ -81,7 +82,7 @@ function MyInquiries() {
   if (isError) {
     return (
       <div className="flex flex-col items-center gap-3 rounded-xl border border-solid border-gray-200 bg-white px-4 py-12 text-14 text-gray-500">
-        <p>{error instanceof Error ? error.message : "문제가 생겼어요. 잠시 후 다시 시도해 주세요"}</p>
+        <p>{toUserMessage(error, "문제가 생겼어요. 잠시 후 다시 시도해 주세요")}</p>
         <Button variant="outlined" size="s" onClick={() => refetch()}>
           다시 시도
         </Button>
@@ -144,7 +145,7 @@ function NewInquiryForm({ onDone }: { onDone: () => void }) {
 
       {mutation.isError && (
         <p className="text-14 text-red-500">
-          {mutation.error instanceof Error ? mutation.error.message : "문의를 접수하지 못했어요"}
+          {toUserMessage(mutation.error, "문의를 접수하지 못했어요")}
         </p>
       )}
       <Button type="submit" size="l" fullWidth disabled={!isContentFilled(content) || mutation.isPending}>

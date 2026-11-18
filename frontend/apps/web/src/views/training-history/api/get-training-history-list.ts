@@ -80,7 +80,8 @@ interface TrainingRecordDto {
 
 function toItem(dto: TrainingRecordDto): TrainingHistoryItem {
   const startedOn = dto.started_at ?? "";
-  const endedOn = dto.ended_at ?? startedOn;
+  // 종료일을 시작일로 채우지 않는다 — 채우면 '수강 기간 없음' 잠금이 풀려 신청 시 서버가 400 을 냈다
+  const endedOn = dto.ended_at ?? "";
   return {
     id: dto.id,
     startedOn,
@@ -139,9 +140,11 @@ export async function getTrainingHistoryList(
     page: data.page ?? params.page,
     limit: data.limit ?? params.limit,
     totalPages: data.total_pages ?? Math.max(1, Math.ceil((data.total ?? 0) / params.limit)),
-    issuableCount: items.filter(
-      (item) => item.certificateStatus !== "unavailable",
-    ).length,
+    // 서버가 같은 필터 전체 기준으로 센 값(issuable_count) — 없으면(구 서버) 현재 페이지로 대체
+    issuableCount:
+      typeof data.issuable_count === "number"
+        ? data.issuable_count
+        : items.filter((item) => item.certificateStatus !== "unavailable").length,
     totalHoursSum: Number(data.total_hours_sum ?? 0),
   };
 }

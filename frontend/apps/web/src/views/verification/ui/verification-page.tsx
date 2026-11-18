@@ -1,3 +1,4 @@
+import { toUserMessage } from "@/src/shared/lib/friendly-error";
 import { useState, type FormEvent } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useSearchParams } from "react-router";
@@ -115,9 +116,7 @@ export function VerificationPage() {
 
             {lookupMutation.isError && (
               <p className="text-14 text-red-500">
-                {lookupMutation.error instanceof Error
-                  ? lookupMutation.error.message
-                  : "문제가 생겨요. 잠시 후 다시 시도해 주세요"}
+                {toUserMessage(lookupMutation.error, "문제가 생겼어요. 잠시 후 다시 시도해 주세요")}
               </p>
             )}
           </form>

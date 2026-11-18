@@ -1,3 +1,4 @@
+import { toUserMessage } from "@/src/shared/lib/friendly-error";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -244,9 +245,7 @@ export function IssuePaymentModal({
       showToast("다운로드했어요");
     } catch (err) {
       showToast(
-        err instanceof Error
-          ? err.message
-          : "문제가 생겼어요. 잠시 후 다시 시도해 주세요",
+        toUserMessage(err, "문제가 생겼어요. 잠시 후 다시 시도해 주세요"),
       );
     } finally {
       setIsPdfGenerating(false);
@@ -389,7 +388,7 @@ export function IssuePaymentModal({
             </p>
             {(reconfirm.error ?? payment.error) instanceof Error && (
               <p className="text-12 leading-normal text-red-500" role="alert">
-                {((reconfirm.error ?? payment.error) as Error).message}
+                {toUserMessage(reconfirm.error ?? payment.error, "결제를 확인하지 못했어요. 잠시 후 다시 시도해 주세요")}
               </p>
             )}
             <Button
@@ -416,9 +415,7 @@ export function IssuePaymentModal({
           ) : isError || !details ? (
             <div className="flex flex-col items-center gap-4 py-16 text-center">
               <p className="text-14 text-gray-700">
-                {error instanceof Error
-                  ? error.message
-                  : "문제가 생겨요. 잠시 후 다시 시도해 주세요"}
+                {toUserMessage(error, "문제가 생겼어요. 잠시 후 다시 시도해 주세요")}
               </p>
               <div className="flex gap-2">
                 <Button variant="outlined" color="gray" onClick={() => refetch()}>
@@ -549,9 +546,7 @@ export function IssuePaymentModal({
 
                 {payment.isError && (
                   <p className="text-12 leading-normal text-red-500" role="alert">
-                    {payment.error instanceof Error
-                      ? payment.error.message
-                      : "결제에 실패했어요. 잠시 후 다시 시도해 주세요"}
+                    {toUserMessage(payment.error, "결제에 실패했어요. 잠시 후 다시 시도해 주세요")}
                   </p>
                 )}
 
@@ -585,9 +580,7 @@ export function IssuePaymentModal({
             ) : issuance.isError || !issuance.data ? (
               <div className="flex flex-col items-center gap-4 py-16 text-center">
                 <p className="text-14 text-gray-700">
-                  {issuance.error instanceof Error
-                    ? issuance.error.message
-                    : "문제가 생겼어요. 잠시 후 다시 시도해 주세요"}
+                  {toUserMessage(issuance.error, "문제가 생겼어요. 잠시 후 다시 시도해 주세요")}
                 </p>
                 <Button
                   variant="outlined"

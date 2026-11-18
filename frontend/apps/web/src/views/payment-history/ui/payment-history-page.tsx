@@ -1,3 +1,4 @@
+import { toUserMessage } from "@/src/shared/lib/friendly-error";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { useSearchParams } from "react-router";
@@ -153,9 +154,7 @@ export function PaymentHistoryPage() {
         <div className="flex w-full flex-col overflow-hidden rounded-xl border border-solid border-gray-200">
           <div className="flex w-full flex-col items-center gap-3 bg-white px-4 py-12 text-14 text-gray-500">
             <p>
-              {error instanceof Error
-                ? error.message
-                : "문제가 생겼어요. 잠시 후 다시 시도해 주세요"}
+              {toUserMessage(error, "문제가 생겼어요. 잠시 후 다시 시도해 주세요")}
             </p>
             <Button
               variant="outlined"

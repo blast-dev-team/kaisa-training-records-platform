@@ -149,20 +149,26 @@ export async function confirmIssuancePayment(orderNo: string): Promise<void> {
   clearPendingIssuance();
 }
 
+/** 사용자가 결제창을 닫거나 취소한 경우 — 코드 리터럴이 SDK 타입에 없어 문자열로 판별 */
+export function isUserCancelled(code: unknown): boolean {
+  const text = String(code ?? "").toUpperCase();
+  return text.includes("WINDOW_CLOSED") || text.includes("USER_CANCEL");
+}
+
 export async function postIssuancePayment(params: {
   items: IssuanceRequestItem[];
 }): Promise<IssuancePaymentResult> {
-  if (!STORE_ID || !CHANNEL_KEY) {
-    throw new Error("결제 설정이 없어요. 관리자에게 문의해 주세요");
-  }
-
   const requests = await createRequests(params.items);
 
-  // 유료 주문이 없으면 서버가 이미 발급까지 완료했다 (0원 등급)
+  // 유료 주문이 없으면 서버가 이미 발급까지 완료했다 (0원 등급).
+  // 결제 설정 검사는 이 뒤에 한다 — 예전에는 결제가 필요 없는 0원 발급도 설정이 없으면 막혔다
   const orderNo =
     requests.find((request) => request.order_no !== null)?.order_no ?? null;
   if (orderNo === null) {
     return { orderId: null };
+  }
+  if (!STORE_ID || !CHANNEL_KEY) {
+    throw new Error("결제 설정이 없어요. 관리자에게 문의해 주세요");
   }
 
   // 서버 주문 금액 = 유료 건 최고 단가 1회 (단 건·일괄 건 동일 요금 정책)
@@ -196,6 +202,10 @@ export async function postIssuancePayment(params: {
     }
     if (response.code) {
       clearPendingIssuance();
+      // SDK v2 는 사용자 취소도 예외가 아니라 response.code 로 돌려준다 — 취소와 실패를 구분해 안내
+      if (isUserCancelled(response.code)) {
+        throw new Error("결제가 취소되었어요. 다시 시도해 주세요");
+      }
       throw new Error("결제에 실패했어요. 잠시 후 다시 시도해 주세요");
     }
   } catch (error) {
@@ -209,7 +219,7 @@ export async function postIssuancePayment(params: {
       });
       clearPendingIssuance();
       // 결제창을 직접 닫은 케이스 — 코드 리터럴이 SDK 타입에 없어 문자열로 판별
-      if (String(error.code).includes("WINDOW_CLOSED")) {
+      if (isUserCancelled(error.code)) {
         throw new Error("결제가 취소되었어요. 다시 시도해 주세요");
       }
       throw new Error("결제에 실패했어요. 잠시 후 다시 시도해 주세요");

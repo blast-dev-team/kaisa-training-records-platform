@@ -19,13 +19,10 @@ function classifyFeature(pathname: string): string {
 }
 
 /**
- * fetch 래퍼 — 요청 본문(최대 2KB)과 실패 응답 본문(최대 1KB)을 Sentry
- * 브레드크럼으로 남긴다. 비회원 에러는 사용자 식별이 없으므로 "어떤 요청에
- * 어떤 값을 보냈길래 터졌는지"가 유일한 단서다.
+ * fetch 래퍼 — 실패한 요청의 URL·메서드·상태·오류 코드를 Sentry 브레드크럼으로 남긴다.
  *
- * 개인정보(이름·전화번호)가 본문에 실릴 수 있다 — 운영 합의 하에 수집하며,
- * Sentry 기본 스크러빙(authorization 등 denylist)은 그대로 적용된다.
- * Request 객체로 부리는 호출은 본문을 읽지 않는다(스트림 소비 문제).
+ * 요청 본문은 수집하지 않는다 — 비회원 문의 비밀번호·연락처, 생년월일 같은 개인정보가
+ * 실리기 때문(2026-11-18). 응답도 본문 대신 오류 코드(code)만 남긴다.
  */
 function wrapFetch(): void {
   const original = window.fetch.bind(window);
@@ -36,31 +33,28 @@ function wrapFetch(): void {
         : input.url;
     const method =
       init?.method ?? (input instanceof Request ? input.method : "GET");
-    const requestBody =
-      typeof init?.body === "string" ? init.body.slice(0, 2000) : undefined;
 
     const response = await original(input, init);
-    try {
-      let responseBody: string | undefined;
-      if (!response.ok) {
-        responseBody = (await response.clone().text()).slice(0, 1000);
-      }
-      if (requestBody !== undefined || !response.ok) {
+    // 실패한 요청만 남긴다 — 요청 본문은 남기지 않는다(비회원 문의 비밀번호·연락처, 생년월일 등
+    // 개인정보가 실린다). 응답은 오류 코드만 꺼내 남긴다
+    if (!response.ok) {
+      try {
+        let errorCode: string | undefined;
+        try {
+          const body = (await response.clone().json()) as { code?: unknown };
+          errorCode = typeof body?.code === "string" ? body.code : undefined;
+        } catch {
+          errorCode = undefined;
+        }
         Sentry.addBreadcrumb({
           category: "fetch",
           type: "http",
-          level: response.ok ? "info" : "error",
-          data: {
-            url,
-            method,
-            status_code: response.status,
-            request_body: requestBody,
-            response_body: responseBody,
-          },
+          level: "error",
+          data: { url, method, status_code: response.status, error_code: errorCode },
         });
+      } catch {
+        // 브레드크럼 기록 실패가 본 요청에 영향을 주지 않게
       }
-    } catch {
-      // 브레드크럼 기록 실패가 본 요청에 영향을 주지 않게
     }
     return response;
   };
@@ -84,11 +78,11 @@ export function initSentry(): void {
     release: import.meta.env.VITE_RELEASE || undefined,
     // 성능 트레이싱 10% 샘플. 에러 수집은 전량.
     tracesSampleRate: 0.1,
-    // SDK 기본 fetch·xhr 브레드크럼은 아래 래퍼(요청·응답 본문 포함)로 대체한다.
-    // 본문이 없는 래퍼 브레드크럼(성공한 GET 등)은 남긴다.
+    // SDK 기본 fetch·xhr 브레드크럼(성공 요청)은 버리고, 래퍼가 남긴 실패 브레드크럼만 둔다.
+    // 예전에는 request_body 유무로 걸러 본문 없는 실패 GET(401·500)이 사라졌다
     beforeBreadcrumb: (breadcrumb) =>
       (breadcrumb.category === "fetch" || breadcrumb.category === "xhr") &&
-      breadcrumb.data?.request_body === undefined
+      breadcrumb.level !== "error"
         ? null
         : breadcrumb,
     beforeSend(event) {

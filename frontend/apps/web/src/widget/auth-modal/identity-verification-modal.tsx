@@ -1,3 +1,4 @@
+import { toUserMessage } from "@/src/shared/lib/friendly-error";
 import { useEffect, useState } from "react";
 
 import { postPassComplete } from "@/src/shared/api/post-pass-complete";
@@ -111,9 +112,7 @@ export function IdentityVerificationModal({ onSuccess, onClose }: IdentityVerifi
       onSuccess(user.name ?? name.trim());
     } catch (error) {
       setErrorMessage(
-        error instanceof Error
-          ? error.message
-          : "본인인증에 실패했어요. 잠시 후 다시 시도해 주세요",
+        toUserMessage(error, "본인인증에 실패했어요. 잠시 후 다시 시도해 주세요"),
       );
     } finally {
       setIsPending(false);

@@ -1,3 +1,4 @@
+import { toUserMessage } from "@/src/shared/lib/friendly-error";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router";
@@ -71,9 +72,7 @@ export function PaymentCompletePage() {
       <ResultPanel
         title="결제를 확인하고 있어요"
         description={
-          confirm.error instanceof Error
-            ? confirm.error.message
-            : "결제 확인이 늦어지고 있어요. 다시 결제하지 말고 잠시 후 다시 확인해 주세요"
+          toUserMessage(confirm.error, "결제 확인이 늦어지고 있어요. 다시 결제하지 말고 잠시 후 다시 확인해 주세요")
         }
       >
         <Button

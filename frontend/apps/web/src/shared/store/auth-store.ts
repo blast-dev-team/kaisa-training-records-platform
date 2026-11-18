@@ -5,6 +5,25 @@ const SESSION_TTL_MINUTES = 10;
 
 let expireTimer: ReturnType<typeof setTimeout> | null = null;
 
+/** 기본 표시명 — 인증 해제 시 이전 사람 이름이 남지 않게 되돌린다 */
+const DEFAULT_USER_NAME = "홍○○ 님";
+
+/** 탭 간 인증 상태 동기화 — 한 탭에서 연장·해제하면 다른 탭도 같은 만료 시각·상태를 쓴다 */
+type AuthSyncMessage =
+  | { type: "signIn"; expiresAt: number }
+  | { type: "signOut" };
+const authChannel: BroadcastChannel | null =
+  typeof BroadcastChannel !== "undefined" ? new BroadcastChannel("kaisa-auth") : null;
+let applyingRemote = false;
+function broadcast(message: AuthSyncMessage): void {
+  if (applyingRemote || !authChannel) return;
+  try {
+    authChannel.postMessage(message);
+  } catch {
+    // 동기화 실패는 무시 — 각 탭은 자기 타이머로도 동작한다
+  }
+}
+
 interface AuthState {
   /** 본인인증(PASS) 완료 여부 — 세션 동안 유지 */
   isAuthenticated: boolean;
@@ -44,7 +63,7 @@ interface AuthState {
 export const useAuthStore = create<AuthState>((set, get) => ({
   isAuthenticated: false,
   traineeLinked: true,
-  userName: "홍○○ 님",
+  userName: DEFAULT_USER_NAME,
   isSuper: false,
   isSessionExpired: false,
   expiresAt: null,
@@ -60,26 +79,60 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }, ttlMs);
     // 미지정이면 현재 값 유지 — 인증 모달이 먼저 setTraineeLinked(false) 한 뒤
     // 호출부가 signIn(userName) 하면서 true 로 덮어 심사 대기 회원이 목록에 들어가던 문제
+    const nextExpiresAt = expiresAt ?? Date.now() + SESSION_TTL_MINUTES * 60 * 1000;
     set((state) => ({
       isAuthenticated: true,
       traineeLinked: traineeLinked ?? state.traineeLinked,
       isSuper: isSuper ?? state.isSuper,
       userName: userName ?? state.userName,
-      expiresAt: expiresAt ?? Date.now() + SESSION_TTL_MINUTES * 60 * 1000,
+      expiresAt: nextExpiresAt,
     }));
+    broadcast({ type: "signIn", expiresAt: nextExpiresAt });
   },
   signOut: () => {
     if (expireTimer) {
       clearTimeout(expireTimer);
       expireTimer = null;
     }
+    const wasAuthenticated = get().isAuthenticated;
     set({
       isAuthenticated: false,
       traineeLinked: true,
       isSuper: false,
       expiresAt: null,
+      // 같은 탭에서 다음 사람이 인증할 때 이름이 비어 오면 이전 사람 이름이 보이던 문제
+      userName: DEFAULT_USER_NAME,
     });
+    if (wasAuthenticated) broadcast({ type: "signOut" });
   },
   setTraineeLinked: (linked) => set({ traineeLinked: linked }),
   clearSessionExpired: () => set({ isSessionExpired: false }),
 }));
+
+// 다른 탭의 연장·해제를 반영 — 연장하면 이 탭도 새 만료 시각으로 타이머를 다시 잡고,
+// 해제하면 이 탭도 인증을 내린다(서버 세션은 이미 끝났다)
+authChannel?.addEventListener("message", (event: MessageEvent<AuthSyncMessage>) => {
+  const message = event.data;
+  const state = useAuthStore.getState();
+  applyingRemote = true;
+  try {
+    if (message?.type === "signOut" && state.isAuthenticated) {
+      state.signOut();
+    } else if (message?.type === "signIn" && state.isAuthenticated) {
+      state.signIn(undefined, message.expiresAt);
+    }
+  } finally {
+    applyingRemote = false;
+  }
+});
+
+/** 회원 API 가 세션 종료(401 SESSION_EXPIRED·UNAUTHORIZED)를 알리면 인증 상태를 내린다 —
+ *  FE 타이머만 믿으면 다른 탭에서 해제했거나 서버가 세션을 먼저 끝냈을 때 화면마다 오류만 났다. */
+export function handleSessionEndResponse(status: number, code: unknown): void {
+  if (status !== 401) return;
+  if (code !== undefined && code !== "SESSION_EXPIRED" && code !== "UNAUTHORIZED") return;
+  const state = useAuthStore.getState();
+  if (!state.isAuthenticated) return;
+  state.signOut();
+  useAuthStore.setState({ isSessionExpired: true });
+}

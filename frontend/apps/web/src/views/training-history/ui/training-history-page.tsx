@@ -1,3 +1,4 @@
+import { toUserMessage } from "@/src/shared/lib/friendly-error";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router";
@@ -197,8 +198,13 @@ export function TrainingHistoryPage() {
   /** 누른 행(Shift 면 범위)을 누른 행의 반대 상태로 맞춘다 */
   const toggleRow = (item: TrainingHistoryItem) => {
     const exists = selectedIds.includes(item.id);
+    // 선택이 비어 있으면 누른 행의 상태로 범위를 고정한다 — Shift 범위에 다른 상태(수료증 전용 등)가
+    // 섞이면 결제 단계에서 서버가 전체를 거절했다
+    const lockCategory = selectedCategory ?? rowCategory(item);
     // 실제로 상태가 바뀌는 행만 — 이미 같은 상태인 행은 카운트에서 뺀다
-    const changed = pickRange(item).filter((t) => selectedIds.includes(t.id) === exists);
+    const changed = pickRange(item).filter(
+      (t) => selectedIds.includes(t.id) === exists && (exists || rowCategory(t) === lockCategory),
+    );
     const changedIds = new Set(changed.map((t) => t.id));
     const next = exists
       ? selectedIds.filter((id) => !changedIds.has(id))
@@ -216,11 +222,19 @@ export function TrainingHistoryPage() {
 
   const toggleAll = () => {
     const byId = new Map(items.map((item) => [item.id, item]));
-    const added = allSelected ? [] : checkableIds.filter((id) => !selectedIds.includes(id));
+    // 선택이 비어 있으면 첫 체크 가능 행의 상태로 먼저 고정하고 그 상태의 행만 담는다 —
+    // 예전에는 발급 가능 행과 수료증 전용 행을 함께 담아 유료 발급이 결제 단계에서 400 이 났다
+    const firstCheckable = items.find(isRowCheckable);
+    const lockCategory =
+      selectedCategory ?? (firstCheckable ? rowCategory(firstCheckable) : null);
+    const targetIds = checkableIds.filter(
+      (id) => lockCategory === null || rowCategory(byId.get(id)!) === lockCategory,
+    );
+    const added = allSelected ? [] : targetIds.filter((id) => !selectedIds.includes(id));
     const removed = allSelected ? checkableIds.filter((id) => selectedIds.includes(id)) : [];
     const next = allSelected
       ? selectedIds.filter((id) => !checkableIds.includes(id))
-      : [...new Set([...selectedIds, ...checkableIds])];
+      : [...new Set([...selectedIds, ...targetIds])];
     setSelectedIds(next);
     const ineligible = (id: string) => byId.get(id)?.completionCertIssuable !== true;
     setSelectedNotCertEligible((count) =>
@@ -230,9 +244,7 @@ export function TrainingHistoryPage() {
       setSelectedCategory(null);
       setSelectedNotCertEligible(0);
     } else if (selectedCategory === null) {
-      // checkableIds는 카테고리가 비어 있을 때만 섞여 있을 수 있다 — 첫 행 상태가 그 카테고리
-      const first = items.find((item) => item.id === next[0]);
-      setSelectedCategory(first ? rowCategory(first) : null);
+      setSelectedCategory(lockCategory);
     }
   };
 
@@ -446,9 +458,7 @@ export function TrainingHistoryPage() {
         <div className="flex w-full flex-col overflow-hidden rounded-xl border border-solid border-gray-200">
           <div className="flex w-full flex-col items-center gap-3 bg-white px-4 py-12 text-14 text-gray-500">
             <p>
-              {error instanceof Error
-                ? error.message
-                : "문제가 생겼어요. 잠시 후 다시 시도해 주세요"}
+              {toUserMessage(error, "문제가 생겼어요. 잠시 후 다시 시도해 주세요")}
             </p>
             <Button
               variant="outlined"
