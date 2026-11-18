@@ -9,13 +9,14 @@ from decimal import Decimal, InvalidOperation
 import openpyxl
 from openpyxl.utils.exceptions import InvalidFileException
 from sqlalchemy import select
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import DBAPIError, IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.audit import record_audit
 from app.core.crypto import decrypt_field, name_hash
 from app.core.error_codes import api_error
 from app.core.kst import now_kst
+from app.core.validation import HOURS_MAX
 from app.domain.auth.model import AdminUser
 from app.domain.institution.model.training_course import TrainingCourse
 from app.domain.institution.model.training_institution import TrainingInstitution
@@ -146,6 +147,24 @@ async def create_records_bulk(
     return len(records), skipped, cap_excluded
 
 
+def _derive_source(institution, current: str | None = None) -> str:
+    """소스는 기관 구분을 따른다 — 지정된 사내 기관만 internal, 그 외(외부·미지정·미연결)는 external.
+
+    '이관'(legacy_import) 표시는 더 이상 쓰지 않는다 — 수정 시 기관 구분으로 다시 맞춘다.
+    current 는 호출부 호환용으로만 받는다.
+    """
+    del current
+    return external_hours.institution_source(institution)
+
+
+def _ensure_period_order(started_at, ended_at) -> None:
+    """종료일이 시작일보다 앞서면 422 — 일정(course_session)과 같은 규칙."""
+    if started_at and ended_at and ended_at < started_at:
+        raise api_error(
+            "VALIDATION_ERROR", message="종료일이 시작일보다 앞설 수 없어요"
+        )
+
+
 async def create_record(
     db: AsyncSession, data: TrainingRecordCreate, actor: AdminUser
 ) -> TrainingRecord:
@@ -163,17 +182,17 @@ async def create_record(
         if course is None:
             raise api_error("NOT_FOUND", message="과정을 찾을 수 없어요")
     institution = None
-    if data.institution_id:
-        institution = await inst_repo.find_institution_by_id(db, data.institution_id)
+    institution_id = data.institution_id
+    # 과정만 연결하면 기관은 과정 마스터의 기관을 따른다 (docs/admin/api.md 등록 규칙)
+    if institution_id is None and course is not None:
+        institution_id = course.institution_id
+    if institution_id:
+        institution = await inst_repo.find_institution_by_id(db, institution_id)
         if institution is None:
             raise api_error("NOT_FOUND", message="교육기관을 찾을 수 없어요")
+    _ensure_period_order(data.started_at, data.ended_at)
 
-    # 소스는 기관 구분을 따른다 — 외부 기관이면 external, 그 외(사내·미연결)는 internal
-    source = (
-        "external"
-        if institution is not None and institution.institution_type == "external"
-        else "internal"
-    )
+    source = _derive_source(institution)
 
     course_name = course.name if course else data.course_name
     institution_name = institution.name if institution else data.institution_name
@@ -214,7 +233,7 @@ async def create_record(
                     training_record_no=_record_no(),
                     trainee_id=data.trainee_id,
                     course_id=data.course_id,
-                    institution_id=data.institution_id,
+                    institution_id=institution_id,
                     course_name=course_name,
                     institution_name=institution_name,
                     total_hours=total_hours if total_hours is not None else 0,
@@ -274,8 +293,46 @@ async def update_record(
     ):
         record.completed_at = now_kst()
 
+    # 과정·기관을 바꾸면 이름 스냅샷(확인서에 찍히는 값)과 소스도 같이 맞춘다 — 일괄 수정과 동일
+    course = None
+    if (
+        updates.get("course_id") is not None
+        and updates["course_id"] != record.course_id
+    ):
+        course = await inst_repo.find_course_by_id(db, updates["course_id"])
+        if course is None:
+            raise api_error("NOT_FOUND", message="과정을 찾을 수 없어요")
+        if "institution_id" not in updates:
+            updates["institution_id"] = course.institution_id
+    institution = None
+    institution_changed = (
+        "institution_id" in updates
+        and updates["institution_id"] != record.institution_id
+    )
+    if institution_changed and updates["institution_id"] is not None:
+        institution = await inst_repo.find_institution_by_id(
+            db, updates["institution_id"]
+        )
+        if institution is None:
+            raise api_error("NOT_FOUND", message="교육기관을 찾을 수 없어요")
+    _ensure_period_order(
+        updates.get("started_at", record.started_at),
+        updates.get("ended_at", record.ended_at),
+    )
+
     for field, value in updates.items():
         setattr(record, field, value)
+    if course is not None:
+        record.course_name = course.name
+        updates["course_name"] = course.name
+    if institution is not None:
+        record.institution_name = institution.name
+        updates["institution_name"] = institution.name
+    if institution_changed:
+        new_source = _derive_source(institution, record.source)
+        if new_source != record.source:
+            record.source = new_source
+            updates["source"] = new_source
     # 시수는 총 시수 하나로 관리 — 이수 시수는 총 시수를 따라간다
     if "total_hours" in updates:
         record.completed_hours = record.total_hours
@@ -343,11 +400,17 @@ async def bulk_update_records(
             k: _audit_str(getattr(record, k)) for k in (*tracked, *snapshot_fields)
         }
 
+        _ensure_period_order(
+            updates.get("started_at", record.started_at),
+            updates.get("ended_at", record.ended_at),
+        )
         if course is not None:
             record.course_name = course.name
             record.institution_name = course.institution.name
         for field, value in updates.items():
             setattr(record, field, value)
+        if course is not None:
+            record.source = _derive_source(course.institution, record.source)
         # 시수는 총 시수 하나로 관리 — 이수 시수는 총 시수를 따라간다
         if "total_hours" in updates:
             record.completed_hours = record.total_hours
@@ -639,14 +702,57 @@ def _import_date_cell(value) -> str | None:
     return _import_cell(value)
 
 
+# 셀 안의 숫자 토큰 — 부호는 숫자 바로 앞의 '-' 만 인정(음수는 범위 오류로 알린다)
+_HOURS_NUMBER = re.compile(r"(?<![\d.])-?\d+(?:\.\d+)?")
+# 천 단위 구분 쉼표(1,000) — 숫자 사이 쉼표 뒤에 정확히 세 자리가 올 때만 지운다
+_THOUSANDS_COMMA = re.compile(r"(?<=\d),(?=\d{3}(?!\d))")
+
+
 def _import_hours(value) -> Decimal | None:
+    """시수 셀 → Decimal. 숫자로 바로 읽히지 않으면 셀 안의 숫자만 읽어 본다.
+
+    '8' · '8.5' → 그대로, '8시간' · '1.5h' · '약 4 시간' → 숫자 하나만 있으면 그 숫자.
+    숫자가 없거나 둘 이상('8시간 30분', '8~10')이면 None(행 오류 — 어느 값인지 단정할 수 없다).
+    """
     v = _import_cell(value)
     if v is None:
         return None
     try:
-        return Decimal(v)
+        d = Decimal(v)
+        if d.is_finite():
+            return d
+    except InvalidOperation:
+        pass
+    numbers = _HOURS_NUMBER.findall(_THOUSANDS_COMMA.sub("", str(v)))
+    if len(numbers) != 1:
+        return None
+    try:
+        d = Decimal(numbers[0])
     except InvalidOperation:
         return None
+    return d if d.is_finite() else None
+
+
+def _import_hours_error(value, label: str) -> str | None:
+    """시수 셀 검증 — 숫자를 하나로 읽을 수 없거나 범위를 벗어나면 행 오류로 알린다.
+
+    처음에는 읽을 수 없는 값('8시간')이 0시간으로 조용히 저장되고, 범위를 넘는 값은
+    확정 시 DB 오류(500)로 배치 전체를 롤백시켰다. 이제 '8시간'처럼 숫자가 하나뿐이면
+    그 숫자로 읽고, 숫자가 없거나 여럿이면 행 오류로 돌린다.
+    """
+    raw = _import_cell(value)
+    if raw is None:
+        return None
+    hours = _import_hours(value)
+    if hours is None:
+        if not _HOURS_NUMBER.search(str(raw)):
+            return f"{label}에 숫자가 없어요 (예: 8 또는 8시간)"
+        return f"{label}에 숫자가 여러 개라 시간을 정할 수 없어요 (숫자 하나만, 예: 8)"
+    if hours < 0:
+        return f"{label}은 0 이상이어야 해요"
+    if hours > HOURS_MAX:
+        return f"{label}은 {HOURS_MAX:,} 이하로 입력해 주세요"
+    return None
 
 
 def _narrow_by_birth(hits, birth):
@@ -817,6 +923,13 @@ async def import_preview(db: AsyncSession, content: bytes) -> TrainingRecordImpo
             errors.append("시작일자를 읽을 수 없어요 (예: 2025.06.01)")
         if r["end"] and _import_date(r["end"]) is None:
             errors.append("종료일자를 읽을 수 없어요 (예: 2025.06.30)")
+        _s, _e = _import_date(r["start"]), _import_date(r["end"])
+        if _s and _e and _e < _s:
+            errors.append("종료일이 시작일보다 앞설 수 없어요")
+        for _label, _key in (("교육시간", "hours_total"), ("인정시간", "hours_recog")):
+            _err = _import_hours_error(r[_key], _label)
+            if _err:
+                errors.append(_err)
 
         hit = None
         if r["cert_no"]:
@@ -976,6 +1089,15 @@ async def import_confirm(
         if item.end_date and ended is None:
             failed.append((item.row_number, "종료일자를 읽을 수 없어요"))
             continue
+        if started and ended and ended < started:
+            failed.append((item.row_number, "종료일이 시작일보다 앞설 수 없어요"))
+            continue
+        hours_error = _import_hours_error(
+            item.hours_total, "교육시간"
+        ) or _import_hours_error(item.hours_recog, "인정시간")
+        if hours_error:
+            failed.append((item.row_number, hours_error))
+            continue
         # 기관 매칭 — 내부 기관(internal)이면 내부 데이터로 그대로 등록하고,
         # 매칭되지 않으면 외부 기관·외부 교육으로 등록한다.
         # 기관명은 유니크가 아니라 같은 이름이 여럿일 수 있다 — scalar_one_or_none 은
@@ -1037,6 +1159,7 @@ async def import_confirm(
                 failed.append((item.row_number, external_hours.exceeded_message(before)))
                 continue
         saved = False
+        save_error: str | None = None
         for _ in range(5):
             try:
                 async with db.begin_nested():
@@ -1061,8 +1184,15 @@ async def import_confirm(
                     )
             except IntegrityError:
                 continue  # 번호 충돌 — 재채번
+            except DBAPIError as exc:
+                # 이 행만 실패로 돌린다 — 예전에는 배치 전체가 500 으로 롤백됐다
+                save_error = f"저장하지 못했어요 ({type(exc.orig).__name__})"
+                break
             saved = True
             break
+        if not saved and save_error:
+            failed.append((item.row_number, save_error))
+            continue
         if saved:
             created += 1
             if counts_toward_cap:

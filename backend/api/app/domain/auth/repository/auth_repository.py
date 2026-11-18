@@ -3,6 +3,7 @@ import uuid
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.validation import LIKE_ESCAPE, like_contains
 from app.domain.auth.model import AdminAllowedEmail, AdminUser
 
 
@@ -36,7 +37,9 @@ async def list_allowed_emails(
 ) -> list[AdminAllowedEmail]:
     stmt = select(AdminAllowedEmail)
     if search:
-        stmt = stmt.where(AdminAllowedEmail.email.ilike(f"%{search}%"))
+        stmt = stmt.where(
+            AdminAllowedEmail.email.ilike(like_contains(search), escape=LIKE_ESCAPE)
+        )
     stmt = stmt.order_by(AdminAllowedEmail.created_at.desc())
     result = await db.execute(stmt)
     return list(result.scalars().all())

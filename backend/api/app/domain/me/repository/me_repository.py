@@ -5,6 +5,7 @@ from decimal import Decimal
 from sqlalchemy import ColumnElement, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.validation import LIKE_ESCAPE, like_contains
 from app.domain.certificate.model import Certificate, CertificateRequest
 from app.domain.payment.model import PaymentAttempt, PaymentOrder
 from app.domain.training_record.model import TrainingRecord
@@ -36,8 +37,12 @@ async def list_member_records(
     if search:
         conditions.append(
             or_(
-                TrainingRecord.course_name.ilike(f"%{search}%"),
-                TrainingRecord.institution_name.ilike(f"%{search}%"),
+                TrainingRecord.course_name.ilike(
+                    like_contains(search), escape=LIKE_ESCAPE
+                ),
+                TrainingRecord.institution_name.ilike(
+                    like_contains(search), escape=LIKE_ESCAPE
+                ),
             )
         )
     if ended_from:
@@ -63,6 +68,55 @@ async def list_member_records(
     )
     records = list((await db.execute(stmt)).scalars().all())
     return records, int(total), hours_sum
+
+
+async def count_issuable_member_records(
+    db: AsyncSession,
+    trainee_id: uuid.UUID | None,
+    window_start: date,
+    search: str | None = None,
+    ended_from: date | None = None,
+    ended_to: date | None = None,
+    all_records: bool = False,
+) -> int:
+    """목록과 같은 필터에서 '발급 가능' 이력 수 — 화면 요약의 발급 가능 N건(전체 기준).
+
+    판정은 me_service._certificate_fields 와 같다: 수료 완료 · 수강 기간 있음 · 최근 3년.
+    교육생 미연결 회원(데모 이력)은 발급할 수 없으므로 0.
+    """
+    if trainee_id is None and not all_records:
+        return 0
+    conditions: list[ColumnElement[bool]] = [
+        TrainingRecord.deleted_at.is_(None),
+        TrainingRecord.completion_status == "completed",
+        TrainingRecord.started_at.is_not(None),
+        TrainingRecord.ended_at.is_not(None),
+        TrainingRecord.started_at >= window_start,
+    ]
+    if not all_records:
+        conditions.append(TrainingRecord.trainee_id == trainee_id)
+    if search:
+        conditions.append(
+            or_(
+                TrainingRecord.course_name.ilike(
+                    like_contains(search), escape=LIKE_ESCAPE
+                ),
+                TrainingRecord.institution_name.ilike(
+                    like_contains(search), escape=LIKE_ESCAPE
+                ),
+            )
+        )
+    if ended_from:
+        conditions.append(TrainingRecord.ended_at >= ended_from)
+    if ended_to:
+        conditions.append(TrainingRecord.ended_at <= ended_to)
+    return int(
+        (
+            await db.execute(
+                select(func.count()).select_from(TrainingRecord).where(*conditions)
+            )
+        ).scalar_one()
+    )
 
 
 async def find_downloadable_record(

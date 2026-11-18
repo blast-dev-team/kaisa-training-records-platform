@@ -9,9 +9,11 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from scalar_fastapi import get_scalar_api_reference
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.core.config import settings
 from app.core.scheduler import run_daily_task
+from app.core.validation_messages import to_user_errors
 from app.domain.audit.router import router as audit_log_router
 from app.domain.auth.router import (
     admin_user_router,
@@ -101,7 +103,7 @@ logger = logging.getLogger(__name__)
 
 
 async def membership_expiry_job() -> None:
-    """연간 회원 만료 자동 일반 전환 — 일일 스케줄러가 매일 KST 09:00 실행한다."""
+    """연간 회원 만료 자동 일반 전환 — 일일 스케줄러가 매일 KST 00:00 에 실행한다(lifespan hour=0)."""
     from app.core.database import async_session
     from app.domain.trainee.service import trainee_service
 
@@ -154,13 +156,50 @@ app.add_middleware(
 # 여기서 api-design.md 형태로 언래핑해 응답한다.
 
 
-@app.exception_handler(HTTPException)
-async def http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:
+# 라우팅 단계의 404/405 는 starlette HTTPException 으로 올라온다 — fastapi HTTPException 은
+# 그 하위 클래스라 상위 클래스에 등록해야 둘 다 공통 포맷 {code, message} 로 나간다.
+_ROUTING_ERRORS = {
+    404: ("NOT_FOUND", "요청한 정보를 찾을 수 없어요"),
+    405: ("METHOD_NOT_ALLOWED", "지원하지 않는 요청 방식이에요"),
+}
+
+
+_STATUS_FALLBACK = {
+    400: ("BAD_REQUEST", "요청이 올바르지 않아요"),
+    401: ("UNAUTHORIZED", "로그인이 필요해요"),
+    403: ("FORBIDDEN", "접근 권한이 없어요"),
+    **_ROUTING_ERRORS,
+    413: ("PAYLOAD_TOO_LARGE", "파일이 너무 커요"),
+    415: ("UNSUPPORTED_MEDIA_TYPE", "지원하지 않는 파일 형식이에요"),
+    429: ("TOO_MANY_ATTEMPTS", "시도가 잦아요. 잠시 후 다시 시도해 주세요"),
+}
+
+
+@app.exception_handler(StarletteHTTPException)
+async def http_exception_handler(
+    request: Request, exc: StarletteHTTPException
+) -> JSONResponse:
+    headers = getattr(exc, "headers", None)
     if isinstance(exc.detail, dict):
-        return JSONResponse(status_code=exc.status_code, content=exc.detail)
+        return JSONResponse(
+            status_code=exc.status_code, content=exc.detail, headers=headers
+        )
+    if not isinstance(exc, HTTPException) and exc.status_code in _ROUTING_ERRORS:
+        code, message = _ROUTING_ERRORS[exc.status_code]
+        return JSONResponse(
+            status_code=exc.status_code,
+            content={"code": code, "message": message},
+            headers=headers,
+        )
+    # 문자열 detail(라이브러리·프레임워크 내부 문구)은 화면에 그대로 내보내지 않는다
+    logger.info("HTTPException %s: %s", exc.status_code, exc.detail)
+    code, message = _STATUS_FALLBACK.get(
+        exc.status_code, ("INTERNAL_ERROR", "요청을 처리하지 못했어요. 잠시 후 다시 시도해 주세요")
+    )
     return JSONResponse(
         status_code=exc.status_code,
-        content={"code": "INTERNAL_ERROR", "message": str(exc.detail)},
+        content={"code": code, "message": message},
+        headers=headers,
     )
 
 
@@ -168,17 +207,12 @@ async def http_exception_handler(request: Request, exc: HTTPException) -> JSONRe
 async def validation_exception_handler(
     request: Request, exc: RequestValidationError
 ) -> JSONResponse:
-    errors = [
-        {"field": ".".join(str(loc) for loc in err["loc"]), "message": err["msg"]}
-        for err in exc.errors()
-    ]
+    # pydantic 영문 메시지 대신 필드별 한국어 문장 — 대표 메시지는 첫 번째 오류로
+    errors = to_user_errors(list(exc.errors()))
+    message = errors[0]["message"] if errors else "입력값을 확인해 주세요"
     return JSONResponse(
         status_code=422,
-        content={
-            "code": "VALIDATION_ERROR",
-            "message": "입력값을 확인해 주세요",
-            "errors": errors,
-        },
+        content={"code": "VALIDATION_ERROR", "message": message, "errors": errors},
     )
 
 

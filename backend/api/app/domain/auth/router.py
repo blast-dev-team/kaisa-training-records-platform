@@ -173,10 +173,17 @@ async def list_admin_users(
 async def update_admin_user(
     admin_id: uuid.UUID,
     body: AdminUserUpdate,
+    request: Request,
     db: AsyncSession = Depends(get_db),
     actor: AdminUser = Depends(require_super),
 ):
-    return await auth_service.update_admin_user(db, admin_id, body, actor)
+    return await auth_service.update_admin_user(
+        db,
+        admin_id,
+        body,
+        actor,
+        current_token=_session_token(request, settings.ADMIN_SESSION_COOKIE_NAME),
+    )
 
 
 # ── 화이트리스트 (super) — 관리자 초대는 총관리자만 ───────────────────────────────────────────────────────

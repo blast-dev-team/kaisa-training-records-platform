@@ -5,6 +5,7 @@ from sqlalchemy import func, or_, select, tuple_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.crypto import name_hash
+from app.core.validation import LIKE_ESCAPE, like_contains
 from app.domain.trainee.model import MembershipGrade, Trainee
 from app.domain.trainee.repository.trainee_hours import (
     HOURS_SORT_KEYS,
@@ -67,14 +68,16 @@ async def list_trainees(
     """
     stmt = select(Trainee).where(Trainee.deleted_at.is_(None))
     if search:
-        pattern = f"%{search}%"
+        pattern = like_contains(search)
         stmt = stmt.where(
             or_(
                 Trainee.name_hash == name_hash(search),
-                Trainee.trainee_no.ilike(pattern),
-                Trainee.cert_no.ilike(pattern),  # 감리원증번호
-                Trainee.senior_cert_no.ilike(pattern),  # 수석감리원증번호
-                Trainee.email.ilike(pattern),
+                Trainee.trainee_no.ilike(pattern, escape=LIKE_ESCAPE),
+                Trainee.cert_no.ilike(pattern, escape=LIKE_ESCAPE),  # 감리원증번호
+                Trainee.senior_cert_no.ilike(
+                    pattern, escape=LIKE_ESCAPE
+                ),  # 수석감리원증번호
+                Trainee.email.ilike(pattern, escape=LIKE_ESCAPE),
             )
         )
     if review_status:

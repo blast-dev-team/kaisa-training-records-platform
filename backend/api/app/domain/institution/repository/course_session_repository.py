@@ -4,6 +4,7 @@ from datetime import date
 from sqlalchemy import and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.validation import LIKE_ESCAPE, like_contains
 from app.domain.institution.model import (
     CourseSession,
     TrainingCourse,
@@ -75,7 +76,7 @@ async def list_sessions(
             stmt = stmt.where(CourseSession.started_at <= date_to)
             count_stmt = count_stmt.where(CourseSession.started_at <= date_to)
     if search:
-        pattern = f"%{search}%"
+        pattern = like_contains(search)
         matched_courses = (
             select(TrainingCourse.id)
             .join(
@@ -83,8 +84,8 @@ async def list_sessions(
                 TrainingInstitution.id == TrainingCourse.institution_id,
             )
             .where(
-                TrainingCourse.name.ilike(pattern)
-                | TrainingInstitution.name.ilike(pattern)
+                TrainingCourse.name.ilike(pattern, escape=LIKE_ESCAPE)
+                | TrainingInstitution.name.ilike(pattern, escape=LIKE_ESCAPE)
             )
         )
         cond = CourseSession.course_id.in_(matched_courses)

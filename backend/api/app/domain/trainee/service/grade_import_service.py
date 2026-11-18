@@ -18,7 +18,10 @@ import zipfile
 from datetime import date, timedelta
 
 import openpyxl
+from fastapi import HTTPException
 from openpyxl.utils.exceptions import InvalidFileException
+from pydantic import EmailStr, TypeAdapter, ValidationError
+from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.audit import record_audit
@@ -50,6 +53,19 @@ ANNUAL = "annual"
 GRADE_IMPORT_MAX_ROWS = 2000  # 협회 명부는 행 수가 500 을 넘는다(실측 1,087행)
 
 _EMAIL_RE = re.compile(r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$")
+# 확정 시 TraineeUpdate(EmailStr)와 같은 기준 — 정규식만 통과하고 확정에서 터지던 값을 프리뷰에서 거른다
+_EMAIL_ADAPTER = TypeAdapter(EmailStr)
+
+
+def _is_valid_email(value: str) -> bool:
+    if not _EMAIL_RE.match(value):
+        return False
+    try:
+        _EMAIL_ADAPTER.validate_python(value)
+    except ValidationError:
+        return False
+    return True
+
 
 # 헤더 별칭 — 컬럼명이 제각각인 협회 명부 형식 대응
 _HEADER_ALIASES: dict[str, tuple[str, ...]] = {
@@ -317,8 +333,10 @@ class _RowIndexes:
         self.by_name: dict[str, list[Trainee]] = {}
         self.by_birth: dict[date, list[Trainee]] = {}
         for t in trainees:
-            if t.cert_no and t.cert_no.strip() not in self.by_cert:
-                self.by_cert[t.cert_no.strip()] = t
+            # 수석감리원은 cert_no 가 비고 senior_cert_no 만 있을 수 있다 — 둘 다 색인
+            for no in (t.cert_no, t.senior_cert_no):
+                if no and no.strip() not in self.by_cert:
+                    self.by_cert[no.strip()] = t
             if t.birth_date:
                 self.by_hash_birth.setdefault((t.name_hash, t.birth_date), t)
                 self.by_birth.setdefault(t.birth_date, []).append(t)
@@ -439,7 +457,7 @@ def _evaluate_row(
         if row.email:
             if ev.match.email:
                 ev.contact_skip = "시스템에 이미 등록된 이메일이 있어요"
-            elif _EMAIL_RE.match(row.email):
+            elif _is_valid_email(row.email):
                 ev.email = row.email
             else:
                 ev.contact_skip = "이메일 형식이 올바르지 않아요"
@@ -648,7 +666,32 @@ async def confirm_grade_import(
             result.unchanged += 1
             continue
 
-        await _apply_update(db, trainee, TraineeUpdate(**update_data), actor)
+        # 행 단위로 격리 — 한 행의 검증·저장 오류가 배치 전체(500)를 무너뜨리지 않게
+        try:
+            async with db.begin_nested():
+                await _apply_update(db, trainee, TraineeUpdate(**update_data), actor)
+        except ValidationError:
+            result.failed.append(
+                {
+                    "row_number": item.row_number,
+                    "error": "연락처 형식이 올바르지 않아요",
+                }
+            )
+            continue
+        except HTTPException as exc:
+            detail = exc.detail if isinstance(exc.detail, dict) else {}
+            result.failed.append(
+                {
+                    "row_number": item.row_number,
+                    "error": detail.get("message", "적용하지 못했어요"),
+                }
+            )
+            continue
+        except DBAPIError:
+            result.failed.append(
+                {"row_number": item.row_number, "error": "저장하지 못했어요"}
+            )
+            continue
         changed_any = True
         if grade_was_same:
             result.contact_filled += 1

@@ -8,6 +8,7 @@ from app.core.database import get_db
 from app.core.dependencies import get_current_trainee, require_admin
 from app.core.response import PagedResponse
 from app.domain.auth.model import AdminUser
+from app.domain.payment.repository import payment_repository as payment_repo
 from app.domain.payment.schema import (
     PaymentConfirmResponse,
     PaymentOrderResponse,
@@ -61,7 +62,14 @@ async def list_payment_orders(
     _: AdminUser = Depends(require_admin),
 ):
     orders, total, doc_counts, first_course_names = await refund_service.list_orders(
-        db, trainee_id=trainee_id, status=status, date_from=date_from, date_to=date_to, search=search, page=page, limit=limit
+        db,
+        trainee_id=trainee_id,
+        status=status,
+        date_from=date_from,
+        date_to=date_to,
+        search=search,
+        page=page,
+        limit=limit,
     )
     return PagedResponse(
         items=[
@@ -78,6 +86,16 @@ async def list_payment_orders(
     )
 
 
+async def _order_response(db: AsyncSession, order) -> PaymentOrderResponse:
+    """목록과 같은 모양(결제자·등급·문서 수) — 예전에는 model_validate 로 이 값들이 비었다."""
+    doc_counts, first_course_names = await payment_repo.order_docs(db, [order.id])
+    return PaymentOrderResponse.from_orm(
+        order,
+        doc_count=doc_counts.get(order.id, 0),
+        first_course_name=first_course_names.get(order.id),
+    )
+
+
 @admin_router.post("/{order_id}/refunds", response_model=PaymentOrderResponse)
 async def refund_payment_order(
     order_id: uuid.UUID,
@@ -85,8 +103,10 @@ async def refund_payment_order(
     db: AsyncSession = Depends(get_db),
     admin: AdminUser = Depends(require_admin),
 ):
-    order = await refund_service.refund_order(db, order_id, body.reason, admin, body.force)
-    return PaymentOrderResponse.model_validate(order)
+    order = await refund_service.refund_order(
+        db, order_id, body.reason, admin, body.force
+    )
+    return await _order_response(db, order)
 
 
 _RECONCILE_MESSAGES = {
@@ -116,5 +136,5 @@ async def reconcile_payment_order(
     return PaymentReconcileResponse(
         outcome=outcome,
         message=error or _RECONCILE_MESSAGES.get(outcome),
-        order=PaymentOrderResponse.model_validate(order),
+        order=await _order_response(db, order),
     )

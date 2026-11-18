@@ -129,7 +129,9 @@ async def _issue_certificates(
             except IntegrityError:
                 again = await repo.find_by_record_ids(db, [rid])
                 if rid in again:
-                    cert = again[rid]  # 남이 먼저 발급함 — 멱등 채택
+                    # 남이 먼저 발급함 — 멱등 채택. 응답에도 포함해야 한다
+                    # (예전에는 break 로 append 를 건너뛰어 응답에서 빠졌다)
+                    certificates.append(again[rid])
                     break
                 continue  # 번호 충돌 — 재채번 후 재시도
             if actor_admin_id is not None:
@@ -165,10 +167,18 @@ async def issue_completion_certificates(
 ) -> list[CompletionCertificate]:
     """발급(어드민) — 내부 기관 수료내역 전용."""
     rows = (
-        await db.execute(
-            select(TrainingRecord).where(TrainingRecord.id.in_(record_ids))
+        (
+            await db.execute(
+                # 삭제(soft-delete)된 이력은 발급 대상이 아니다 — 미리보기·확인서 신청 경로와 같은 기준
+                select(TrainingRecord).where(
+                    TrainingRecord.id.in_(record_ids),
+                    TrainingRecord.deleted_at.is_(None),
+                )
+            )
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
     by_id = {record.id: record for record in rows}
     if any(rid not in by_id for rid in record_ids):
         raise api_error("NOT_FOUND", message="교육내역을 찾을 수 없어요")
@@ -187,20 +197,25 @@ async def issue_completion_certificates_for_trainee(
     타인 이력 요청은 404 로 응답해 존재 여부를 노출하지 않는다.
     """
     rows = (
-        await db.execute(
-            select(TrainingRecord).where(TrainingRecord.id.in_(record_ids))
+        (
+            await db.execute(
+                # 삭제(soft-delete)된 이력은 발급 대상이 아니다 — 미리보기·확인서 신청 경로와 같은 기준
+                select(TrainingRecord).where(
+                    TrainingRecord.id.in_(record_ids),
+                    TrainingRecord.deleted_at.is_(None),
+                )
+            )
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
     by_id = {record.id: record for record in rows}
     if any(
-        rid not in by_id or by_id[rid].trainee_id != trainee.id
-        for rid in record_ids
+        rid not in by_id or by_id[rid].trainee_id != trainee.id for rid in record_ids
     ):
         raise api_error("NOT_FOUND", message="교육내역을 찾을 수 없어요")
     _ensure_issuable(by_id, record_ids)
-    return await _issue_certificates(
-        db, by_id, record_ids, None
-    )
+    return await _issue_certificates(db, by_id, record_ids, None)
 
 
 async def build_preview_completion_certificate(
@@ -220,9 +235,7 @@ async def build_preview_completion_certificate(
         "certificate_no": "",
         "training_record_id": record.id,
         "trainee_id": record.trainee_id,
-        "trainee_name": (
-            decrypt_field(trainee.name_encrypted) if trainee else None
-        ),
+        "trainee_name": (decrypt_field(trainee.name_encrypted) if trainee else None),
         "trainee_birth_date": trainee.birth_date if trainee else None,
         "course_name": record.course_name,
         "session_name": await _session_name(db, record),

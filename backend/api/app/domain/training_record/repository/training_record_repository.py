@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.crypto import name_hash
 from app.core.kst import KST
+from app.core.validation import LIKE_ESCAPE, like_contains
 from app.domain.institution.model import TrainingInstitution
 from app.domain.trainee.model import Trainee
 from app.domain.training_record.model import TrainingRecord
@@ -92,11 +93,11 @@ async def list_records(
     if search:
         # 과정명·기관명 스냅샷은 부분 검색, 교육생 성명은 암호화 저장이라
         # blind index 로 '전체 이름 일치'만 지원한다
-        pattern = f"%{search}%"
+        pattern = like_contains(search)
         conditions.append(
             or_(
-                TrainingRecord.course_name.ilike(pattern),
-                TrainingRecord.institution_name.ilike(pattern),
+                TrainingRecord.course_name.ilike(pattern, escape=LIKE_ESCAPE),
+                TrainingRecord.institution_name.ilike(pattern, escape=LIKE_ESCAPE),
                 TrainingRecord.trainee_id.in_(
                     select(Trainee.id).where(Trainee.name_hash == name_hash(search))
                 ),

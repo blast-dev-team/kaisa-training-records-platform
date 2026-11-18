@@ -107,8 +107,8 @@ async def issue_certificates(
 ):
     """어드민 발급 저장 — 결제 없이 감리원별 묶음(문서 1건)씩 발급을 확정한다.
 
-    문서번호는 그룹(발급 이벤트)당 1회 채번된다. 이미 유효 발급분이 있는
-    내역은 skipped 로 돌아온다 — 재발급은 WEB 경로로만 한다.
+    문서번호는 그룹(발급 이벤트)당 1회 채번된다. 이미 발급된 내역이 있어도
+    매번 새 문서로 발급한다(서비스 docstring 과 동일 — skipped 결과는 없다).
     """
     groups = [(g.trainee_id, g.record_ids) for g in body.groups]
     results = await certificate_admin_service.issue_certificates(db, groups, admin)

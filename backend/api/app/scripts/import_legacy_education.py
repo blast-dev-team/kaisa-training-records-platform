@@ -109,17 +109,33 @@ def _resolve_existing_trainee(
 ) -> Trainee | None:
     """EDU-{no} 로 못 찾은 감리원의 기존 행 수렴 — 어드민 수동 생성분(TR-) 포함.
 
-    ① 증번호 정확 일치(cert·senior 양축) ② 이름+생년. 증번호가 여러 행에
-    걸치면(미통합 중복 쌍) 이름+생년으로 유일하게 좁혀질 때만 수렴한다.
+    ① 증번호 정확 일치(cert·senior 양축) ② 이름+생년. 증번호는 유일 식별자라
+    후보가 여럿이어도(미통합 중복 쌍) 생년으로 좁힌 뒤 첫 행으로 수렴한다 — 이미
+    운영에 반영된 이관과 결과를 같게 유지하기 위해 동작은 바꾸지 않고, 유일하게
+    좁혀지지 않은 경우는 경고 로그로 남겨 수동 확인 대상으로 드러낸다.
     """
     if cert_no:
         candidates = by_cert.get(cert_no.strip(), [])
         if candidates:
             if birth is None:
-                # 생년 없이는 좁힐 수 없다 — 증번호는 유일 식별자라 첫 행으로 수렴
+                if len(candidates) > 1:
+                    logger.warning(
+                        "[감리원 수렴] 증번호 %s 후보 %s명 — 생년 없음, 첫 행(%s)으로 수렴. 수동 확인 필요",
+                        cert_no,
+                        len(candidates),
+                        getattr(candidates[0], "trainee_no", None),
+                    )
                 return candidates[0]
             narrowed = [c for c in candidates if str(c.birth_date) == str(birth)]
             if narrowed:
+                if len(narrowed) > 1:
+                    logger.warning(
+                        "[감리원 수렴] 증번호 %s·생년 %s 후보 %s명 — 첫 행(%s)으로 수렴. 수동 확인 필요",
+                        cert_no,
+                        birth,
+                        len(narrowed),
+                        getattr(narrowed[0], "trainee_no", None),
+                    )
                 return narrowed[0]
             # 전원 생년 불일치 — 다른 사람 가능성, 이름+생년으로 재판정
     if birth is not None:
@@ -452,10 +468,10 @@ async def import_legacy_education(xlsx_path: str) -> None:
                     ended_at=session.ended_at if session else None,
                     # 내역 구분은 기관 구분을 따른다 — policy: source = institution_type
                     source=(
-                        "external"
+                        "internal"
                         if course is not None
-                        and course.institution.institution_type == "external"
-                        else "internal"
+                        and course.institution.institution_type == "internal"
+                        else "external"
                     ),
                     completion_status="completed",
                 )
@@ -593,9 +609,9 @@ async def import_legacy_education(xlsx_path: str) -> None:
                     ended_at=_parse_date(row[3]),
                     # 내역 구분은 기관 구분을 따른다 — 외부교육 시트라도 협회 과정이면 internal
                     source=(
-                        "external"
-                        if institution.institution_type == "external"
-                        else "internal"
+                        "internal"
+                        if institution.institution_type == "internal"
+                        else "external"
                     ),
                     completion_status="completed",
                 )

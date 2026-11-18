@@ -69,7 +69,7 @@ async def get_my_training_records(
     user: User = Depends(get_current_user),
 ):
     """본인 이력 + 공용 데모 이력. 교육생 미연결 신규 회원도 데모 이력을 본다."""
-    records, total, hours_sum = await me_service.list_member_records(
+    records, total, hours_sum, issuable_count = await me_service.list_member_records(
         db,
         user,
         search=search,
@@ -84,6 +84,7 @@ async def get_my_training_records(
         page=page,
         limit=limit,
         total_hours_sum=float(hours_sum),
+        issuable_count=issuable_count,
     )
 
 

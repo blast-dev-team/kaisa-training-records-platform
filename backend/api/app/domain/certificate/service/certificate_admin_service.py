@@ -104,7 +104,7 @@ async def issue_certificates(
         certificates: list[Certificate] = []
         for record_id in dict.fromkeys(record_ids):  # 요청 내 중복 제거
             record = await db.get(TrainingRecord, record_id)
-            if record is None:
+            if record is None or record.deleted_at is not None:
                 raise api_error("NOT_FOUND", message="교육이력을 찾을 수 없어요")
             if record.trainee_id != trainee.id:
                 raise api_error(

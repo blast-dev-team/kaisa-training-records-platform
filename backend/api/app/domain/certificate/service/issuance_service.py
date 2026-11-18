@@ -176,7 +176,7 @@ async def issue_certificate(
         )
 
     request.status = "issued"
-    request.issued_at = issued_at
+    request.issued_at = request.issued_at or issued_at
     await db.flush()
     return certificate
 

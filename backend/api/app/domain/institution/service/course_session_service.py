@@ -68,13 +68,8 @@ async def count_records_for_sessions(
 
 
 def _source_for(course: TrainingCourse) -> str:
-    """일정 내역 구분 = 소속 기관 구분. 외부 기관만 external."""
-    institution = course.institution
-    return (
-        "external"
-        if institution is not None and institution.institution_type == "external"
-        else "internal"
-    )
+    """일정 내역 구분 = 소속 기관 구분. 지정된 사내 기관만 internal, 그 외는 external."""
+    return external_hours.institution_source(course.institution)
 
 
 async def create_session(
@@ -311,6 +306,10 @@ async def create_records_for_session(
         trainee = await db.get(Trainee, trainee_id)
         if trainee is None:
             raise api_error("NOT_FOUND", message="교육생을 찾을 수 없어요")
+        if trainee.deleted_at is not None:
+            # 삭제된 교육생 — 오래된 목록·엑셀 매칭으로 넘어와도 이력을 만들지 않는다
+            skipped += 1
+            continue
         if trainee_id in external_now:
             before = external_now[trainee_id]
             if external_hours.would_exceed(before, before + session.total_hours):
@@ -333,12 +332,7 @@ async def create_records_for_session(
                 started_at=session.started_at,
                 ended_at=session.ended_at,
                 # 내역 구분은 기관 구분을 따른다 — 일정 기본값이 아니라 원칙 적용
-                source=(
-                    "external"
-                    if course.institution is not None
-                    and course.institution.institution_type == "external"
-                    else "internal"
-                ),
+                source=external_hours.institution_source(course.institution),
                 completion_status=completion_status,
                 completed_at=now_kst() if completion_status == "completed" else None,
                 memo=memo,

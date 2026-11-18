@@ -2,7 +2,9 @@ import uuid
 from datetime import date, datetime
 from decimal import Decimal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator
+
+from app.core.validation import Hours, reject_explicit_null
 
 
 class SessionCreate(BaseModel):
@@ -14,7 +16,7 @@ class SessionCreate(BaseModel):
     course_id: uuid.UUID
     started_at: date | None = None
     ended_at: date | None = None
-    total_hours: Decimal = Decimal(0)
+    total_hours: Hours = Decimal(0)
     is_active: bool = True
     # 외부 교육 체크 — 연결된 감리원 내역이 source='external' 로 저장된다
     source: str = "internal"  # internal | external
@@ -26,10 +28,15 @@ class SessionUpdate(BaseModel):
     course_id: uuid.UUID | None = None
     started_at: date | None = None
     ended_at: date | None = None
-    total_hours: Decimal | None = None
+    total_hours: Hours | None = None
     is_active: bool | None = None
     source: str | None = None  # internal | external
     memo: str | None = None
+
+    @model_validator(mode="after")
+    def _not_null(self):
+        reject_explicit_null(self, ("course_id", "total_hours", "is_active", "source"))
+        return self
 
 
 class SessionBulkUpdateItem(BaseModel):
@@ -38,9 +45,14 @@ class SessionBulkUpdateItem(BaseModel):
     id: uuid.UUID
     started_at: date | None = None
     ended_at: date | None = None
-    total_hours: Decimal | None = None
+    total_hours: Hours | None = None
     is_active: bool | None = None
     memo: str | None = None
+
+    @model_validator(mode="after")
+    def _not_null(self):
+        reject_explicit_null(self, ("total_hours", "is_active"))
+        return self
 
 
 class SessionBulkUpdate(BaseModel):

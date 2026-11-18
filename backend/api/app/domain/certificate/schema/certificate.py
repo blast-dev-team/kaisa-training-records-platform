@@ -1,8 +1,9 @@
 import uuid
 from datetime import date, datetime
 from decimal import Decimal
+from typing import Annotated
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, StringConstraints
 
 from app.core.crypto import try_decrypt_field
 
@@ -105,4 +106,5 @@ class CertificateIssueResult(BaseModel):
 
 
 class CertificateRevokeRequest(BaseModel):
-    reason: str
+    # 철회 사유 — 공백만은 감사 기록이 비므로 거절 (환불 사유와 같은 규칙)
+    reason: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1)]

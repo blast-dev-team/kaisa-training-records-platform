@@ -113,11 +113,13 @@ async def confirm_order(
         attempt.paid_amount_krw = order.amount_krw
         attempt.payment_method = (result.get("method") or {}).get("type")
         attempt.receipt_url = result.get("receiptUrl") or result.get("receipt_url")
-        attempt.paid_at = now
+        attempt.paid_at = (
+            attempt.paid_at or now
+        )  # 동시 처리(웹훅+confirm) 시 최초 시각 유지
         attempt.raw_response = result
 
     order.status = "paid"
-    order.paid_at = now
+    order.paid_at = order.paid_at or now
 
     requests = await _find_requests(db, order)
     # 결제 1건으로 발급된 N건 = 묶음 확인서 1건 — 문서번호도 이벤트당 1개
@@ -125,7 +127,7 @@ async def confirm_order(
     certificates = []
     for request in requests:
         request.status = "paid"
-        request.paid_at = now
+        request.paid_at = request.paid_at or now
         certificates.append(
             await issuance_service.issue_certificate(
                 db, request, order.id, doc_no=doc_no
@@ -213,18 +215,45 @@ async def reconcile_order(
     if not is_open:
         return "closed"
     if status in _PORTONE_CLOSED_STATUSES:
-        await close_order(db, order, "failed" if status == "FAILED" else "canceled")
-        await db.commit()
-        return "closed"
+        return await _close_if_still_unpaid(
+            db, order, "failed" if status == "FAILED" else "canceled"
+        )
     if status not in (None, "READY"):
         # PAY_PENDING·PENDING·VIRTUAL_ACCOUNT_ISSUED 등 — 앱카드·ISP 인증처럼 결제가
         # 진행 중이다. 닫고 새 주문을 만들면 둘 다 결제될 수 있으므로 닫지 않는다
         return "in_progress"
     if close_unpaid or _is_stale(order):
-        await close_order(db, order)
+        return await _close_if_still_unpaid(db, order)
+    return "pending"
+
+
+async def _close_if_still_unpaid(
+    db: AsyncSession, order: PaymentOrder, status: str = "canceled"
+) -> str:
+    """PortOne 응답을 기다리는 사이 결제가 끝났을 수 있다 — 주문 행을 잠그고 다시 읽은 뒤 닫는다.
+
+    예전에는 PortOne 호출 전에 읽은 주문 객체로 바로 닫아, 그 사이 confirm 이 커밋한
+    결제 완료(paid) 주문을 canceled 로 덮어썼다(환불 불가 상태).
+    """
+    locked = (
+        await db.execute(
+            select(PaymentOrder)
+            .where(PaymentOrder.id == order.id)
+            .with_for_update(of=PaymentOrder)
+            .execution_options(populate_existing=True)
+        )
+    ).scalar_one_or_none()
+    if locked is None:
+        return "closed"
+    if locked.status == "paid" or await _find_certificates(db, locked.id):
+        await db.commit()  # 잠금 해제
+        return "issued"
+    if locked.status not in ("ready", "pending"):
         await db.commit()
         return "closed"
-    return "pending"
+    await close_order(db, locked, status)
+    await db.commit()
+    return "closed"
 
 
 def _is_stale(order: PaymentOrder) -> bool:

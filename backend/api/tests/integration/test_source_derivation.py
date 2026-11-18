@@ -1,7 +1,8 @@
 """통합 — 교육내역 등록 시 소스는 기관 구분을 따라 파생된다.
 
 클라이언트가 보낸 source 는 무시하고, 연결된 기관의 구분(사내/외부)으로 결정한다.
-기관 미연결이면 사내(internal) 기본값.
+기관 미연결이면 외부(external) — 2026-11-19 운영 결정: 지정된 사내 기관이 아니면 외부.
+(예전 기본값은 internal 이었지만, 외부교육 16시간 한도는 원래 미연결을 외부로 판정해 표시와 어긋났다)
 """
 
 
@@ -62,7 +63,7 @@ async def test_internal_institution_derives_internal(client, db):
     assert resp.json()["source"] == "internal"
 
 
-async def test_missing_institution_defaults_internal(client, db):
+async def test_missing_institution_defaults_external(client, db):
     _, trainee = await make_trainee(db, None, ci_raw=None, name="박기본", trainee_no="TR-DERIVE-3")
     _, admin_token = await make_admin(db)
     await db.commit()
@@ -80,4 +81,4 @@ async def test_missing_institution_defaults_internal(client, db):
         cookies=admin_cookie(admin_token),
     )
     assert resp.status_code == 201, resp.text
-    assert resp.json()["source"] == "internal"
+    assert resp.json()["source"] == "external"

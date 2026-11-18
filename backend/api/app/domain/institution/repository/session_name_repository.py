@@ -3,6 +3,7 @@ import uuid
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.validation import LIKE_ESCAPE, like_contains
 from app.domain.institution.model import SessionName
 
 
@@ -34,8 +35,12 @@ async def list_session_names(
     stmt = select(SessionName)
     count_stmt = select(func.count()).select_from(SessionName)
     if search:
-        stmt = stmt.where(SessionName.name.ilike(f"%{search}%"))
-        count_stmt = count_stmt.where(SessionName.name.ilike(f"%{search}%"))
+        stmt = stmt.where(
+            SessionName.name.ilike(like_contains(search), escape=LIKE_ESCAPE)
+        )
+        count_stmt = count_stmt.where(
+            SessionName.name.ilike(like_contains(search), escape=LIKE_ESCAPE)
+        )
     if is_active is not None:
         stmt = stmt.where(SessionName.is_active == is_active)
         count_stmt = count_stmt.where(SessionName.is_active == is_active)

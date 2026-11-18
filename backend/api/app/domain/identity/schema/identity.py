@@ -98,6 +98,8 @@ class ReviewApproveRequest(BaseModel):
     trainee_id: uuid.UUID | None = None
     new_trainee: NewTraineeCreate | None = None
     determined_grade_id: uuid.UUID | None = None
+    # 승인 메모(선택) — 거절 사유와 같은 review_note 컬럼에 남긴다
+    review_note: str | None = None
 
 
 class ReviewRejectRequest(BaseModel):

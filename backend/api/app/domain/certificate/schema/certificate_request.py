@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from app.domain.certificate.schema.certificate import MyCertificateBrief
 
@@ -15,7 +15,7 @@ class CertificateRequestCreate(BaseModel):
 class CertificateBatchRequestCreate(BaseModel):
     """다건 발급 신청 — 유효한 건끼리 하나의 결제 주문으로 묶인다."""
 
-    items: list[CertificateRequestCreate]
+    items: list[CertificateRequestCreate] = Field(min_length=1)
 
 
 class CertificateRequestResponse(BaseModel):

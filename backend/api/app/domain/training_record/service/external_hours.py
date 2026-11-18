@@ -1,7 +1,7 @@
 """외부계속교육 등록 한도 — 감리원별 최근 3년 외부교육 합계는 16시간을 넘을 수 없다.
 
 - 외부교육: 교육기관 구분이 사내(internal)가 아닌 교육 전부(외부·미선택·기관 미연결).
-  레거시 이관분(source=legacy_import)에 협회·외부가 섞여 있어 source 가 아니라 기관 구분으로 판정한다.
+  이력의 source 도 같은 규칙(record_source_for)으로 맞추지만, 판정은 항상 기관 구분으로 한다.
 - 최근 3년: 확인서 발급 가능 기간과 같은 창(수강 시작일 ≥ 오늘 − CERTIFICATE_ISSUE_WINDOW_DAYS).
   시작일이 없거나 창 밖인 이력은 발급 대상이 아니므로 합계에서 뺀다.
 - 삭제(soft delete)·취소(canceled) 이력은 뺀다.
@@ -41,11 +41,26 @@ def is_external_type(institution_type: str | None) -> bool:
     return institution_type != "internal"
 
 
+def record_source_for(institution_type: str | None) -> str:
+    """교육이력·일정의 구분(source) — 지정된 사내(internal) 기관만 internal, 그 외는 external.
+
+    기관 미연결·구분 미지정도 외부로 본다(외부교육 한도 판정 is_external_type 과 같은 규칙).
+    """
+    return "external" if is_external_type(institution_type) else "internal"
+
+
+def institution_source(institution) -> str:
+    """기관 객체(또는 None) → source."""
+    return record_source_for(institution.institution_type if institution is not None else None)
+
+
 def counts_in_window(started_at: date | None) -> bool:
     return started_at is not None and started_at >= window_start()
 
 
-async def is_external_institution(db: AsyncSession, institution_id: uuid.UUID | None) -> bool:
+async def is_external_institution(
+    db: AsyncSession, institution_id: uuid.UUID | None
+) -> bool:
     if institution_id is None:
         return True
     institution = await db.get(TrainingInstitution, institution_id)
@@ -62,9 +77,15 @@ async def external_hours_by_trainee(
     if not trainee_ids:
         return result
     stmt = (
-        select(TrainingRecord.trainee_id, func.coalesce(func.sum(TrainingRecord.total_hours), 0))
+        select(
+            TrainingRecord.trainee_id,
+            # 음수 시수(과거 검증 누락분)가 합계를 줄여 한도를 우회하지 못하게 0 으로 본다
+            func.coalesce(func.sum(func.greatest(TrainingRecord.total_hours, 0)), 0),
+        )
         .select_from(TrainingRecord)
-        .outerjoin(TrainingInstitution, TrainingInstitution.id == TrainingRecord.institution_id)
+        .outerjoin(
+            TrainingInstitution, TrainingInstitution.id == TrainingRecord.institution_id
+        )
         .where(
             TrainingRecord.trainee_id.in_(trainee_ids),
             TrainingRecord.deleted_at.is_(None),
@@ -89,7 +110,11 @@ async def external_hours_by_trainee(
 def format_hours(hours: Decimal) -> str:
     """8.00 → '8', 7.50 → '7.5'"""
     normalized = hours.normalize()
-    return format(normalized, "f") if normalized == normalized.to_integral() else str(normalized)
+    return (
+        format(normalized, "f")
+        if normalized == normalized.to_integral()
+        else str(normalized)
+    )
 
 
 def remaining_hours(current: Decimal) -> Decimal:
@@ -105,7 +130,9 @@ def exceeded_message(current: Decimal, trainee_name: str | None = None) -> str:
 
 
 def exceeded_error(current: Decimal, trainee_name: str | None = None):
-    return api_error("EXTERNAL_HOURS_EXCEEDED", message=exceeded_message(current, trainee_name))
+    return api_error(
+        "EXTERNAL_HOURS_EXCEEDED", message=exceeded_message(current, trainee_name)
+    )
 
 
 def would_exceed(before: Decimal, after: Decimal) -> bool:
@@ -148,7 +175,9 @@ async def external_flags_by_record(
     stmt = (
         select(TrainingRecord.id, TrainingInstitution.institution_type)
         .select_from(TrainingRecord)
-        .outerjoin(TrainingInstitution, TrainingInstitution.id == TrainingRecord.institution_id)
+        .outerjoin(
+            TrainingInstitution, TrainingInstitution.id == TrainingRecord.institution_id
+        )
         .where(TrainingRecord.id.in_(record_ids))
     )
     return {

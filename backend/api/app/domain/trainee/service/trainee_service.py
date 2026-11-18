@@ -90,7 +90,7 @@ def _derive_supervisor_grade(
 async def get_trainee(db: AsyncSession, trainee_id: uuid.UUID) -> Trainee:
     trainee = await repo.find_by_id(db, trainee_id)
     if trainee is None:
-        raise api_error("NOT_FOUND")
+        raise api_error("NOT_FOUND", message="교육생을 찾을 수 없어요")
     return trainee
 
 
@@ -184,6 +184,33 @@ async def _check_duplicate_trainee(
         )
 
 
+def _ensure_grade_active(grade: MembershipGrade) -> None:
+    """비활성(사용 중지) 등급은 새로 배정하지 않는다."""
+    if not grade.is_active:
+        raise api_error("VALIDATION_ERROR", message="사용하지 않는 회원등급이에요")
+
+
+async def _ensure_cert_no_unique(
+    db: AsyncSession, trainee: Trainee, cert_no: str | None, senior_cert_no: str | None
+) -> None:
+    """수정 시에도 등록과 같이 증번호 중복을 막는다 (자기 자신 제외)."""
+    cert_nos = [no for no in (cert_no, senior_cert_no) if no]
+    if not cert_nos:
+        return
+    wanted = {normalize_cert_no(n) for n in cert_nos}
+    for t in await repo.find_duplicates_for_import(db, cert_nos, []):
+        if t.id == trainee.id:
+            continue
+        if {normalize_cert_no(n) for n in (t.cert_no, t.senior_cert_no) if n} & wanted:
+            raise api_error(
+                "DUPLICATE_TRAINEE",
+                message=(
+                    "같은 감리원증번호의 감리원이 이미 있어요 — "
+                    f"{decrypt_field(t.name_encrypted)} ({t.trainee_no})"
+                ),
+            )
+
+
 async def create_trainee(
     db: AsyncSession, data: TraineeCreate, actor: AdminUser
 ) -> Trainee:
@@ -202,8 +229,12 @@ async def create_trainee(
         grade = await repo.find_grade_by_id(db, membership_grade_id)
         if grade is None:
             raise api_error("NOT_FOUND", message="회원등급을 찾을 수 없어요")
+        if data.membership_grade_id is not None:
+            _ensure_grade_active(grade)
         grade_expires_at = _resolve_grade_expiry(grade, data.grade_expires_at)
 
+    if not data.name.strip():
+        raise api_error("VALIDATION_ERROR", message="이름을 입력해 주세요")
     cert_no = data.cert_no.strip() if data.cert_no else None
     senior_cert_no = data.senior_cert_no.strip() if data.senior_cert_no else None
     await _check_duplicate_trainee(
@@ -225,6 +256,7 @@ async def create_trainee(
                 else _UNSET
             ),
         ),
+        cert_issued_date=data.cert_issued_date,
         senior_cert_issued_date=data.senior_cert_issued_date,
         name_encrypted=encrypt_field(data.name.strip()),
         name_hash=name_hash(data.name),
@@ -294,6 +326,7 @@ async def _apply_update(
         grade = await repo.find_grade_by_id(db, new_grade_id)
         if grade is None:
             raise api_error("NOT_FOUND", message="회원등급을 찾을 수 없어요")
+        _ensure_grade_active(grade)
         expires = _resolve_grade_expiry(grade, new_expires)
         db.add(
             TraineeGradeHistory(
@@ -339,6 +372,16 @@ async def _apply_update(
     if name_sent:
         trainee.name_encrypted = encrypt_field(str(new_name).strip())
         trainee.name_hash = name_hash(str(new_name))
+
+    if "cert_no" in updates or "senior_cert_no" in updates:
+        changed_cert = updates.get("cert_no", trainee.cert_no)
+        changed_senior = updates.get("senior_cert_no", trainee.senior_cert_no)
+        await _ensure_cert_no_unique(
+            db,
+            trainee,
+            changed_cert if changed_cert != trainee.cert_no else None,
+            changed_senior if changed_senior != trainee.senior_cert_no else None,
+        )
 
     previous_grade = trainee.supervisor_grade
     # 감리원 등급은 선택값 — 직접 setattr 하지 않고 파생에서 쓴다
@@ -810,14 +853,32 @@ async def confirm_import(
     promoted: list[Trainee] = []
     skipped = 0
     failed: list[tuple[int, str]] = []
+    seen_certs: set[str] = set()  # 파일(요청) 안의 같은 증번호 — 첫 행만 등록
+    audit_names: dict[int, str] = {}  # id(trainee) → 마스킹 이름 (감사로그용, 행별)
     for item in data.items:
         name = item.name.strip()
         if not name:
             failed.append((item.row_number, "감리원명이 비어 있어요"))
             continue
+        # 컬럼 길이·값 검증은 행 단위로 — 예전에는 한 행 때문에 배치 전체가 500 으로 롤백됐다
+        if item.cert_no and len(item.cert_no) > 100:
+            failed.append((item.row_number, "감리원증번호가 너무 길어요 (100자 이하)"))
+            continue
+        # 등급은 엑셀 원문 그대로 저장해 왔다 — 값 목록은 강제하지 않고 컬럼 길이(50)만 지킨다
+        if item.supervisor_grade and len(item.supervisor_grade) > 50:
+            failed.append((item.row_number, "감리원 등급이 너무 길어요 (50자 이하)"))
+            continue
         if item.cert_no and normalize_cert_no(item.cert_no) in by_cert:
             skipped += 1  # 감리원증번호 중복
             continue
+        if item.cert_no:
+            key = normalize_cert_no(item.cert_no)
+            if key in seen_certs:
+                failed.append(
+                    (item.row_number, "파일 안에 같은 감리원증번호 행이 있어요")
+                )
+                continue
+            seen_certs.add(key)
         hit_pair = (
             by_pair.get((name_hash(name), item.birth_date))
             if item.birth_date
@@ -852,6 +913,7 @@ async def confirm_import(
         )
         db.add(trainee)
         created.append(trainee)
+        audit_names[id(trainee)] = mask_name(name)
     if created:
         await db.flush()  # id 확정 — 감사로그가 entity_id 로 참조
         for trainee in created:
@@ -863,8 +925,8 @@ async def confirm_import(
                 entity_id=trainee.id,
                 after={
                     "trainee_no": trainee.trainee_no,
-                    # 감사로그 JSONB 에 평문 이름을 남기지 않는다
-                    "name": mask_name(name),
+                    # 감사로그 JSONB 에 평문 이름을 남기지 않는다 — 행별 이름
+                    "name": audit_names[id(trainee)],
                     "source": "excel_import",
                 },
             )
@@ -918,13 +980,37 @@ async def create_grade(
     return grade
 
 
+async def _ensure_grade_unassigned(db: AsyncSession, grade: MembershipGrade) -> None:
+    """배정된 활성 교육생이 있으면 409 — 삭제·비활성화 공통."""
+    assigned = (
+        await db.execute(
+            select(Trainee.id)
+            .where(
+                Trainee.membership_grade_id == grade.id,
+                Trainee.deleted_at.is_(None),
+            )
+            .limit(1)
+        )
+    ).scalar_one_or_none()
+    if assigned is not None:
+        raise api_error(
+            "GRADE_HAS_ACTIVE_TRAINEES",
+            status_code=409,
+            message="이 등급이 배정된 교육생이 있어요. 등급을 먼저 변경해 주세요",
+        )
+
+
 async def update_grade(
     db: AsyncSession, grade_id: uuid.UUID, data: MembershipGradeUpdate, actor: AdminUser
 ) -> MembershipGrade:
     grade = await repo.find_grade_by_id(db, grade_id)
     if grade is None:
-        raise api_error("NOT_FOUND")
-    for field, value in data.model_dump(exclude_unset=True).items():
+        raise api_error("NOT_FOUND", message="회원등급을 찾을 수 없어요")
+    updates = data.model_dump(exclude_unset=True)
+    # 비활성화는 삭제와 같은 효과 — 배정 교육생이 있으면 삭제와 같은 409 로 막는다
+    if updates.get("is_active") is False and grade.is_active:
+        await _ensure_grade_unassigned(db, grade)
+    for field, value in updates.items():
         setattr(grade, field, value)
     record_audit(
         db,
@@ -948,23 +1034,8 @@ async def delete_grade(
     """
     grade = await repo.find_grade_by_id(db, grade_id)
     if grade is None:
-        raise api_error("NOT_FOUND")
-    assigned = (
-        await db.execute(
-            select(Trainee.id)
-            .where(
-                Trainee.membership_grade_id == grade.id,
-                Trainee.deleted_at.is_(None),
-            )
-            .limit(1)
-        )
-    ).scalar_one_or_none()
-    if assigned is not None:
-        raise api_error(
-            "GRADE_HAS_ACTIVE_TRAINEES",
-            status_code=409,
-            message="이 등급이 배정된 교육생이 있어요. 등급을 먼저 변경해 주세요",
-        )
+        raise api_error("NOT_FOUND", message="회원등급을 찾을 수 없어요")
+    await _ensure_grade_unassigned(db, grade)
     grade.is_active = False
     record_audit(
         db,
