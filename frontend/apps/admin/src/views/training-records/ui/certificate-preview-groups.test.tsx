@@ -38,7 +38,7 @@ const record = (
 });
 
 describe("buildDownloadGroups — 합계 고정", () => {
-  it("외부 20시간 + 사내 8시간 → 합계 24, 행은 원래 시간", () => {
+  it("외부 20시간 + 사내 8시간 → 합계 24, 외부 행이 위로 (행 데이터는 원래 시간)", () => {
     const groups = buildDownloadGroups([
       record("a", "t1", 8, "internal"),
       record("b", "t1", 10, "external"),
@@ -47,7 +47,9 @@ describe("buildDownloadGroups — 합계 고정", () => {
     expect(groups[0]?.totalHours).toBe(24);
     expect(groups[0]?.externalCapped).toBe(true);
     expect(groups[0]?.externalHours).toBe(20);
-    expect(groups[0]?.rows.map((row) => row.hours)).toEqual([8, 10, 10]);
+    // 2026-11-20: 외부교육을 표 위쪽으로 정렬 — 표의 시간 칸 병합은 시트가 그린다
+    expect(groups[0]?.rows.map((row) => row.hours)).toEqual([10, 10, 8]);
+    expect(groups[0]?.rows.map((row) => row.isExternal)).toEqual([true, true, false]);
   });
 
   it("감리원별로 따로 판정한다", () => {

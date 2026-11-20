@@ -15,6 +15,7 @@ import {
 import { postIssueCertificates } from "@/src/entities/certificate";
 import {
   CertificateDocumentSheet,
+  externalFirst,
   formatIssuedOnLabel,
   paginateRows,
   toSheetRows,
@@ -90,8 +91,10 @@ export function buildDownloadGroups(records: TrainingRecord[]): CertificateDownl
     group.hourRows.push(...sheetRows.map((row) => ({ hours: row.hours, isExternal })));
     rowsByTrainee.set(record.traineeId, group);
   }
-  return [...rowsByTrainee.values()].map(({ rows, hourRows, ...header }) => {
+  return [...rowsByTrainee.values()].map(({ rows: selectedRows, hourRows, ...header }) => {
     const hours = documentHoursSummary(hourRows);
+    // 외부교육을 표 위쪽으로 모은다 — 16시간 초과 시 외부 시간 칸 병합이 문서 1행부터 이어진다
+    const rows = externalFirst(selectedRows);
     return {
       ...header,
       rows,

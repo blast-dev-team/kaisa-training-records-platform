@@ -30,7 +30,8 @@ export function DocumentHoursNotice({ groups }: { groups: Group[] }) {
       {capped.map((group) => (
         <p key={group.key} className="mt-1 font-medium">
           {groups.length > 1 && `${group.traineeName || "감리원"} — `}외부교육 {formatHours(group.externalHours)}시간 중{" "}
-          {EXTERNAL_EDUCATION_MAX_HOURS}시간만 인정돼 합계가 {formatHours(group.totalHours)}시간으로 표기돼요
+          {EXTERNAL_EDUCATION_MAX_HOURS}시간만 인정돼 합계가 {formatHours(group.totalHours)}시간으로 표기돼요.
+          확인서 표에는 외부교육이 위쪽에 모이고 시간 칸이 {EXTERNAL_EDUCATION_MAX_HOURS}시간 하나로 합쳐져요
         </p>
       ))}
     </div>
