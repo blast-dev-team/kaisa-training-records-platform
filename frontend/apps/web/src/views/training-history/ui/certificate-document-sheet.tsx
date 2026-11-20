@@ -2,6 +2,10 @@ import type { CSSProperties } from "react";
 
 import associationSeal from "@/src/assets/association-seal.png";
 import type { TrainingHistoryDetail } from "../api/get-training-history-detail";
+import {
+  EXTERNAL_EDUCATION_MAX_HOURS,
+  isExternalInstitutionType,
+} from "@/src/shared/utils/document-total-hours";
 
 export interface CertificateSheetRow {
   /** 교육기관명 */
@@ -12,16 +16,53 @@ export interface CertificateSheetRow {
   trainedOn: string;
   /** 교육시간 */
   hours: number;
+  /** 외부교육(사내가 아닌 기관) 행 — 표 위쪽 정렬·16시간 초과 병합 대상 */
+  isExternal?: boolean;
 }
 
-/** 발급 대상 이력 → 서식 행 스냅샷 (ADMIN 상세와 같은 매핑) */
+/** 외부교육 행을 표 위쪽으로 — 같은 구분 안에서는 선택(원래) 순서를 지킨다.
+ * 16시간 초과 병합 칸이 문서 1행부터 이어진 한 덩어리가 되도록 모든 서식 행에 적용한다 */
+export function externalFirst<T extends { isExternal?: boolean }>(rows: T[]): T[] {
+  return [...rows.filter((row) => row.isExternal), ...rows.filter((row) => !row.isExternal)];
+}
+
+/** 한 페이지 안의 외부교육 시간 병합 범위 */
+export interface ExternalHoursMerge {
+  /** 병합 칸이 시작하는 페이지 내 행 index */
+  start: number;
+  /** 병합할 행 수 (rowSpan) */
+  span: number;
+  /** "16시간" 표기 여부 — 외부 덩어리가 시작되는 페이지(문서 1행)에만 쓰고 이어지는 페이지는 비운다 */
+  showLabel: boolean;
+}
+
+/**
+ * 외부교육 합계가 16시간을 넘는 문서 — 외부 행들의 교육시간 칸을 하나로 합쳐 "16시간"으로 쓴다.
+ * externalFirst 로 외부 행이 문서 맨 위에 모여 있으므로, 페이지마다 첫 외부 행부터
+ * 이어지는 외부 행 묶음이 병합 범위다. 문서 1행이 들어 있는 페이지에서만 표기한다.
+ */
+export function externalHoursMerge(
+  rows: (CertificateSheetRow | null)[],
+  startNo: number,
+): ExternalHoursMerge | null {
+  const start = rows.findIndex((row) => row?.isExternal === true);
+  if (start < 0) return null;
+  let span = 0;
+  while (start + span < rows.length && rows[start + span]?.isExternal === true) span += 1;
+  return { start, span, showLabel: startNo + start === 1 };
+}
+
+/** 발급 대상 이력 → 서식 행 스냅샷 (ADMIN 상세와 같은 매핑 — 외부교육 먼저) */
 export function toSheetRows(details: TrainingHistoryDetail[]): CertificateSheetRow[] {
-  return details.map((detail) => ({
-    institutionName: detail.institutionName ?? null,
-    courseName: detail.courseName,
-    trainedOn: detail.trainedOn,
-    hours: detail.hours,
-  }));
+  return externalFirst(
+    details.map((detail) => ({
+      institutionName: detail.institutionName ?? null,
+      courseName: detail.courseName,
+      trainedOn: detail.trainedOn,
+      hours: detail.hours,
+      isExternal: isExternalInstitutionType(detail.institutionType),
+    })),
+  );
 }
 
 /** 서식 행 용량 — 실측: 고정부(제목 96+신청인 48×2+섹션 48+헤더 48)=288px.
@@ -220,6 +261,8 @@ export function CertificateDocumentSheet({
 }: CertificateDocumentSheetProps) {
   // 마감 합계는 문서 전체 합계 — 페이지 합이 아니다. prop이 없으면(단일 페이지) rows 합
   const closingHours = documentTotalHours ?? rows.reduce((sum, row) => sum + (row?.hours ?? 0), 0);
+  // 외부교육 합계가 16시간을 넘으면 외부 행의 시간 칸을 합친다 — 16시간 이하는 행별 시간 그대로
+  const merge = externalCapped ? externalHoursMerge(rows, startNo) : null;
 
   return (
     <div
@@ -375,9 +418,16 @@ export function CertificateDocumentSheet({
               <td colSpan={3} style={{ ...lineStyle({}), ...cell }}>
                 {row ? row.trainedOn.replaceAll("-", ".") : ""}
               </td>
-              <td colSpan={3} style={{ ...lineStyle({}), ...cell }}>
-                {row ? `${formatHours(row.hours)}시간` : ""}
-              </td>
+              {/* 외부교육 16시간 초과 — 외부 행의 시간 칸을 하나로 합친다(첫 페이지만 "16시간") */}
+              {merge && index === merge.start ? (
+                <td rowSpan={merge.span} colSpan={3} style={{ ...lineStyle({}), ...cell }}>
+                  {merge.showLabel ? `${EXTERNAL_EDUCATION_MAX_HOURS}시간` : ""}
+                </td>
+              ) : merge && index > merge.start && index < merge.start + merge.span ? null : (
+                <td colSpan={3} style={{ ...lineStyle({}), ...cell }}>
+                  {row ? `${formatHours(row.hours)}시간` : ""}
+                </td>
+              )}
             </tr>
           ))}
           {showClosing && (

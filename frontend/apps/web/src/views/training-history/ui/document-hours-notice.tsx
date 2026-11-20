@@ -27,7 +27,8 @@ export function DocumentHoursNotice({ summary }: { summary: DocumentHoursSummary
       {summary.capped && (
         <p className="mt-1 font-bold">
           선택한 외부교육 {formatHours(summary.externalHours)}시간 중 {EXTERNAL_EDUCATION_MAX_HOURS}시간만
-          인정돼 확인서 합계는 {formatHours(summary.total)}시간으로 표기돼요
+          인정돼 확인서 합계는 {formatHours(summary.total)}시간으로 표기돼요. 확인서 표에는 외부교육이
+          위쪽에 모이고 시간 칸이 {EXTERNAL_EDUCATION_MAX_HOURS}시간 하나로 합쳐져요
         </p>
       )}
     </div>
