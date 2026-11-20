@@ -8,6 +8,7 @@ import { useEffect, useState, type ReactNode } from "react";
 
 import { getSession } from "@/src/shared/api/get-session";
 import { useAuthStore } from "@/src/shared/store/auth-store";
+import { installSessionEndInterceptor } from "@/src/shared/lib/session-end-interceptor";
 
 /**
  * 새로고침 복구 게이트 — 서버 세션으로 인증 상태를 되살린다.
@@ -59,6 +60,9 @@ function SessionGate({ children }: { children: ReactNode }) {
   if (isPending || !isRestored) return null;
   return <>{children}</>;
 }
+
+// 회원 API 401 → 인증 해제·만료 안내 (앱 시작 시 1회)
+installSessionEndInterceptor();
 
 export function Providers({ children }: { children: ReactNode }) {
   const [queryClient] = useState(

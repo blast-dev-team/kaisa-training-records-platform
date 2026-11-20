@@ -21,6 +21,8 @@ class PagedResponse[T](BaseModel):
     limit: int
     # 집계가 필요한 도메인만 채운다 — 전체 필터 조건 기준 합계 (현재 페이지 합이 아님)
     total_hours_sum: float | None = None
+    # 회원 교육이력 전용 — 전체 필터 기준 '발급 가능' 이력 수 (현재 페이지 수가 아님)
+    issuable_count: int | None = None
 
     @computed_field
     @property

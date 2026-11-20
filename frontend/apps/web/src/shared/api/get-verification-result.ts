@@ -91,13 +91,19 @@ function todayYMD(): string {
   return `${now.getFullYear()}.${pad(now.getMonth() + 1)}.${pad(now.getDate())}`;
 }
 
+const RESULT_FALLBACK_MESSAGE: Record<string, string> = {
+  expired: "유효기간이 지난 문서예요. 발급자에게 새 문서를 요청해 주세요",
+  revoked: "발급이 취소된 문서예요",
+};
+
 function toResult(dto: PublicVerificationDto): VerificationResult {
   // 유효한 확인서만 상세 노출 — expired·revoked·superseded·not_found 는 확인 불가 화면
   if (dto.result !== "valid") {
     return {
       isValid: false,
-      // 재발급(superseded) 은 사유와 새 번호를 안내한다 — 나머지는 확인 불가만
-      message: dto.message ?? "",
+      // 재발급(superseded) 은 사유와 새 번호를 안내한다. 서버가 문구를 주지 않는 결과(만료 등)는
+      // 상태별 기본 문구 — 비워 두면 '일치하는 확인서가 없습니다'로 보여 만료를 위조로 오해하게 했다
+      message: dto.message ?? RESULT_FALLBACK_MESSAGE[dto.result] ?? "",
       successorNo:
         dto.result === "superseded" ? (dto.certificate_no ?? null) : null,
       kind: dto.kind ?? "certificate",

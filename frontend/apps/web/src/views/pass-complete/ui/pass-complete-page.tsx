@@ -1,3 +1,4 @@
+import { toUserMessage } from "@/src/shared/lib/friendly-error";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router";
@@ -53,9 +54,7 @@ export function PassCompletePage() {
       <section className="mx-auto my-20 flex w-full max-w-md flex-col gap-4 rounded-2xl border border-gray-200 bg-white px-8 py-10 text-center font-sans mobile:mx-5 mobile:w-auto mobile:px-5">
         <h1 className="text-18 font-semibold text-gray-900">본인인증이 완료되지 않았어요</h1>
         <p className="text-14 leading-[1.6] text-gray-500">
-          {complete.error instanceof Error
-            ? complete.error.message
-            : "인증을 취소했거나 인증 중 문제가 생겼어요. 다시 시도해 주세요."}
+          {toUserMessage(complete.error, "인증을 취소했거나 인증 중 문제가 생겼어요. 다시 시도해 주세요.")}
         </p>
         <Link to="/" replace>
           <Button color="black" fullWidth>

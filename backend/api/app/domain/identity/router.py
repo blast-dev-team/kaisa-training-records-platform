@@ -50,6 +50,7 @@ async def approve_review(
         await identity_service.approve_review(
             db, review_id, body.trainee_id, body.determined_grade_id, actor,
             body.new_trainee,
+            review_note=body.review_note,
         )
     )
 

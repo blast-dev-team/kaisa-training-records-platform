@@ -23,6 +23,6 @@ export interface CertificateDto {
   revoked_at: string | null
   revoked_reason: string | null
   /** 이 발급(묶음)에 담긴 교육내역 수 — 단건 1 */
-  member_count: string | number
+  record_count?: string | number | null
 }
 

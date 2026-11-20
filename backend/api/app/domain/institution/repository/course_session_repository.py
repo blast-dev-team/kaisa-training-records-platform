@@ -4,6 +4,7 @@ from datetime import date
 from sqlalchemy import and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.validation import LIKE_ESCAPE, like_contains
 from app.domain.institution.model import (
     CourseSession,
     TrainingCourse,
@@ -75,7 +76,7 @@ async def list_sessions(
             stmt = stmt.where(CourseSession.started_at <= date_to)
             count_stmt = count_stmt.where(CourseSession.started_at <= date_to)
     if search:
-        pattern = f"%{search}%"
+        pattern = like_contains(search)
         matched_courses = (
             select(TrainingCourse.id)
             .join(
@@ -83,15 +84,37 @@ async def list_sessions(
                 TrainingInstitution.id == TrainingCourse.institution_id,
             )
             .where(
-                TrainingCourse.name.ilike(pattern)
-                | TrainingInstitution.name.ilike(pattern)
+                TrainingCourse.name.ilike(pattern, escape=LIKE_ESCAPE)
+                | TrainingInstitution.name.ilike(pattern, escape=LIKE_ESCAPE)
             )
         )
         cond = CourseSession.course_id.in_(matched_courses)
         stmt = stmt.where(cond)
         count_stmt = count_stmt.where(cond)
     total = (await db.execute(count_stmt)).scalar_one()
-    if sort == "registration":
+    if sort in ("recognized_hours_desc", "recognized_hours_asc"):
+        col = CourseSession.recognized_hours
+        stmt = stmt.order_by(
+            col.desc() if sort.endswith("desc") else col.asc(),
+            CourseSession.started_at.desc().nullslast(),
+            CourseSession.id.desc(),
+        )
+    elif sort in ("enrolled_desc", "enrolled_asc"):
+        # 수강생 수 = 목록 배지(enrolled_count)와 같은 기준 — 삭제 안 된 연결 이력 수
+        enrolled = (
+            select(TrainingRecord.session_id, func.count().label("cnt"))
+            .where(TrainingRecord.deleted_at.is_(None), TrainingRecord.session_id.is_not(None))
+            .group_by(TrainingRecord.session_id)
+            .subquery()
+        )
+        stmt = stmt.outerjoin(enrolled, enrolled.c.session_id == CourseSession.id)
+        cnt = func.coalesce(enrolled.c.cnt, 0)
+        stmt = stmt.order_by(
+            cnt.desc() if sort.endswith("desc") else cnt.asc(),
+            CourseSession.started_at.desc().nullslast(),
+            CourseSession.id.desc(),
+        )
+    elif sort == "registration":
         # 등록순 — 이관 데이터는 created_at 이 일괄 반영되어 실등록분만 의미가 있다
         stmt = stmt.order_by(CourseSession.created_at.desc())
     else:

@@ -154,7 +154,7 @@ POST /api/public/certificate-verifications { certificate_no, issue_date: "YYYY-M
 | Method | Path | Query | 설명 |
 |---|---|---|---|
 | GET | `/api/me/profile` | | 프로필 (이름·마스킹 전화·등급·review_status) |
-| GET | `/api/me/training-records` | `from`,`to`,`completion_status` | 내 교육이력 목록 (배열, 페이지네이션 없음) |
+| GET | `/api/me/training-records` | `from`,`to`(종료일 기준),`search`,`page`,`limit`(≤100) | 내 교육이력 목록 (Paged — `items`,`total`,`page`,`limit`,`total_pages`,`total_hours_sum`,`issuable_count`). `issuable_count` = 같은 필터 전체에서 발급 가능한 이력 수 |
 | GET | `/api/me/training-records/{record_id}` | | 내 이력 단건 |
 | GET | `/api/me/certificates` | | 내 확인서 목록 |
 | GET | `/api/me/certificate-requests` | | 발급 신청 내역 |
@@ -196,7 +196,7 @@ POST /api/public/certificate-verifications { certificate_no, issue_date: "YYYY-M
 `TrainingRecordResponse` (목록·단건 공용):
 
 ```json
-{ "id": "...", "training_record_no": "TR-...", "trainee_id": "...", "course_id": "...", "institution_id": "...", "course_name": "...", "institution_name": "...", "total_hours": 8, "completed_hours": 8, "started_at": "2026-08-01", "ended_at": "2026-08-31", "source": "internal|external|legacy_import", "evidence_file_key": null, "completion_status": "in_progress|completed|canceled", "completed_at": "...", "memo": null, "created_at": "...", "updated_at": "..." }
+{ "id": "...", "training_record_no": "TR-...", "trainee_id": "...", "course_id": "...", "institution_id": "...", "course_name": "...", "institution_name": "...", "total_hours": 8, "completed_hours": 8, "started_at": "2026-08-01", "ended_at": "2026-08-31", "source": "internal|external", "evidence_file_key": null, "completion_status": "in_progress|completed|canceled", "completed_at": "...", "memo": null, "created_at": "...", "updated_at": "..." }
 ```
 
 `MyCertificateResponse`:

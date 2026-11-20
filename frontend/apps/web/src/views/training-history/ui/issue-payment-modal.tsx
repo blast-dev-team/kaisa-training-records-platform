@@ -1,3 +1,4 @@
+import { toUserMessage } from "@/src/shared/lib/friendly-error";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -21,11 +22,16 @@ import {
 } from "../api/post-issuance-payment";
 import { postSessionExtend } from "@/src/shared/api/post-session-extend";
 import {
+  documentHoursSummary,
+  isExternalInstitutionType,
+} from "@/src/shared/utils/document-total-hours";
+import {
   CertificateDocumentSheet,
   paginateRows,
   toSheetRows,
   type CertificateSheetPage,
 } from "./certificate-document-sheet";
+import { DocumentHoursNotice } from "./document-hours-notice";
 
 export interface IssuePaymentModalProps {
   /** 발급 대상 교육이력 ID 목록 — 1건이면 단건과 동일, N건이면 일괄 결제 */
@@ -46,6 +52,16 @@ const TOAST_DURATION_MS = 3000;
  * confirming: 결제창은 끝났는데 서버 확정을 못 받음 — 재결제 대신 재확인만 제공한다.
  */
 type ModalPhase = "preview" | "confirming" | "issued";
+
+/** 확인서 합계 — 사내 합계 + min(외부 합계, 16). 행 시간은 그대로 둔다 */
+function documentHoursOf(details: TrainingHistoryDetail[]) {
+  return documentHoursSummary(
+    details.map((detail) => ({
+      hours: detail.hours,
+      isExternal: isExternalInstitutionType(detail.institutionType),
+    })),
+  );
+}
 
 /** 32 → "32", 8.5 → "8.5" — 합계 시간의 소수점 꼬리 정리 */
 function formatHours(value: number): string {
@@ -229,9 +245,7 @@ export function IssuePaymentModal({
       showToast("다운로드했어요");
     } catch (err) {
       showToast(
-        err instanceof Error
-          ? err.message
-          : "문제가 생겼어요. 잠시 후 다시 시도해 주세요",
+        toUserMessage(err, "문제가 생겼어요. 잠시 후 다시 시도해 주세요"),
       );
     } finally {
       setIsPdfGenerating(false);
@@ -292,11 +306,13 @@ export function IssuePaymentModal({
       const bundleDetails = bundle.recordIds
         .map((id) => byId.get(id))
         .filter((detail): detail is TrainingHistoryDetail => detail !== undefined);
+      const bundleHours = documentHoursOf(bundleDetails);
       return {
         bundle,
         pages: paginateRows(toSheetRows(bundleDetails)),
         head: bundleDetails[0],
-        totalHours: bundleDetails.reduce((sum, detail) => sum + detail.hours, 0),
+        totalHours: bundleHours.total,
+        externalCapped: bundleHours.capped,
       };
     });
   }, [issuance.data, details]);
@@ -307,8 +323,9 @@ export function IssuePaymentModal({
     ? details?.[0]?.traineeName ?? storeName
     : storeName;
 
-  /** 발급 대상 총 이수시간 — 신청 내용 요약 표기 */
-  const totalHours = (details ?? []).reduce((sum, detail) => sum + detail.hours, 0);
+  /** 발급 대상 확인서 합계 — 외부교육 16시간 상한 반영. 미리보기·신청 내용 요약 표기 */
+  const documentHours = documentHoursOf(details ?? []);
+  const totalHours = documentHours.total;
 
   const pricesLoaded = prices.isSuccess;
   const feeLabel = pricesLoaded ? totalAmount.toLocaleString("ko-KR") : "—";
@@ -371,7 +388,7 @@ export function IssuePaymentModal({
             </p>
             {(reconfirm.error ?? payment.error) instanceof Error && (
               <p className="text-12 leading-normal text-red-500" role="alert">
-                {((reconfirm.error ?? payment.error) as Error).message}
+                {toUserMessage(reconfirm.error ?? payment.error, "결제를 확인하지 못했어요. 잠시 후 다시 시도해 주세요")}
               </p>
             )}
             <Button
@@ -398,9 +415,7 @@ export function IssuePaymentModal({
           ) : isError || !details ? (
             <div className="flex flex-col items-center gap-4 py-16 text-center">
               <p className="text-14 text-gray-700">
-                {error instanceof Error
-                  ? error.message
-                  : "문제가 생겨요. 잠시 후 다시 시도해 주세요"}
+                {toUserMessage(error, "문제가 생겼어요. 잠시 후 다시 시도해 주세요")}
               </p>
               <div className="flex gap-2">
                 <Button variant="outlined" color="gray" onClick={() => refetch()}>
@@ -417,6 +432,7 @@ export function IssuePaymentModal({
               <h2 className="text-18 leading-normal font-bold text-gray-900 mobile:text-16">
                 발급 미리보기
               </h2>
+              <DocumentHoursNotice summary={documentHours} />
 
               <div className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain">
                 <div
@@ -441,6 +457,7 @@ export function IssuePaymentModal({
                           supervisorCertNo={headDetail?.supervisorCertNo}
                           formNo="제31호"
                           totalHours={totalHours}
+                          externalCapped={documentHours.capped}
                         />
                       </div>
                     </div>
@@ -464,6 +481,7 @@ export function IssuePaymentModal({
                             headDetail={headDetail}
                             memberName={memberName}
                             totalHours={totalHours}
+                            externalCapped={documentHours.capped}
                           />
                         </div>
                       </div>
@@ -528,9 +546,7 @@ export function IssuePaymentModal({
 
                 {payment.isError && (
                   <p className="text-12 leading-normal text-red-500" role="alert">
-                    {payment.error instanceof Error
-                      ? payment.error.message
-                      : "결제에 실패했어요. 잠시 후 다시 시도해 주세요"}
+                    {toUserMessage(payment.error, "결제에 실패했어요. 잠시 후 다시 시도해 주세요")}
                   </p>
                 )}
 
@@ -564,9 +580,7 @@ export function IssuePaymentModal({
             ) : issuance.isError || !issuance.data ? (
               <div className="flex flex-col items-center gap-4 py-16 text-center">
                 <p className="text-14 text-gray-700">
-                  {issuance.error instanceof Error
-                    ? issuance.error.message
-                    : "문제가 생겼어요. 잠시 후 다시 시도해 주세요"}
+                  {toUserMessage(issuance.error, "문제가 생겼어요. 잠시 후 다시 시도해 주세요")}
                 </p>
                 <Button
                   variant="outlined"
@@ -630,7 +644,7 @@ export function IssuePaymentModal({
                 className="fixed left-[-10000px] top-0"
               >
                 <div ref={sheetRef}>
-                  {issuedSheets.map(({ bundle, pages, head, totalHours }) =>
+                  {issuedSheets.map(({ bundle, pages, head, totalHours, externalCapped }) =>
                     pages.map((page, pageIndex) => (
                       <div
                         key={`${bundle.verificationId}-${pageIndex}`}
@@ -644,6 +658,7 @@ export function IssuePaymentModal({
                           pageNo={pageIndex + 1}
                           pageCount={pages.length}
                           totalHours={totalHours}
+                          externalCapped={externalCapped}
                           memberName={memberName}
                           supervisorGrade={head?.supervisorGrade}
                           supervisorCertNo={head?.supervisorCertNo}
@@ -703,11 +718,13 @@ function PreviewSheet({
   headDetail,
   memberName,
   totalHours,
+  externalCapped,
 }: {
   page: CertificateSheetPage;
   headDetail?: TrainingHistoryDetail;
   memberName: string;
   totalHours: number;
+  externalCapped: boolean;
 }) {
   return (
     <CertificateDocumentSheet
@@ -716,6 +733,7 @@ function PreviewSheet({
       showClosing={page.showClosing}
       startNo={page.startNo}
       totalHours={totalHours}
+      externalCapped={externalCapped}
       memberName={memberName}
       supervisorGrade={headDetail?.supervisorGrade}
       supervisorCertNo={headDetail?.supervisorCertNo}

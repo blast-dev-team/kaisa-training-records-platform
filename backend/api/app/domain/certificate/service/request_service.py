@@ -7,7 +7,7 @@ import secrets
 import uuid
 from datetime import timedelta
 
-from sqlalchemy import or_, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
@@ -92,16 +92,13 @@ async def _validate_item(
 
     재발급 개념이 없다 — 이미 발급된 이력도 새 문서로 결제 발급할 수 있다.
     """
-    # 소유·존재 — 타인 이력은 404. 공용 데모 이력(is_demo)은 모든 회원 발급 대상
+    # 소유·존재 — 본인 이력만. 타인·공용 데모 이력(is_demo)은 404 (데모는 미연결 회원 체험용 보기 전용)
     record = (
         await db.execute(
             select(TrainingRecord).where(
                 TrainingRecord.id == training_record_id,
                 TrainingRecord.deleted_at.is_(None),
-                or_(
-                    TrainingRecord.trainee_id == trainee.id,
-                    TrainingRecord.is_demo.is_(True),
-                ),
+                TrainingRecord.trainee_id == trainee.id,
             )
         )
     ).scalar_one_or_none()

@@ -5,6 +5,7 @@ from sqlalchemy import and_, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.audit import record_audit
+from app.core.crypto import decrypt_field
 from app.core.error_codes import api_error
 from app.core.kst import now_kst, today_kst
 from app.domain.auth.model import AdminUser
@@ -20,6 +21,7 @@ from app.domain.institution.schema import (
 )
 from app.domain.trainee.model import Trainee
 from app.domain.training_record.model import TrainingRecord
+from app.domain.training_record.service import external_hours
 from app.domain.training_record.service.training_record_service import _record_no
 
 
@@ -65,6 +67,11 @@ async def count_records_for_sessions(
     return await session_repo.count_records_by_session(db, session_ids)
 
 
+def _source_for(course: TrainingCourse) -> str:
+    """일정 내역 구분 = 소속 기관 구분. 지정된 사내 기관만 internal, 그 외는 external."""
+    return external_hours.institution_source(course.institution)
+
+
 async def create_session(
     db: AsyncSession, data: SessionCreate, actor: AdminUser
 ) -> CourseSession:
@@ -78,6 +85,8 @@ async def create_session(
     dump = data.model_dump()
     # 시수는 총 시수 하나로 관리 — 인정 시수는 총 시수를 그대로 인정한다
     dump["recognized_hours"] = dump["total_hours"]
+    # 일정의 내역 구분도 소속 기관 구분을 따른다 — 연결 이력의 source 가 된다
+    dump["source"] = _source_for(course)
     session = await session_repo.save(db, CourseSession(**dump))
     record_audit(
         db,
@@ -101,6 +110,24 @@ async def update_session(
     session = await get_session(db, session_id)
     # 바뀐 필드만 before/after 에 기록 — Decimal·date 는 str 로 직렬화(bulk_updated 와 같은 형태)
     updates = data.model_dump(exclude_unset=True)
+    if updates.get("course_id") in (None, session.course_id):
+        updates.pop("course_id", None)
+    else:
+        # 과정을 바꾸면 이미 만들어진 내역의 과정·기관·구분과 어긋나므로 연결 전 일정만 허용
+        counts = await session_repo.count_records_by_session(db, [session.id])
+        if counts.get(session.id, 0) > 0:
+            raise api_error(
+                "VALIDATION_ERROR",
+                message="감리원이 연결된 일정은 과정을 바꿀 수 없어요. 연결을 해제한 뒤 다시 시도해 주세요",
+            )
+        course = await db.get(TrainingCourse, updates["course_id"])
+        if course is None:
+            raise api_error("NOT_FOUND", message="과정을 찾을 수 없어요")
+        session.course = course
+        updates["source"] = _source_for(course)
+    # 내역 구분은 기관 구분에 고정 — 보내온 값 대신 기관 기준으로 다시 맞춘다(기관 구분이 바뀐 뒤 수정해도 정합)
+    if "source" in updates and "course_id" not in updates:
+        updates["source"] = _source_for(session.course)
     before = {field: getattr(session, field) for field in updates}
     for field, value in updates.items():
         setattr(session, field, value)
@@ -218,10 +245,12 @@ async def create_records_for_session(
     completion_status: str,
     memo: str | None,
     actor: AdminUser,
-) -> tuple[list[TrainingRecord], int]:
+) -> tuple[list[TrainingRecord], int, list[str]]:
     """일정에 교육생 일괄 연결 — 연결 즉시 교육이력 생성. 중복 연결은 건너뛴다.
 
     이력의 총·이수 시수는 일정의 총 시수를 그대로 인정한다.
+    외부 기관 일정이면 최근 3년 외부교육 한도(16시간)를 넘게 되는 교육생은 연결하지 않고
+    이름을 돌려준다 — 나머지 교육생은 정상 연결(부분 성공).
     """
     if not trainee_ids:
         raise api_error("VALIDATION_ERROR", message="연결할 교육생을 선택해 주세요")
@@ -260,6 +289,16 @@ async def create_records_for_session(
     # 종료일이 미래여도 강등하지 않는다 — 현장에서는 교육 시작 전에도 선수료 처리를 한다.
     records: list[TrainingRecord] = []
     skipped = 0
+    cap_excluded: list[str] = []
+    # 외부교육 한도 — 외부 기관 일정이고 수강 시작일이 최근 3년 안이면 교육생별로 판정
+    checks_cap = external_hours.is_external_type(
+        course.institution.institution_type if course.institution else None
+    ) and external_hours.counts_in_window(session.started_at)
+    external_now = (
+        await external_hours.external_hours_by_trainee(db, list(dict.fromkeys(trainee_ids)))
+        if checks_cap and completion_status != "canceled"
+        else {}
+    )
     for trainee_id in dict.fromkeys(trainee_ids):  # 요청 내 중복 제거
         if trainee_id in existing:
             skipped += 1
@@ -267,6 +306,15 @@ async def create_records_for_session(
         trainee = await db.get(Trainee, trainee_id)
         if trainee is None:
             raise api_error("NOT_FOUND", message="교육생을 찾을 수 없어요")
+        if trainee.deleted_at is not None:
+            # 삭제된 교육생 — 오래된 목록·엑셀 매칭으로 넘어와도 이력을 만들지 않는다
+            skipped += 1
+            continue
+        if trainee_id in external_now:
+            before = external_now[trainee_id]
+            if external_hours.would_exceed(before, before + session.total_hours):
+                cap_excluded.append(decrypt_field(trainee.name_encrypted))
+                continue
         records.append(
             TrainingRecord(
                 training_record_no=_record_no(),
@@ -283,7 +331,8 @@ async def create_records_for_session(
                 completed_hours=session.total_hours,
                 started_at=session.started_at,
                 ended_at=session.ended_at,
-                source=session.source,
+                # 내역 구분은 기관 구분을 따른다 — 일정 기본값이 아니라 원칙 적용
+                source=external_hours.institution_source(course.institution),
                 completion_status=completion_status,
                 completed_at=now_kst() if completion_status == "completed" else None,
                 memo=memo,
@@ -303,8 +352,9 @@ async def create_records_for_session(
         after={
             "created": len(records),
             "skipped": skipped,
+            "external_cap_excluded": len(cap_excluded),
             "trainee_ids": [str(t) for t in trainee_ids],
         },
     )
     await db.commit()
-    return records, skipped
+    return records, skipped, cap_excluded

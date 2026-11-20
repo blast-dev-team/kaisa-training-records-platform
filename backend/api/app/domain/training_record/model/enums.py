@@ -4,7 +4,6 @@ import enum
 class RecordSource(str, enum.Enum):
     internal = "internal"
     external = "external"
-    legacy_import = "legacy_import"
 
 
 class CompletionStatus(str, enum.Enum):

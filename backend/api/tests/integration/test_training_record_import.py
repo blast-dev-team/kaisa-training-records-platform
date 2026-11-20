@@ -330,3 +330,69 @@ async def test_confirm_paid_only_skips_non_paid_members(client, db):
     assert body["created"] == 1
     assert sorted(f["row_number"] for f in body["failed"]) == [3, 4]
     assert all("유료회원" in f["error"] for f in body["failed"])
+
+
+async def test_preview_narrows_same_name_by_birth(client, db):
+    """동명이인 2명 — 파일에 생년월일이 있으면 좁혀서 정확히 매칭."""
+    from datetime import date
+
+    grade = await make_grade(db, code="g-tib", name="일반")
+    _, t1 = await make_trainee(db, grade.id, ci_raw="ci-tib1", trainee_no="TR-I-200", name="김동명")
+    _, t2 = await make_trainee(db, grade.id, ci_raw="ci-tib2", trainee_no="TR-I-201", name="김동명")
+    t1.birth_date = date(1955, 1, 1)
+    t2.birth_date = date(1965, 3, 2)
+    _, admin_token = await make_admin(db)
+    await db.commit()
+
+    content = make_xlsx(
+        [["김동명", "TR-TEST-9", "한국정보화진흥원", "SW개발보안", "2025.06.01", "2025.06.30", 8, 8, "1965.03.02"]],
+        headers=["이름", "감리원증번호", "교육기관명", "과목명", "시작일자", "종료일자", "교육시간", "인정시간", "생년월일"],
+    )
+    resp = await preview(client, admin_token, content)
+    assert resp.status_code == 200, resp.text
+    row = resp.json()["rows"][0]
+    assert row["errors"] == []
+    assert row["trainee_id"] == str(t2.id)
+
+
+async def test_preview_narrows_same_cert_by_birth(client, db):
+    """동일 증번호 후보 2명 — 생년월일로 좁혀서 매칭."""
+    from datetime import date
+
+    grade = await make_grade(db, code="g-tic", name="일반")
+    _, t1 = await make_trainee(db, grade.id, ci_raw="ci-tic1", trainee_no="TR-I-202", name="김증복")
+    _, t2 = await make_trainee(db, grade.id, ci_raw="ci-tic2", trainee_no="TR-I-203", name="김증복")
+    t1.cert_no = "정보시스템감리협회 제9999호"
+    t2.cert_no = "정보시스템감리협회 제9999호"
+    t1.birth_date = date(1970, 7, 7)
+    t2.birth_date = date(1980, 8, 8)
+    _, admin_token = await make_admin(db)
+    await db.commit()
+
+    content = make_xlsx(
+        [["김증복", "정보시스템감리협회 제9999호", "한국정보화진흥원", "SW개발보안", "2025.06.01", "2025.06.30", 8, 8, "1980.08.08"]],
+        headers=["이름", "감리원증번호", "교육기관명", "과목명", "시작일자", "종료일자", "교육시간", "인정시간", "생년월일"],
+    )
+    resp = await preview(client, admin_token, content)
+    assert resp.status_code == 200, resp.text
+    row = resp.json()["rows"][0]
+    assert row["errors"] == []
+    assert row["trainee_id"] == str(t2.id)
+
+
+async def test_preview_same_name_without_birth_stays_unmatched(client, db):
+    """동명이인 + 생년월일 열 없음 — 기존대로 미매칭 오류(수동 구분 유도)."""
+    grade = await make_grade(db, code="g-tid", name="일반")
+    await make_trainee(db, grade.id, ci_raw="ci-tid1", trainee_no="TR-I-204", name="김중복")
+    await make_trainee(db, grade.id, ci_raw="ci-tid2", trainee_no="TR-I-205", name="김중복")
+    _, admin_token = await make_admin(db)
+    await db.commit()
+
+    content = make_xlsx(
+        [["김중복", "", "한국정보화진흥원", "SW개발보안", "2025.06.01", "2025.06.30", 8, 8]],
+    )
+    resp = await preview(client, admin_token, content)
+    assert resp.status_code == 200, resp.text
+    row = resp.json()["rows"][0]
+    assert row["trainee_id"] is None
+    assert any("동일한 이름" in e for e in row["errors"])

@@ -9,13 +9,14 @@ from decimal import Decimal, InvalidOperation
 import openpyxl
 from openpyxl.utils.exceptions import InvalidFileException
 from sqlalchemy import select
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import DBAPIError, IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.audit import record_audit
 from app.core.crypto import decrypt_field, name_hash
 from app.core.error_codes import api_error
 from app.core.kst import now_kst
+from app.core.validation import HOURS_MAX
 from app.domain.auth.model import AdminUser
 from app.domain.institution.model.training_course import TrainingCourse
 from app.domain.institution.model.training_institution import TrainingInstitution
@@ -42,9 +43,10 @@ from app.domain.training_record.schema import (
     TrainingRecordImportRow,
     TrainingRecordUpdate,
 )
+from app.domain.training_record.service import external_hours
 from app.utils.cert_no import normalize_cert_no
 
-ALLOWED_SOURCES = {"internal", "external", "legacy_import"}
+ALLOWED_SOURCES = {"internal", "external"}
 ALLOWED_COMPLETION = {"in_progress", "completed", "canceled"}
 
 
@@ -96,6 +98,7 @@ async def list_records(
     trainee_id: uuid.UUID | None = None,
     session_id: uuid.UUID | None = None,
     source: str | None = None,
+    institution_type: str | None = None,
     exclude_source: str | None = None,
     completion_status: str | None = None,
     search: str | None = None,
@@ -110,6 +113,7 @@ async def list_records(
         trainee_id=trainee_id,
         session_id=session_id,
         source=source,
+        institution_type=institution_type,
         exclude_source=exclude_source,
         completion_status=completion_status,
         search=search,
@@ -121,7 +125,9 @@ async def list_records(
     )
 
 
-async def create_records_bulk(db: AsyncSession, data, actor: AdminUser) -> tuple[int, int]:
+async def create_records_bulk(
+    db: AsyncSession, data, actor: AdminUser
+) -> tuple[int, int, list[str]]:
     """일정 → 교육생 일괄 연결. 로직은 course_session_service 쪽에 있다.
 
     (course_session_service 가 _record_no 를 가져다 쓰므로 lazy import — 순환 회피)
@@ -130,7 +136,7 @@ async def create_records_bulk(db: AsyncSession, data, actor: AdminUser) -> tuple
         create_records_for_session,
     )
 
-    records, skipped = await create_records_for_session(
+    records, skipped, cap_excluded = await create_records_for_session(
         db,
         data.session_id,
         data.trainee_ids,
@@ -138,15 +144,31 @@ async def create_records_bulk(db: AsyncSession, data, actor: AdminUser) -> tuple
         data.memo,
         actor,
     )
-    return len(records), skipped
+    return len(records), skipped, cap_excluded
+
+
+def _derive_source(institution, current: str | None = None) -> str:
+    """소스는 기관 구분을 따른다 — 지정된 사내 기관만 internal, 그 외(외부·미지정·미연결)는 external.
+
+    '이관'(legacy_import) 표시는 더 이상 쓰지 않는다 — 수정 시 기관 구분으로 다시 맞춘다.
+    current 는 호출부 호환용으로만 받는다.
+    """
+    del current
+    return external_hours.institution_source(institution)
+
+
+def _ensure_period_order(started_at, ended_at) -> None:
+    """종료일이 시작일보다 앞서면 422 — 일정(course_session)과 같은 규칙."""
+    if started_at and ended_at and ended_at < started_at:
+        raise api_error(
+            "VALIDATION_ERROR", message="종료일이 시작일보다 앞설 수 없어요"
+        )
 
 
 async def create_record(
     db: AsyncSession, data: TrainingRecordCreate, actor: AdminUser
 ) -> TrainingRecord:
     """스냅샷 자동 채움 — 마스터 연결 시 과정명·기관명·총시간을 마스터에서 가져온다."""
-    if data.source not in ALLOWED_SOURCES:
-        raise api_error("VALIDATION_ERROR", message="올바르지 않은 이력 출처예요")
     if data.completion_status not in ALLOWED_COMPLETION:
         raise api_error("VALIDATION_ERROR", message="올바르지 않은 수료 상태예요")
 
@@ -160,10 +182,17 @@ async def create_record(
         if course is None:
             raise api_error("NOT_FOUND", message="과정을 찾을 수 없어요")
     institution = None
-    if data.institution_id:
-        institution = await inst_repo.find_institution_by_id(db, data.institution_id)
+    institution_id = data.institution_id
+    # 과정만 연결하면 기관은 과정 마스터의 기관을 따른다 (docs/admin/api.md 등록 규칙)
+    if institution_id is None and course is not None:
+        institution_id = course.institution_id
+    if institution_id:
+        institution = await inst_repo.find_institution_by_id(db, institution_id)
         if institution is None:
             raise api_error("NOT_FOUND", message="교육기관을 찾을 수 없어요")
+    _ensure_period_order(data.started_at, data.ended_at)
+
+    source = _derive_source(institution)
 
     course_name = course.name if course else data.course_name
     institution_name = institution.name if institution else data.institution_name
@@ -192,6 +221,9 @@ async def create_record(
     # 시수는 총 시수 하나로 관리 — 이수 시수는 총 시수를 그대로 인정한다
     completed_hours = total_hours if total_hours is not None else Decimal(0)
 
+    # 외부교육 한도 — 저장 전 합계를 잡아 두고, 저장 후 합계가 늘면서 16시간을 넘으면 차단
+    external_before = await external_hours.external_hours_by_trainee(db, [data.trainee_id])
+
     # savepoint 재시도 — training_record_no 가 확률적 채번이라 충돌 시 재생성
     record: TrainingRecord | None = None
     for _ in range(5):
@@ -201,14 +233,14 @@ async def create_record(
                     training_record_no=_record_no(),
                     trainee_id=data.trainee_id,
                     course_id=data.course_id,
-                    institution_id=data.institution_id,
+                    institution_id=institution_id,
                     course_name=course_name,
                     institution_name=institution_name,
                     total_hours=total_hours if total_hours is not None else 0,
                     completed_hours=completed_hours,
                     started_at=data.started_at,
                     ended_at=data.ended_at,
-                    source=data.source,
+                    source=source,
                     evidence_file_key=data.evidence_file_key,
                     completion_status=data.completion_status,
                     completed_at=now_kst()
@@ -225,6 +257,7 @@ async def create_record(
         break
     if record is None:  # 5회 재시도 후에도 유니크 충돌 — 사실상 없음
         raise api_error("INTERNAL_ERROR", message="문서번호 채번에 실패했어요")
+    await external_hours.guard_external_increase(db, external_before)
     record_audit(
         db,
         actor_admin_id=actor.id,
@@ -246,6 +279,7 @@ async def update_record(
 ) -> TrainingRecord:
     record = await get_record(db, record_id)
     updates = data.model_dump(exclude_unset=True)
+    external_before = await external_hours.external_hours_by_trainee(db, [record.trainee_id])
 
     if (
         "completion_status" in updates
@@ -259,12 +293,51 @@ async def update_record(
     ):
         record.completed_at = now_kst()
 
+    # 과정·기관을 바꾸면 이름 스냅샷(확인서에 찍히는 값)과 소스도 같이 맞춘다 — 일괄 수정과 동일
+    course = None
+    if (
+        updates.get("course_id") is not None
+        and updates["course_id"] != record.course_id
+    ):
+        course = await inst_repo.find_course_by_id(db, updates["course_id"])
+        if course is None:
+            raise api_error("NOT_FOUND", message="과정을 찾을 수 없어요")
+        if "institution_id" not in updates:
+            updates["institution_id"] = course.institution_id
+    institution = None
+    institution_changed = (
+        "institution_id" in updates
+        and updates["institution_id"] != record.institution_id
+    )
+    if institution_changed and updates["institution_id"] is not None:
+        institution = await inst_repo.find_institution_by_id(
+            db, updates["institution_id"]
+        )
+        if institution is None:
+            raise api_error("NOT_FOUND", message="교육기관을 찾을 수 없어요")
+    _ensure_period_order(
+        updates.get("started_at", record.started_at),
+        updates.get("ended_at", record.ended_at),
+    )
+
     for field, value in updates.items():
         setattr(record, field, value)
+    if course is not None:
+        record.course_name = course.name
+        updates["course_name"] = course.name
+    if institution is not None:
+        record.institution_name = institution.name
+        updates["institution_name"] = institution.name
+    if institution_changed:
+        new_source = _derive_source(institution, record.source)
+        if new_source != record.source:
+            record.source = new_source
+            updates["source"] = new_source
     # 시수는 총 시수 하나로 관리 — 이수 시수는 총 시수를 따라간다
     if "total_hours" in updates:
         record.completed_hours = record.total_hours
     record.updated_by = actor.id
+    await external_hours.guard_external_increase(db, external_before)
     after = {k: str(v) for k, v in updates.items()}
     if "total_hours" in updates:
         after["completed_hours"] = str(record.completed_hours)
@@ -289,6 +362,11 @@ async def bulk_update_records(
     중간에 하나라도 실패하면 전체가 반영되지 않는다(부분 수정 없음).
     """
     updated = 0
+    # 외부교육 한도 — 바꾸기 전 감리원별 합계. 같은 감리원 행이 여럿이면 변경 후 합계로 함께 판정된다
+    targets = [await get_record(db, item.id) for item in data.updates]
+    external_before = await external_hours.external_hours_by_trainee(
+        db, list(dict.fromkeys(r.trainee_id for r in targets))
+    )
     for item in data.updates:
         record = await get_record(db, item.id)
         updates = item.model_dump(exclude_unset=True, exclude={"id"})
@@ -307,16 +385,32 @@ async def bulk_update_records(
             record.completed_at = now_kst()
 
         # 과정 변경 — 과정 마스터 값으로 스냅샷(과정명·기관)을 같이 맞춘다
+        course = None
         if updates.get("course_id") is not None:
             course = await inst_repo.find_course_by_id(db, updates["course_id"])
             if course is None:
                 raise api_error("NOT_FOUND", message="과정을 찾을 수 없어요")
             updates["institution_id"] = course.institution_id
+
+        # 감사 로그 변경 전 값 — 바꾸는 필드만. 과정을 바꾸면 기관명·과정명도 남겨
+        # 감사 로그에서 ID 가 아니라 이름으로 무엇이 무엇으로 바뀌었는지 읽히게 한다
+        snapshot_fields = ("institution_name", "course_name") if course else ()
+        tracked = [*updates, *(("completed_hours",) if "total_hours" in updates else ())]
+        before = {
+            k: _audit_str(getattr(record, k)) for k in (*tracked, *snapshot_fields)
+        }
+
+        _ensure_period_order(
+            updates.get("started_at", record.started_at),
+            updates.get("ended_at", record.ended_at),
+        )
+        if course is not None:
             record.course_name = course.name
             record.institution_name = course.institution.name
-
         for field, value in updates.items():
             setattr(record, field, value)
+        if course is not None:
+            record.source = _derive_source(course.institution, record.source)
         # 시수는 총 시수 하나로 관리 — 이수 시수는 총 시수를 따라간다
         if "total_hours" in updates:
             record.completed_hours = record.total_hours
@@ -324,18 +418,39 @@ async def bulk_update_records(
         after = {k: str(v) for k, v in updates.items()}
         if "total_hours" in updates:
             after["completed_hours"] = str(record.completed_hours)
+        for k in snapshot_fields:
+            after[k] = getattr(record, k)
         record_audit(
             db,
             actor_admin_id=actor.id,
             action="training_record.updated",
             entity_type="training_record",
             entity_id=record.id,
+            before=before,
             after=after,
         )
         updated += 1
 
+    await external_hours.guard_external_increase(
+        db, external_before, await _trainee_names(db, list(external_before))
+    )
     await db.commit()
     return updated
+
+
+def _audit_str(value) -> str | None:
+    """감사 로그 값 — after 와 같은 문자열 표기. 비어 있던 값은 None 으로 남긴다."""
+    return None if value is None else str(value)
+
+
+async def _trainee_names(db: AsyncSession, trainee_ids: list[uuid.UUID]) -> dict[uuid.UUID, str]:
+    """일괄 처리 오류 문구에 감리원 이름을 넣기 위한 조회 — 여러 명 중 누구인지 알려 준다."""
+    names: dict[uuid.UUID, str] = {}
+    for trainee_id in trainee_ids:
+        trainee = await trainee_repo.find_by_id(db, trainee_id)
+        if trainee is not None:
+            names[trainee_id] = decrypt_field(trainee.name_encrypted)
+    return names
 
 
 async def bulk_delete_records(
@@ -555,6 +670,7 @@ async def match_preview(db: AsyncSession, content: bytes) -> TraineeMatchPreview
 _IMPORT_HEADERS = {
     "name": ("교육생명", "감리원명", "성명", "이름", "회원명"),
     "cert_no": ("감리원증번호", "감리원증 번호", "감리원번호", "증번호", "자격번호", "감리원증"),
+    "birth": ("생년월일", "생년", "생일"),
     "institution": ("교육기관명", "기관명", "교육기관", "주관기관", "기관"),
     "subject": ("과목명", "교육과목", "과정명", "교육명", "교육내용", "과목"),
     "start": ("시작일자", "시작일", "교육시작일", "시작"),
@@ -586,21 +702,79 @@ def _import_date_cell(value) -> str | None:
     return _import_cell(value)
 
 
+# 셀 안의 숫자 토큰 — 부호는 숫자 바로 앞의 '-' 만 인정(음수는 범위 오류로 알린다)
+_HOURS_NUMBER = re.compile(r"(?<![\d.])-?\d+(?:\.\d+)?")
+# 천 단위 구분 쉼표(1,000) — 숫자 사이 쉼표 뒤에 정확히 세 자리가 올 때만 지운다
+_THOUSANDS_COMMA = re.compile(r"(?<=\d),(?=\d{3}(?!\d))")
+
+
 def _import_hours(value) -> Decimal | None:
+    """시수 셀 → Decimal. 숫자로 바로 읽히지 않으면 셀 안의 숫자만 읽어 본다.
+
+    '8' · '8.5' → 그대로, '8시간' · '1.5h' · '약 4 시간' → 숫자 하나만 있으면 그 숫자.
+    숫자가 없거나 둘 이상('8시간 30분', '8~10')이면 None(행 오류 — 어느 값인지 단정할 수 없다).
+    """
     v = _import_cell(value)
     if v is None:
         return None
     try:
-        return Decimal(v)
+        d = Decimal(v)
+        if d.is_finite():
+            return d
+    except InvalidOperation:
+        pass
+    numbers = _HOURS_NUMBER.findall(_THOUSANDS_COMMA.sub("", str(v)))
+    if len(numbers) != 1:
+        return None
+    try:
+        d = Decimal(numbers[0])
     except InvalidOperation:
         return None
+    return d if d.is_finite() else None
+
+
+def _import_hours_error(value, label: str) -> str | None:
+    """시수 셀 검증 — 숫자를 하나로 읽을 수 없거나 범위를 벗어나면 행 오류로 알린다.
+
+    처음에는 읽을 수 없는 값('8시간')이 0시간으로 조용히 저장되고, 범위를 넘는 값은
+    확정 시 DB 오류(500)로 배치 전체를 롤백시켰다. 이제 '8시간'처럼 숫자가 하나뿐이면
+    그 숫자로 읽고, 숫자가 없거나 여럿이면 행 오류로 돌린다.
+    """
+    raw = _import_cell(value)
+    if raw is None:
+        return None
+    hours = _import_hours(value)
+    if hours is None:
+        if not _HOURS_NUMBER.search(str(raw)):
+            return f"{label}에 숫자가 없어요 (예: 8 또는 8시간)"
+        return f"{label}에 숫자가 여러 개라 시간을 정할 수 없어요 (숫자 하나만, 예: 8)"
+    if hours < 0:
+        return f"{label}은 0 이상이어야 해요"
+    if hours > HOURS_MAX:
+        return f"{label}은 {HOURS_MAX:,} 이하로 입력해 주세요"
+    return None
+
+
+def _narrow_by_birth(hits, birth):
+    """동명·동증번호 후보를 생년월일로 좁힌다 — 파일에 생년월일이 있을 때만.
+
+    후보가 여러 명이어도 생년월일이 정확히 1명만 맞으면 그 교육생을 돌려주고,
+    파일에 생년월일이 없거나 좁혀도 여러 명·0명이면 None (수동 구분 유도).
+    """
+    if birth is None:
+        return None
+    matched = [
+        t for t in hits if t.birth_date is not None and str(t.birth_date) == str(birth)
+    ]
+    return matched[0] if len(matched) == 1 else None
 
 
 async def import_preview(db: AsyncSession, content: bytes) -> TrainingRecordImportPreviewResult:
     """교육내역 엑셀 파싱 + 감리원 매칭 — 확정 전 프리뷰용.
 
     감리원 매칭은 감리원증번호(cert_no·senior_cert_no 양쪽) → 이름 순으로 하고,
-    이름은 동명이인이 2명 이상이면 미매칭으로 돌려 사용자가 수동으로 고르게 한다.
+    후보가 여러 명이면 파일의 생년월일로 좁힌다(생년월일 열이 있을 때).
+    그래도 안 좁혀지면 미매칭으로 돌려 사용자가 수동으로 고르게 한다.
     """
     try:
         wb = openpyxl.load_workbook(io.BytesIO(content), data_only=True, read_only=True)
@@ -692,6 +866,8 @@ async def import_preview(db: AsyncSession, content: bytes) -> TrainingRecordImpo
             )
             for field in _IMPORT_HEADERS
         }
+        # 생년월일은 표시용이 아니라 동명·동증번호 좁히기에 쓴다 — date 로 파싱해 둔다
+        cells["birth"] = _import_date(cells.get("birth"))
         if not any(cells.values()):
             continue  # 완전히 빈 행
         parsed.append({"row_number": offset, **cells})
@@ -747,6 +923,13 @@ async def import_preview(db: AsyncSession, content: bytes) -> TrainingRecordImpo
             errors.append("시작일자를 읽을 수 없어요 (예: 2025.06.01)")
         if r["end"] and _import_date(r["end"]) is None:
             errors.append("종료일자를 읽을 수 없어요 (예: 2025.06.30)")
+        _s, _e = _import_date(r["start"]), _import_date(r["end"])
+        if _s and _e and _e < _s:
+            errors.append("종료일이 시작일보다 앞설 수 없어요")
+        for _label, _key in (("교육시간", "hours_total"), ("인정시간", "hours_recog")):
+            _err = _import_hours_error(r[_key], _label)
+            if _err:
+                errors.append(_err)
 
         hit = None
         if r["cert_no"]:
@@ -754,13 +937,19 @@ async def import_preview(db: AsyncSession, content: bytes) -> TrainingRecordImpo
             if len(hits) == 1:
                 hit = hits[0]
             elif len(hits) > 1:
-                errors.append("동일한 감리원증번호의 감리원이 여러 명이에요")
+                # 동일 증번호 후보가 여러 명이면 생년월일로 좁힌다 (파일에 있을 때)
+                hit = _narrow_by_birth(hits, r["birth"])
+                if hit is None:
+                    errors.append("동일한 감리원증번호의 감리원이 여러 명이에요")
         if hit is None and r["name"]:
             hits = by_name.get(name_hash(r["name"]), [])
             if len(hits) == 1:
                 hit = hits[0]
             elif len(hits) > 1:
-                errors.append("동일한 이름의 감리원이 여러 명이에요 — 감리원증번호로 구분해 주세요")
+                # 동명이인은 생년월일로 좁힌다 — 없으면 수동 구분(증번호 기입) 유도
+                hit = _narrow_by_birth(hits, r["birth"])
+                if hit is None:
+                    errors.append("동일한 이름의 감리원이 여러 명이에요 — 감리원증번호로 구분해 주세요")
         if hit is None and not any("감리원" in e for e in errors):
             errors.append("감리원을 찾을 수 없어요")
 
@@ -817,7 +1006,50 @@ async def import_preview(db: AsyncSession, content: bytes) -> TrainingRecordImpo
         if key in existing_keys:
             row.is_duplicate = True
         existing_keys.add(key)  # 같은 파일 안의 반복 행도 두 번째부터 중복
+
+    await _mark_external_cap_rows(db, result_rows)
     return TrainingRecordImportPreviewResult(rows=result_rows, total=len(result_rows))
+
+
+async def _internal_institution_names(db: AsyncSession) -> set[str]:
+    """사내 기관 이름 — 확정 시 같은 이름이면 사내 기관을 먼저 고르므로 이름 하나라도 사내면 사내 교육."""
+    return set(
+        (
+            await db.execute(
+                select(TrainingInstitution.name).where(
+                    TrainingInstitution.institution_type == "internal"
+                )
+            )
+        ).scalars()
+    )
+
+
+async def _mark_external_cap_rows(db: AsyncSession, rows: list[TrainingRecordImportRow]) -> None:
+    """프리뷰 — 등록 시 외부교육 최근 3년 한도(16시간)를 넘게 되는 행에 오류를 단다.
+
+    파일 위에서부터 차례로 쌓아 판정한다(확정과 같은 순서) — 같은 감리원 행이 여럿이면
+    앞 행까지 더한 합계로 뒤 행을 본다. 이미 오류·중복인 행은 확정 대상이 아니라 뺀다.
+    """
+    internal_names = await _internal_institution_names(db)
+    candidates = [
+        row
+        for row in rows
+        if row.trainee_id is not None
+        and not row.errors
+        and not row.is_duplicate
+        and row.institution not in internal_names
+        and external_hours.counts_in_window(_import_date(row.start_date))
+    ]
+    running = await external_hours.external_hours_by_trainee(
+        db, list(dict.fromkeys(row.trainee_id for row in candidates))
+    )
+    for row in candidates:
+        hours = _import_hours(row.hours_recog) or _import_hours(row.hours_total) or Decimal(0)
+        before = running[row.trainee_id]
+        if external_hours.would_exceed(before, before + hours):
+            row.errors.append(external_hours.exceeded_message(before))
+            continue
+        running[row.trainee_id] = before + hours
 
 
 async def import_confirm(
@@ -829,6 +1061,8 @@ async def import_confirm(
     """
     created = skipped = 0
     failed: list[tuple[int, str]] = []
+    # 외부교육 한도 — 감리원별 최근 3년 합계를 처음 볼 때 조회하고, 등록할 때마다 더해 간다
+    external_running: dict[uuid.UUID, Decimal] = {}
     grade_map = {}
     if data.paid_only:
         await expire_due_memberships(db)
@@ -854,6 +1088,15 @@ async def import_confirm(
             continue
         if item.end_date and ended is None:
             failed.append((item.row_number, "종료일자를 읽을 수 없어요"))
+            continue
+        if started and ended and ended < started:
+            failed.append((item.row_number, "종료일이 시작일보다 앞설 수 없어요"))
+            continue
+        hours_error = _import_hours_error(
+            item.hours_total, "교육시간"
+        ) or _import_hours_error(item.hours_recog, "인정시간")
+        if hours_error:
+            failed.append((item.row_number, hours_error))
             continue
         # 기관 매칭 — 내부 기관(internal)이면 내부 데이터로 그대로 등록하고,
         # 매칭되지 않으면 외부 기관·외부 교육으로 등록한다.
@@ -905,7 +1148,18 @@ async def import_confirm(
             continue
 
         hours = _import_hours(item.hours_recog) or _import_hours(item.hours_total) or Decimal(0)
+        counts_toward_cap = not is_internal and external_hours.counts_in_window(started)
+        if counts_toward_cap:
+            if trainee.id not in external_running:
+                external_running.update(
+                    await external_hours.external_hours_by_trainee(db, [trainee.id])
+                )
+            before = external_running[trainee.id]
+            if external_hours.would_exceed(before, before + hours):
+                failed.append((item.row_number, external_hours.exceeded_message(before)))
+                continue
         saved = False
+        save_error: str | None = None
         for _ in range(5):
             try:
                 async with db.begin_nested():
@@ -930,10 +1184,19 @@ async def import_confirm(
                     )
             except IntegrityError:
                 continue  # 번호 충돌 — 재채번
+            except DBAPIError as exc:
+                # 이 행만 실패로 돌린다 — 예전에는 배치 전체가 500 으로 롤백됐다
+                save_error = f"저장하지 못했어요 ({type(exc.orig).__name__})"
+                break
             saved = True
             break
+        if not saved and save_error:
+            failed.append((item.row_number, save_error))
+            continue
         if saved:
             created += 1
+            if counts_toward_cap:
+                external_running[trainee.id] += hours
         else:
             failed.append((item.row_number, "이력 번호 채번에 반복 실패했어요"))
     await db.commit()

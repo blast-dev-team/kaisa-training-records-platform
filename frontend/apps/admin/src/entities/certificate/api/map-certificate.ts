@@ -25,7 +25,8 @@ export function mapCertificate(dto: CertificateDto): Certificate {
     issueSource: dto.issue_source ?? 'member',
     revokedAt: dto.revoked_at,
     revokedReason: dto.revoked_reason,
-    memberCount: dto.member_count != null ? Number(dto.member_count) : 1,
+    // BE 는 묶음에 포함된 교육내역 수를 record_count 로 보낸다
+    memberCount: dto.record_count != null ? Number(dto.record_count) : 1,
   }
 }
 

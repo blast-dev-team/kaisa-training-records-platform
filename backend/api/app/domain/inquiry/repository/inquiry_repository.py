@@ -22,7 +22,11 @@ async def list_by_user(db: AsyncSession, user_id: uuid.UUID) -> list[Inquiry]:
     return list((await db.execute(stmt)).scalars().all())
 
 
-GUEST_LOOKUP_MAX_CANDIDATES = 20
+# 후보마다 pbkdf2 검증을 하므로 상한을 둔다. 20 이면 같은 성명·연락처로 문의 20건을 심어
+# 본인의 옛 문의를 가릴 수 있어 50 으로 늘리고, 작성 쪽에 대상(성명+연락처)별 일일 한도를 둔다.
+GUEST_LOOKUP_MAX_CANDIDATES = 50
+# 대상(성명+연락처)별 비회원 문의 작성 한도 — 24시간 안 최대 건수
+GUEST_CREATE_MAX_PER_TARGET_PER_DAY = 5
 
 
 def _escape_like(value: str) -> str:
@@ -42,7 +46,6 @@ async def list_guest_candidates(
             Inquiry.author_phone_hash == phone_hash_value,
         )
         .order_by(Inquiry.created_at.desc())
-        # 후보마다 pbkdf2 검증을 하므로 상한을 둔다(같은 성명·연락처로 행을 쌓아 CPU 를 묶는 공격 방어)
         .limit(GUEST_LOOKUP_MAX_CANDIDATES)
     )
     return list((await db.execute(stmt)).scalars().all())
@@ -123,3 +126,22 @@ async def list_same_author(db: AsyncSession, inquiry: Inquiry) -> list[Inquiry]:
         .limit(50)
     )
     return list((await db.execute(stmt)).scalars().all())
+
+
+async def count_recent_guest_by_target(
+    db: AsyncSession, name_hash_value: str, phone_hash_value: str, since
+) -> int:
+    """같은 성명·연락처로 since 이후 작성된 비회원 문의 수."""
+    from sqlalchemy import func
+
+    stmt = (
+        select(func.count())
+        .select_from(Inquiry)
+        .where(
+            Inquiry.user_id.is_(None),
+            Inquiry.author_name_hash == name_hash_value,
+            Inquiry.author_phone_hash == phone_hash_value,
+            Inquiry.created_at >= since,
+        )
+    )
+    return (await db.execute(stmt)).scalar_one()

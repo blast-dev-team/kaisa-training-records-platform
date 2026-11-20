@@ -1,6 +1,6 @@
 import asyncio
 import uuid
-from datetime import date
+from datetime import date, timedelta
 
 from fastapi import Request
 from sqlalchemy import select
@@ -147,6 +147,15 @@ async def create_guest_inquiry(
     password_hash = await asyncio.to_thread(hash_password, data.password)
     if data.website:
         return None
+    # 대상(성명+연락처)별 일일 한도 — 남의 성명·연락처로 문의를 쌓아 조회를 방해하지 못하게
+    recent = await repo.count_recent_guest_by_target(
+        db, name_hash(data.name), phone_hash(data.phone), now_kst() - timedelta(days=1)
+    )
+    if recent >= repo.GUEST_CREATE_MAX_PER_TARGET_PER_DAY:
+        raise api_error(
+            "TOO_MANY_ATTEMPTS",
+            message="같은 연락처로 오늘 남길 수 있는 문의를 모두 남겼어요. 내일 다시 시도해 주세요",
+        )
 
     name_enc, name_h = name_columns(data.name)
     inquiry = Inquiry(
@@ -168,11 +177,18 @@ async def create_guest_inquiry(
     return inquiry
 
 
+# 응답 시간으로 문의 건수가 새지 않게 검증 횟수의 하한을 둔다 — 후보가 이보다 적으면
+# 더미 해시로 채워 같은 비용을 쓴다(대부분의 비회원은 이 수 이하의 문의를 가진다)
+_MIN_VERIFICATIONS = 5
+
+
 def _verify_candidates(password: str, candidates: list[Inquiry]) -> list[Inquiry]:
-    if not candidates:
+    matched = [
+        i for i in candidates if verify_password(password, i.password_hash or "")
+    ]
+    for _ in range(max(0, _MIN_VERIFICATIONS - len(candidates))):
         verify_password(password, _DUMMY_PASSWORD_HASH)
-        return []
-    return [i for i in candidates if verify_password(password, i.password_hash or "")]
+    return matched
 
 
 async def lookup_guest_inquiries(
@@ -300,7 +316,17 @@ async def answer_inquiry(
     db: AsyncSession, inquiry_id: uuid.UUID, answer: str, actor: AdminUser
 ) -> InquiryAdminDetail:
     """답변 등록·수정 — 상태를 answered 로 바꾸고 마지막 답변자·시각을 남긴다."""
-    inquiry = await _get_or_404(db, inquiry_id)
+    await _get_or_404(db, inquiry_id)
+    # 행 잠금 + 최신값 재조회 — 두 관리자가 동시에 첫 답변을 달면 뒤의 요청이 앞 답변을
+    # before 로 남기고 answer_updated 로 기록되게 한다(예전에는 첫 답변이 감사로그에서 사라졌다)
+    inquiry = (
+        await db.execute(
+            select(Inquiry)
+            .where(Inquiry.id == inquiry_id)
+            .with_for_update()
+            .execution_options(populate_existing=True)
+        )
+    ).scalar_one()
     was_answered = inquiry.status == "answered"
     before = {"status": inquiry.status, "answer": inquiry.answer}
     inquiry.answer = answer

@@ -149,7 +149,10 @@ async def complete_pass(
 async def kaisa_login_pass(
     body: PassKaisaLoginRequest, response: Response, db: AsyncSession = Depends(get_db)
 ):
-    """KAISA 계정 우회 로그인 — 성명 KAISA + 지정 생년월일·휴대전화, 본인 이력 발급 가능. 전 환경."""
+    """KAISA 계정 우회 로그인 — 성명 KAISA + 지정 생년월일·휴대전화, 본인 이력 발급 가능. 운영 404.
+
+    local·staging 한정: 감리원 성명 + 생년월일 + 휴대전화 01012345678 → 그 감리원으로 로그인.
+    """
     result, token = await identity_service.kaisa_login(db, body)
     response.set_cookie(**session_cookie_params(token))
     return result
@@ -170,10 +173,17 @@ async def list_admin_users(
 async def update_admin_user(
     admin_id: uuid.UUID,
     body: AdminUserUpdate,
+    request: Request,
     db: AsyncSession = Depends(get_db),
     actor: AdminUser = Depends(require_super),
 ):
-    return await auth_service.update_admin_user(db, admin_id, body, actor)
+    return await auth_service.update_admin_user(
+        db,
+        admin_id,
+        body,
+        actor,
+        current_token=_session_token(request, settings.ADMIN_SESSION_COOKIE_NAME),
+    )
 
 
 # ── 화이트리스트 (super) — 관리자 초대는 총관리자만 ───────────────────────────────────────────────────────

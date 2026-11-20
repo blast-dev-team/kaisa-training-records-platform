@@ -1,10 +1,11 @@
 import uuid
 from datetime import date, datetime
 from decimal import Decimal
+from typing import Annotated
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, StringConstraints
 
-from app.core.crypto import decrypt_field
+from app.core.crypto import try_decrypt_field
 
 
 class MyCertificateBrief(BaseModel):
@@ -61,7 +62,8 @@ class CertificateResponse(BaseModel):
             trainee_id=c.trainee_id,
             training_record_id=c.training_record_id,
             payment_order_id=c.payment_order_id,
-            issued_name=decrypt_field(c.issued_name_encrypted),
+            # 옛 키 era 잔재(키 로테이션 전 스냅샷)는 fallback 으로 표기 — 목록 전체 500 방지
+            issued_name=try_decrypt_field(c.issued_name_encrypted, "(복구 필요)"),
             course_name=c.course_name,
             institution_name=c.institution_name,
             total_hours=c.total_hours,
@@ -104,4 +106,5 @@ class CertificateIssueResult(BaseModel):
 
 
 class CertificateRevokeRequest(BaseModel):
-    reason: str
+    # 철회 사유 — 공백만은 감사 기록이 비므로 거절 (환불 사유와 같은 규칙)
+    reason: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1)]

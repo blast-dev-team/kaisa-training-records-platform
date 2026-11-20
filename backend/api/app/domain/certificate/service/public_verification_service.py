@@ -8,7 +8,6 @@ WEB 진위확인 화면이 입력창 하나라 번호 형태로 갈리지 않고
 
 import hmac
 import re
-from decimal import Decimal
 
 from fastapi import Request
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -29,6 +28,7 @@ from app.domain.certificate.schema import (
     PublicVerificationRequest,
     PublicVerificationResponse,
 )
+from app.domain.training_record.service import external_hours
 
 # 저장 형식의 변숫부 — YY-E숫자 (하이픈 생략 허용)
 _DOC_NO_RE = re.compile(r"(\d{2})-?E(\d{1,4})")
@@ -207,6 +207,14 @@ async def _verify_certificate(db, certificate, _log, now) -> PublicVerificationR
         )
 
     head = members[0]
+    # 문서 합계 = 사내 합계 + min(외부 합계, 16) — PDF 합계와 같은 공식
+    external_flags = await external_hours.external_flags_by_record(
+        db, [member.training_record_id for member in members]
+    )
+    document_total = external_hours.document_total_hours(
+        (member.total_hours, external_flags.get(member.training_record_id, True))
+        for member in members
+    )
     result = "valid"
     if head.expires_at is not None and head.expires_at < now:
         result = "expired"
@@ -219,11 +227,9 @@ async def _verify_certificate(db, certificate, _log, now) -> PublicVerificationR
         certificate_no=display_no,
         issued_name_masked=mask_name(decrypt_field(head.issued_name_encrypted)),
         course_name=head.course_name,
-        # 문서 전체 이수시간 합계 — PDF 합계와 같은 값. course_name 등 나머지
-        # 단건 필드는 첫 행 값(호환 유지), total_hours 만 묶음 합계다.
-        total_hours=sum(
-            (member.total_hours for member in members), Decimal(0)
-        ),
+        # 문서 전체 이수시간 합계 — PDF 합계와 같은 값(외부교육 16시간 상한 반영).
+        # course_name 등 나머지 단건 필드는 첫 행 값(호환 유지), total_hours 만 묶음 합계다.
+        total_hours=document_total,
         training_ended_at=head.training_ended_at,
         issued_at=to_kst_date(head.issued_at),
         expires_at=(

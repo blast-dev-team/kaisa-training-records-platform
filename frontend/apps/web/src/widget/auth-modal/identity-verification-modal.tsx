@@ -1,3 +1,4 @@
+import { toUserMessage } from "@/src/shared/lib/friendly-error";
 import { useEffect, useState } from "react";
 
 import { postPassComplete } from "@/src/shared/api/post-pass-complete";
@@ -17,14 +18,23 @@ import { Button, TextField } from "@/src/shared/ui";
  * 흐름: 서버에 인증 건 등록(start) → SDK 인증창 → 완료(complete — 고객 생성·세션 쿠키).
  * 인증 성공 시 onSuccess로 로그인된 고객명을 알린다.
  * 성명 KAISA + 생년월일 19900101 + 휴대전화 01012345678 이면 일반 회원 스코프의
- * KAISA 계정으로 바로 로그인한다 — 연결된 교육이력 1건으로 발급까지 가능 (전 환경 허용).
+ * KAISA 계정으로 바로 로그인한다 — 연결된 교육이력 1건으로 발급까지 가능 (로컬·dev 전용, 운영은 서버도 거절).
+ * 로컬·dev(staging) 에서는 감리원 성명·생년월일 + 휴대전화 01012345678 이면 그 감리원으로
+ * 바로 로그인한다 (테스트 로그인 — 서버도 운영에서는 거절한다).
  * 기존 모달 관례에 따라 배경 클릭·ESC 로도 닫는다 (인증 진행 중 제외).
  */
 
-/** KAISA 계정 — 성명 KAISA + 이 생년월일·휴대전화면 PASS 인증 없이 로그인 (전 환경) */
+/** KAISA 계정 — 성명 KAISA + 이 생년월일·휴대전화면 PASS 인증 없이 로그인 (로컬·dev 전용) */
 const KAISA_LOGIN_NAME = "KAISA";
 const KAISA_LOGIN_BIRTH = "19900101";
 const KAISA_LOGIN_PHONE = "01012345678";
+
+/**
+ * 테스트 로그인 허용 — 로컬 개발 서버(vite dev) 또는 VITE_ENV local·staging(dev 브랜치) 빌드.
+ * 운영 빌드(master → VITE_ENV=production)는 닫는다. 서버도 운영 환경이면 거절한다.
+ */
+const TEST_LOGIN_ENABLED =
+  import.meta.env.DEV || ["local", "staging"].includes(import.meta.env.VITE_ENV ?? "");
 
 interface IdentityVerificationModalProps {
   /** PASS 본인인증 성공 — 인증한 성명 전달 */
@@ -42,11 +52,17 @@ export function IdentityVerificationModal({ onSuccess, onClose }: IdentityVerifi
   const [isPending, setIsPending] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-  // KAISA 계정 — KAISA + 지정 생년월일·휴대전화(전 환경). 본인 이력만 보고 발급까지 가능
+  // KAISA 계정 — KAISA + 지정 생년월일·휴대전화(로컬·dev 전용). 본인 이력만 보고 발급까지 가능.
+  // 운영 빌드에서는 일반 본인인증으로 처리한다 — 서버도 운영에서는 404
   const isKaisaLogin =
+    TEST_LOGIN_ENABLED &&
     name.trim() === KAISA_LOGIN_NAME &&
     birth === KAISA_LOGIN_BIRTH &&
     phone === KAISA_LOGIN_PHONE;
+  // 테스트 로그인 — 로컬·dev 에서 감리원 성명·생년월일 + 지정 휴대전화면 PASS 없이 그 감리원으로
+  const isTestLogin =
+    TEST_LOGIN_ENABLED && !isKaisaLogin && phone === KAISA_LOGIN_PHONE && birth.length === 8;
+  const isDirectLogin = isKaisaLogin || isTestLogin;
 
   const canSubmit =
     name.trim().length > 0 &&
@@ -65,8 +81,9 @@ export function IdentityVerificationModal({ onSuccess, onClose }: IdentityVerifi
     setIsPending(true);
     setErrorMessage("");
     try {
-      if (isKaisaLogin) {
+      if (isDirectLogin) {
         // PASS 인증 생략 — 일반 회원 스코프. 서버가 세션 쿠키를 내려준다
+        // (KAISA 계정 / 테스트 로그인 모두 같은 엔드포인트 — 서버가 환경·값으로 판정)
         const user = await postPassKaisaLogin(name.trim(), birth, phone);
         onSuccess(user.name ?? name.trim());
         return;
@@ -95,9 +112,7 @@ export function IdentityVerificationModal({ onSuccess, onClose }: IdentityVerifi
       onSuccess(user.name ?? name.trim());
     } catch (error) {
       setErrorMessage(
-        error instanceof Error
-          ? error.message
-          : "본인인증에 실패했어요. 잠시 후 다시 시도해 주세요",
+        toUserMessage(error, "본인인증에 실패했어요. 잠시 후 다시 시도해 주세요"),
       );
     } finally {
       setIsPending(false);
@@ -135,7 +150,9 @@ export function IdentityVerificationModal({ onSuccess, onClose }: IdentityVerifi
             helperText={
               isKaisaLogin
                 ? "KAISA 계정으로 본인인증 없이 바로 로그인합니다."
-                : undefined
+                : isTestLogin
+                  ? "테스트 로그인 — 이 감리원으로 본인인증 없이 바로 로그인합니다."
+                  : undefined
             }
             onChange={(event) => setName(event.target.value)}
           />
@@ -178,7 +195,7 @@ export function IdentityVerificationModal({ onSuccess, onClose }: IdentityVerifi
             onClick={handleSubmit}
           >
             {isPending
-              ? isKaisaLogin
+              ? isDirectLogin
                 ? "로그인 중..."
                 : "인증 진행 중..."
               : "본인인증 시작"}

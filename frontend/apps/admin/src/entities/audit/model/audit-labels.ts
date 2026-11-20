@@ -12,6 +12,7 @@ export const ACTION_LABELS: Record<string, string> = {
   "admin_user.password_reset": "비밀번호 재설정",
   "allowed_email.created": "허용 이메일 추가",
   "allowed_email.deleted": "허용 이메일 삭제",
+  "allowed_email.invite_reissued": "초대 코드 재발급",
   "certificate.issued": "확인서 발급",
   "certificate.revoked": "자격증 발급 취소",
   "completion_certificate.issued": "수료증 발급",
@@ -40,6 +41,7 @@ export const ACTION_LABELS: Record<string, string> = {
   "trainee.grade_changed": "감리원 등급 변경",
   "trainee.updated": "감리원 정보 수정",
   "trainee.deleted": "감리원 삭제",
+  "trainee.grade_import": "회원등급 일괄 적용",
   "training_record.created": "교육 내역 수기 등록",
   "training_record.bulk_created": "교육 내역 일괄 생성",
   "training_record.updated": "교육 내역 수정",
@@ -106,6 +108,8 @@ export const FIELD_LABELS: Record<string, string> = {
   // 교육 내역·일정 (training_record.updated / course_session.updated·bulk_updated after)
   form_no: "서식 번호", // 폐지됨(migration d2f3a4b5c6d7) — 구 로그에만 남음
   completion_status: "수료 상태",
+  course_name: "과정명",
+  institution_name: "기관명",
   supervisor_grade: "감리원 등급",
   supervisor_cert_no: "감리원증 번호",
   total_hours: "총 시수",
@@ -156,7 +160,6 @@ export const VALUE_LABELS: Record<string, string> = {
   // 사내·외부 — 각 화면(TRAINING_SOURCE_LABELS·기관 탭) 용어와 맞춤
   internal: "사내",
   external: "외부",
-  legacy_import: "이관",
   // 관리자 계정 상태 (admin_user.status)
   active: "활성",
   disabled: "비활성",

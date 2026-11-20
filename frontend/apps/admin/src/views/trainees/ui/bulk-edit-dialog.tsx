@@ -1,3 +1,4 @@
+import { toUserMessage } from "@/src/shared/lib/friendly-error";
 import { useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
@@ -65,15 +66,22 @@ export function BulkEditDialog({ isOpen, onClose, trainees, onDone }: Props) {
   };
 
   // 전화는 빈 값 = 기존 유지 — null 을 보내면 초기화되므로 키를 생략한다
-  const items: TraineeBulkUpdateItem[] = trainees.map((t) => {
-    const row = rows[t.id];
-    const item: TraineeBulkUpdateItem = { id: t.id, name: row?.name.trim() ?? t.name };
-    if (row?.birthDate) item.birth_date = row.birthDate;
-    if (row?.phone.trim()) item.phone = row.phone.trim();
-    if (row?.certNo.trim()) item.cert_no = row.certNo.trim();
-    if (row?.seniorCertNo.trim()) item.senior_cert_no = row.seniorCertNo.trim();
-    return item;
-  });
+  // 사용자가 바꾼 칸만 보낸다 — 열 때 채운 값을 그대로 다 보내면, 그사이 다른 화면에서
+  // 개별 수정한 이름·생년·증번호를 이 창을 연 시점의 옛 값으로 되돌렸다
+  const items: TraineeBulkUpdateItem[] = trainees
+    .map((t) => {
+      const row = rows[t.id];
+      const item: TraineeBulkUpdateItem = { id: t.id };
+      if (!row) return item;
+      if (row.name.trim() && row.name.trim() !== t.name) item.name = row.name.trim();
+      if (row.birthDate && row.birthDate !== (t.birthDate ?? "")) item.birth_date = row.birthDate;
+      if (row.phone.trim()) item.phone = row.phone.trim();
+      if (row.certNo.trim() && row.certNo.trim() !== (t.certNo ?? "")) item.cert_no = row.certNo.trim();
+      if (row.seniorCertNo.trim() && row.seniorCertNo.trim() !== (t.seniorCertNo ?? ""))
+        item.senior_cert_no = row.seniorCertNo.trim();
+      return item;
+    })
+    .filter((item) => Object.keys(item).length > 1);
 
   const nameEmpty = trainees.some((t) => !rows[t.id]?.name.trim());
 
@@ -85,7 +93,7 @@ export function BulkEditDialog({ isOpen, onClose, trainees, onDone }: Props) {
       onDone();
       onClose();
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => toast.error(toUserMessage(e)),
   });
 
   return (
@@ -102,7 +110,13 @@ export function BulkEditDialog({ isOpen, onClose, trainees, onDone }: Props) {
           variant: "primary",
           isLoading: mutation.isPending,
           isDisabled: nameEmpty,
-          onClick: () => mutation.mutate(),
+          onClick: () => {
+            if (items.length === 0) {
+              toast.info("변경된 내용이 없어요");
+              return;
+            }
+            mutation.mutate();
+          },
         },
       ]}
     >

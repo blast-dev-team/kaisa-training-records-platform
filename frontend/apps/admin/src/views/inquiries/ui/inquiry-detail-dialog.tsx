@@ -1,3 +1,4 @@
+import { toUserMessage } from "@/src/shared/lib/friendly-error";
 import { useState } from "react";
 import { Link } from "react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -26,7 +27,7 @@ export function InquiryDetailDialog({
   inquiryId: string | null;
   onClose: () => void;
 }) {
-  const { data, isError } = useQuery({
+  const { data, isError, error } = useQuery({
     ...inquiryQueries.detail(inquiryId ?? ""),
     enabled: !!inquiryId,
   });
@@ -35,7 +36,7 @@ export function InquiryDetailDialog({
     <Dialog isOpen={!!inquiryId} onClose={onClose} size="2xl" title="문의 상세">
       {isError ? (
         <p className="py-10 text-center text-14 text-danger">
-          문의를 불러오지 못했어요. 잠시 후 다시 시도해 주세요
+          {toUserMessage(error, "문의를 불러오지 못했어요. 잠시 후 다시 시도해 주세요")}
         </p>
       ) : !data || data.id !== inquiryId ? (
         <p className="py-10 text-center text-14 text-ink-3">문의를 불러오고 있어요</p>
@@ -62,7 +63,7 @@ function InquiryDetailBody({ detail, onClose }: { detail: InquiryDetail; onClose
       toast.success(isAnswered ? "답변을 수정했어요" : "답변을 등록했어요");
       if (!isAnswered) onClose();
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => toast.error(toUserMessage(e)),
   });
 
   return (

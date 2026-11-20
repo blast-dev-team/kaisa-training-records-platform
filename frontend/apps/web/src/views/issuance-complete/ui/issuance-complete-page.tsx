@@ -1,3 +1,4 @@
+import { toUserMessage } from "@/src/shared/lib/friendly-error";
 import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router";
@@ -80,9 +81,7 @@ export function IssuanceCompletePage() {
       }
     } catch (err) {
       showToast(
-        err instanceof Error
-          ? err.message
-          : "문제가 생겼어요. 잠시 후 다시 시도해 주세요",
+        toUserMessage(err, "문제가 생겼어요. 잠시 후 다시 시도해 주세요"),
       );
     }
   };
@@ -111,9 +110,7 @@ export function IssuanceCompletePage() {
     return (
       <section className="flex flex-col items-center gap-4 py-20 text-center font-sans">
         <p className="text-14 text-gray-700">
-          {error instanceof Error
-            ? error.message
-            : "문제가 생겼어요. 잠시 후 다시 시도해 주세요"}
+          {toUserMessage(error, "문제가 생겼어요. 잠시 후 다시 시도해 주세요")}
         </p>
         <Button variant="outlined" color="gray" onClick={() => refetch()}>
           다시 시도

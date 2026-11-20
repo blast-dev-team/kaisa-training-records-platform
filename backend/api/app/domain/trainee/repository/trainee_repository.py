@@ -5,7 +5,12 @@ from sqlalchemy import func, or_, select, tuple_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.crypto import name_hash
+from app.core.validation import LIKE_ESCAPE, like_contains
 from app.domain.trainee.model import MembershipGrade, Trainee
+from app.domain.trainee.repository.trainee_hours import (
+    HOURS_SORT_KEYS,
+    hours_by_trainee_select,
+)
 from app.utils.cert_no import normalize_cert_no
 
 
@@ -57,19 +62,22 @@ async def list_trainees(
 
     이름은 blind index 로 '전체 이름 일치'만, 번호·이메일은 부분 검색을 지원한다.
     supervisor_grade 는 'none' sentinel 로 미정(NULL) 필터를 지원한다.
-    sort_key 는 'grade_expires_at' | 'created_at' | 'updated_at' — service 에서
-    화이트리스트 검증된다. grade_expires_at 정렬 시 NULL 은 마지막.
+    sort_key 는 'grade_expires_at' | 'created_at' | 'updated_at' | 교육시간 합계
+    (total_hours·internal_hours·external_hours) — service 에서 화이트리스트 검증된다.
+    grade_expires_at 정렬 시 NULL 은 마지막, 교육시간 정렬은 이력 없으면 0.
     """
     stmt = select(Trainee).where(Trainee.deleted_at.is_(None))
     if search:
-        pattern = f"%{search}%"
+        pattern = like_contains(search)
         stmt = stmt.where(
             or_(
                 Trainee.name_hash == name_hash(search),
-                Trainee.trainee_no.ilike(pattern),
-                Trainee.cert_no.ilike(pattern),  # 감리원증번호
-                Trainee.senior_cert_no.ilike(pattern),  # 수석감리원증번호
-                Trainee.email.ilike(pattern),
+                Trainee.trainee_no.ilike(pattern, escape=LIKE_ESCAPE),
+                Trainee.cert_no.ilike(pattern, escape=LIKE_ESCAPE),  # 감리원증번호
+                Trainee.senior_cert_no.ilike(
+                    pattern, escape=LIKE_ESCAPE
+                ),  # 수석감리원증번호
+                Trainee.email.ilike(pattern, escape=LIKE_ESCAPE),
             )
         )
     if review_status:
@@ -97,6 +105,11 @@ async def list_trainees(
                 else Trainee.grade_expires_at.desc().nulls_last()
             )
             order_by = [primary, *order_by]
+        elif sort_key in HOURS_SORT_KEYS:
+            hours = hours_by_trainee_select().subquery()
+            stmt = stmt.outerjoin(hours, hours.c.trainee_id == Trainee.id)
+            col = func.coalesce(hours.c[sort_key], 0)
+            order_by = [col.asc() if sort_order == "asc" else col.desc(), *order_by]
         elif sort_key in ("created_at", "updated_at"):
             col = Trainee.created_at if sort_key == "created_at" else Trainee.updated_at
             order_by = [col.asc() if sort_order == "asc" else col.desc(), Trainee.id.desc()]

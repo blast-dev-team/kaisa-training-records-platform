@@ -1,3 +1,4 @@
+import { toUserMessage } from "@/src/shared/lib/friendly-error";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -18,13 +19,13 @@ import { SearchInput } from "@/src/shared/ui/search-input";
 import { Select } from "@/src/shared/ui/select";
 import { cn } from "@/src/shared/utils/cn";
 import { formatNumber, toYMD, todayYMD, yearsAgoYMD } from "@/src/shared/utils/format";
+import { useShiftRangeSelect } from "@/src/shared/hooks/use-shift-range-select";
 import {
   deleteTrainingRecord,
   deleteTrainingRecordBulk,
   postCompletionCertificatesIssue,
   trainingRecordQueries,
   COMPLETION_STATUS_LABELS,
-  TRAINING_SOURCE_LABELS,
   type CompletionCertificate,
   type TrainingRecord,
 } from "@/src/entities/training-record";
@@ -66,7 +67,7 @@ const traineeOptionsFetcher = fetchOptions("/trainees", {}, (t) => ({
 export function TrainingRecordListPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const traineeId = searchParams.get("trainee_id") ?? "";
-  const source = searchParams.get("source") ?? "";
+  const institutionType = searchParams.get("type") ?? "";
   const status = searchParams.get("status") ?? "";
   const q = searchParams.get("q") ?? "";
   const from = searchParams.get("from") ?? "";
@@ -108,10 +109,10 @@ export function TrainingRecordListPage() {
   const [bulkEditRecords, setBulkEditRecords] = useState<TrainingRecord[]>([]);
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
 
-  const { data } = useQuery(
+  const { data, error: listError, refetch: refetchList } = useQuery(
     trainingRecordQueries.list({
       traineeId: traineeId || undefined,
-      source: source || undefined,
+      institutionType: institutionType || undefined,
       completionStatus: status || undefined,
       search: q || undefined,
       dateFrom: effFrom || undefined,
@@ -122,20 +123,36 @@ export function TrainingRecordListPage() {
     }),
   );
 
+  // Shift+클릭 범위 선택 — 현재 페이지에 보이는 순서 기준
+  const { pick: pickRange } = useShiftRangeSelect({
+    items: data?.items ?? [],
+    getKey: (r: TrainingRecord) => r.id,
+  });
+
+  /** 누른 행(Shift 면 범위)을 checked 상태로 맞춘다 — checked 생략 시 누른 행의 반대 상태 */
+  const setRowsChecked = useCallback(
+    (record: TrainingRecord, checked?: boolean) => {
+      const targets = pickRange(record);
+      setSelected((prev) => {
+        const next = new Map(prev);
+        const on = checked ?? !prev.has(record.id);
+        for (const t of targets) {
+          if (on) next.set(t.id, t);
+          else next.delete(t.id);
+        }
+        return next;
+      });
+    },
+    [pickRange],
+  );
+
   /** 행 클릭·체크박스 공용 토글 — 행 자체를 클릭해도 선택이 바뀐다 */
-  const toggleRow = useCallback((record: TrainingRecord) => {
-    setSelected((prev) => {
-      const next = new Map(prev);
-      if (next.has(record.id)) next.delete(record.id);
-      else next.set(record.id, record);
-      return next;
-    });
-  }, []);
+  const toggleRow = useCallback((record: TrainingRecord) => setRowsChecked(record), [setRowsChecked]);
 
   // 검색·필터가 바뀌면 행 집합의 의미가 달라진다 — 안 보이는 내역이 남지 않게 선택 해제
   useEffect(() => {
     setSelected(new Map());
-  }, [traineeId, source, status, q, from, to, period, sort]);
+  }, [traineeId, institutionType, status, q, from, to, period, sort]);
 
   /** 선택된 교육생 이름 — 옵션 목록에 없어도 드롭다운에 표시 */
   const { data: selectedTrainee } = useQuery({
@@ -145,14 +162,39 @@ export function TrainingRecordListPage() {
 
   const queryClient = useQueryClient();
 
+  // 선택은 선택 시점의 행 객체를 담는다 — 목록이 다시 오면 보이는 행의 최신 값으로 바꿔 끼운다
+  // (예전에는 다른 곳에서 고친 시수가 확인서 미리보기·일괄 작업에 반영되지 않았다)
+  useEffect(() => {
+    const items = data?.items;
+    if (!items || items.length === 0) return;
+    setSelected((prev) => {
+      let changed = false;
+      const next = new Map(prev);
+      for (const row of items) {
+        if (next.has(row.id) && next.get(row.id) !== row) {
+          next.set(row.id, row);
+          changed = true;
+        }
+      }
+      return changed ? next : prev;
+    });
+  }, [data]);
+
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteTrainingRecord(id),
-    onSuccess: () => {
+    onSuccess: (_result, id) => {
+      // 삭제한 행은 선택에서도 뺀다 — 남아 있으면 일괄 삭제가 404 로 전체 실패했다
+      setSelected((prev) => {
+        if (!prev.has(id)) return prev;
+        const next = new Map(prev);
+        next.delete(id);
+        return next;
+      });
       toast.success("이력을 삭제했어요");
       setDeleteTarget(null);
       queryClient.invalidateQueries({ queryKey: trainingRecordQueries.all() });
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => toast.error(toUserMessage(e)),
   });
 
   const bulkDeleteMutation = useMutation({
@@ -163,7 +205,7 @@ export function TrainingRecordListPage() {
       setSelected(new Map());
       queryClient.invalidateQueries({ queryKey: trainingRecordQueries.all() });
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => toast.error(toUserMessage(e)),
   });
 
   /** 선택 중 수료증 발급 자격 건 — 일괄 발급 버튼 활성·대상 계산에 쓴다 */
@@ -182,7 +224,7 @@ export function TrainingRecordListPage() {
         return next;
       });
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => toast.error(toUserMessage(e)),
   });
 
   const updateParams = (patch: Record<string, string | null>, resetPage = true) => {
@@ -224,12 +266,7 @@ export function TrainingRecordListPage() {
             type="checkbox"
             className="size-4 accent-accent cursor-pointer"
             checked={selected.has(row.original.id)}
-            onChange={(e) => {
-              const next = new Map(selected);
-              if (e.target.checked) next.set(row.original.id, row.original);
-              else next.delete(row.original.id);
-              setSelected(next);
-            }}
+            onChange={(e) => setRowsChecked(row.original, e.target.checked)}
             onClick={(e) => e.stopPropagation()}
           />
         ),
@@ -246,10 +283,15 @@ export function TrainingRecordListPage() {
         ),
       },
       {
-        accessorKey: "source",
+        accessorKey: "institutionType",
         header: "구분",
         meta: { width: 60 },
-        cell: ({ row }) => TRAINING_SOURCE_LABELS[row.original.source],
+        cell: ({ row }) => {
+          // 이력 source(생성 시점 스냅샷) 말고 기관의 현재 구분 — 확인서 합계·16시간 한도와 같은 기준.
+          // 구분 미선택은 없다 — NULL 도 외부 취급
+          const type = row.original.institutionType;
+          return type === "internal" ? "사내" : "외부";
+        },
       },
       {
         accessorKey: "institutionName",
@@ -372,8 +414,8 @@ export function TrainingRecordListPage() {
         },
       },
     ],
-    // toggleRow 는 useCallback([]) 로 안정적이라 deps 제외
-    [selected],
+    // toggleRow 는 setRowsChecked 를 감싼 useCallback 이라 함께 안정적이다
+    [selected, setRowsChecked],
   );
 
   const items = data?.items ?? [];
@@ -457,15 +499,12 @@ export function TrainingRecordListPage() {
         <FilterRow label="구분">
           <Select
             className="w-36"
-            value={source}
-            onChange={(e) => updateParams({ source: e.target.value || null })}
+            value={institutionType}
+            onChange={(e) => updateParams({ type: e.target.value || null })}
           >
             <option value="">전체</option>
-            {Object.entries(TRAINING_SOURCE_LABELS).map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
+            <option value="internal">사내</option>
+            <option value="external">외부</option>
           </Select>
         </FilterRow>
         <FilterRow label="정렬">
@@ -623,7 +662,9 @@ export function TrainingRecordListPage() {
       <AppTable
         columns={columns}
         data={items}
-        isLoading={!data}
+        isLoading={!data && !listError}
+        error={listError}
+        onRetry={() => void refetchList()}
         onRowClick={toggleRow}
         isRowSelected={(r) => selected.has(r.id)}
         emptyMessage={
@@ -645,7 +686,6 @@ export function TrainingRecordListPage() {
         isOpen={formOpen}
         onClose={() => setFormOpen(false)}
         record={editTarget}
-        defaultSource="internal"
       />
 
       <CertificatePreviewModal

@@ -1,3 +1,4 @@
+import { toUserMessage } from '@/src/shared/lib/friendly-error';
 import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -50,7 +51,7 @@ function AllowedEmailTable() {
   const queryClient = useQueryClient()
   const [searchParams, setSearchParams] = useSearchParams()
   const q = searchParams.get('q') ?? ''
-  const { data } = useQuery(allowedEmailQueries.list(q || undefined))
+  const { data, error: listError, refetch: refetchList } = useQuery(allowedEmailQueries.list(q || undefined))
 
   const [searchInput, setSearchInput] = useState(q)
   const [addOpen, setAddOpen] = useState(false)
@@ -75,7 +76,7 @@ function AllowedEmailTable() {
       setIssuedInvite(invite)
       queryClient.invalidateQueries({ queryKey: allowedEmailQueries.all() })
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => toast.error(toUserMessage(e)),
   })
 
   const reissueMutation = useMutation({
@@ -84,7 +85,7 @@ function AllowedEmailTable() {
       setIssuedInvite(invite)
       queryClient.invalidateQueries({ queryKey: allowedEmailQueries.all() })
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => toast.error(toUserMessage(e)),
   })
 
   const copyInviteCode = async () => {
@@ -105,7 +106,7 @@ function AllowedEmailTable() {
       setDeleteTarget(null)
       queryClient.invalidateQueries({ queryKey: allowedEmailQueries.all() })
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => toast.error(toUserMessage(e)),
   })
 
   const columns = useMemo<ColumnDef<AllowedEmail, unknown>[]>(
@@ -233,7 +234,9 @@ function AllowedEmailTable() {
       <AppTable
         columns={columns}
         data={items}
-        isLoading={!data}
+        isLoading={!data && !listError}
+        error={listError}
+        onRetry={() => void refetchList()}
         emptyMessage="등록된 초대 이메일이 없어요"
         columnDividers
       />

@@ -1,3 +1,4 @@
+import { toUserMessage } from "@/src/shared/lib/friendly-error";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -13,6 +14,10 @@ import { PageHead } from "@/src/shared/ui/page-head";
 import { PageContainer } from "@/src/shared/ui/page-container";
 import { Select } from "@/src/shared/ui/select";
 import { toYMD } from "@/src/shared/utils/format";
+import {
+  forwardShiftClickToCheckbox,
+  useShiftRangeSelect,
+} from "@/src/shared/hooks/use-shift-range-select";
 import { Check, FileSpreadsheet, Info, Minus, Plus } from "lucide-react";
 import { AlertTriangle } from "lucide-react";
 import {
@@ -20,6 +25,7 @@ import {
   membershipGradeQueries,
   traineeQueries,
   type Trainee,
+  type TraineeSortKey,
 } from "@/src/entities/trainee";
 import { BulkEditDialog } from "./bulk-edit-dialog";
 import { BulkGradeDialog } from "./bulk-grade-dialog";
@@ -52,14 +58,13 @@ export function TraineeListPage() {
   /** id → Trainee — 페이지를 넘어 선택해도 일괄 모달에서 프리필할 수 있게 객체를 저장 */
   const [selected, setSelected] = useState<Record<string, Trainee>>({});
 
-  const { data } = useQuery(
+  const { data, error: listError, refetch: refetchList } = useQuery(
     traineeQueries.list({
       q,
       gradeId: gradeId || undefined,
       supervisorGrade: supervisorGrade || undefined,
       birthDate: birth || undefined,
-      sort: (sort || undefined) as
-        "grade_expires_at" | "created_at" | "updated_at" | undefined,
+      sort: (sort || undefined) as TraineeSortKey | undefined,
       order: (order === "asc" || order === "desc" ? order : undefined) as
         "asc" | "desc" | undefined,
       page,
@@ -96,7 +101,7 @@ export function TraineeListPage() {
       setDeleteTarget(null);
       queryClient.invalidateQueries({ queryKey: traineeQueries.all() });
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => toast.error(toUserMessage(e)),
   });
 
   const updateParams = (patch: Record<string, string | null>, resetPage = true) => {
@@ -113,11 +118,19 @@ export function TraineeListPage() {
   const total = data?.total ?? 0;
   const totalPages = data?.totalPages ?? 1;
 
+  // Shift+클릭 범위 선택 — 현재 페이지에 보이는 순서 기준
+  const { pick: pickRange } = useShiftRangeSelect({ items, getKey: (t: Trainee) => t.id });
+
+  /** 누른 행(Shift 면 범위)을 누른 행의 반대 상태로 맞춘다 */
   const toggleRow = (t: Trainee) => {
+    const targets = pickRange(t);
     setSelected((prev) => {
       const next = { ...prev };
-      if (t.id in next) delete next[t.id];
-      else next[t.id] = t;
+      const on = !(t.id in prev);
+      for (const target of targets) {
+        if (on) next[target.id] = target;
+        else delete next[target.id];
+      }
       return next;
     });
   };
@@ -219,6 +232,33 @@ export function TraineeListPage() {
                   </span>
                 </span>
               )}
+            </span>
+          );
+        },
+      },
+      // 사내/외부는 기관의 현재 구분 기준 — 기관 구분을 바꾸면 다음 조회부터 바로 반영된다
+      {
+        id: "internalHours",
+        header: "사내 교육",
+        meta: { width: 90 },
+        cell: ({ row }) => formatHours(row.original.internalHours),
+      },
+      {
+        id: "externalHours",
+        header: "외부 교육",
+        meta: { width: 90 },
+        cell: ({ row }) => formatHours(row.original.externalHours),
+      },
+      {
+        id: "totalHours",
+        header: "총 교육시간",
+        meta: { width: 100 },
+        cell: ({ row }) => {
+          const t = row.original;
+          if (t.internalHours == null && t.externalHours == null) return "—";
+          return (
+            <span className="font-semibold">
+              {formatHours((t.internalHours ?? 0) + (t.externalHours ?? 0))}
             </span>
           );
         },
@@ -358,7 +398,7 @@ export function TraineeListPage() {
         <FilterRow label="감리원">
           {/* 등급은 enum 고정(감리원/수석감리원) — distinct 조회 대신 상수 옵션 */}
           <Select
-            className="w-40"
+            className="w-44"
             value={supervisorGrade}
             onChange={(e) => updateParams({ supervisor_grade: e.target.value || null })}
           >
@@ -370,7 +410,7 @@ export function TraineeListPage() {
         </FilterRow>
         <FilterRow label="회원등급">
           <Select
-            className="w-40"
+            className="w-44"
             value={gradeId}
             onChange={(e) => updateParams({ grade: e.target.value || null })}
           >
@@ -385,7 +425,7 @@ export function TraineeListPage() {
         {isAnnualFilter && (
           <FilterRow label="만료일 정렬">
             <Select
-              className="w-40"
+              className="w-44"
               value={sort === "grade_expires_at" ? order : ""}
               onChange={(e) =>
                 updateParams({
@@ -402,8 +442,8 @@ export function TraineeListPage() {
         )}
         <FilterRow label="정렬">
           <Select
-            className="w-40"
-            value={sort === "created_at" || sort === "updated_at" ? `${sort}:${order}` : ""}
+            className="w-44"
+            value={sort && sort !== "grade_expires_at" && order ? `${sort}:${order}` : ""}
             onChange={(e) => {
               const v = e.target.value;
               if (!v) {
@@ -419,12 +459,18 @@ export function TraineeListPage() {
             <option value="created_at:asc">등록일 오래된순</option>
             <option value="updated_at:desc">수정일 최신순</option>
             <option value="updated_at:asc">수정일 오래된순</option>
+            <option value="total_hours:desc">총 교육시간 많은순</option>
+            <option value="total_hours:asc">총 교육시간 적은순</option>
+            <option value="internal_hours:desc">사내 교육시간 많은순</option>
+            <option value="internal_hours:asc">사내 교육시간 적은순</option>
+            <option value="external_hours:desc">외부 교육시간 많은순</option>
+            <option value="external_hours:asc">외부 교육시간 적은순</option>
           </Select>
         </FilterRow>
         <FilterRow label="생년월일">
           <DateField
             ariaLabel="생년월일 필터"
-            className="w-40"
+            className="w-44"
             value={birth}
             onChange={(v) => updateParams({ birth: v || null })}
           />
@@ -465,7 +511,9 @@ export function TraineeListPage() {
       <AppTable
         columns={columns}
         data={items}
-        isLoading={!data}
+        isLoading={!data && !listError}
+        error={listError}
+        onRetry={() => void refetchList()}
         onRowClick={toggleRow}
         getRowClassName={getRowClassName}
         isRowSelected={(t) => t.id in selected}
@@ -539,6 +587,11 @@ export function TraineeListPage() {
   );
 }
 
+/** 8 → "8시간", 7.5 → "7.5시간" */
+function formatHours(hours: number | null | undefined) {
+  return hours == null ? "—" : `${hours.toLocaleString()}시간`;
+}
+
 /** 커스텀 체크박스 — sr-only input + 스타일 span (attach-trainees-dialog 와 같은 패턴) */
 function RowCheckbox({
   checked,
@@ -551,7 +604,10 @@ function RowCheckbox({
 }) {
   const shown = checked || indeterminate;
   return (
-    <label className="flex cursor-pointer items-center justify-center cursor-pointer">
+    <label
+      className="flex cursor-pointer items-center justify-center cursor-pointer"
+      onClick={forwardShiftClickToCheckbox}
+    >
       <input type="checkbox" className="sr-only" checked={checked} onChange={onChange} />
       <span
         className={`flex size-4 shrink-0 items-center justify-center rounded border ${

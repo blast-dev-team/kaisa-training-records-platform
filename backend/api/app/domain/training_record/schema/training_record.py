@@ -2,9 +2,10 @@ import uuid
 from datetime import date, datetime
 from decimal import Decimal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from app.core.crypto import decrypt_field, mask_phone
+from app.core.validation import Hours, reject_explicit_null
 
 
 class TrainingRecordCreate(BaseModel):
@@ -16,10 +17,14 @@ class TrainingRecordCreate(BaseModel):
     # 과정·기관 마스터 미연결 시 스냅샷 직접 입력 (최소 하나는 필수)
     course_name: str | None = None
     institution_name: str | None = None
-    total_hours: Decimal | None = None  # 미지정 시 과정 마스터 값. completed_hours 는 서버가 total_hours 로 채운다
+    total_hours: Hours | None = (
+        None  # 미지정 시 과정 마스터 값. completed_hours 는 서버가 total_hours 로 채운다
+    )
     started_at: date | None = None
     ended_at: date | None = None
-    source: str = "internal"  # internal | external | legacy_import
+    source: str = (
+        "internal"  # 기관 구분을 따른다 — external 기관이면 서버가 external로 파생
+    )
     evidence_file_key: str | None = None
     completion_status: str = "completed"  # in_progress | completed | canceled
     memo: str | None = None
@@ -32,12 +37,18 @@ class TrainingRecordUpdate(BaseModel):
 
     course_id: uuid.UUID | None = None
     institution_id: uuid.UUID | None = None
-    total_hours: Decimal | None = None
+    total_hours: Hours | None = None
     started_at: date | None = None
     ended_at: date | None = None
     evidence_file_key: str | None = None
     completion_status: str | None = None
     memo: str | None = None
+
+    @model_validator(mode="after")
+    def _not_null(self):
+        # NOT NULL 컬럼 — 명시적 null 은 500(IntegrityError) 대신 422
+        reject_explicit_null(self, ("total_hours", "completion_status"))
+        return self
 
 
 class TrainingRecordResponse(BaseModel):
@@ -47,9 +58,13 @@ class TrainingRecordResponse(BaseModel):
     # 어드민 목록 표시용 — trainee 조인 값 (model_validate 로는 안 채워진다)
     trainee_name: str | None = None
     trainee_no: str | None = None
-    trainee_cert_no: str | None = None  # 자격증번호 — 목록 표시용 (수석감리원증번호 우선, 없으면 감리원증번호)
+    trainee_cert_no: str | None = (
+        None  # 자격증번호 — 목록 표시용 (수석감리원증번호 우선, 없으면 감리원증번호)
+    )
     trainee_birth_date: date | None = None
-    trainee_phone: str | None = None  # 마스킹 — trainee.phone_encrypted 복호화 후 mask_phone
+    trainee_phone: str | None = (
+        None  # 마스킹 — trainee.phone_encrypted 복호화 후 mask_phone
+    )
     # 회원 포털용 — 공용 데모 이력 플래그. 웹 수료증 발급 대상 제외 판정에 쓴다
     is_demo: bool = False
     course_id: uuid.UUID | None
@@ -76,7 +91,9 @@ class TrainingRecordResponse(BaseModel):
     updated_at: datetime
     # 회원 포털 전용 — 어드민 응답에서는 None. 유저별 발급 상태는 certificates 에서 산출
     # (데모 이력은 여러 회원이 공유하므로 training_records 에 발급 상태를 둘 수 없다)
-    certificate_status: str | None = None  # issuable | unavailable — 재발급 개념 없음(기발급도 issuable)
+    certificate_status: str | None = (
+        None  # issuable | unavailable — 재발급 개념 없음(기발급도 issuable)
+    )
     last_issued_at: datetime | None = None  # 기발급 표기용
 
     model_config = {"from_attributes": True}
@@ -96,7 +113,9 @@ class TrainingRecordResponse(BaseModel):
             trainee_name=decrypt_field(trainee.name_encrypted) if trainee else None,
             trainee_no=trainee.trainee_no if trainee else None,
             # 수석감리원은 cert_no 가 NULL 이다(단일 번호 수석감리원 = 수석증만 보유) — senior 우선
-            trainee_cert_no=(trainee.senior_cert_no or trainee.cert_no) if trainee else None,
+            trainee_cert_no=(trainee.senior_cert_no or trainee.cert_no)
+            if trainee
+            else None,
             trainee_birth_date=trainee.birth_date if trainee else None,
             trainee_phone=phone,
             is_demo=record.is_demo,
@@ -138,14 +157,22 @@ class TrainingRecordBulkCreate(BaseModel):
 
 
 class TrainingRecordBulkUpdateItem(BaseModel):
-    """일괄 수정 1행 — 전달된 필드만 바꾼다(exclude_unset). null 은 값을 지운다."""
+    """일괄 수정 1행 — 전달된 필드만 바꾼다(exclude_unset).
+
+    null 은 값을 지운다 — 단 비울 수 없는 칸(completion_status·total_hours)은 422.
+    """
 
     id: uuid.UUID
     course_id: uuid.UUID | None = None
     completion_status: str | None = None
     started_at: date | None = None
     ended_at: date | None = None
-    total_hours: Decimal | None = None
+    total_hours: Hours | None = None
+
+    @model_validator(mode="after")
+    def _not_null(self):
+        reject_explicit_null(self, ("total_hours", "completion_status"))
+        return self
 
 
 class TrainingRecordBulkUpdate(BaseModel):
@@ -158,9 +185,20 @@ class TrainingRecordBulkDelete(BaseModel):
     ids: list[uuid.UUID] = Field(min_length=1)
 
 
+class ExternalHoursSummary(BaseModel):
+    """감리원의 최근 3년 외부교육 합계 — 등록 모달이 저장 전에 한도를 안내하는 용도."""
+
+    window_start: date
+    external_hours: float
+    max_hours: float
+    remaining_hours: float
+
+
 class TrainingRecordBulkResult(BaseModel):
     created: int
     skipped: int
+    # 외부교육 최근 3년 한도(16시간) 초과로 연결하지 않은 교육생 이름
+    external_cap_excluded: list[str] = []
 
 
 class MatchPreviewMatched(BaseModel):

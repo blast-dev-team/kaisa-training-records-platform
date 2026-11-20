@@ -109,6 +109,8 @@ class Settings(BaseSettings):
     RATE_LIMIT_PASS_START_WINDOW: int = 60  # 초
     RATE_LIMIT_PASS_COMPLETE_MAX: int = 10
     RATE_LIMIT_PASS_COMPLETE_WINDOW: int = 60  # 초
+    RATE_LIMIT_PASSWORD_CHANGE_MAX: int = 5
+    RATE_LIMIT_PASSWORD_CHANGE_WINDOW: int = 300  # 초
     RATE_LIMIT_REGISTER_MAX: int = 5
     RATE_LIMIT_REGISTER_WINDOW: int = 300  # 초
     # 비회원 문의 — 작성(스팸)·조회(비밀번호 대입) 모두 IP 기준
@@ -122,6 +124,10 @@ class Settings(BaseSettings):
 
     # 확인서 발급 가능 기간 (일) — 수강 시작일 기준. 초과 이력은 발급 신청 불가
     CERTIFICATE_ISSUE_WINDOW_DAYS: int = 3 * 365
+
+    # 외부계속교육 인정 상한 (시간) — 3년 40시간 중 외부교육은 최대 16시간 인정.
+    # 등록 차단(최근 3년 합계)과 확인서 합계 고정에 같은 값을 쓴다
+    EXTERNAL_EDUCATION_MAX_HOURS: int = 16
 
     # 시드용 마스터 admin 계정 (make seed)
     ADMIN_EMAIL: str = "admin@example.com"

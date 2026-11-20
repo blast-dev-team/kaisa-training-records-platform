@@ -1,3 +1,4 @@
+import { toUserMessage } from "@/src/shared/lib/friendly-error";
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -20,7 +21,12 @@ export function LoginPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [inviteCode, setInviteCode] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  // 차단된 계정으로 요청하다 튕겨 온 경우(?reason=disabled) — 이유를 알려 준다
+  const [error, setError] = useState<string | null>(() =>
+    new URLSearchParams(window.location.search).get("reason") === "disabled"
+      ? "관리자가 계정을 차단했어요. 필요하면 총관리자에게 문의해 주세요"
+      : null,
+  );
   const [notice, setNotice] = useState<string | null>(null);
 
   const loginMutation = useMutation({
@@ -33,7 +39,7 @@ export function LoginPage() {
       queryClient.setQueryData(authQueries.me().queryKey, me);
       navigate("/", { replace: true });
     },
-    onError: (e: Error) => setError(e.message),
+    onError: (e: Error) => setError(toUserMessage(e)),
   });
 
   const registerMutation = useMutation({
@@ -49,7 +55,7 @@ export function LoginPage() {
         setError("초대 코드가 올바르지 않거나 만료됐어요. 관리자에게 코드 재발급을 요청해 주세요");
         return;
       }
-      setError(e.message);
+      setError(toUserMessage(e));
     },
   });
 

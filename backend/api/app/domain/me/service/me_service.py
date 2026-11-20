@@ -53,7 +53,11 @@ async def get_session(db: AsyncSession, token: str | None) -> MeSessionResponse:
     if user is None:
         raise api_error("SESSION_EXPIRED")
     # API 응답 시각은 KST(+09:00)로 통일 — DB 조회값(UTC)과 신규 발급값(now_kst)의 표기가 갈리지 않게
-    expires_at = (await resolve_user_session_expiry(db, token)).astimezone(KST)
+    # 조회 사이에 세션이 만료될 수 있다 — None 이면 500 이 아니라 401
+    raw_expires = await resolve_user_session_expiry(db, token)
+    if raw_expires is None:
+        raise api_error("SESSION_EXPIRED")
+    expires_at = raw_expires.astimezone(KST)
     trainee = (
         await db.execute(
             select(Trainee).where(
@@ -89,7 +93,10 @@ async def extend_session(db: AsyncSession, token: str | None) -> MeSessionRespon
     user = await resolve_user_session(db, token)
     if user is None:
         raise api_error("SESSION_EXPIRED")
-    expires_at = (await extend_user_session(db, token)).astimezone(KST)
+    raw_expires = await extend_user_session(db, token)
+    if raw_expires is None:
+        raise api_error("SESSION_EXPIRED")
+    expires_at = raw_expires.astimezone(KST)
     trainee = (
         await db.execute(
             select(Trainee).where(
@@ -185,6 +192,9 @@ def _certificate_fields(record, cert: Certificate | None, today) -> dict:
     )
     if not within_window or record.completion_status != "completed":
         return {"certificate_status": "unavailable"}
+    # 수강 기간 미기재 — 발급 게이트가 400 으로 막으므로 화면에도 발급 불가로 보여 준다
+    if record.started_at is None or record.ended_at is None:
+        return {"certificate_status": "unavailable"}
     if cert is not None:
         return {
             "certificate_status": "issuable",
@@ -216,6 +226,11 @@ async def decorate_member_records(
     items = []
     for record in records:
         response = TrainingRecordResponse.from_orm(record)
+        if trainee_id is None and not all_records:
+            # 교육생 미연결 회원의 공용 데모 이력 — 보기 전용(발급 API 는 403)이라 발급 불가로 표시
+            response.certificate_status = "unavailable"
+            items.append(response)
+            continue
         for key, value in _certificate_fields(
             record, certs.get(record.id), today
         ).items():
@@ -232,8 +247,8 @@ async def list_member_records(
     ended_to_raw: str | None = None,
     page: int = 1,
     limit: int = 20,
-) -> tuple[list[TrainingRecordResponse], int, Decimal]:
-    """회원 포털 교육이력 — 본인 이력 + 공용 데모 이력 + 회원별 발급 상태.
+) -> tuple[list[TrainingRecordResponse], int, Decimal, int]:
+    """회원 포털 교육이력 — 본인 이력(감리원 미연결이면 공용 데모 이력) + 회원별 발급 상태.
 
     교육생 미연결 신규 회원은 데모 이력만 본다 (get_current_trainee 403 회피).
     """
@@ -259,7 +274,16 @@ async def list_member_records(
         all_records=all_records,
     )
     items = await decorate_member_records(db, trainee_id, records, all_records)
-    return items, total, hours_sum
+    issuable_count = await repo.count_issuable_member_records(
+        db,
+        trainee_id,
+        today_kst() - timedelta(days=settings.CERTIFICATE_ISSUE_WINDOW_DAYS),
+        search=search,
+        ended_from=_ymd(ended_from_raw, "from"),
+        ended_to=_ymd(ended_to_raw, "to"),
+        all_records=all_records,
+    )
+    return items, total, hours_sum, issuable_count
 
 
 async def get_demo_download_url(db: AsyncSession, user: User, record_id: uuid.UUID) -> str:
@@ -291,7 +315,7 @@ async def get_demo_download_url(db: AsyncSession, user: User, record_id: uuid.UU
 
 
 async def get_my_record(db: AsyncSession, trainee: Trainee, record_id: uuid.UUID):
-    """본인 이력 또는 공용 데모 이력 — 목록·신청 게이트와 같은 범위 (가격 미리보기용)."""
+    """본인 이력 — 목록·신청 게이트와 같은 범위 (가격 미리보기용)."""
     record = await repo.find_downloadable_record(db, record_id, trainee.id)
     if record is None:
         raise api_error("NOT_FOUND", message="교육이력을 찾을 수 없어요")
@@ -301,7 +325,7 @@ async def get_my_record(db: AsyncSession, trainee: Trainee, record_id: uuid.UUID
 async def get_member_record_response(
     db: AsyncSession, user: User, record_id: uuid.UUID
 ) -> TrainingRecordResponse:
-    """회원 포털 상세 — 본인/공용 데모 이력 + 회원별 발급 상태. 교육생 미연결도 데모는 본다.
+    """회원 포털 상세 — 본인 이력(감리원 미연결이면 공용 데모 이력) + 회원별 발급 상태.
 
     슈퍼 계정은 소속 무관 조회(미리보기)다 — 상태도 실제 소유자 기준.
     """

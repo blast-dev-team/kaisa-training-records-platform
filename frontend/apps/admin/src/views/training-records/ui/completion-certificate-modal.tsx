@@ -1,3 +1,4 @@
+import { toUserMessage } from "@/src/shared/lib/friendly-error";
 import { useRef, useState } from "react";
 import { toast } from "react-toastify";
 import { Dialog } from "@/src/shared/ui/dialog";
@@ -50,7 +51,7 @@ export function CompletionCertificateModal({ isOpen, onClose, certificates }: Pr
       );
       onClose();
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "PDF 생성에 실패했어요");
+      toast.error(toUserMessage(e, "PDF 생성에 실패했어요"));
     } finally {
       setIsDownloading(false);
     }

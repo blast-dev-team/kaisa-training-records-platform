@@ -1,8 +1,10 @@
+import { toUserMessage } from "@/src/shared/lib/friendly-error";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { Pencil, Upload } from "lucide-react";
 import { Dialog } from "@/src/shared/ui/dialog";
+import { useShiftRangeSelect } from "@/src/shared/hooks/use-shift-range-select";
 import { Input } from "@/src/shared/ui/input";
 import { DateField } from "@/src/shared/ui/date-picker/date-field";
 import { Label } from "@/src/shared/ui/label";
@@ -187,7 +189,7 @@ export function GradeImportDialog({ isOpen, onClose }: Props) {
       setDrafts(data.rows.map((row, idx) => ({ idx, row, include: row.default_include })));
       setStage("preview");
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => toast.error(toUserMessage(e)),
   });
 
   const rematchMutation = useMutation({
@@ -211,7 +213,7 @@ export function GradeImportDialog({ isOpen, onClose }: Props) {
         toast.error(newRow.contact_skip_reason);
       }
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => toast.error(toUserMessage(e)),
   });
 
   /** 연락처 셀 제출 — 행의 다른 값은 그대로 두고 연락처만 바꿔 재매칭 */
@@ -254,7 +256,7 @@ export function GradeImportDialog({ isOpen, onClose }: Props) {
       queryClient.invalidateQueries({ queryKey: traineeQueries.all() });
       toast.success(`등급 ${data.grade_updated}명을 적용했어요`);
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => toast.error(toUserMessage(e)),
   });
 
   const included = drafts.filter((d) => d.include);
@@ -278,10 +280,22 @@ export function GradeImportDialog({ isOpen, onClose }: Props) {
   }, [drafts, categoryFilter, summaryFilter]);
 
   /** idx 는 drafts 배열 기준 위치 — 필터로 걸러진 목록 순서와 다르다 */
-  const toggleInclude = (idx: number, include: boolean) =>
+  // Shift+클릭 범위 선택 — 지금 보이는(필터된) 행 순서 기준, 차단 행은 건너뛴다
+  const { pick: pickRange } = useShiftRangeSelect({
+    items: visibleDrafts,
+    getKey: (d: GradeDraft) => String(d.idx),
+    canSelect: (d: GradeDraft) => d.row.severity !== "block",
+  });
+
+  /** 누른 행(Shift 면 범위)의 적용 여부를 같이 바꾼다 */
+  const toggleInclude = (idx: number, include: boolean) => {
+    const draft = drafts.find((d) => d.idx === idx);
+    if (!draft) return;
+    const idxs = new Set(pickRange(draft).map((d) => d.idx));
     setDrafts((prev) =>
-      prev.map((d) => (d.idx === idx && d.row.severity !== "block" ? { ...d, include } : d)),
+      prev.map((d) => (idxs.has(d.idx) && d.row.severity !== "block" ? { ...d, include } : d)),
     );
+  };
 
   const gridCols = "grid grid-cols-[36px_90px_100px_190px_120px_170px_190px_150px] gap-1.5";
 

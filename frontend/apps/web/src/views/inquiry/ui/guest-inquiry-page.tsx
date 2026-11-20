@@ -1,3 +1,4 @@
+import { toUserMessage } from "@/src/shared/lib/friendly-error";
 import { useMutation } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
 import { Link, Navigate, useSearchParams } from "react-router";
@@ -19,6 +20,8 @@ import {
 } from "./inquiry-content-fields";
 import { InquiryList } from "./inquiry-list";
 
+/** 이메일 — 로컬@도메인.최상위도메인(2자 이상) */
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$/;
 const PASSWORD_RE = /^[0-9]{6,20}$/;
 const phoneDigits = (v: string) => v.replace(/\D/g, "");
 const isPhoneValid = (v: string) => phoneDigits(v).length >= 9 && phoneDigits(v).length <= 11;
@@ -94,9 +97,12 @@ function GuestInquiryForm({ onLookup }: { onLookup: () => void }) {
   const passwordError = author.password !== "" && !PASSWORD_RE.test(author.password);
   const confirmError = author.passwordConfirm !== "" && author.passwordConfirm !== author.password;
   const phoneError = author.phone !== "" && !isPhoneValid(author.phone);
+  // 서버(EmailStr)와 같은 수준으로 — 브라우저 type=email 은 'a@b' 도 통과시켜 서버가 422 를 냈다
+  const emailError = author.email.trim() !== "" && !EMAIL_RE.test(author.email.trim());
   const canSubmit =
     author.name.trim() !== "" &&
     isPhoneValid(author.phone) &&
+    !emailError &&
     PASSWORD_RE.test(author.password) &&
     author.password === author.passwordConfirm &&
     isContentFilled(content) &&
@@ -182,9 +188,15 @@ function GuestInquiryForm({ onLookup }: { onLookup: () => void }) {
           type="email"
           autoComplete="email"
           placeholder="선택"
+          maxLength={254}
           value={author.email}
           onChange={(e) => set({ email: e.target.value })}
         />
+        {emailError && (
+          <p role="alert" className="-mt-2 text-14 text-red-500">
+            이메일 형식을 확인해 주세요 (예: name@example.com)
+          </p>
+        )}
         <TextField
           label="비밀번호"
           essential
@@ -237,7 +249,7 @@ function GuestInquiryForm({ onLookup }: { onLookup: () => void }) {
 
       {mutation.isError && (
         <p className="text-14 text-red-500">
-          {mutation.error instanceof Error ? mutation.error.message : "문의를 접수하지 못했어요"}
+          {toUserMessage(mutation.error, "문의를 접수하지 못했어요")}
         </p>
       )}
       <Button type="submit" size="l" fullWidth disabled={!canSubmit || mutation.isPending}>
@@ -274,7 +286,13 @@ function GuestLookup() {
         onSubmit={handleSubmit}
         className="flex flex-col gap-4 rounded-xl border border-solid border-gray-200 bg-white p-8 mobile:p-5"
       >
-        <TextField label="성명" essential value={name} onChange={(e) => setName(e.target.value)} />
+        <TextField
+          label="성명"
+          essential
+          maxLength={50}
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
         <TextField
           label="연락처"
           essential
@@ -295,7 +313,7 @@ function GuestLookup() {
         />
         {mutation.isError && (
           <p className="text-14 text-red-500">
-            {mutation.error instanceof Error ? mutation.error.message : "조회하지 못했어요"}
+            {toUserMessage(mutation.error, "조회하지 못했어요")}
           </p>
         )}
         <Button type="submit" size="l" fullWidth disabled={!canSubmit || mutation.isPending}>

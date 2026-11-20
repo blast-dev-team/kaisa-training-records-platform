@@ -5,6 +5,7 @@ from decimal import Decimal
 from sqlalchemy import ColumnElement, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.validation import LIKE_ESCAPE, like_contains
 from app.domain.certificate.model import Certificate, CertificateRequest
 from app.domain.payment.model import PaymentAttempt, PaymentOrder
 from app.domain.training_record.model import TrainingRecord
@@ -20,29 +21,28 @@ async def list_member_records(
     limit: int = 20,
     all_records: bool = False,
 ) -> tuple[list[TrainingRecord], int, Decimal]:
-    """회원 포털 교육이력 — 본인 이력 + 공용 데모 이력(is_demo).
+    """회원 포털 교육이력 — 감리원 연결 회원은 본인 이력만, 미연결 회원은 공용 데모 이력(is_demo)만.
 
-    데모 이력은 교육생 소속과 무관하게 모든 로그인 회원에게 노출된다.
+    데모 이력은 감리원 연결 전 회원이 화면을 체험하는 용도 — 연결된 회원의 실제 이력에 섞이지 않게 한다.
     목록·건수·시수 합계가 같은 필터 조건을 공유한다 (집합 불일치 방지).
     all_records 는 슈퍼 계정 전용 — 소속 무관 전 회원 이력(미리보기)을 본다.
     """
     conditions: list[ColumnElement[bool]] = [TrainingRecord.deleted_at.is_(None)]
     if not all_records:
         if trainee_id is not None:
-            conditions.append(
-                or_(
-                    TrainingRecord.trainee_id == trainee_id,
-                    TrainingRecord.is_demo.is_(True),
-                )
-            )
+            conditions.append(TrainingRecord.trainee_id == trainee_id)
         else:
             # 교육생 미연결 신규 회원 — 데모 이력만
             conditions.append(TrainingRecord.is_demo.is_(True))
     if search:
         conditions.append(
             or_(
-                TrainingRecord.course_name.ilike(f"%{search}%"),
-                TrainingRecord.institution_name.ilike(f"%{search}%"),
+                TrainingRecord.course_name.ilike(
+                    like_contains(search), escape=LIKE_ESCAPE
+                ),
+                TrainingRecord.institution_name.ilike(
+                    like_contains(search), escape=LIKE_ESCAPE
+                ),
             )
         )
     if ended_from:
@@ -70,13 +70,62 @@ async def list_member_records(
     return records, int(total), hours_sum
 
 
+async def count_issuable_member_records(
+    db: AsyncSession,
+    trainee_id: uuid.UUID | None,
+    window_start: date,
+    search: str | None = None,
+    ended_from: date | None = None,
+    ended_to: date | None = None,
+    all_records: bool = False,
+) -> int:
+    """목록과 같은 필터에서 '발급 가능' 이력 수 — 화면 요약의 발급 가능 N건(전체 기준).
+
+    판정은 me_service._certificate_fields 와 같다: 수료 완료 · 수강 기간 있음 · 최근 3년.
+    교육생 미연결 회원(데모 이력)은 발급할 수 없으므로 0.
+    """
+    if trainee_id is None and not all_records:
+        return 0
+    conditions: list[ColumnElement[bool]] = [
+        TrainingRecord.deleted_at.is_(None),
+        TrainingRecord.completion_status == "completed",
+        TrainingRecord.started_at.is_not(None),
+        TrainingRecord.ended_at.is_not(None),
+        TrainingRecord.started_at >= window_start,
+    ]
+    if not all_records:
+        conditions.append(TrainingRecord.trainee_id == trainee_id)
+    if search:
+        conditions.append(
+            or_(
+                TrainingRecord.course_name.ilike(
+                    like_contains(search), escape=LIKE_ESCAPE
+                ),
+                TrainingRecord.institution_name.ilike(
+                    like_contains(search), escape=LIKE_ESCAPE
+                ),
+            )
+        )
+    if ended_from:
+        conditions.append(TrainingRecord.ended_at >= ended_from)
+    if ended_to:
+        conditions.append(TrainingRecord.ended_at <= ended_to)
+    return int(
+        (
+            await db.execute(
+                select(func.count()).select_from(TrainingRecord).where(*conditions)
+            )
+        ).scalar_one()
+    )
+
+
 async def find_downloadable_record(
     db: AsyncSession,
     record_id: uuid.UUID,
     trainee_id: uuid.UUID | None,
     all_records: bool = False,
 ) -> TrainingRecord | None:
-    """다운로드 가능한 이력 — 본인 소속이거나 공용 데모. 타인 소속은 None(404).
+    """다운로드 가능한 이력 — 연결 회원은 본인 소속, 미연결 회원은 공용 데모만. 그 외 None(404).
 
     all_records 는 슈퍼 계정 전용 — 소속 무관 조회(미리보기).
     """
@@ -86,12 +135,7 @@ async def find_downloadable_record(
     )
     if not all_records:
         if trainee_id is not None:
-            stmt = stmt.where(
-                or_(
-                    TrainingRecord.trainee_id == trainee_id,
-                    TrainingRecord.is_demo.is_(True),
-                )
-            )
+            stmt = stmt.where(TrainingRecord.trainee_id == trainee_id)
         else:
             stmt = stmt.where(TrainingRecord.is_demo.is_(True))
     return (await db.execute(stmt)).scalar_one_or_none()

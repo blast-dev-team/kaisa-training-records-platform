@@ -41,7 +41,7 @@ export function InquiryListPage() {
   const [searchInput, setSearchInput] = useState(q);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  const { data } = useQuery(
+  const { data, error: listError, refetch: refetchList } = useQuery(
     inquiryQueries.list({
       status: status || undefined,
       category: category || undefined,
@@ -216,7 +216,9 @@ export function InquiryListPage() {
       <AppTable
         columns={columns}
         data={items}
-        isLoading={!data}
+        isLoading={!data && !listError}
+        error={listError}
+        onRetry={() => void refetchList()}
         emptyMessage={
           status === "open" && !q && !category && !author && !from && !to
             ? "미해결 문의가 없어요"

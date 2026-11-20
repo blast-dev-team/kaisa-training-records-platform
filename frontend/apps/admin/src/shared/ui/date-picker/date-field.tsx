@@ -137,6 +137,9 @@ export function DateField({
       ref={rootRef}
       onKeyDown={(event) => {
         if (event.key === "Escape") {
+          // 날짜 입력·팝오버만 닫는다 — 감싼 Dialog 가 같이 닫혀 입력이 사라지지 않게
+          event.preventDefault();
+          event.nativeEvent.preventDefault();
           setDraft(null);
           setOpen(false);
         }

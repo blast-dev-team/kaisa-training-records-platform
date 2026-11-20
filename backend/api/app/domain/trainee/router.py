@@ -1,5 +1,6 @@
 import uuid
 from datetime import date
+from decimal import Decimal
 
 from fastapi import APIRouter, Depends, File, Query, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -8,6 +9,7 @@ from app.core.database import get_db
 from app.core.dependencies import require_admin
 from app.core.response import PagedResponse
 from app.domain.auth.model import AdminUser
+from app.domain.trainee.repository import trainee_hours
 from app.domain.trainee.schema import (
     GradeImportConfirmRequest,
     GradeImportPreviewResponse,
@@ -61,8 +63,14 @@ async def list_trainees(
         page=page,
         limit=limit,
     )
+    hours = await trainee_hours.hours_by_trainee(db, [t.id for t in trainees])
+    items = []
+    for t in trainees:
+        item = TraineeResponse.from_orm(t)
+        item.internal_hours, item.external_hours = hours.get(t.id, (Decimal(0), Decimal(0)))
+        items.append(item)
     return PagedResponse(
-        items=[TraineeResponse.from_orm(t) for t in trainees],
+        items=items,
         total=total,
         page=page,
         limit=limit,

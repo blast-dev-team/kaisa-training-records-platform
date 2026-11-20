@@ -15,7 +15,7 @@ export const getTrainingRecordList = async (
       r =>
         (!query.traineeId || r.traineeId === query.traineeId) &&
         (!query.sessionId || r.sessionId === query.sessionId) &&
-        (!query.source || r.source === query.source) &&
+        (!query.institutionType || r.institutionType === query.institutionType) &&
         (!query.completionStatus || r.completionStatus === query.completionStatus) &&
         (!query.search ||
           [r.courseName, r.institutionName, r.traineeName].some(v =>
@@ -30,7 +30,7 @@ export const getTrainingRecordList = async (
       session_id: query.sessionId || undefined,
       date_from: query.dateFrom || undefined,
       date_to: query.dateTo || undefined,
-      source: query.source || undefined,
+      institution_type: query.institutionType || undefined,
       completion_status: query.completionStatus || undefined,
       search: query.search || undefined,
       sort: query.sort || undefined,

@@ -39,6 +39,8 @@ export interface ReviewApproveInput {
   new_trainee?: NewTraineeInput
   /** 생략 시 기존 교육생은 현재 등급 유지. 신규 생성 시 필수 */
   determined_grade_id?: string
+  /** 승인 메모(선택) — 심사 기록에 남는다 */
+  review_note?: string
 }
 
 export interface ReviewRejectInput {

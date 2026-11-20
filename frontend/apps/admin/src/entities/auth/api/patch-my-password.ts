@@ -8,5 +8,9 @@ export const patchMyPassword = async (input: PasswordChangeInput): Promise<void>
     await mockDelay()
     return
   }
-  await apiClient.patch('/auth/password', input)
+  // BE 스키마는 snake_case(current_password·new_password) — camelCase 그대로 보내면 항상 422
+  await apiClient.patch('/auth/password', {
+    current_password: input.currentPassword,
+    new_password: input.newPassword,
+  })
 }

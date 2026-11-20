@@ -3,33 +3,41 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Literal
 
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field, model_validator
 
-# 내부/외부 구분 — None(미선택) 허용. internal 인 기관의 수료내역만 수료증 발급 가능
+from app.core.validation import Hours, reject_explicit_null
+
+# 내부/외부 구분 — 미선택은 없다(기본 external). internal 인 기관의 수료내역만 수료증 발급 가능
 InstitutionType = Literal["internal", "external"]
 
 
 class InstitutionCreate(BaseModel):
-    name: str
-    institution_code: str | None = None
-    business_registration_no: str | None = None
-    contact_name: str | None = None
-    contact_phone: str | None = None
+    name: str = Field(min_length=1, max_length=255)
+    institution_code: str | None = Field(default=None, max_length=100)
+    business_registration_no: str | None = Field(default=None, max_length=50)
+    contact_name: str | None = Field(default=None, max_length=100)
+    contact_phone: str | None = Field(default=None, max_length=50)
     contact_email: EmailStr | None = None
     address: str | None = None
-    institution_type: InstitutionType | None = None
+    # 미선택 정책 폐지 — API 등록·임포트도 기본 external. 명시 없이는 외부다
+    institution_type: InstitutionType = "external"
 
 
 class InstitutionUpdate(BaseModel):
-    name: str | None = None
-    institution_code: str | None = None
-    business_registration_no: str | None = None
-    contact_name: str | None = None
-    contact_phone: str | None = None
+    name: str | None = Field(default=None, min_length=1, max_length=255)
+    institution_code: str | None = Field(default=None, max_length=100)
+    business_registration_no: str | None = Field(default=None, max_length=50)
+    contact_name: str | None = Field(default=None, max_length=100)
+    contact_phone: str | None = Field(default=None, max_length=50)
     contact_email: EmailStr | None = None
     address: str | None = None
     institution_type: InstitutionType | None = None
     is_active: bool | None = None
+
+    @model_validator(mode="after")
+    def _not_null(self):
+        reject_explicit_null(self, ("name", "is_active", "institution_type"))
+        return self
 
 
 class InstitutionResponse(BaseModel):
@@ -50,24 +58,33 @@ class InstitutionResponse(BaseModel):
 
 class CourseCreate(BaseModel):
     institution_id: uuid.UUID
-    name: str
+    name: str = Field(min_length=1, max_length=255)
     session_name_id: uuid.UUID | None = None  # 회차명 마스터 참조
     is_external: bool = False  # 외부 교육과정
-    course_code: str | None = None
+    course_code: str | None = Field(default=None, max_length=100)
     description: str | None = None
-    total_hours: Decimal = Decimal(0)
-    category: str | None = None
+    total_hours: Hours = Decimal(0)
+    category: str | None = Field(default=None, max_length=100)
 
 
 class CourseUpdate(BaseModel):
-    name: str | None = None
+    """과정 수정 — 기관(institution_id)을 바꾸면 연결된 일정·교육이력도 새 기관으로 함께 맞춘다."""
+
+    name: str | None = Field(default=None, min_length=1, max_length=255)
+    # 기관 정정 — 서비스가 일정 source·교육이력 기관/구분까지 함께 갱신한다
+    institution_id: uuid.UUID | None = None
     session_name_id: uuid.UUID | None = None
     is_external: bool | None = None
-    course_code: str | None = None
+    course_code: str | None = Field(default=None, max_length=100)
     description: str | None = None
-    total_hours: Decimal | None = None
-    category: str | None = None
+    total_hours: Hours | None = None
+    category: str | None = Field(default=None, max_length=100)
     is_active: bool | None = None
+
+    @model_validator(mode="after")
+    def _not_null(self):
+        reject_explicit_null(self, ("name", "total_hours", "is_active"))
+        return self
 
 
 class CourseResponse(BaseModel):

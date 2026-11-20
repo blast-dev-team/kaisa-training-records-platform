@@ -1,3 +1,4 @@
+import { toUserMessage } from '@/src/shared/lib/friendly-error';
 import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router'
@@ -20,7 +21,7 @@ export function Header({ me }: { me: Me }) {
       queryClient.clear()
       navigate('/login', { replace: true })
     },
-    onError: (error: Error) => toast.error(error.message),
+    onError: (error: Error) => toast.error(toUserMessage(error)),
   })
 
   return (

@@ -1,5 +1,6 @@
 import associationSeal from "@/src/assets/association-seal.png";
 import type { CompletionCertificate } from "@/src/entities/training-record";
+import { toYMD } from "@/src/shared/utils/format";
 
 /** A4 @96dpi — PDF 1페이지와 1:1 대응 (확인서 시트와 같은 규격) */
 const PAGE_WIDTH = 794;
@@ -16,7 +17,10 @@ const PROOF_TEXT =
 /** 'YYYY-MM-DD' → 'YYYY년 M월 D일'. 형식이 아니면 원문 반환 */
 function formatKoreanDate(value: string | null): string {
   if (!value) return "";
-  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(value);
+  // 발급 시각(timestamptz)은 UTC 로 직렬화된다 — 앞 10자리를 자르면 KST 00~09시 발급분이
+  // 전날로 찍혔다. toYMD 로 KST 날짜를 먼저 구한다(날짜만 있는 값은 그대로)
+  const ymd = toYMD(value) ?? value;
+  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(ymd);
   if (!match) return value;
   const [, y, m, d] = match;
   return `${Number(y)}년 ${Number(m)}월 ${Number(d)}일`;
@@ -46,13 +50,31 @@ function formatPeriodLabel(
   return parts.join("");
 }
 
-/** 항목 행 — '○ 성　　명 : 홍길동'. 라벨은 4자 폭으로 패딩해 콜론 위치를 맞춘다 */
+/**
+ * 항목 행 — '○ 성　　명 : 홍길동'. 라벨은 4자 폭으로 패딩해 콜론 위치를 맞춘다.
+ * 기호·라벨·콜론은 폭 고정(줄어들지 않음), 값만 남은 폭 안에서 줄바꿈된다 —
+ * 긴 교육주제가 라벨을 밀어내거나 겹치지 않고 콜론 뒤 시작선에 맞춰 내려 쓴다.
+ */
 function EntryRow({ label, value }: { label: string; value: string }) {
   return (
     <div style={{ display: "flex", alignItems: "baseline", fontSize: 18, lineHeight: 2.2 }}>
-      <span style={{ width: 34 }}>○</span>
-      <span style={{ width: 96, whiteSpace: "nowrap" }}>{label}</span>
-      <span>{value ? `: ${value}` : ""}</span>
+      <span style={{ width: 34, flexShrink: 0 }}>○</span>
+      <span style={{ width: 96, flexShrink: 0, whiteSpace: "nowrap" }}>{label}</span>
+      <span style={{ width: 14, flexShrink: 0 }}>{value ? ":" : ""}</span>
+      {/* 줄바꿈된 줄은 행 간격(2.2)보다 좁게(1.6) — 한 항목으로 읽히게.
+          위아래 0.3em 으로 한 줄일 때 높이·기준선을 다른 행(2.2)과 같게 맞춘다 */}
+      <span
+        style={{
+          flex: 1,
+          minWidth: 0,
+          lineHeight: 1.6,
+          padding: "0.3em 0",
+          wordBreak: "keep-all",
+          overflowWrap: "anywhere",
+        }}
+      >
+        {value}
+      </span>
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import type { InputHTMLAttributes, ReactNode } from "react";
 
+import { forwardShiftClickToCheckbox } from "@/src/shared/hooks/use-shift-range-select";
 import { CheckSmIcon } from "@/src/shared/icon";
 import { cn } from "@/src/shared/utils/cn";
 
@@ -68,6 +69,8 @@ export function Checkbox({
         disabled ? "cursor-not-allowed" : "cursor-pointer",
         className,
       )}
+      // 목록의 Shift 범위 선택 — 브라우저가 Shift+클릭한 label 을 체크박스로 넘기지 않아서 직접 넘긴다
+      onClick={forwardShiftClickToCheckbox}
     >
       <input
         type="checkbox"

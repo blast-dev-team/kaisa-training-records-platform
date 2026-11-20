@@ -1,5 +1,6 @@
 import uuid
 from datetime import date, datetime
+from decimal import Decimal
 
 from pydantic import BaseModel, EmailStr, Field
 
@@ -28,6 +29,9 @@ class TraineeResponse(BaseModel):
     memo: str | None
     created_at: datetime
     updated_at: datetime
+    # 목록에서만 채운다 — 기관 현재 구분 기준 사내·외부 교육 시간 합계(삭제·취소 제외)
+    internal_hours: Decimal | None = None
+    external_hours: Decimal | None = None
 
     @classmethod
     def from_orm(cls, t) -> "TraineeResponse":
@@ -64,10 +68,12 @@ class TraineeCreate(BaseModel):
     서버가 수석감리원으로 강제한다(번호 유무가 등급의 상한).
     """
 
-    name: str
-    cert_no: str | None = None  # 감리원증번호
-    senior_cert_no: str | None = None  # 수석감리원증번호 — 있으면 수석감리원 강제
-    supervisor_grade: str | None = None  # 감리원 등급 (감리원/수석감리원/NULL=미지정)
+    name: str = Field(max_length=100)
+    cert_no: str | None = Field(default=None, max_length=100)  # 감리원증번호
+    # 수석감리원증번호 — 있으면 수석감리원 강제
+    senior_cert_no: str | None = Field(default=None, max_length=100)
+    # 감리원 등급 (감리원/수석감리원/NULL=미지정)
+    supervisor_grade: str | None = Field(default=None, max_length=50)
     cert_issued_date: date | None = None  # 감리원증 발급일자
     senior_cert_issued_date: date | None = None  # 수석감리원증 발급일자
     birth_date: date | None = None
@@ -89,10 +95,12 @@ class TraineeUpdate(BaseModel):
     senior_cert_no 를 NULL 로 보내면 제거 — 등급은 요청 선택값을 따른다.
     """
 
-    name: str | None = None
-    cert_no: str | None = None  # 감리원증번호
-    senior_cert_no: str | None = None  # 수석감리원증번호 — 빈 문자열/NULL = 제거
-    supervisor_grade: str | None = None  # 감리원 등급 (감리원/수석감리원/NULL=미지정)
+    name: str | None = Field(default=None, max_length=100)
+    cert_no: str | None = Field(default=None, max_length=100)  # 감리원증번호
+    # 수석감리원증번호 — 빈 문자열/NULL = 제거
+    senior_cert_no: str | None = Field(default=None, max_length=100)
+    # 감리원 등급 (감리원/수석감리원/NULL=미지정)
+    supervisor_grade: str | None = Field(default=None, max_length=50)
     cert_issued_date: date | None = None  # 감리원증 발급일자
     senior_cert_issued_date: date | None = None  # 수석감리원증 발급일자
     birth_date: date | None = None
@@ -113,11 +121,13 @@ class TraineeBulkUpdateItem(BaseModel):
     """
 
     id: uuid.UUID
-    name: str | None = None
+    name: str | None = Field(default=None, max_length=100)
     birth_date: date | None = None
     phone: str | None = None  # 평문 수신 → 암호화 저장. 빈 문자열 = 변경 없음
-    cert_no: str | None = None  # 감리원증번호. 빈 문자열 = 변경 없음
-    senior_cert_no: str | None = None  # 수석감리원증번호. 입력 시 수석감리원으로 파생
+    # 감리원증번호. 빈 문자열 = 변경 없음
+    cert_no: str | None = Field(default=None, max_length=100)
+    # 수석감리원증번호. 입력 시 수석감리원으로 파생
+    senior_cert_no: str | None = Field(default=None, max_length=100)
 
 
 class TraineeBulkGradeCreate(BaseModel):

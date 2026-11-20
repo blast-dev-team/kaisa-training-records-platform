@@ -1,8 +1,10 @@
+import { toUserMessage } from "@/src/shared/lib/friendly-error";
 import { useEffect, useRef, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { FileSpreadsheet, Upload } from "lucide-react";
 import { Dialog } from "@/src/shared/ui/dialog";
+import { useShiftRangeSelect } from "@/src/shared/hooks/use-shift-range-select";
 import { Input } from "@/src/shared/ui/input";
 import { DateField } from "@/src/shared/ui/date-picker/date-field";
 import { Label } from "@/src/shared/ui/label";
@@ -40,11 +42,28 @@ interface ImportDraft {
   duplicateOfName: string | null;
   errors: string[];
   include: boolean;
+  /** 앞선 행(다른 파일 포함)과 감리원증번호가 같음 — 등록에서 뺀다 */
+  inFileDuplicate?: boolean;
 }
 
 type Stage = "select" | "preview" | "result";
 
 /** 엑셀로 교육생 일괄 등록 — 업로드 → 프리뷰(편집) → 확정 3단. 프리뷰에서 파일 추가 가능 */
+/** 파일(들) 안에서 같은 감리원증번호가 다시 나오면 뒤의 행을 중복으로 표시하고 기본 제외 —
+ *  예전에는 둘 다 '신규'로 보내져 같은 감리원이 두 번 생성됐다. */
+function markInFileDuplicates(drafts: ImportDraft[]): ImportDraft[] {
+  const seen = new Set<string>();
+  return drafts.map((d) => {
+    const key = d.certNo.replace(/\s+/g, "").toLowerCase();
+    if (!key) return d.inFileDuplicate ? { ...d, inFileDuplicate: false } : d;
+    if (seen.has(key)) {
+      return d.inFileDuplicate ? d : { ...d, inFileDuplicate: true, include: false };
+    }
+    seen.add(key);
+    return d.inFileDuplicate ? { ...d, inFileDuplicate: false } : d;
+  });
+}
+
 export function TraineeImportDialog({ isOpen, onClose }: Props) {
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -66,8 +85,28 @@ export function TraineeImportDialog({ isOpen, onClose }: Props) {
     fileSeqRef.current = 0;
   }, [isOpen]);
 
+  // 확정 요청 순번 → 원래 파일·행 (여러 파일이면 행 번호가 겹친다)
+  const submittedRowsRef = useRef(new Map<number, { fileName: string; rowNumber: number }>());
+
   const setDraft = (key: string, patch: Partial<ImportDraft>) => {
-    setDrafts((prev) => prev.map((d) => (d.key === key ? { ...d, ...patch } : d)));
+    // 고친 행의 프리뷰 오류는 지운다 — 남아 있으면 고쳐도 등록할 수 없었다.
+    // 값이 여전히 틀리면 확정 시 서버가 그 행만 실패로 돌려준다
+    setDrafts((prev) =>
+      markInFileDuplicates(
+        prev.map((d) => (d.key === key ? { ...d, ...patch, errors: [] } : d)),
+      ),
+    );
+  };
+
+  // Shift+클릭 범위 선택 — 미리보기 행 순서 기준
+  const { pick: pickRange } = useShiftRangeSelect({
+    items: drafts,
+    getKey: (d: ImportDraft) => d.key,
+  });
+  /** 누른 행(Shift 면 범위)의 포함 여부를 같이 바꾼다 */
+  const setIncludeWithRange = (d: ImportDraft, include: boolean) => {
+    const keys = new Set(pickRange(d).map((t) => t.key));
+    setDrafts((prev) => prev.map((x) => (keys.has(x.key) ? { ...x, include } : x)));
   };
 
   const previewMutation = useMutation({
@@ -76,7 +115,7 @@ export function TraineeImportDialog({ isOpen, onClose }: Props) {
       const fi = fileSeqRef.current++;
       setFileNames((prev) => [...prev, f.name]);
       // 기존 프리뷰 뒤에 이어 붙인다 — 여러 파일을 한 번에 확인·편집·등록
-      setDrafts((prev) => [
+      setDrafts((prev) => markInFileDuplicates([
         ...prev,
         ...rows.map((r) => ({
           key: `${fi}-${r.row_number}`,
@@ -96,10 +135,10 @@ export function TraineeImportDialog({ isOpen, onClose }: Props) {
           // 중복 행은 기본 제외, 승격 행은 기본 포함 — 승격은 기존 감리원 업데이트라 안전
           include: !r.is_duplicate && r.errors.length === 0,
         })),
-      ]);
+      ]));
       setStage("preview");
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => toast.error(toUserMessage(e)),
   });
 
   /** 여러 파일을 순서대로 읽어 프리뷰에 누적 — 파일 순서를 유지하기 위해 직렬 처리 */
@@ -122,10 +161,13 @@ export function TraineeImportDialog({ isOpen, onClose }: Props) {
 
   const confirmMutation = useMutation({
     mutationFn: () => {
-      const items: TraineeImportConfirmItem[] = drafts
-        .filter((d) => d.include && d.name.trim())
-        .map((d) => ({
-          row_number: d.rowNumber,
+      const included = drafts.filter((d) => d.include && d.name.trim() && !d.inFileDuplicate);
+      submittedRowsRef.current = new Map(
+        included.map((d, i) => [i + 1, { fileName: d.fileName, rowNumber: d.rowNumber }]),
+      );
+      const items: TraineeImportConfirmItem[] = included
+        .map((d, i) => ({
+          row_number: i + 1,
           name: d.name.trim(),
           phone: d.phone.trim() || null,
           birth_date: d.birthDate || null,
@@ -145,7 +187,7 @@ export function TraineeImportDialog({ isOpen, onClose }: Props) {
           : `감리원 ${data.created}명을 등록했어요`,
       );
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => toast.error(toUserMessage(e)),
   });
 
   const included = drafts.filter((d) => d.include);
@@ -292,7 +334,7 @@ export function TraineeImportDialog({ isOpen, onClose }: Props) {
                         type="checkbox"
                         className="accent-accent"
                         checked={d.include}
-                        onChange={(e) => setDraft(d.key, { include: e.target.checked })}
+                        onChange={(e) => setIncludeWithRange(d, e.target.checked)}
                       />
                       {/* 체크 안 한 행은 편집 잠금 — 포함할 행만 고친다 */}
                       <Input
@@ -343,6 +385,11 @@ export function TraineeImportDialog({ isOpen, onClose }: Props) {
                         <Pill tone="ok">신규</Pill>
                       )}
                     </div>
+                    {d.inFileDuplicate && (
+                      <p className="pl-10 text-11 text-danger">
+                        앞선 행과 감리원증번호가 같아요 — 같은 감리원이 두 번 등록되지 않도록 등록에서 빠져요
+                      </p>
+                    )}
                     {(d.errors.length > 0 || d.duplicateOfName) && (
                       <p
                         className={`pl-10 text-11 ${d.isPromotion ? "text-accent" : "text-danger"}`}
@@ -385,11 +432,17 @@ export function TraineeImportDialog({ isOpen, onClose }: Props) {
                 등록 못한 행 {result.failed.length}건
               </p>
               <ul className="space-y-0.5 text-12 text-danger">
-                {result.failed.map((f) => (
-                  <li key={f.row_number}>
-                    {f.row_number}행 — {f.error}
-                  </li>
-                ))}
+                {result.failed.map((f) => {
+                  const src = submittedRowsRef.current.get(f.row_number);
+                  const where = src
+                    ? `${fileNames.length > 1 ? `${src.fileName} ` : ""}${src.rowNumber}행`
+                    : `${f.row_number}행`;
+                  return (
+                    <li key={f.row_number}>
+                      {where} — {f.error}
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           )}

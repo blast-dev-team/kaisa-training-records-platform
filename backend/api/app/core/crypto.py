@@ -43,6 +43,18 @@ def decrypt_field(value: str | None) -> str | None:
         ) from e
 
 
+def try_decrypt_field(value: str | None, fallback: str = "—") -> str | None:
+    """decrypt_field 의 무던한 버전 — 옛 키 era 잔재(키 로테이션 전 스냅샷 등)를
+    목록 전체 500 으로 만들지 않게 fallback 으로 대체한다. 복구 가능성은 데이터
+    정리 스크립트의 몫이고, 여기선 표기만 책임진다."""
+    if value is None:
+        return None
+    try:
+        return _fernet.decrypt(value.encode()).decode()
+    except InvalidToken:
+        return fallback
+
+
 def sha256_hex(value: str) -> str:
     """식별자(CI/DI) 해시 — 매칭이 가능해야 하므로 솔트 없이 결정적."""
     return hashlib.sha256(value.encode()).hexdigest()

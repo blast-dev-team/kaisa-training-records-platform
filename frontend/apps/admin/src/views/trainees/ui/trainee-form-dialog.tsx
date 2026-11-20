@@ -1,3 +1,4 @@
+import { toUserMessage } from "@/src/shared/lib/friendly-error";
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
@@ -64,7 +65,8 @@ export function TraineeFormDialog({ isOpen, onClose, trainee }: Props) {
     setShowSenior(trainee?.seniorCertNo != null);
     setSeniorCertNo(trainee?.seniorCertNo ?? "");
     setSeniorCertIssuedDate(trainee?.seniorCertIssuedDate ?? "");
-    setSupervisorGrade(trainee?.supervisorGrade ?? "감리원");
+    // 수정: 저장된 값 그대로(NULL=미지정). 신규: 감리원 기본
+    setSupervisorGrade(trainee ? (trainee.supervisorGrade ?? "미지정") : "감리원");
     setBirthDate(trainee?.birthDate ?? "");
     setPhone(""); // 전화는 원문 미보유(마스킹만 응답) — 입력 시에만 변경
     setEmail(trainee?.email ?? "");
@@ -88,7 +90,9 @@ export function TraineeFormDialog({ isOpen, onClose, trainee }: Props) {
   const mutation = useMutation({
     mutationFn: () => {
       if (trainee) {
-        const input: Parameters<typeof patchTrainee>[1] = {
+        // 바뀐 칸만 보낸다 — 이름만 고쳐도 감리원 등급·번호를 함께 보내 서버가 등급을 다시
+        // 계산했다(미지정 → 감리원, 번호 없는 수석감리원 → 감리원으로 바뀌던 문제)
+        const next = {
           name: name.trim(),
           cert_no: certNo.trim() || null,
           senior_cert_no: effectiveSeniorNo || null,
@@ -98,6 +102,21 @@ export function TraineeFormDialog({ isOpen, onClose, trainee }: Props) {
           email: email.trim() || null,
           memo: memo.trim() || null,
         };
+        const initialGrade = trainee.seniorCertNo != null ? "수석감리원" : trainee.supervisorGrade;
+        const before = {
+          name: trainee.name,
+          cert_no: trainee.certNo ?? null,
+          senior_cert_no: trainee.seniorCertNo ?? null,
+          senior_cert_issued_date: trainee.seniorCertIssuedDate ?? null,
+          supervisor_grade: initialGrade ?? null,
+          birth_date: trainee.birthDate ?? null,
+          email: trainee.email ?? null,
+          memo: trainee.memo ?? null,
+        };
+        const input: Parameters<typeof patchTrainee>[1] = {};
+        for (const key of Object.keys(next) as (keyof typeof next)[]) {
+          if (next[key] !== before[key]) (input as Record<string, unknown>)[key] = next[key];
+        }
         if (phone.trim()) input.phone = phone.trim();
         return patchTrainee(trainee.id, input);
       }
@@ -123,7 +142,7 @@ export function TraineeFormDialog({ isOpen, onClose, trainee }: Props) {
     },
     onError: (e: Error) => {
       if (e instanceof DuplicateCancelledError) return;
-      toast.error(e.message);
+      toast.error(toUserMessage(e));
     },
   });
 

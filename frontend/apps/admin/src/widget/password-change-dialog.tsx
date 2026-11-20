@@ -1,3 +1,4 @@
+import { toUserMessage } from '@/src/shared/lib/friendly-error';
 import { useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { toast } from 'react-toastify'
@@ -21,7 +22,7 @@ export function PasswordChangeDialog({ onClose }: { onClose: () => void }) {
       toast.success('비밀번호를 변경했어요')
       onClose()
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => toast.error(toUserMessage(e)),
   })
 
   const isValidNew =
@@ -36,7 +37,7 @@ export function PasswordChangeDialog({ onClose }: { onClose: () => void }) {
       onClose={onClose}
       title="비밀번호 변경"
       size="sm"
-      description="다른 곳에서 로그인한 세션은 유지돼요."
+      description="비밀번호를 바꾸면 다른 기기의 로그인은 모두 해제돼요."
       actions={[
         { label: '취소', onClick: onClose },
         {

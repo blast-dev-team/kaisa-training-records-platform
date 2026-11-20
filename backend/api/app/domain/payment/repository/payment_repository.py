@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.crypto import name_hash
 from app.core.kst import kst_range_end, kst_range_start
+from app.core.validation import LIKE_ESCAPE, like_contains
 from app.domain.certificate.model import Certificate
 from app.domain.payment.model import (
     PaymentAttempt,
@@ -86,9 +87,9 @@ async def list_orders(
         stmt = stmt.where(cond)
         count_stmt = count_stmt.where(cond)
     if search:
-        pattern = f"%{search}%"
+        pattern = like_contains(search)
         cond = or_(
-            PaymentOrder.order_no.ilike(pattern),
+            PaymentOrder.order_no.ilike(pattern, escape=LIKE_ESCAPE),
             PaymentOrder.trainee_id.in_(
                 select(Trainee.id).where(Trainee.name_hash == name_hash(search))
             ),
@@ -98,23 +99,29 @@ async def list_orders(
 
     total = (await db.execute(count_stmt)).scalar_one()
     stmt = (
-        stmt.order_by(PaymentOrder.created_at.desc())
+        stmt.order_by(PaymentOrder.created_at.desc(), PaymentOrder.id.desc())
         .offset((page - 1) * limit)
         .limit(limit)
     )
     rows = (await db.execute(stmt)).scalars().all()
 
-    # 주문별 발급 문서 — 목록 화면에서 결제 과정·건수를 보여 주는 데 쓴다
+    doc_counts, first_course_names = await order_docs(db, [o.id for o in rows])
+    return list(rows), total, doc_counts, first_course_names
+
+
+async def order_docs(
+    db: AsyncSession, order_ids: list[uuid.UUID]
+) -> tuple[dict[uuid.UUID, int], dict[uuid.UUID, str]]:
+    """주문별 발급 문서 — 결제 과정·건수 표시용. 목록·환불·재조회 응답이 같은 값을 쓴다."""
     doc_counts: dict[uuid.UUID, int] = {}
     first_course_names: dict[uuid.UUID, str] = {}
-    if rows:
+    if order_ids:
         cert_rows = await db.execute(
             select(Certificate.payment_order_id, Certificate.course_name)
-            .where(Certificate.payment_order_id.in_([o.id for o in rows]))
+            .where(Certificate.payment_order_id.in_(order_ids))
             .order_by(Certificate.certificate_no)
         )
         for order_id, course_name in cert_rows.all():
             doc_counts[order_id] = doc_counts.get(order_id, 0) + 1
             first_course_names.setdefault(order_id, course_name)
-
-    return list(rows), total, doc_counts, first_course_names
+    return doc_counts, first_course_names

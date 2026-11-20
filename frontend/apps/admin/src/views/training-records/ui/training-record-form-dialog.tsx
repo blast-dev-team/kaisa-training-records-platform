@@ -1,4 +1,6 @@
+import { toUserMessage } from "@/src/shared/lib/friendly-error";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { hoursError, isValidHours } from "@/src/shared/utils/hours";
 import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { Button } from "@/src/shared/ui/button";
@@ -30,7 +32,7 @@ import {
   postTrainingRecord,
   trainingRecordQueries,
   COMPLETION_STATUS_LABELS,
-  TRAINING_SOURCE_LABELS,
+  isExternalInstitutionType,
   type CompletionStatus,
   type TrainingRecord,
   type TrainingSource,
@@ -41,28 +43,31 @@ import {
   traineeQueries,
   type Trainee as TraineeEntity,
 } from "@/src/entities/trainee";
+import { ExternalHoursNotice, useExternalCap } from "./external-hours-notice";
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
   /** 수정 대상 — null이면 신규 등록 */
   record: TrainingRecord | null;
-  /** 외부 수료 뷰에서는 'external' 고정 */
-  defaultSource: TrainingSource;
   /** 딥링크 등록 — 교육생 미리 선택 */
   presetTrainee?: TraineeEntity | null;
 }
 
-const institutionFetcher = fetchOptions("/institutions", {}, (i) => ({
+const INSTITUTION_TYPE_HINT: Record<string, string> = { internal: "사내", external: "외부" };
+
+/** 기관 옵션 — 보조 표기로 사내/외부 구분을 보여 주고, 외부교육 한도 판정용으로 구분값을 실어 둔다 */
+const institutionFetcher = fetchOptions("/institutions", { is_active: true }, (i) => ({
   value: i.id as string,
   label: i.name as string,
+  hint: INSTITUTION_TYPE_HINT[(i.institution_type as string) ?? ""] ?? "구분 미선택",
+  meta: { institutionType: (i.institution_type as string | null) ?? null },
 }));
 
 export function TrainingRecordFormDialog({
   isOpen,
   onClose,
   record,
-  defaultSource,
   presetTrainee,
 }: Props) {
   const queryClient = useQueryClient();
@@ -76,12 +81,17 @@ export function TrainingRecordFormDialog({
   const [newTraineePhone, setNewTraineePhone] = useState("");
   const [institutionId, setInstitutionId] = useState("");
   const [institutionLabel, setInstitutionLabel] = useState<string | null>(null);
+  /** 선택한 기관 구분 — undefined 는 아직 기관을 고르지 않음(외부교육 한도 판정 안 함) */
+  const [institutionType, setInstitutionType] = useState<string | null | undefined>(undefined);
+  /** 구분은 기관 구분을 따른다 — 사내 기관이면 사내, 그 외(미선택·신규·외부)는 외부 */
+  const derivedSource: TrainingSource = institutionType === "internal" ? "internal" : "external";
   const [courseId, setCourseId] = useState("");
   const [courseLabel, setCourseLabel] = useState<string | null>(null);
   /** 이 세션에서 그 자리 생성한 과정 — 저장 시 최종 총 시수를 마스터에 반영한다 */
   const [createdCourseId, setCreatedCourseId] = useState<string | null>(null);
   const [totalHours, setTotalHours] = useState("");
-  const [source, setSource] = useState<TrainingSource>(defaultSource);
+  // 입력칸을 한 번이라도 건드린 뒤에만 "입력해 주세요" 안내 — 열자마자 빨간 문구가 뜨지 않게
+  const [hoursTouched, setHoursTouched] = useState(false);
   const [completionStatus, setCompletionStatus] = useState<CompletionStatus>("completed");
   const [startedAt, setStartedAt] = useState("");
   const [endedAt, setEndedAt] = useState("");
@@ -132,7 +142,7 @@ export function TrainingRecordFormDialog({
     },
     onError: (e: Error) => {
       if (e instanceof DuplicateCancelledError) return;
-      toast.error(e.message);
+      toast.error(toUserMessage(e));
     },
   });
 
@@ -142,9 +152,10 @@ export function TrainingRecordFormDialog({
       const created = await postInstitution({ name });
       queryClient.invalidateQueries({ queryKey: ["institutions"] });
       setInstitutionLabel(name);
+      setInstitutionType(null); // 그 자리에서 만든 기관은 구분 미선택 = 외부
       return created.id;
     } catch (e) {
-      toast.error((e as Error).message);
+      toast.error(toUserMessage(e));
       return null;
     }
   };
@@ -163,14 +174,14 @@ export function TrainingRecordFormDialog({
           name,
           session_name_id: null,
           total_hours: totalHours === "" ? 0 : Number(totalHours),
-          is_external: source === "external",
+          is_external: derivedSource === "external",
           is_active: true,
         });
         queryClient.invalidateQueries({ queryKey: ["courses"] });
         setCourseLabel(name);
         return createdCourseId;
       } catch (e) {
-        toast.error((e as Error).message);
+        toast.error(toUserMessage(e));
         return null;
       }
     }
@@ -180,14 +191,14 @@ export function TrainingRecordFormDialog({
         name,
         session_name_id: null,
         total_hours: totalHours === "" ? 0 : Number(totalHours),
-        is_external: source === "external",
+        is_external: derivedSource === "external",
       });
       queryClient.invalidateQueries({ queryKey: ["courses"] });
       setCourseLabel(name);
       setCreatedCourseId(created.id);
       return created.id;
     } catch (e) {
-      toast.error((e as Error).message);
+      toast.error(toUserMessage(e));
       return null;
     }
   };
@@ -228,48 +239,59 @@ export function TrainingRecordFormDialog({
       );
       setInstitutionId(record.institutionId ?? "");
       setInstitutionLabel(record.institutionName ?? "");
+      setInstitutionType(record.institutionType);
       setCourseId(record.courseId ?? "");
       setCourseLabel(record.courseName);
       setTotalHours(record.totalHours !== null ? String(record.totalHours) : "");
-      setSource(record.source);
       setCompletionStatus(record.completionStatus);
       setStartedAt(record.startedAt ?? "");
       setEndedAt(record.endedAt ?? "");
+      // 기존 메모를 불러온다 — 비워 두면 저장 시 memo:null 로 기존 메모가 지워졌다.
+      // 신규 등록 창에서 쓰다 만 메모가 다른 이력 수정에 따라오지 않게 항상 덮어쓴다
       setMemo(record.memo ?? "");
       if (record.courseId && !record.institutionId) {
         // courseId 만 있고 기관 연결이 없는 레거시 이력 — 과정 상세에서 기관을 채운다
         getCourseDetail(record.courseId).then((course) => {
           setInstitutionId(course.institutionId);
           setInstitutionLabel(course.institutionName);
+          setInstitutionType(course.institutionType);
         });
       }
     } else {
       setTrainee(presetTrainee ?? null);
       setInstitutionId("");
       setInstitutionLabel(null);
+      setInstitutionType(undefined);
       setCourseId("");
       setCourseLabel(null);
       setTotalHours("");
-      setSource(defaultSource);
+      setHoursTouched(false);
       setCompletionStatus("completed");
       setStartedAt("");
       setEndedAt("");
       setMemo("");
     }
-  }, [isOpen, record, presetTrainee, defaultSource]);
+  }, [isOpen, record, presetTrainee]);
 
   // 기관 변경 — 과정은 기관 소속이라 선택을 무효로 한다
   const handleInstitutionChange = (value: string | null, option?: SearchableOption) => {
     setInstitutionId(value ?? "");
     setInstitutionLabel(option?.label ?? null);
+    setInstitutionType(
+      value ? ((option?.meta?.institutionType as string | null | undefined) ?? null) : undefined,
+    );
     setCourseId("");
     setCourseLabel(null);
     // 다른 기관으로 바꾸면 방금 만든 과정은 더 이상 이름 수정 대상이 아니다
     setCreatedCourseId(null);
   };
 
+  // 과정 상세 응답 경합 방지 — 늦게 도착한 이전 과정의 응답이 지금 선택을 덮지 않게
+  const latestCourseRequest = useRef<string | null>(null);
+
   // 과정 마스터 선택 → 총 시수 스냅샷 자동 채움
   const handleCourseChange = (value: string | null, option?: SearchableOption) => {
+    latestCourseRequest.current = value;
     setCourseId(value ?? "");
     setCourseLabel(option?.label ?? null);
     // 생성한 과정에서 다른 과정으로 바꾸면 마스터 반영 대상에서 뺀다
@@ -277,6 +299,7 @@ export function TrainingRecordFormDialog({
     if (!value) return;
     // 스냅샷 채움은 과정 상세 조회 후 — 라벨만으로는 시수를 모른다
     getCourseDetail(value).then((course) => {
+      if (latestCourseRequest.current !== value) return;
       setCourseLabel(course.name);
       // 방금 그 자리에서 만든 과정은 시수를 덮지 않는다 — 저장 시 최종 입력값으로 마스터를 맞춘다
       if (value !== createdCourseId) {
@@ -288,7 +311,10 @@ export function TrainingRecordFormDialog({
   // 기관별 과정 검색 — 기관이 바뀌면 과정 목록도 새로 불러온다
   const courseFetcher = useMemo(
     () =>
-      fetchOptions("/courses", institutionId ? { institution_id: institutionId } : {}, (c) => ({
+      fetchOptions(
+        "/courses",
+        institutionId ? { institution_id: institutionId, is_active: true } : { is_active: true },
+        (c) => ({
         value: c.id as string,
         label: c.name as string,
       })),
@@ -304,7 +330,7 @@ export function TrainingRecordFormDialog({
           name: courseLabel?.trim() || "과정",
           session_name_id: null,
           total_hours: totalHours === "" ? 0 : Number(totalHours),
-          is_external: source === "external",
+          is_external: derivedSource === "external",
           is_active: true,
         });
         queryClient.invalidateQueries({ queryKey: ["courses"] });
@@ -316,7 +342,7 @@ export function TrainingRecordFormDialog({
         total_hours: totalHours === "" ? null : Number(totalHours),
         started_at: startedAt || null,
         ended_at: endedAt || null,
-        source,
+        source: derivedSource,
         completion_status: completionStatus,
         memo: memo.trim() || null,
       };
@@ -332,13 +358,36 @@ export function TrainingRecordFormDialog({
     },
     onError: (e: Error) => {
       if (e instanceof DuplicateCancelledError) return;
-      toast.error(e.message);
+      toast.error(toUserMessage(e));
     },
   });
 
+  // 외부교육 최근 3년 한도(16시간) — 서버가 최종 판정하고, 여기선 저장 전에 미리 막는다
+  const externalCap = useExternalCap({
+    traineeId: trainee?.id ?? null,
+    institutionType,
+    startedAt,
+    totalHours,
+    completionStatus,
+    record,
+  });
+  const externalBlocked = externalCap.result?.blocked ?? false;
+
+  // 시수는 필수·0 이상 — 비우면 서버가 422(예전엔 500), 음수는 외부교육 한도를 우회할 수 있었다
+  const hoursValid = isValidHours(totalHours);
+  const totalHoursError = hoursError(totalHours, {
+    label: "총 시수",
+    required: hoursTouched || !!record,
+  });
   const canSubmit = useMemo(
-    () => !!trainee && !!institutionId && !!courseId && !mutation.isPending,
-    [trainee, institutionId, courseId, mutation.isPending],
+    () =>
+      !!trainee &&
+      !!institutionId &&
+      !!courseId &&
+      hoursValid &&
+      !mutation.isPending &&
+      !externalBlocked,
+    [trainee, institutionId, courseId, hoursValid, mutation.isPending, externalBlocked],
   );
 
   return (
@@ -523,19 +572,6 @@ export function TrainingRecordFormDialog({
           </p>
         </div>
 
-        <div className="grid grid-cols-1 gap-2">
-          <div className="space-y-1.5">
-            <Label>구분</Label>
-            <Select value={source} onChange={(e) => setSource(e.target.value as TrainingSource)}>
-              {Object.entries(TRAINING_SOURCE_LABELS).map(([value, label]) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              ))}
-            </Select>
-          </div>
-        </div>
-
         <div className="grid grid-cols-2 gap-2">
           <div className="space-y-1.5">
             <Label>시작일</Label>
@@ -570,9 +606,21 @@ export function TrainingRecordFormDialog({
             min={0}
             placeholder="예: 8"
             value={totalHours}
-            onChange={(e) => setTotalHours(e.target.value)}
+            onChange={(e) => {
+              setTotalHours(e.target.value);
+              setHoursTouched(true);
+            }}
           />
-          <p className="text-11 text-ink-3">입력한 총 시수가 이수 시수로 인정돼요</p>
+          {totalHoursError ? (
+            <p role="alert" className="text-11 text-danger">{totalHoursError}</p>
+          ) : (
+            <p className="text-11 text-ink-3">입력한 총 시수가 이수 시수로 인정돼요</p>
+          )}
+          <ExternalHoursNotice
+            summary={externalCap.summary}
+            result={externalCap.result}
+            isExternal={institutionType !== undefined && isExternalInstitutionType(institutionType)}
+          />
         </div>
 
         <div className="space-y-1.5">

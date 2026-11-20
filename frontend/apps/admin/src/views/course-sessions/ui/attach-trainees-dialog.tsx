@@ -1,6 +1,7 @@
+import { toUserMessage } from "@/src/shared/lib/friendly-error";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { Check, ChevronDown, ChevronUp, X } from "lucide-react";
 import { Dialog } from "@/src/shared/ui/dialog";
@@ -15,9 +16,15 @@ import {
 } from "@/src/shared/ui/use-duplicate-confirm";
 import { getTraineeList, postTrainee, traineeQueries } from "@/src/entities/trainee";
 import { useDebouncedValue } from "@/src/shared/hooks/use-debounced-value";
+import {
+  forwardShiftClickToCheckbox,
+  useShiftRangeSelect,
+} from "@/src/shared/hooks/use-shift-range-select";
 import { courseSessionQueries, type CourseSession } from "@/src/entities/course-session";
+import { courseQueries } from "@/src/entities/institution";
 import {
   getTrainingRecordList,
+  isExternalInstitutionType,
   postTrainingRecordBulk,
   postTrainingRecordMatchPreview,
   trainingRecordQueries,
@@ -64,6 +71,11 @@ interface Props {
 /** 일정에 교육생 일괄 연결 — 저장 시 교육 이력이 생성된다 */
 export function AttachTraineesDialog({ isOpen, onClose, session }: Props) {
   const queryClient = useQueryClient();
+  // 일정 소속 과정의 현재 기관 구분 — 연결 시 한도 판정도 BE 가 현재 구분으로 하므로 같은 기준
+  const { data: course } = useQuery({
+    ...courseQueries.detail(session?.courseId ?? ""),
+    enabled: isOpen && !!session?.courseId,
+  });
   const [searchInput, setSearchInput] = useState("");
   const [selected, setSelected] = useState<Record<string, string>>({});
   const search = useDebouncedValue(searchInput.trim(), 300);
@@ -175,6 +187,24 @@ export function AttachTraineesDialog({ isOpen, onClose, session }: Props) {
     enabled: isOpen,
   });
   const trainees = traineeQuery.data?.pages.flatMap((p) => p.items) ?? [];
+  // Shift+클릭 범위 선택 — 검색 결과 목록 순서 기준
+  const { pick: pickRange } = useShiftRangeSelect({
+    items: trainees,
+    getKey: (t: (typeof trainees)[number]) => t.id,
+  });
+  /** 누른 감리원(Shift 면 범위)을 누른 감리원의 반대 상태로 맞춘다 */
+  const toggleWithRange = (t: (typeof trainees)[number]) => {
+    const targets = pickRange(t);
+    setSelected((prev) => {
+      const next = { ...prev };
+      const on = !(t.id in prev);
+      for (const target of targets) {
+        if (on) next[target.id] = target.name;
+        else delete next[target.id];
+      }
+      return next;
+    });
+  };
 
   // 이미 이 일정에 연결된 교육생 — 무한 스크롤
   const connectedQuery = useInfiniteQuery({
@@ -186,7 +216,30 @@ export function AttachTraineesDialog({ isOpen, onClose, session }: Props) {
     enabled: isOpen && !!session,
   });
   const connected = connectedQuery.data?.pages.flatMap((p) => p.items) ?? [];
-  const connectedIds = new Set(connected.map((r) => r.traineeId));
+  // 연결된 교육생 전체 id — 목록은 10명씩 무한 스크롤이라 첫 페이지만으로 판정하면
+  // 11번째부터는 '이미 연결됨'으로 보이지 않았다. 판정용으로 전체를 따로 조회한다
+  const connectedAllQuery = useQuery({
+    queryKey: [...trainingRecordQueries.lists(), { sessionId: session?.id, all: true }],
+    queryFn: async () => {
+      const ids: string[] = [];
+      for (let page = 1; ; page += 1) {
+        const res = await getTrainingRecordList({ sessionId: session!.id, page, limit: 100 });
+        ids.push(...res.items.map((r) => r.traineeId));
+        if (page >= res.totalPages) break;
+      }
+      return ids;
+    },
+    enabled: isOpen && !!session,
+  });
+  const connectedIds = new Set([
+    ...connected.map((r) => r.traineeId),
+    ...(connectedAllQuery.data ?? []),
+  ]);
+  // 서버는 기관 구분으로 이력 구분을 정한다 — 체크 표시도 일정의 옛 source 가 아니라 기관 구분을 따른다
+  const savesAsExternal =
+    session?.institutionType !== undefined
+      ? session.institutionType !== "internal"
+      : session?.source === "external";
 
   const connectedListRef = useRef<HTMLDivElement>(null);
 
@@ -226,16 +279,23 @@ export function AttachTraineesDialog({ isOpen, onClose, session }: Props) {
         trainee_ids: Object.keys(selected),
         memo: memo.trim() || null,
       }),
-    onSuccess: ({ created, skipped }) => {
+    onSuccess: ({ created, skipped, external_cap_excluded: capExcluded = [] }) => {
       toast.success(
         `교육 내역 ${created}건을 생성했어요${skipped > 0 ? ` (이미 같은 교육내역이 있는 ${skipped}명 제외)` : ""}`,
       );
+      // 외부 일정 — 최근 3년 외부교육이 16시간을 넘게 되는 교육생은 서버가 연결하지 않는다
+      if (capExcluded.length > 0) {
+        toast.warning(
+          `외부교육 한도(최근 3년 16시간) 초과로 ${capExcluded.length}명은 연결하지 않았어요 — ${capExcluded.join(", ")}`,
+          { autoClose: false },
+        );
+      }
       queryClient.invalidateQueries({ queryKey: trainingRecordQueries.all() });
       queryClient.invalidateQueries({ queryKey: courseSessionQueries.all() });
       setSelected({});
       onClose();
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => toast.error(toUserMessage(e)),
   });
 
   const matchMutation = useMutation({
@@ -257,7 +317,7 @@ export function AttachTraineesDialog({ isOpen, onClose, session }: Props) {
         }`,
       );
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => toast.error(toUserMessage(e)),
   });
 
   // 미매칭 행 → 이름·전화번호·생년월일·증번호 직접 입력으로 신규 감리원 등록 + 즉시 선택.
@@ -288,7 +348,7 @@ export function AttachTraineesDialog({ isOpen, onClose, session }: Props) {
     },
     onError: (e: Error) => {
       if (e instanceof DuplicateCancelledError) return;
-      toast.error(e.message);
+      toast.error(toUserMessage(e));
     },
   });
 
@@ -316,6 +376,18 @@ export function AttachTraineesDialog({ isOpen, onClose, session }: Props) {
       {/* 중복 경고 — 포털로 뜨므로 위치는 무관 */}
       {dupConfirm.dialog}
       <div className="space-y-3">
+        {/* 외부교육 한도 안내 — BE 연결 검증과 같은 기준(현재 기관 구분) */}
+        {course &&
+          (isExternalInstitutionType(course.institutionType) ? (
+            <div className="rounded-md bg-warn-soft px-3 py-2 text-12 text-warn-ink">
+              이 일정은 외부 기관 교육이에요 — 연결하면 각 감리원의 외부교육 16시간(최근 3년)
+              한도에 합산되고, 한도를 초과하는 감리원은 연결에서 제외돼요
+            </div>
+          ) : (
+            <p className="text-12 text-ink-3">
+              사내 기관 교육이라 외부교육 16시간 한도에 포함되지 않아요
+            </p>
+          ))}
         {/* 이미 연결된 감리원 */}
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
@@ -597,6 +669,7 @@ export function AttachTraineesDialog({ isOpen, onClose, session }: Props) {
                       return (
                         <label
                           key={t.id}
+                          onClick={forwardShiftClickToCheckbox}
                           className={`flex cursor-pointer items-center gap-2.5 border-b border-line px-3 py-2 text-13 last:border-b-0 hover:bg-bg-2 ${
                             already ? "opacity-45" : ""
                           }`}
@@ -612,7 +685,7 @@ export function AttachTraineesDialog({ isOpen, onClose, session }: Props) {
                             type="checkbox"
                             className="sr-only"
                             checked={checked}
-                            onChange={() => toggle(t.id, t.name)}
+                            onChange={() => toggleWithRange(t)}
                           />
                           <span className="text-ink">{t.name}</span>
                           <span className="text-11 text-ink-3">
@@ -660,12 +733,12 @@ export function AttachTraineesDialog({ isOpen, onClose, session }: Props) {
             <input
               type="checkbox"
               className="size-4 accent-[--color-accent]"
-              checked={session?.source === "external"}
+              checked={savesAsExternal}
               disabled
             />
             외부 교육으로 저장
             <span className="text-11 text-ink-3">
-              {session?.source === "external"
+              {savesAsExternal
                 ? "— 일정이 외부 교육이라 연결되는 내역이 외부로 기록돼요"
                 : "— 일정의 구분을 따라 사내로 기록돼요"}
             </span>

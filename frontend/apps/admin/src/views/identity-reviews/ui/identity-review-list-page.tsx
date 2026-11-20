@@ -32,7 +32,7 @@ export function IdentityReviewListPage() {
   const [searchInput, setSearchInput] = useState(q);
   const [reviewTarget, setReviewTarget] = useState<IdentityReview | null>(null);
 
-  const { data } = useQuery(
+  const { data, error: listError, refetch: refetchList } = useQuery(
     identityReviewQueries.list({
       status: status || undefined,
       search: q || undefined,
@@ -193,7 +193,9 @@ export function IdentityReviewListPage() {
       <AppTable
         columns={columns}
         data={items}
-        isLoading={!data}
+        isLoading={!data && !listError}
+        error={listError}
+        onRetry={() => void refetchList()}
         emptyMessage="해당 상태의 심사 건이 없어요"
         page={page}
         totalPages={totalPages}

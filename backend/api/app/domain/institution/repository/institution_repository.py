@@ -3,6 +3,7 @@ import uuid
 from sqlalchemy import func, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.validation import LIKE_ESCAPE, like_contains
 from app.domain.institution.model import (
     SessionName,
     TrainingCourse,
@@ -49,10 +50,10 @@ async def list_institutions(
             TrainingInstitution.institution_type == institution_type
         )
     if search:
-        pattern = f"%{search}%"
+        pattern = like_contains(search)
         cond = or_(
-            TrainingInstitution.name.ilike(pattern),
-            TrainingInstitution.institution_code.ilike(pattern),
+            TrainingInstitution.name.ilike(pattern, escape=LIKE_ESCAPE),
+            TrainingInstitution.institution_code.ilike(pattern, escape=LIKE_ESCAPE),
         )
         stmt = stmt.where(cond)
         count_stmt = count_stmt.where(cond)
@@ -114,16 +115,16 @@ async def list_courses(
         count_stmt = count_stmt.where(TrainingCourse.is_external == is_external)
     if search:
         # 과정명·과정코드·회차명·기관명
-        pattern = f"%{search}%"
+        pattern = like_contains(search)
         matched_session_names = select(SessionName.id).where(
-            SessionName.name.ilike(pattern)
+            SessionName.name.ilike(pattern, escape=LIKE_ESCAPE)
         )
         matched_institutions = select(TrainingInstitution.id).where(
-            TrainingInstitution.name.ilike(pattern)
+            TrainingInstitution.name.ilike(pattern, escape=LIKE_ESCAPE)
         )
         cond = or_(
-            TrainingCourse.name.ilike(pattern),
-            TrainingCourse.course_code.ilike(pattern),
+            TrainingCourse.name.ilike(pattern, escape=LIKE_ESCAPE),
+            TrainingCourse.course_code.ilike(pattern, escape=LIKE_ESCAPE),
             TrainingCourse.session_name_id.in_(matched_session_names),
             TrainingCourse.institution_id.in_(matched_institutions),
         )
@@ -160,6 +161,27 @@ async def sync_record_course_name(
     return result.rowcount or 0
 
 
+async def sync_record_institution_name(
+    db: AsyncSession, institution_id: uuid.UUID, name: str
+) -> int:
+    """기관명 변경 시 이 기관에 연결된 교육내역의 institution_name 스냅샷을 맞춘다 — 과정명과 같은 규칙.
+
+    발급이 끝난 확인서·수료증은 자체 스냅샷을 가지므로 영향 없음.
+    """
+    from app.domain.training_record.model import TrainingRecord
+
+    result = await db.execute(
+        update(TrainingRecord)
+        .where(
+            TrainingRecord.institution_id == institution_id,
+            TrainingRecord.institution_name != name,
+        )
+        .values(institution_name=name)
+        .execution_options(synchronize_session=False)
+    )
+    return result.rowcount or 0
+
+
 async def list_categories(db: AsyncSession, search: str | None = None) -> list[str]:
     """과정 분류 드롭다운용 — distinct category 값."""
     stmt = (
@@ -169,6 +191,8 @@ async def list_categories(db: AsyncSession, search: str | None = None) -> list[s
         .order_by(TrainingCourse.category.asc())
     )
     if search:
-        stmt = stmt.where(TrainingCourse.category.ilike(f"%{search}%"))
+        stmt = stmt.where(
+            TrainingCourse.category.ilike(like_contains(search), escape=LIKE_ESCAPE)
+        )
     rows = (await db.execute(stmt)).scalars().all()
     return list(rows)

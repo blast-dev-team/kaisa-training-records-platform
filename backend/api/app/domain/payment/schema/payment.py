@@ -1,7 +1,8 @@
 import uuid
 from datetime import datetime
+from typing import Annotated
 
-from pydantic import BaseModel
+from pydantic import BaseModel, StringConstraints
 
 from app.core.crypto import decrypt_field
 from app.domain.certificate.schema import MyCertificateBrief
@@ -70,7 +71,8 @@ class PaymentOrderResponse(BaseModel):
 
 
 class RefundCreate(BaseModel):
-    reason: str
+    # 사유 필수(docs/admin/api.md) — 공백만은 감사 기록이 비므로 거절
+    reason: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1)]
     # 오류 정정 환불 — 발급된 확인서가 있어도 강제 환불 (확인서 폐기는 별도 처리)
     force: bool = False
 

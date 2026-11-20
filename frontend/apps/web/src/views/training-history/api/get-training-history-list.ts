@@ -24,6 +24,8 @@ export interface TrainingHistoryItem {
   courseName: string;
   /** 교육기관 */
   organizer: string;
+  /** 기관 구분 — 사내 수료만 수료증 대상. 미선택(NULL)은 외부 취급 */
+  institutionType: "internal" | "external" | null;
   /** 교육 이수시간 (시간 단위) */
   hours: number;
   certificateStatus: CertificateStatus;
@@ -70,7 +72,7 @@ interface TrainingRecordDto {
   /** 회원별 발급 상태 — 데모 이력 공유 대응으로 서버가 certificates 에서 산출 */
   certificate_status?: CertificateStatus | null;
   last_issued_at?: string | null;
-  institution_type?: string | null; // internal | external | null(미선택)
+  institution_type?: string | null; // internal | external | null(null 은 외부 취급)
   completion_status?: string | null; // in_progress | completed | canceled
   /** 공용 데모 이력 — 여러 회원이 공유하므로 수료증 대상 제외 */
   is_demo?: boolean;
@@ -78,13 +80,18 @@ interface TrainingRecordDto {
 
 function toItem(dto: TrainingRecordDto): TrainingHistoryItem {
   const startedOn = dto.started_at ?? "";
-  const endedOn = dto.ended_at ?? startedOn;
+  // 종료일을 시작일로 채우지 않는다 — 채우면 '수강 기간 없음' 잠금이 풀려 신청 시 서버가 400 을 냈다
+  const endedOn = dto.ended_at ?? "";
   return {
     id: dto.id,
     startedOn,
     endedOn,
     courseName: dto.course_name,
     organizer: dto.institution_name,
+    institutionType:
+      dto.institution_type === "internal" || dto.institution_type === "external"
+        ? dto.institution_type
+        : null,
     hours: Number(dto.total_hours),
     // 발급 게이트(3년·수료·기발급)는 서버가 최종 판단 — 회원별 상태를 그대로 쓴다
     certificateStatus: dto.certificate_status ?? "unavailable",
@@ -133,9 +140,11 @@ export async function getTrainingHistoryList(
     page: data.page ?? params.page,
     limit: data.limit ?? params.limit,
     totalPages: data.total_pages ?? Math.max(1, Math.ceil((data.total ?? 0) / params.limit)),
-    issuableCount: items.filter(
-      (item) => item.certificateStatus !== "unavailable",
-    ).length,
+    // 서버가 같은 필터 전체 기준으로 센 값(issuable_count) — 없으면(구 서버) 현재 페이지로 대체
+    issuableCount:
+      typeof data.issuable_count === "number"
+        ? data.issuable_count
+        : items.filter((item) => item.certificateStatus !== "unavailable").length,
     totalHoursSum: Number(data.total_hours_sum ?? 0),
   };
 }

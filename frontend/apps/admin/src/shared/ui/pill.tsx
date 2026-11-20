@@ -23,7 +23,7 @@ const STATUS_TONE_MAP: Record<string, string> = {
   // 본인인증 심사 status
   manual_review: 'warn',
   // 교육이력 source
-  internal: 'info', external: 'accent', legacy_import: 'default',
+  internal: 'info', external: 'accent',
   // 교육이력 completion_status
   in_progress: 'info', completed: 'ok', canceled: 'default',
   // 확인서 status

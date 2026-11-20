@@ -261,20 +261,36 @@ async def complete_pass(
             trainee.phone_encrypted = encrypt_field(str(phone))
         # 심사 기록은 상태가 바뀔 때만 남긴다 — 승인된 회원의 재인증마다 남기면
         # 어드민 심사 목록에 동일 인원 row 가 계속 쌓인다 (인증 이력은 verifications 에 기록)
-        if auto_matched or trainee.review_status != "approved":
+        # 이전 인증에서 수동 심사 대기로 남은 건 — 이번에 연결됐으므로 그 건을 승인으로 닫는다.
+        # (예전에는 대기 건이 남아, 관리자가 승인하면 user_id 중복 연결로 500 이 났다)
+        stale_pending = await repo.find_pending_manual_review(db, user.id)
+        if (
+            auto_matched
+            or trainee.review_status != "approved"
+            or stale_pending is not None
+        ):
             trainee.review_status = "approved"
             trainee.reviewed_at = now_kst()
-            db.add(
-                IdentityReview(
-                    identity_verification_id=verification.id,
-                    user_id=user.id,
-                    trainee_id=trainee.id,
-                    status="approved",
-                    matched_by="legacy_id" if auto_matched else "ci",
-                    determined_grade_id=trainee.membership_grade_id,
-                    reviewed_at=now_kst(),
+            matched_by = "legacy_id" if auto_matched else "ci"
+            if stale_pending is not None:
+                stale_pending.identity_verification_id = verification.id
+                stale_pending.trainee_id = trainee.id
+                stale_pending.status = "approved"
+                stale_pending.matched_by = matched_by
+                stale_pending.determined_grade_id = trainee.membership_grade_id
+                stale_pending.reviewed_at = now_kst()
+            else:
+                db.add(
+                    IdentityReview(
+                        identity_verification_id=verification.id,
+                        user_id=user.id,
+                        trainee_id=trainee.id,
+                        status="approved",
+                        matched_by=matched_by,
+                        determined_grade_id=trainee.membership_grade_id,
+                        reviewed_at=now_kst(),
+                    )
                 )
-            )
         review_status = "approved"
     else:
         # 교육생 미연결 — 대기 중 심사 건이 있으면 새로 만들지 않고 최신 인증 결과로 갱신
@@ -369,16 +385,28 @@ async def _ensure_kaisa_record(db: AsyncSession, trainee: Trainee) -> None:
 async def kaisa_login(
     db: AsyncSession, body: PassKaisaLoginRequest
 ) -> tuple[PassCompleteResponse, str]:
-    """KAISA 계정 로그인 — 성명 KAISA + 지정 생년월일·휴대전화로 PASS 없이 로그인. 전 환경 허용.
+    """KAISA 계정 로그인 — 성명 KAISA + 지정 생년월일·휴대전화로 PASS 없이 로그인. local·staging 전용.
+
+    운영(production)에서는 막는다 — PASS 없이 세션을 내주는 우회 경로라 공개 서버에 두지 않는다.
 
     슈퍼 계정(전 회원 조회)과 달리 일반 회원 스코프다 — 본인 이력만 보고
     발급·결제까지 실제 플로우를 탄다. 고정 CI 로 find-or-create 하고,
     교육생과 발급용 이력 1건(_ensure_kaisa_record)을 연결한다.
+
+    local·staging 에서는 성명이 KAISA 가 아니어도 휴대전화가 01012345678 이면
+    그 성명·생년월일의 감리원으로 로그인한다 (_test_trainee_login — 운영 미적용).
     """
     birth = "".join(ch for ch in body.birth if ch.isdigit())
     phone = "".join(ch for ch in body.phone if ch.isdigit())
     if (
         body.name.strip() != KAISA_NAME
+        and settings.ENVIRONMENT != "production"
+        and phone == KAISA_PHONE
+    ):
+        return await _test_trainee_login(db, body.name.strip(), birth)
+    if (
+        settings.ENVIRONMENT == "production"
+        or body.name.strip() != KAISA_NAME
         or birth != KAISA_BIRTH
         or phone != KAISA_PHONE
     ):
@@ -443,6 +471,85 @@ async def kaisa_login(
     )
 
 
+async def _test_trainee_login(
+    db: AsyncSession, name: str, birth: str
+) -> tuple[PassCompleteResponse, str]:
+    """테스트 로그인 (local·staging 전용) — 감리원 성명 + 생년월일 + 휴대전화 01012345678.
+
+    PASS 없이 그 감리원 계정으로 로그인한다. 운영(production)에서는 호출되지 않는다
+    (kaisa_login 이 환경을 먼저 검사). 회원 계정이 없는 감리원(이관분)은 테스트 CI 로
+    계정을 만들어 연결한다 — 이후 같은 환경에서 실제 PASS 인증 시 이름·생년월일 자동
+    매칭 대상에서 빠지므로 테스트 환경 데이터에만 쓴다.
+    """
+    try:
+        birth_date = date(int(birth[:4]), int(birth[4:6]), int(birth[6:8])) if len(birth) == 8 else None
+    except ValueError:
+        birth_date = None
+    if not name or birth_date is None:
+        raise api_error("NOT_FOUND", status_code=404, message="일치하는 감리원을 찾을 수 없어요")
+    candidates = (
+        await db.execute(
+            select(Trainee).where(
+                Trainee.deleted_at.is_(None),
+                Trainee.name_hash == name_hash(name),
+                Trainee.birth_date == birth_date,
+            )
+        )
+    ).scalars().all()
+    if not candidates:
+        raise api_error("NOT_FOUND", status_code=404, message="일치하는 감리원을 찾을 수 없어요")
+    if len(candidates) > 1:
+        raise api_error(
+            "DUPLICATE_TRAINEE_SUSPECTED",
+            message="같은 성명·생년월일의 감리원이 여러 명이라 테스트 로그인할 수 없어요",
+        )
+    trainee = candidates[0]
+
+    user = await db.get(User, trainee.user_id) if trainee.user_id else None
+    matched = user is not None
+    if user is None:
+        ci_hash = sha256_hex(f"test:trainee:{trainee.id}")
+        user = await repo.find_user_by_ci_hash(db, ci_hash)
+        if user is None:
+            user = User(
+                ci_hash=ci_hash,
+                name_encrypted=trainee.name_encrypted,
+                name_hash=trainee.name_hash,
+                birth=birth,
+            )
+            db.add(user)
+            await db.flush()
+        trainee.user_id = user.id
+    user.last_login_at = now_kst()
+
+    db.add(
+        IdentityVerification(
+            user_id=user.id,
+            provider_verification_id=f"test-{uuid.uuid4()}",
+            status="verified",
+            verified_name_encrypted=trainee.name_encrypted,
+            verified_name_hash=trainee.name_hash,
+            ci_hash=user.ci_hash,
+            verified_at=now_kst(),
+        )
+    )
+    if trainee.review_status != "approved":
+        trainee.review_status = "approved"
+        trainee.reviewed_at = now_kst()
+
+    token = await create_user_session(db, user.id, "pass")
+    await db.commit()
+    return (
+        PassCompleteResponse(
+            id=user.id,
+            name=decrypt_field(trainee.name_encrypted),
+            matched=matched,
+            review_status="approved",
+        ),
+        token,
+    )
+
+
 # ── 어드민 심사 ────────────────────────────────────────────────────────────────
 
 
@@ -467,6 +574,7 @@ async def approve_review(
     determined_grade_id: uuid.UUID | None,
     actor: AdminUser,
     new_trainee: NewTraineeCreate | None = None,
+    review_note: str | None = None,
 ) -> IdentityReview:
     """수동 매칭 — trainee.user_id 연결(또는 신규 생성·연결) + 등급 확정 + 심사 완료."""
     review = await repo.find_review_by_id(db, review_id)
@@ -481,6 +589,25 @@ async def approve_review(
             "VALIDATION_ERROR",
             message="연결할 기존 교육생 또는 신규 교육생 정보 중 하나가 필요해요",
         )
+    # 이 회원이 그사이(재인증 자동매칭 등) 이미 다른 교육생에 연결됐으면 막는다 —
+    # 예전에는 trainees.user_id 유니크 위반으로 500 이 났다
+    already = await repo.find_trainee_by_user_id(db, review.user_id)
+    if already is not None and already.id != trainee_id:
+        raise api_error(
+            "TRAINEE_ALREADY_LINKED",
+            status_code=409,
+            message="이 회원은 이미 다른 교육생과 연결돼 있어요. 목록을 새로고침해 주세요",
+        )
+    if determined_grade_id is not None and new_trainee is None:
+        exists = (
+            await db.execute(
+                select(MembershipGrade.id).where(
+                    MembershipGrade.id == determined_grade_id
+                )
+            )
+        ).scalar_one_or_none()
+        if exists is None:
+            raise api_error("NOT_FOUND", message="회원등급을 찾을 수 없어요")
 
     created_trainee = False
     if new_trainee is not None:
@@ -549,6 +676,8 @@ async def approve_review(
     review.determined_grade_id = determined_grade_id or trainee.membership_grade_id
     review.reviewed_by = actor.id
     review.reviewed_at = now_kst()
+    if review_note is not None and review_note.strip():
+        review.review_note = review_note.strip()
 
     record_audit(
         db,

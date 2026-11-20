@@ -3,6 +3,7 @@ import uuid
 from sqlalchemy import String, cast, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.validation import LIKE_ESCAPE, like_contains
 from app.domain.audit.model import AuditLog
 from app.domain.auth.model import AdminUser
 
@@ -14,22 +15,22 @@ def _search_clause(tokens: list[str]):
     """
     conds = []
     for token in tokens:
-        pattern = f"%{token}%"
+        pattern = like_contains(token)
         actor_name_matches = (
             select(AdminUser.id)
             .where(
                 AdminUser.id == AuditLog.actor_admin_id,
-                AdminUser.name.ilike(pattern),
+                AdminUser.name.ilike(pattern, escape=LIKE_ESCAPE),
             )
             .exists()
         )
         conds.append(
             or_(
-                AuditLog.action.ilike(pattern),
-                AuditLog.entity_type.ilike(pattern),
-                cast(AuditLog.entity_id, String).ilike(pattern),
-                cast(AuditLog.before_data, String).ilike(pattern),
-                cast(AuditLog.after_data, String).ilike(pattern),
+                AuditLog.action.ilike(pattern, escape=LIKE_ESCAPE),
+                AuditLog.entity_type.ilike(pattern, escape=LIKE_ESCAPE),
+                cast(AuditLog.entity_id, String).ilike(pattern, escape=LIKE_ESCAPE),
+                cast(AuditLog.before_data, String).ilike(pattern, escape=LIKE_ESCAPE),
+                cast(AuditLog.after_data, String).ilike(pattern, escape=LIKE_ESCAPE),
                 actor_name_matches,
             )
         )
@@ -66,7 +67,7 @@ async def list_logs(
 
     total = (await db.execute(count_stmt)).scalar_one()
     stmt = (
-        stmt.order_by(AuditLog.created_at.desc())
+        stmt.order_by(AuditLog.created_at.desc(), AuditLog.id.desc())
         .offset((page - 1) * limit)
         .limit(limit)
     )

@@ -125,6 +125,19 @@ async def handle_portone_webhook(
             note = "partial cancel — 부분 취소는 미지원, 수동 확인 필요" if outcome == "partial" else None
             await _record(db, event_id, payload, "processed", error=note)
             return {"ok": True, "order_found": True, "cancellation": outcome}
+        if not event_type and order.status == "paid":
+            # 구 형식(2024-01-01)은 type 이 없어 결제·취소를 구분하지 못한다. 이미 결제된
+            # 주문이면 PortOne 에 실제 상태를 물어(sync 가 조회함) 취소된 결제를 환불로 반영한다.
+            # 예전에는 결제 이벤트로만 취급돼 PG 취소가 반영되지 않았다
+            outcome = await refund_service.sync_provider_cancellation(db, order)
+            if outcome != "noop":
+                note = (
+                    "partial cancel — 부분 취소는 미지원, 수동 확인 필요"
+                    if outcome == "partial"
+                    else None
+                )
+                await _record(db, event_id, payload, "processed", error=note)
+                return {"ok": True, "order_found": True, "cancellation": outcome}
         if event_type and event_type not in _PAID_EVENTS:
             # Ready·Failed·PayPending 등 — 발급과 무관. 결제 대기 주문은 대사 작업이 정리한다
             await _record(db, event_id, payload, "processed", error="ignored event type")

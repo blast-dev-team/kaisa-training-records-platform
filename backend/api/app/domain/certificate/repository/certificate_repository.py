@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.crypto import name_hash
 from app.core.kst import kst_range_end, kst_range_start
+from app.core.validation import LIKE_ESCAPE, like_contains
 from app.domain.certificate.model import Certificate, CertificateRequest
 
 
@@ -38,7 +39,9 @@ async def find_by_doc_no(db: AsyncSession, doc_no: str) -> Certificate | None:
     return result.scalar_one_or_none()
 
 
-async def find_latest_bundle_no(db: AsyncSession, certificate: Certificate) -> str | None:
+async def find_latest_bundle_no(
+    db: AsyncSession, certificate: Certificate
+) -> str | None:
     """재발급 체인을 따라 최종 문서(묶음) 번호 — superseded 조회 안내용.
 
     previous_certificate_id(신청 FK)로 다음 발급을 찾아 끝까지 간다. 현행
@@ -66,7 +69,9 @@ async def find_latest_bundle_no(db: AsyncSession, certificate: Certificate) -> s
     return current.bundle_no or current.certificate_no
 
 
-async def find_bundle_members(db: AsyncSession, certificate: Certificate) -> list[Certificate]:
+async def find_bundle_members(
+    db: AsyncSession, certificate: Certificate
+) -> list[Certificate]:
     """묶음 확인서의 유효 멤버 — 같은 묶음 번호의 issued 건. 연번 순서 유지.
 
     유효 멤버가 없으면(전 멤버 superseded·revoked) 빈 리스트 — 호출부가
@@ -114,13 +119,13 @@ async def list_certificates(
         if date_to is not None:
             stmt = stmt.where(Certificate.issued_at < kst_range_end(date_to))
         if search:
-            pattern = f"%{search}%"
+            pattern = like_contains(search)
             stmt = stmt.where(
                 or_(
-                    Certificate.certificate_no.ilike(pattern),
+                    Certificate.certificate_no.ilike(pattern, escape=LIKE_ESCAPE),
                     # 성명은 암호화 저장 — blind index 로 '전체 이름 일치'만 지원
                     Certificate.issued_name_hash == name_hash(search),
-                    Certificate.course_name.ilike(pattern),
+                    Certificate.course_name.ilike(pattern, escape=LIKE_ESCAPE),
                 )
             )
         return stmt
@@ -130,26 +135,30 @@ async def list_certificates(
     ).subquery()
     total = (await db.execute(select(func.count()).select_from(grouped))).scalar_one()
 
-    keys = (
-        await db.execute(
-            _filtered(select(gkey))
-            .group_by(gkey)
-            .order_by(func.max(Certificate.issued_at).desc(), gkey)
-            .offset((page - 1) * limit)
-            .limit(limit)
-        )
+    keys = await db.execute(
+        _filtered(select(gkey))
+        .group_by(gkey)
+        .order_by(func.max(Certificate.issued_at).desc(), gkey)
+        .offset((page - 1) * limit)
+        .limit(limit)
     )
     keys = keys.scalars().all()
     if not keys:
         return [], total
 
     rows = (
-        await db.execute(
-            _filtered(select(Certificate))
-            .where(gkey.in_(keys))
-            .order_by(Certificate.issued_at, Certificate.certificate_no)
+        (
+            await db.execute(
+                # 멤버는 필터 없이 전부 — 필터는 '어떤 발급건을 보일지'만 정한다.
+                # (예전에는 여기서도 필터를 걸어 검색에 걸린 멤버만 세고 대표가 바뀌었다)
+                select(Certificate)
+                .where(gkey.in_(keys))
+                .order_by(Certificate.issued_at, Certificate.certificate_no)
+            )
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
 
     by_key: dict[str, list[Certificate]] = {}
     for row in rows:
@@ -157,7 +166,5 @@ async def list_certificates(
 
     # 대표 = 연번순 첫 건 (find_by_doc_no 와 같은 순서 규칙)
     return [
-        (members[0], len(members))
-        for key in keys
-        if (members := by_key.get(key))
+        (members[0], len(members)) for key in keys if (members := by_key.get(key))
     ], total

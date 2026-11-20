@@ -21,6 +21,8 @@ export function mapTrainee(dto: TraineeDto): Trainee {
     memo: dto.memo,
     createdAt: dto.created_at,
     updatedAt: dto.updated_at,
+    internalHours: dto.internal_hours != null ? Number(dto.internal_hours) : null,
+    externalHours: dto.external_hours != null ? Number(dto.external_hours) : null,
   }
 }
 

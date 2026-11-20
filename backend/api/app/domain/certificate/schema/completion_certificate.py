@@ -4,7 +4,7 @@ from decimal import Decimal
 
 from pydantic import BaseModel, Field
 
-from app.core.crypto import decrypt_field
+from app.core.crypto import try_decrypt_field
 
 
 class CompletionCertificateIssueRequest(BaseModel):
@@ -39,7 +39,8 @@ class CompletionCertificateResponse(BaseModel):
             certificate_no=cert.certificate_no,
             training_record_id=cert.training_record_id,
             trainee_id=cert.trainee_id,
-            trainee_name=decrypt_field(cert.issued_name_encrypted),
+            # 옛 키 era 잔재(키 로테이션 전 스냅샷)는 fallback 으로 표기 — 발급 목록 전체 500 방지
+            trainee_name=try_decrypt_field(cert.issued_name_encrypted, "(복구 필요)"),
             trainee_birth_date=cert.trainee_birth_date,
             course_name=cert.course_name,
             session_name=cert.session_name,

@@ -150,11 +150,25 @@ async def change_own_password(
     비밀번호가 바뀌었으면 도난 가능성도 바뀐 것 — 다른 기기의 기존 세션을 전부 폐기하고
     현재 세션(요청 주체)만 살려둔다.
     """
+    # 현재 비밀번호 대입 방지 — 실패 5회/5분(로그인과 같은 기준) 초과 시 429.
+    # 탈취된 세션으로 비밀번호를 바꿔 계정을 장악하는 경로를 막는다
+    key = f"pwchange:{actor.id}"
+    if is_rate_limited(
+        key,
+        settings.RATE_LIMIT_PASSWORD_CHANGE_MAX,
+        settings.RATE_LIMIT_PASSWORD_CHANGE_WINDOW,
+    ):
+        raise api_error(
+            "TOO_MANY_ATTEMPTS",
+            message="비밀번호를 여러 번 틀렸어요. 잠시 후 다시 시도해 주세요",
+        )
     if not verify_password(current_password, actor.password_hash):
+        register_attempt(key, settings.RATE_LIMIT_PASSWORD_CHANGE_WINDOW)
         raise api_error(
             "INVALID_CREDENTIALS",
             message="현재 비밀번호가 일치하지 않아요",
         )
+    clear_attempts(key)
     if not validate_password(new_password):
         raise api_error("WEAK_PASSWORD")
     actor.password_hash = hash_password(new_password)
@@ -186,7 +200,9 @@ async def logout_user_session(db: AsyncSession, token: str | None) -> None:
         await delete_user_session(db, token)
 
 
-async def me(db: AsyncSession, admin_token: str | None, user_token: str | None) -> MeResponse:
+async def me(
+    db: AsyncSession, admin_token: str | None, user_token: str | None
+) -> MeResponse:
     """쿠키 토큰으로 계정 식별 — 관리자/개인회원 쿠키가 분리돼 둘 다 받는다."""
     if admin_token and admin_token.startswith(ADMIN_TOKEN_PREFIX):
         admin_id = await resolve_admin_session(db, admin_token)
@@ -218,11 +234,15 @@ async def list_admin_users(db: AsyncSession) -> list[AdminUser]:
 
 
 async def update_admin_user(
-    db: AsyncSession, admin_id: uuid.UUID, data: AdminUserUpdate, actor: AdminUser
+    db: AsyncSession,
+    admin_id: uuid.UUID,
+    data: AdminUserUpdate,
+    actor: AdminUser,
+    current_token: str | None = None,
 ) -> AdminUser:
     admin = await db.get(AdminUser, admin_id)
     if admin is None:
-        raise api_error("NOT_FOUND")
+        raise api_error("NOT_FOUND", message="관리자 계정을 찾을 수 없어요")
     # 감사 로그용 원본 — 할당이 먼저 일어나므로 변경 전 값은 여기서 캡처
     orig_name = admin.name
     orig_role = admin.role
@@ -266,6 +286,14 @@ async def update_admin_user(
             )
         before = {"status": admin.status}
         admin.status = data.status
+        status_after: dict = {"status": admin.status}
+        if data.status == "disabled" and before["status"] != "disabled":
+            # 차단 = 즉시 로그아웃. 세션을 남기면 복구 시 차단 전 세션이 되살아난다.
+            # 복구(active)는 세션을 만들지 않는다 — 다시 로그인해야 한다
+            revoked = await db.execute(
+                delete(AdminSession).where(AdminSession.admin_id == admin.id)
+            )
+            status_after["sessions_revoked"] = revoked.rowcount or 0
         record_audit(
             db,
             actor_admin_id=actor.id,
@@ -273,17 +301,19 @@ async def update_admin_user(
             entity_type="admin_user",
             entity_id=admin.id,
             before=before,
-            after={"status": admin.status},
+            after=status_after,
         )
     if data.password is not None:
         if not validate_password(data.password):
             raise api_error("WEAK_PASSWORD")
         # 값 자체는 절대 기록하지 않는다 — 발생 사실만 남긴다
         admin.password_hash = hash_password(data.password)
-        # 초기화 = 계정이 도난당했을 가능성 대응 — 대상의 모든 세션 강제 로그아웃
-        await db.execute(
-            delete(AdminSession).where(AdminSession.admin_id == admin.id)
-        )
+        # 초기화 = 계정이 도난당했을 가능성 대응 — 대상의 모든 세션 강제 로그아웃.
+        # 본인 계정이면 요청 중인 현재 세션은 남긴다(본인 비밀번호 변경과 같은 정책)
+        revoke = delete(AdminSession).where(AdminSession.admin_id == admin.id)
+        if admin.id == actor.id and current_token:
+            revoke = revoke.where(AdminSession.token_hash != hash_token(current_token))
+        await db.execute(revoke)
         record_audit(
             db,
             actor_admin_id=actor.id,
@@ -357,11 +387,9 @@ async def reissue_invite_code(
     """초대 코드 재발급 — 분실·만료 대응. 이전 코드는 즉시 무효가 된다."""
     row = await repo.find_allowed_email_by_id(db, allowed_email_id)
     if row is None:
-        raise api_error("NOT_FOUND")
+        raise api_error("NOT_FOUND", message="초대 정보를 찾을 수 없어요")
     if row.status != "pending":
-        raise api_error(
-            "INVALID_STATUS_TRANSITION", message="이미 가입한 이메일이에요"
-        )
+        raise api_error("INVALID_STATUS_TRANSITION", message="이미 가입한 이메일이에요")
     code = _issue_invite(row)
     record_audit(
         db,
@@ -382,7 +410,7 @@ async def delete_allowed_email(
     """화이트리스트 제거 — 기존 가입자(admin_users)는 유지. 차단 수단 아님."""
     row = await repo.find_allowed_email_by_id(db, allowed_email_id)
     if row is None:
-        raise api_error("NOT_FOUND")
+        raise api_error("NOT_FOUND", message="초대 정보를 찾을 수 없어요")
     record_audit(
         db,
         actor_admin_id=actor.id,

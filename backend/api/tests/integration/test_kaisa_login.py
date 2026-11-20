@@ -1,4 +1,4 @@
-"""통합 — KAISA 계정(성명 KAISA 만) — 전 환경 로그인·본인 스코프·전용 교육이력."""
+"""통합 — KAISA 계정(성명 KAISA 만) — local·staging 로그인(운영 차단)·본인 스코프·전용 교육이력."""
 
 from sqlalchemy import func, select
 
@@ -36,8 +36,13 @@ class TestKaisaLogin:
         assert first.is_super is False
         assert first.review_status == "approved"
 
-    async def test_allowed_in_production(self, client, db, monkeypatch):
+    async def test_blocked_in_production(self, client, db, monkeypatch):
         monkeypatch.setattr(settings, "ENVIRONMENT", "production")
+        resp = await client.post("/api/auth/pass/kaisa-login", json=KAISA_JSON)
+        assert resp.status_code == 404
+
+    async def test_allowed_in_staging(self, client, db, monkeypatch):
+        monkeypatch.setattr(settings, "ENVIRONMENT", "staging")
         resp = await client.post("/api/auth/pass/kaisa-login", json=KAISA_JSON)
         assert resp.status_code == 200
         assert resp.json()["is_super"] is False

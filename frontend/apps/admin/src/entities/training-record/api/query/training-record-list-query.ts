@@ -8,7 +8,8 @@ export interface TrainingRecordListQuery {
   /** 교육 기간 겹침 필터 (from ~ to) */
   dateFrom?: string
   dateTo?: string
-  source?: string
+  /** 현재 기관 구분 필터 — internal | external (미선택 NULL 도 external 로 취급) */
+  institutionType?: string
   completionStatus?: string
   search?: string
   sort?: TrainingRecordSort

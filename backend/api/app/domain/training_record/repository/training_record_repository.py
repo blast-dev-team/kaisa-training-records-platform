@@ -7,6 +7,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.crypto import name_hash
 from app.core.kst import KST
+from app.core.validation import LIKE_ESCAPE, like_contains
+from app.domain.institution.model import TrainingInstitution
 from app.domain.trainee.model import Trainee
 from app.domain.training_record.model import TrainingRecord
 
@@ -30,6 +32,7 @@ async def list_records(
     trainee_id: uuid.UUID | None = None,
     session_id: uuid.UUID | None = None,
     source: str | None = None,
+    institution_type: str | None = None,
     exclude_source: str | None = None,
     completion_status: str | None = None,
     search: str | None = None,
@@ -55,6 +58,27 @@ async def list_records(
         conditions.append(TrainingRecord.session_id == session_id)
     if source:
         conditions.append(TrainingRecord.source == source)
+    if institution_type:
+        # 기관의 현재 구분 기준 — 확인서 합계·16시간 한도와 같은 판정. 미선택(NULL)은 외부 취급
+        if institution_type == "internal":
+            conditions.append(
+                TrainingRecord.institution_id.in_(
+                    select(TrainingInstitution.id).where(
+                        TrainingInstitution.institution_type == "internal"
+                    )
+                )
+            )
+        else:
+            conditions.append(
+                or_(
+                    TrainingRecord.institution_id.is_(None),
+                    TrainingRecord.institution_id.not_in(
+                        select(TrainingInstitution.id).where(
+                            TrainingInstitution.institution_type == "internal"
+                        )
+                    ),
+                )
+            )
     if exclude_source:
         conditions.append(TrainingRecord.source != exclude_source)
     if date_from is not None or date_to is not None:
@@ -69,11 +93,11 @@ async def list_records(
     if search:
         # 과정명·기관명 스냅샷은 부분 검색, 교육생 성명은 암호화 저장이라
         # blind index 로 '전체 이름 일치'만 지원한다
-        pattern = f"%{search}%"
+        pattern = like_contains(search)
         conditions.append(
             or_(
-                TrainingRecord.course_name.ilike(pattern),
-                TrainingRecord.institution_name.ilike(pattern),
+                TrainingRecord.course_name.ilike(pattern, escape=LIKE_ESCAPE),
+                TrainingRecord.institution_name.ilike(pattern, escape=LIKE_ESCAPE),
                 TrainingRecord.trainee_id.in_(
                     select(Trainee.id).where(Trainee.name_hash == name_hash(search))
                 ),

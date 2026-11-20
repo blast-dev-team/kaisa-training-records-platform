@@ -3,6 +3,7 @@ from datetime import date
 from typing import Literal
 
 from fastapi import APIRouter, Depends, Query
+from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
@@ -160,6 +161,22 @@ async def get_course(
     return CourseResponse.from_orm(await institution_service.get_course(db, course_id))
 
 
+class CourseLinksResponse(BaseModel):
+    """과정에 연결된 일정·교육이력 수 — 기관 변경 확인 안내용."""
+
+    session_count: int
+    record_count: int
+
+
+@course_router.get("/{course_id}/links", response_model=CourseLinksResponse)
+async def get_course_links(
+    course_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    _: AdminUser = Depends(require_admin),
+):
+    return CourseLinksResponse(**await institution_service.count_course_links(db, course_id))
+
+
 @course_router.post("", response_model=CourseResponse, status_code=201)
 async def create_course(
     body: CourseCreate,
@@ -207,7 +224,11 @@ async def list_sessions(
     db: AsyncSession = Depends(get_db),
     _: AdminUser = Depends(require_admin),
 ):
-    """일정 목록 — 기간(from~to 교육 기간 겹침)·상태 필터. sort=period(일정순)·registration(등록순)."""
+    """일정 목록 — 기간(from~to 교육 기간 겹침)·상태 필터.
+
+    sort=period(일정순)·registration(등록순)·recognized_hours_desc/asc(인정시수순)·
+    enrolled_desc/asc(수강생순). 모르는 값은 일정순.
+    """
     sessions, total, counts = await course_session_service.list_sessions(
         db,
         course_id=course_id,
