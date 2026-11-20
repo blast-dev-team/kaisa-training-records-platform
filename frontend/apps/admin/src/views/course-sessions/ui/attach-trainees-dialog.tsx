@@ -352,6 +352,8 @@ export function AttachTraineesDialog({ isOpen, onClose, session }: Props) {
     },
   });
 
+  const periodMissing = !!session && (!session.startedAt || !session.endedAt);
+
   return (
     <Dialog
       isOpen={isOpen}
@@ -368,7 +370,8 @@ export function AttachTraineesDialog({ isOpen, onClose, session }: Props) {
         {
           label: `${Object.keys(selected).length}명 연결`,
           isLoading: mutation.isPending,
-          isDisabled: Object.keys(selected).length === 0,
+          // 기간 없는 일정(필수화 이전 등록분)은 연결 불가 — 서버도 422
+          isDisabled: Object.keys(selected).length === 0 || periodMissing,
           onClick: () => mutation.mutate(),
         },
       ]}
@@ -376,6 +379,11 @@ export function AttachTraineesDialog({ isOpen, onClose, session }: Props) {
       {/* 중복 경고 — 포털로 뜨므로 위치는 무관 */}
       {dupConfirm.dialog}
       <div className="space-y-3">
+        {periodMissing && (
+          <p role="alert" className="rounded-md border border-danger/40 bg-danger-soft px-3 py-2 text-12 text-danger">
+            기간(시작일·종료일)이 없는 일정이에요. 일정 수정에서 기간을 먼저 입력해야 감리원을 연결할 수 있어요
+          </p>
+        )}
         {/* 외부교육 한도 안내 — BE 연결 검증과 같은 기준(현재 기관 구분) */}
         {course &&
           (isExternalInstitutionType(course.institutionType) ? (

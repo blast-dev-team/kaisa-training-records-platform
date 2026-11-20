@@ -42,9 +42,9 @@ const seedRow = (s: CourseSession): RowDraft => ({
 /** 원래 값과 다른 키만 담아 보낸다 — 변경 없는 행은 null */
 const diffItem = (s: CourseSession, d: RowDraft): CourseSessionBulkUpdateItemInput | null => {
   const item: CourseSessionBulkUpdateItemInput = { id: s.id };
-  if (d.startedAt !== (s.startedAt ?? ""))
-    item.started_at = d.startedAt === "" ? null : d.startedAt;
-  if (d.endedAt !== (s.endedAt ?? "")) item.ended_at = d.endedAt === "" ? null : d.endedAt;
+  // 기간은 비울 수 없는 칸 — 빈 칸은 '변경 없음'으로 본다 (서버도 null 을 거절)
+  if (d.startedAt !== "" && d.startedAt !== (s.startedAt ?? "")) item.started_at = d.startedAt;
+  if (d.endedAt !== "" && d.endedAt !== (s.endedAt ?? "")) item.ended_at = d.endedAt;
   // 시수는 비울 수 없는 칸 — 빈 칸은 '변경 없음'(예전엔 null 을 보내 서버 500으로 전체 실패)
   if (
     d.totalHours.trim() !== "" &&
@@ -105,6 +105,13 @@ export function CourseSessionBulkEditDialog({ isOpen, onClose, sessions, onDone 
     .map((s) => rows[s.id]?.totalHours ?? "")
     .filter((v) => v.trim() !== "" && !isValidHours(v));
   const hoursInvalid = invalidHoursValues.length > 0;
+  // 기간·시수가 바뀌는 일정의 연결 교육 내역 — 저장하면 같은 값으로 함께 바뀐다
+  const syncedRecordCount = changedItems.reduce((sum, item) => {
+    const changesPeriodOrHours =
+      item.started_at !== undefined || item.ended_at !== undefined || item.total_hours !== undefined;
+    const enrolled = sessions.find((s) => s.id === item.id)?.enrolledCount ?? 0;
+    return changesPeriodOrHours ? sum + enrolled : sum;
+  }, 0);
 
   const mutation = useMutation({
     mutationFn: () => patchCourseSessionBulk({ items: changedItems }),
@@ -136,6 +143,15 @@ export function CourseSessionBulkEditDialog({ isOpen, onClose, sessions, onDone 
       ]}
     >
       <div className="space-y-3">
+        <p className="text-12 text-ink-3">
+          기간이나 총 시수를 바꾸면 그 일정에 연결된 교육 내역에도 같은 값이 반영돼요. 이미 발급된
+          확인서는 바뀌지 않아요
+        </p>
+        {syncedRecordCount > 0 && (
+          <p role="status" className="rounded-md border border-warn/40 bg-warn-soft px-3 py-2 text-12 text-warn-ink">
+            저장하면 연결된 교육 내역 {syncedRecordCount.toLocaleString()}건의 기간·시수도 함께 바뀌어요
+          </p>
+        )}
         {dateInvalid && (
           <p className="text-12 text-danger">종료일이 시작일보다 앞선 일정이 있어요</p>
         )}

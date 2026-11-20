@@ -82,7 +82,12 @@ export function CourseFormDialog({ isOpen, onClose, course }: Props) {
   const linkSummary = links
     ? `일정 ${links.sessionCount.toLocaleString()}건, 교육이력 ${links.recordCount.toLocaleString()}건`
     : "연결된 일정·교육이력";
-  const totalHoursError = hoursError(totalHours, { label: "총 시수" });
+  // 시수 필수 — 입력칸을 건드렸거나 수정 중이면 빈 값을 바로 알린다
+  const [hoursTouched, setHoursTouched] = useState(false);
+  const totalHoursError = hoursError(totalHours, {
+    label: "총 시수",
+    required: hoursTouched || !!course,
+  });
 
   // 검색 결과에 없는 기관·회차명을 그 자리에서 생성한다
   const createInstitution = async (name: string): Promise<string | null> => {
@@ -120,6 +125,7 @@ export function CourseFormDialog({ isOpen, onClose, course }: Props) {
     setDescription(course?.description ?? "");
     setIsActive(course?.isActive ?? true);
     setConfirmMove(false);
+    setHoursTouched(false);
   }, [isOpen, course]);
 
   const mutation = useMutation({
@@ -130,7 +136,7 @@ export function CourseFormDialog({ isOpen, onClose, course }: Props) {
         session_name_id: sessionNameId || null,
         // 수정에서 코드를 지우면 null 로 지운다 — undefined 는 키가 빠져 기존 코드가 남았다
         course_code: code.trim() || (course ? null : undefined),
-        total_hours: Number(totalHours || 0),
+        total_hours: Number(totalHours),
         description: description.trim() || null,
         is_active: isActive,
       };
@@ -178,7 +184,7 @@ export function CourseFormDialog({ isOpen, onClose, course }: Props) {
           label: course ? "수정" : "등록",
           variant: "primary",
           isLoading: mutation.isPending,
-          isDisabled: !institutionId || !name.trim() || !isValidHours(totalHours || "0"),
+          isDisabled: !institutionId || !name.trim() || !isValidHours(totalHours),
           onClick: submit,
         },
       ]}
@@ -251,13 +257,16 @@ export function CourseFormDialog({ isOpen, onClose, course }: Props) {
         </div>
         <div className="flex flex-col gap-1.5">
           <div className="flex flex-col gap-1.5">
-            <Label>총 시수</Label>
+            <Label>총 시수 *</Label>
             <Input
               type="number"
               min={0}
               placeholder="예: 8"
               value={totalHours}
-              onChange={(e) => setTotalHours(e.target.value)}
+              onChange={(e) => {
+                setTotalHours(e.target.value);
+                setHoursTouched(true);
+              }}
             />
             {totalHoursError && (
               <p role="alert" className="text-11 text-danger">{totalHoursError}</p>
