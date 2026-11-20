@@ -56,6 +56,8 @@ export function CourseSessionFormDialog({ isOpen, onClose, session, onCreated }:
   const [courseLabel, setCourseLabel] = useState<string | null>(null);
   const [startedAt, setStartedAt] = useState("");
   const [endedAt, setEndedAt] = useState("");
+  // 날짜를 한 번이라도 건드렸거나 수정 중이면 빈 기간을 바로 알린다 (열자마자 빨간 문구 X)
+  const [periodTouched, setPeriodTouched] = useState(false);
   const [totalHours, setTotalHours] = useState("");
   const [memo, setMemo] = useState("");
   const [isActive, setIsActive] = useState(true);
@@ -73,6 +75,7 @@ export function CourseSessionFormDialog({ isOpen, onClose, session, onCreated }:
     setCourseLabel(session?.courseName ?? null);
     setStartedAt(session?.startedAt ?? "");
     setEndedAt(session?.endedAt ?? "");
+    setPeriodTouched(false);
     setTotalHours(session?.totalHours != null ? String(session.totalHours) : "");
     setMemo(session?.memo ?? "");
     setIsActive(session?.isActive ?? true);
@@ -99,7 +102,7 @@ export function CourseSessionFormDialog({ isOpen, onClose, session, onCreated }:
         course_id: courseId,
         started_at: startedAt || null,
         ended_at: endedAt || null,
-        total_hours: totalHours === "" ? 0 : Number(totalHours),
+        total_hours: Number(totalHours),
         is_active: isActive,
         source,
         memo: memo.trim() || null,
@@ -118,6 +121,20 @@ export function CourseSessionFormDialog({ isOpen, onClose, session, onCreated }:
     onError: (e: Error) => toast.error(toUserMessage(e)),
   });
 
+  const periodMissing = (periodTouched || !!session) && (!startedAt || !endedAt);
+  const totalHoursError = hoursError(totalHours, {
+    label: "총 시수",
+    required: periodTouched || !!session,
+  });
+  // 연결된 감리원이 있는 일정 — 기간·시수를 바꾸면 연결 교육 내역도 같은 값으로 바뀐다
+  const enrolled = session?.enrolledCount ?? 0;
+  const syncChanged =
+    !!session &&
+    enrolled > 0 &&
+    ((startedAt || "") !== (session.startedAt ?? "") ||
+      (endedAt || "") !== (session.endedAt ?? "") ||
+      (totalHours.trim() !== "" && Number(totalHours) !== Number(session.totalHours)));
+
   return (
     <Dialog
       isOpen={isOpen}
@@ -129,7 +146,13 @@ export function CourseSessionFormDialog({ isOpen, onClose, session, onCreated }:
         {
           label: session ? "수정" : "등록 후 감리원 연결",
           isLoading: mutation.isPending,
-          isDisabled: !courseId || (totalHours.trim() !== "" && !isValidHours(totalHours)),
+          // 기간은 필수 — 비면 연결된 이력도 기간 없이 생겨 발급이 잠기고 외부교육 한도에서 빠진다
+          isDisabled:
+            !courseId ||
+            !startedAt ||
+            !endedAt ||
+            // 시수 필수 — 빈 칸이면 0시간 일정이 되고 연결된 이력도 0시간으로 생긴다
+            !isValidHours(totalHours),
           onClick: () => mutation.mutate(),
         },
       ]}
@@ -179,49 +202,77 @@ export function CourseSessionFormDialog({ isOpen, onClose, session, onCreated }:
         </div>
         <div className="grid grid-cols-2 gap-2">
           <div className="space-y-1.5">
-            <Label>시작일</Label>
+            <Label>시작일 *</Label>
             <DateField
               ariaLabel="시작일"
               value={startedAt ?? ""}
               onChange={(v) => {
                 setStartedAt(v);
+                setPeriodTouched(true);
                 if (v && endedAt && v > endedAt) setEndedAt(v);
               }}
               maxDate={endedAt || undefined}
             />
           </div>
           <div className="space-y-1.5">
-            <Label>종료일</Label>
+            <Label>종료일 *</Label>
             <DateField
               ariaLabel="종료일"
               value={endedAt ?? ""}
               onChange={(v) => {
                 setEndedAt(v);
+                setPeriodTouched(true);
                 if (v && startedAt && v < startedAt) setStartedAt(v);
               }}
               minDate={startedAt || undefined}
             />
           </div>
         </div>
+        {periodMissing && (
+          <p role="alert" className="-mt-1.5 text-11 text-danger">
+            {!startedAt && !endedAt
+              ? "시작일과 종료일을 입력해 주세요"
+              : !startedAt
+                ? "시작일을 입력해 주세요"
+                : "종료일을 입력해 주세요"}
+          </p>
+        )}
         <div className="grid grid-cols-2 gap-2">
           <div className="space-y-1.5">
-            <Label>총 시수</Label>
+            <Label>총 시수 *</Label>
             <Input
               type="number"
               min={0}
               placeholder="예: 8"
               value={totalHours}
-              onChange={(e) => setTotalHours(e.target.value)}
+              onChange={(e) => {
+                setTotalHours(e.target.value);
+                setPeriodTouched(true);
+              }}
             />
-            {hoursError(totalHours, { label: "총 시수" }) ? (
+            {totalHoursError ? (
               <p role="alert" className="text-11 text-danger">
-                {hoursError(totalHours, { label: "총 시수" })}
+                {totalHoursError}
               </p>
             ) : (
               <p className="text-11 text-ink-3">입력한 총 시수가 이수 시수로 인정돼요</p>
             )}
           </div>
         </div>
+        {session && enrolled > 0 && (
+          <p
+            role="status"
+            className={
+              syncChanged
+                ? "rounded-md border border-warn/40 bg-warn-soft px-3 py-2 text-12 text-warn-ink"
+                : "text-11 text-ink-3"
+            }
+          >
+            {syncChanged
+              ? `저장하면 연결된 교육 내역 ${enrolled.toLocaleString()}건의 기간·시수도 함께 바뀌어요. 이미 발급된 확인서는 바뀌지 않아요`
+              : `기간이나 총 시수를 바꾸면 연결된 교육 내역 ${enrolled.toLocaleString()}건에도 함께 반영돼요`}
+          </p>
+        )}
         <label className="flex flex-col text-13 text-ink-2">
           <div className="flex items-center gap-2">
             <input

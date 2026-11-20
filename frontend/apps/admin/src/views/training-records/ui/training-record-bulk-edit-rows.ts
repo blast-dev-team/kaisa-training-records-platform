@@ -51,10 +51,10 @@ export function buildUpdates(
     let changed = false;
 
     const date = (key: "startedAt" | "endedAt") => {
-      if (row[key] !== (orig[key] ?? "")) {
-        patch[key] = row[key] === "" ? null : row[key];
-        changed = true;
-      }
+      // 수강 기간은 비울 수 없는 칸 — 빈 칸은 '변경 없음'으로 본다 (서버도 null 을 거절)
+      if (row[key] === "" || row[key] === (orig[key] ?? "")) return;
+      patch[key] = row[key];
+      changed = true;
     };
     const hours = (key: "totalHours") => {
       const value = row[key].trim();

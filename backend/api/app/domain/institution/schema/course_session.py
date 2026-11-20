@@ -14,9 +14,12 @@ class SessionCreate(BaseModel):
     """
 
     course_id: uuid.UUID
-    started_at: date | None = None
-    ended_at: date | None = None
-    total_hours: Hours = Decimal(0)
+    # 기간은 필수 — 비어 있으면 연결된 교육이력도 기간 없이 생겨 확인서 발급이 잠기고
+    # 외부교육 16시간 한도(최근 3년 시작일 기준) 검사에서 빠진다 (2026-11-20)
+    started_at: date
+    ended_at: date
+    # 시수 필수 — 빠지면 0시간 일정이 되고 연결된 이력도 0시간으로 생긴다 (2026-11-20)
+    total_hours: Hours
     is_active: bool = True
     # 외부 교육 체크 — 연결된 감리원 내역이 source='external' 로 저장된다
     source: str = "internal"  # internal | external
@@ -35,7 +38,9 @@ class SessionUpdate(BaseModel):
 
     @model_validator(mode="after")
     def _not_null(self):
-        reject_explicit_null(self, ("course_id", "total_hours", "is_active", "source"))
+        reject_explicit_null(
+            self, ("course_id", "started_at", "ended_at", "total_hours", "is_active", "source")
+        )
         return self
 
 
@@ -51,7 +56,7 @@ class SessionBulkUpdateItem(BaseModel):
 
     @model_validator(mode="after")
     def _not_null(self):
-        reject_explicit_null(self, ("total_hours", "is_active"))
+        reject_explicit_null(self, ("started_at", "ended_at", "total_hours", "is_active"))
         return self
 
 

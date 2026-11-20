@@ -160,8 +160,8 @@ PATCH /api/certificate-pricing-rules/{rule_id} { price_krw | valid_to | is_activ
 | Method | Path | Body | 설명 |
 |---|---|---|---|
 | GET | `/api/membership-grades` | `is_active` | 목록 (배열) |
-| POST | `/api/membership-grades` | `{code, name, description?, sort_order}` | 등록 (201) |
-| PATCH | `/api/membership-grades/{grade_id}` | `{name?, description?, sort_order?, is_active?}` | 수정 |
+| POST | `/api/membership-grades` | `{code, name, price_krw, description?, sort_order?}` | 등록 (201). `price_krw` 필수(0 이상 — 0이면 무료 발급) |
+| PATCH | `/api/membership-grades/{grade_id}` | `{name?, description?, sort_order?, price_krw?, is_active?}` | 수정 |
 
 ### 교육이력 (admin)
 
@@ -169,7 +169,7 @@ PATCH /api/certificate-pricing-rules/{rule_id} { price_krw | valid_to | is_activ
 |---|---|---|---|
 | GET | `/api/training-records` | `trainee_id`,`session_id`,`source`,`completion_status`,`search`,`page`,`limit` | 목록 (Paged) — session_id = 일정별 수강생 |
 | GET | `/api/training-records/{record_id}` | | 단건 |
-| POST | `/api/training-records` | 아래 Create | 등록 (201) — internal/external 동일 경로 |
+| POST | `/api/training-records` | 아래 Create | 등록 (201) — internal/external 동일 경로. `started_at`·`ended_at`·`total_hours` 필수(수정·일괄 수정에서 `null` 불가). 엑셀 업로드도 시작일자·종료일자가 비거나 교육시간·인정시간이 모두 비면 행 오류 |
 | PATCH | `/api/training-records/{record_id}` | 아래 Update | 수정 |
 | DELETE | `/api/training-records/{record_id}` | | 소프트딜리트 (204) |
 | POST | `/api/training-records/match-preview` | multipart `file` (.xlsx) | 엑셀 행 → 교육생 대조 — `{total_rows, matched[], unmatched[]}`. 대조 키 우선순위: 감리원증번호 → 교육생번호 → 이름(동명 2명+ 제외). 일정 연결 모달의 엑셀 자동 선택용 |
@@ -204,10 +204,10 @@ PATCH /api/certificate-pricing-rules/{rule_id} { price_krw | valid_to | is_activ
 | GET | `/api/institutions` | `is_active`,`search` | 기관 목록 (배열) |
 | GET/POST/PATCH | `/api/institutions[/{id}]` | `{name, institution_code?, ...}` | 조회/등록(201)/수정 |
 | GET | `/api/courses` | `institution_id`,`is_active` | 과정 목록 (배열) |
-| GET/POST/PATCH | `/api/courses[/{id}]` | `{institution_id, name, course_code?, description?, total_hours, category?}` | 조회/등록(201)/수정. 수정 시 `institution_id` 를 바꾸면 기관 정정으로 처리 — 이 과정의 일정 `source`, 삭제되지 않은 교육이력의 `institution_id`·`institution_name`·`source` 가 새 기관 기준으로 함께 바뀐다(발급된 확인서·수료증 스냅샷은 그대로, 외부교육 한도로 막지 않음). 없는 기관 404 · 사용 중지 기관 422. 시수는 0 이상 |
+| GET/POST/PATCH | `/api/courses[/{id}]` | `{institution_id, name, course_code?, description?, total_hours, category?}` | 조회/등록(201)/수정. `total_hours` 등록 시 필수(2026-11-20). 수정 시 `institution_id` 를 바꾸면 기관 정정으로 처리 — 이 과정의 일정 `source`, 삭제되지 않은 교육이력의 `institution_id`·`institution_name`·`source` 가 새 기관 기준으로 함께 바뀐다(발급된 확인서·수료증 스냅샷은 그대로, 외부교육 한도로 막지 않음). 없는 기관 404 · 사용 중지 기관 422. 시수는 0 이상 |
 | GET | `/api/courses/{id}/links` | — | `{session_count, record_count}` — 기관 변경 확인 안내용 (삭제된 이력 제외) |
 | GET | `/api/course-sessions` | `course_id`,`search`,`page`,`limit` | 교육 일정 목록 (Paged) — 과정명·기관명 검색 |
-| GET/POST/PATCH | `/api/course-sessions[/{id}]` | `{course_id, started_at?, ended_at?, total_hours, recognized_hours, memo?}` | 조회/등록(201)/수정 |
+| GET/POST/PATCH | `/api/course-sessions[/{id}]` | `{course_id, started_at, ended_at, total_hours, recognized_hours, memo?}` | 조회/등록(201)/수정. **기간(시작일·종료일) 필수**(2026-11-20) — 등록 시 빠지면 422 "시작일은 필수 입력이에요", 수정·일괄 수정(`PATCH /bulk`)에서 `null` 로 비우면 422 "… 비울 수 없어요". `total_hours` 도 등록 시 필수. **기간·총 시수를 바꾸면 연결된 교육이력(삭제 안 된 것)의 `started_at`·`ended_at`·`total_hours`·`completed_hours` 도 같은 값으로 바뀐다** — 바뀐 칸만 덮어쓰고, 감사 로그 `after.synced_records` 에 건수. 그 결과 감리원 외부교육 합계가 16시간을 넘으면 `EXTERNAL_HOURS_EXCEEDED` 로 전체 롤백. 발급된 확인서 스냅샷은 그대로 |
 | DELETE | `/api/course-sessions/{id}` | | 삭제 (204) — 연결 이력 보존, session_id 만 끊김 |
 
 삭제 엔드포인트 없음 — 비활성은 `is_active: false`.
@@ -220,7 +220,7 @@ POST /api/training-records/bulk
 → { "created": 2, "skipped": 1 }
 ```
 
-연결 즉시 교육이력 생성. 과정명·기관명·기간·시수는 일정에서 스냅샷. 이미 연결된 교육생은 skipped.
+연결 즉시 교육이력 생성. 과정명·기관명·기간·시수는 일정에서 스냅샷. 이미 연결된 교육생은 skipped. 기간이 없는 일정(필수화 이전 등록분)은 422 "기간(시작일·종료일)이 없는 일정에는 감리원을 연결할 수 없어요…" — 일정 기간을 먼저 채운다.
 
 ### 본인인증 심사 (admin)
 

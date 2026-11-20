@@ -1,7 +1,8 @@
 import uuid
 from datetime import date
+from decimal import Decimal
 
-from sqlalchemy import and_, or_, select
+from sqlalchemy import and_, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.audit import record_audit
@@ -22,7 +23,10 @@ from app.domain.institution.schema import (
 from app.domain.trainee.model import Trainee
 from app.domain.training_record.model import TrainingRecord
 from app.domain.training_record.service import external_hours
-from app.domain.training_record.service.training_record_service import _record_no
+from app.domain.training_record.service.training_record_service import (
+    _record_no,
+    _trainee_names,
+)
 
 
 async def get_session(db: AsyncSession, session_id: uuid.UUID) -> CourseSession:
@@ -101,6 +105,53 @@ async def create_session(
     return session
 
 
+# 일정의 기간·시수가 바뀌면 연결된 교육이력(삭제 안 된 것)도 같은 값으로 맞춘다 (2026-11-20)
+_SYNCED_FIELDS = ("started_at", "ended_at", "total_hours")
+
+
+async def _linked_trainee_ids(db: AsyncSession, session_ids: list[uuid.UUID]) -> list[uuid.UUID]:
+    if not session_ids:
+        return []
+    rows = await db.execute(
+        select(TrainingRecord.trainee_id)
+        .where(TrainingRecord.session_id.in_(session_ids), TrainingRecord.deleted_at.is_(None))
+        .distinct()
+    )
+    return list(rows.scalars())
+
+
+async def _sync_linked_records(db: AsyncSession, session: CourseSession, changed: set[str]) -> int:
+    """일정 → 연결 교육이력 동기화. 바뀐 칸(기간·시수)만 덮어쓴다. 반환: 갱신 건수.
+
+    이력의 이수 시수는 총 시수를 따라간다(연결 시와 같은 규칙). 확인서는 발급 시점 스냅샷이라
+    이미 발급된 문서는 바뀌지 않는다.
+    """
+    fields = [f for f in _SYNCED_FIELDS if f in changed]
+    if not fields:
+        return 0
+    values: dict = {f: getattr(session, f) for f in fields}
+    if "total_hours" in values:
+        values["completed_hours"] = session.total_hours
+    values["updated_at"] = now_kst()
+    result = await db.execute(
+        update(TrainingRecord)
+        .where(TrainingRecord.session_id == session.id, TrainingRecord.deleted_at.is_(None))
+        .values(**values)
+        .execution_options(synchronize_session=False)
+    )
+    return result.rowcount or 0
+
+
+async def _guard_cap_after_sync(db: AsyncSession, before: dict[uuid.UUID, Decimal]) -> None:
+    """동기화로 감리원 외부교육 합계가 늘어 16시간을 넘으면 차단(커밋 전이라 전체 롤백)."""
+    if not before:
+        return
+    await external_hours.guard_external_increase(
+        db, before, await _trainee_names(db, list(before))
+    )
+
+
+
 async def update_session(
     db: AsyncSession,
     session_id: uuid.UUID,
@@ -129,6 +180,16 @@ async def update_session(
     if "source" in updates and "course_id" not in updates:
         updates["source"] = _source_for(session.course)
     before = {field: getattr(session, field) for field in updates}
+    sync_fields = {
+        f for f in _SYNCED_FIELDS if f in updates and updates[f] != getattr(session, f)
+    }
+    cap_before = (
+        await external_hours.external_hours_by_trainee(
+            db, await _linked_trainee_ids(db, [session.id])
+        )
+        if sync_fields
+        else {}
+    )
     for field, value in updates.items():
         setattr(session, field, value)
     # 인정 시수는 총 시수를 따라간다 — 입력 통로는 총 시수 하나뿐
@@ -141,6 +202,10 @@ async def update_session(
     after = {k: str(getattr(session, k)) for k in updates}
     if "total_hours" in updates:
         after["recognized_hours"] = str(session.recognized_hours)
+    synced = await _sync_linked_records(db, session, sync_fields)
+    if sync_fields:
+        after["synced_records"] = synced
+    await _guard_cap_after_sync(db, cap_before)
     record_audit(
         db,
         actor_admin_id=actor.id,
@@ -182,9 +247,28 @@ async def bulk_update_sessions(
     if len(sessions) != len(set(ids)):
         raise api_error("NOT_FOUND", message="존재하지 않는 일정이 포함됐어요")
     by_id = {s.id: s for s in sessions}
+    # 기간·시수가 바뀌는 일정의 연결 감리원 — 동기화 전 외부교육 합계(한도 판정용)
+    changing = [
+        item.id
+        for item in data.items
+        if any(
+            f in item.model_fields_set and getattr(item, f) != getattr(by_id[item.id], f)
+            for f in _SYNCED_FIELDS
+        )
+    ]
+    cap_before = (
+        await external_hours.external_hours_by_trainee(
+            db, await _linked_trainee_ids(db, changing)
+        )
+        if changing
+        else {}
+    )
     for item in data.items:
         session = by_id[item.id]
         applied = item.model_dump(exclude_unset=True, exclude={"id"})
+        sync_fields = {
+            f for f in _SYNCED_FIELDS if f in applied and applied[f] != getattr(session, f)
+        }
         for field, value in applied.items():
             setattr(session, field, value)
         # 인정 시수는 총 시수를 따라간다 — 입력 통로는 총 시수 하나뿐
@@ -201,6 +285,9 @@ async def bulk_update_sessions(
         after = {k: str(v) for k, v in applied.items()}
         if "total_hours" in applied:
             after["recognized_hours"] = str(session.recognized_hours)
+        synced = await _sync_linked_records(db, session, sync_fields)
+        if sync_fields:
+            after["synced_records"] = synced
         record_audit(
             db,
             actor_admin_id=actor.id,
@@ -210,6 +297,7 @@ async def bulk_update_sessions(
             # Decimal·date 직렬화
             after=after,
         )
+    await _guard_cap_after_sync(db, cap_before)
     await db.commit()
     return len(data.items)
 
@@ -259,6 +347,13 @@ async def create_records_for_session(
 
     session = await get_session(db, session_id)
     course = session.course
+    # 기간 없는 일정(필수화 이전에 등록된 것)에 연결하면 이력도 기간 없이 생겨 발급이 잠기고
+    # 외부교육 한도 검사에서 빠진다 — 일정 기간을 먼저 채우게 한다
+    if session.started_at is None or session.ended_at is None:
+        raise api_error(
+            "VALIDATION_ERROR",
+            message="기간(시작일·종료일)이 없는 일정에는 감리원을 연결할 수 없어요. 일정 기간을 먼저 입력해 주세요",
+        )
 
     # 같은 일정 동시 연결을 직렬화 — 검사와 저장 사이에 다른 요청이 끼면 중복이 생긴다
     await db.execute(

@@ -64,6 +64,9 @@ const institutionFetcher = fetchOptions("/institutions", { is_active: true }, (i
   meta: { institutionType: (i.institution_type as string | null) ?? null },
 }));
 
+/** 저장 시 만들 새 과정의 자리표시 id — 서버로 보내지 않는다 */
+const NEW_COURSE_ID = "__new_course__";
+
 export function TrainingRecordFormDialog({
   isOpen,
   onClose,
@@ -89,6 +92,8 @@ export function TrainingRecordFormDialog({
   const [courseLabel, setCourseLabel] = useState<string | null>(null);
   /** 이 세션에서 그 자리 생성한 과정 — 저장 시 최종 총 시수를 마스터에 반영한다 */
   const [createdCourseId, setCreatedCourseId] = useState<string | null>(null);
+  // 저장 전까지 만들지 않은 새 과정의 이름 (courseId 는 NEW_COURSE_ID)
+  const [pendingCourseName, setPendingCourseName] = useState<string | null>(null);
   const [totalHours, setTotalHours] = useState("");
   // 입력칸을 한 번이라도 건드린 뒤에만 "입력해 주세요" 안내 — 열자마자 빨간 문구가 뜨지 않게
   const [hoursTouched, setHoursTouched] = useState(false);
@@ -160,47 +165,16 @@ export function TrainingRecordFormDialog({
     }
   };
 
+  // 새 과정은 바로 만들지 않고 이름만 잡아 둔다 — 저장할 때 입력한 총 시수로 함께 만든다.
+  // (예전에는 추가 즉시 0시간 과정이 만들어져, 창을 닫으면 0시간 과정이 마스터에 남았다)
   const createCourse = async (name: string): Promise<string | null> => {
     if (!institutionId) {
       toast.error("기관을 먼저 선택해 주세요");
       return null;
     }
-    // 이 창에서 방금 만든 과정의 이름을 고치는 경우 — 새로 만들지 않고 그 과정의 이름을 바꾼다
-    // (오타 하나 고치려다 같은 과정이 마스터에 두 개 쌓이는 것 방지)
-    if (createdCourseId) {
-      try {
-        await patchCourse(createdCourseId, {
-          institution_id: institutionId,
-          name,
-          session_name_id: null,
-          total_hours: totalHours === "" ? 0 : Number(totalHours),
-          is_external: derivedSource === "external",
-          is_active: true,
-        });
-        queryClient.invalidateQueries({ queryKey: ["courses"] });
-        setCourseLabel(name);
-        return createdCourseId;
-      } catch (e) {
-        toast.error(toUserMessage(e));
-        return null;
-      }
-    }
-    try {
-      const created = await postCourse({
-        institution_id: institutionId,
-        name,
-        session_name_id: null,
-        total_hours: totalHours === "" ? 0 : Number(totalHours),
-        is_external: derivedSource === "external",
-      });
-      queryClient.invalidateQueries({ queryKey: ["courses"] });
-      setCourseLabel(name);
-      setCreatedCourseId(created.id);
-      return created.id;
-    } catch (e) {
-      toast.error(toUserMessage(e));
-      return null;
-    }
+    setPendingCourseName(name);
+    setCourseLabel(name);
+    return NEW_COURSE_ID;
   };
 
   // 열릴 때마다 폼 초기화 — record 있으면 수정값, 없으면 신규 기본값
@@ -212,6 +186,7 @@ export function TrainingRecordFormDialog({
     setNewTraineeBirth("");
     setNewTraineePhone("");
     setCreatedCourseId(null);
+    setPendingCourseName(null);
     if (record) {
       setTrainee(
         record.traineeId
@@ -282,8 +257,9 @@ export function TrainingRecordFormDialog({
     );
     setCourseId("");
     setCourseLabel(null);
-    // 다른 기관으로 바꾸면 방금 만든 과정은 더 이상 이름 수정 대상이 아니다
+    // 다른 기관으로 바꾸면 방금 만든(또는 만들 예정인) 과정은 더 이상 대상이 아니다
     setCreatedCourseId(null);
+    setPendingCourseName(null);
   };
 
   // 과정 상세 응답 경합 방지 — 늦게 도착한 이전 과정의 응답이 지금 선택을 덮지 않게
@@ -294,17 +270,17 @@ export function TrainingRecordFormDialog({
     latestCourseRequest.current = value;
     setCourseId(value ?? "");
     setCourseLabel(option?.label ?? null);
-    // 생성한 과정에서 다른 과정으로 바꾸면 마스터 반영 대상에서 뺀다
-    if (createdCourseId !== null && value !== createdCourseId) setCreatedCourseId(null);
+    // 새 과정(저장 시 생성) — 상세 조회할 과정이 아직 없다. 총 시수는 직접 입력한다
+    if (value === NEW_COURSE_ID) return;
+    // 다른 과정으로 바꾸면 새 과정 예약·이전 저장 시도에서 만든 과정은 대상에서 뺀다
+    setPendingCourseName(null);
+    setCreatedCourseId(null);
     if (!value) return;
     // 스냅샷 채움은 과정 상세 조회 후 — 라벨만으로는 시수를 모른다
     getCourseDetail(value).then((course) => {
       if (latestCourseRequest.current !== value) return;
       setCourseLabel(course.name);
-      // 방금 그 자리에서 만든 과정은 시수를 덮지 않는다 — 저장 시 최종 입력값으로 마스터를 맞춘다
-      if (value !== createdCourseId) {
-        setTotalHours(course.totalHours !== null ? String(course.totalHours) : "");
-      }
+      setTotalHours(course.totalHours !== null ? String(course.totalHours) : "");
     });
   };
 
@@ -323,23 +299,32 @@ export function TrainingRecordFormDialog({
 
   const mutation = useMutation({
     mutationFn: async () => {
-      // 그 자리에서 만든 과정은 저장 시 최종 총 시수를 마스터에 반영 — 생성 시점엔 시수가 비어 있을 수 있다
-      if (createdCourseId) {
-        await patchCourse(createdCourseId, {
+      // 새 과정은 저장하는 이 시점에 입력한 총 시수로 만든다 (총 시수는 canSubmit 에서 필수).
+      // 이전 저장 시도에서 과정만 만들어지고 내역 저장이 실패했다면 다시 만들지 않고 그 과정을 고친다
+      let finalCourseId = courseId;
+      if (courseId === NEW_COURSE_ID) {
+        const coursePayload = {
           institution_id: institutionId,
-          name: courseLabel?.trim() || "과정",
+          name: (pendingCourseName ?? courseLabel ?? "").trim(),
           session_name_id: null,
-          total_hours: totalHours === "" ? 0 : Number(totalHours),
+          total_hours: Number(totalHours),
           is_external: derivedSource === "external",
-          is_active: true,
-        });
+        };
+        if (createdCourseId) {
+          await patchCourse(createdCourseId, { ...coursePayload, is_active: true });
+          finalCourseId = createdCourseId;
+        } else {
+          const created = await postCourse(coursePayload);
+          setCreatedCourseId(created.id);
+          finalCourseId = created.id;
+        }
         queryClient.invalidateQueries({ queryKey: ["courses"] });
       }
       const input = {
         trainee_id: trainee!.id,
-        course_id: courseId || null,
+        course_id: finalCourseId || null,
         institution_id: institutionId || null,
-        total_hours: totalHours === "" ? null : Number(totalHours),
+        total_hours: Number(totalHours),
         started_at: startedAt || null,
         ended_at: endedAt || null,
         source: derivedSource,
@@ -375,6 +360,9 @@ export function TrainingRecordFormDialog({
 
   // 시수는 필수·0 이상 — 비우면 서버가 422(예전엔 500), 음수는 외부교육 한도를 우회할 수 있었다
   const hoursValid = isValidHours(totalHours);
+  // 과정을 고른 뒤(또는 수정 중·날짜 하나만 입력)부터 빈 기간을 알린다 — 열자마자 빨간 문구 X
+  const periodMissing =
+    (!!record || !!courseId || !!startedAt || !!endedAt) && (!startedAt || !endedAt);
   const totalHoursError = hoursError(totalHours, {
     label: "총 시수",
     required: hoursTouched || !!record,
@@ -384,10 +372,13 @@ export function TrainingRecordFormDialog({
       !!trainee &&
       !!institutionId &&
       !!courseId &&
+      // 수강 기간 필수 — 기간 없는 이력은 확인서 발급이 잠기고 외부교육 한도 검사에서 빠진다
+      !!startedAt &&
+      !!endedAt &&
       hoursValid &&
       !mutation.isPending &&
       !externalBlocked,
-    [trainee, institutionId, courseId, hoursValid, mutation.isPending, externalBlocked],
+    [trainee, institutionId, courseId, startedAt, endedAt, hoursValid, mutation.isPending, externalBlocked],
   );
 
   return (
@@ -560,21 +551,21 @@ export function TrainingRecordFormDialog({
             clearable
             onCreate={createCourse}
             createLabel={(q) =>
-              createdCourseId && courseId === createdCourseId
-                ? `'${q}'(으)로 과정명 수정`
-                : `'${q}' 새 과정으로 추가`
+              courseId === NEW_COURSE_ID ? `'${q}'(으)로 과정명 수정` : `'${q}' 새 과정으로 추가`
             }
             // 다시 열면 입력했던 과정명이 검색창에 남아 있어 이어서 고칠 수 있다
             keepSearchText
           />
           <p className="text-11 text-ink-3">
-            과정을 선택하면 총 시수가 자동으로 채워져요. 없는 기관·과정은 검색어로 바로 추가할 수 있어요
+            {courseId === NEW_COURSE_ID
+              ? "새 과정은 내역을 저장할 때 입력한 총 시수로 함께 등록돼요"
+              : "과정을 선택하면 총 시수가 자동으로 채워져요. 없는 기관·과정은 검색어로 바로 추가할 수 있어요"}
           </p>
         </div>
 
         <div className="grid grid-cols-2 gap-2">
           <div className="space-y-1.5">
-            <Label>시작일</Label>
+            <Label>시작일 *</Label>
             <DateField
               ariaLabel="시작일"
               value={startedAt}
@@ -586,7 +577,7 @@ export function TrainingRecordFormDialog({
             />
           </div>
           <div className="space-y-1.5">
-            <Label>종료일</Label>
+            <Label>종료일 *</Label>
             <DateField
               ariaLabel="종료일"
               value={endedAt}
@@ -598,6 +589,15 @@ export function TrainingRecordFormDialog({
             />
           </div>
         </div>
+        {periodMissing && (
+          <p role="alert" className="-mt-1.5 text-11 text-danger">
+            {!startedAt && !endedAt
+              ? "시작일과 종료일을 입력해 주세요"
+              : !startedAt
+                ? "시작일을 입력해 주세요"
+                : "종료일을 입력해 주세요"}
+          </p>
+        )}
 
         <div className="space-y-1.5">
           <Label>총 시수</Label>

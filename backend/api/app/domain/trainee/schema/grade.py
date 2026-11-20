@@ -3,17 +3,18 @@ from datetime import datetime
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
-from app.core.validation import reject_explicit_null
+from app.core.validation import NonBlankStr, reject_explicit_null
 
 INT32_MAX = 2**31 - 1
 
 
 class MembershipGradeCreate(BaseModel):
-    code: str = Field(min_length=1, max_length=50)
-    name: str = Field(min_length=1, max_length=100)
+    code: NonBlankStr = Field(max_length=50)
+    name: NonBlankStr = Field(max_length=100)
     description: str | None = None
     sort_order: int = Field(default=0, ge=0, le=INT32_MAX)
-    price_krw: int = Field(default=0, le=INT32_MAX)
+    # 필수 — 기본값 0 이면 가격을 빠뜨린 등급이 무료 발급 등급이 된다 (2026-11-20)
+    price_krw: int = Field(le=INT32_MAX)
 
     @field_validator("price_krw")
     @classmethod
@@ -24,7 +25,7 @@ class MembershipGradeCreate(BaseModel):
 
 
 class MembershipGradeUpdate(BaseModel):
-    name: str | None = Field(default=None, min_length=1, max_length=100)
+    name: NonBlankStr | None = Field(default=None, max_length=100)
     description: str | None = None
     sort_order: int | None = Field(default=None, ge=0, le=INT32_MAX)
     price_krw: int | None = Field(default=None, le=INT32_MAX)
