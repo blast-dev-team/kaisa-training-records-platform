@@ -12,11 +12,15 @@
 from decimal import Decimal
 from typing import Annotated
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, StringConstraints
 
 HOURS_MAX = Decimal("999999.99")  # Numeric(8,2) 상한
 
 Hours = Annotated[Decimal, Field(ge=0, le=HOURS_MAX)]
+
+# 필수 문자열 — 앞뒤 공백을 지운 뒤 비어 있으면 422. Field(min_length=1) 은 공백도 1글자로 세서
+# "   " 이름·사유가 그대로 저장됐다. 길이 제한은 각 필드의 Field(max_length=…) 로 함께 건다.
+NonBlankStr = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1)]
 
 LIKE_ESCAPE = "\\"
 

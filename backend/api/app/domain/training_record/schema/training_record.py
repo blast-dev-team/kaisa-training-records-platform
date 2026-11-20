@@ -5,7 +5,7 @@ from decimal import Decimal
 from pydantic import BaseModel, Field, model_validator
 
 from app.core.crypto import decrypt_field, mask_phone
-from app.core.validation import Hours, reject_explicit_null
+from app.core.validation import Hours, NonBlankStr, reject_explicit_null
 
 
 class TrainingRecordCreate(BaseModel):
@@ -15,13 +15,13 @@ class TrainingRecordCreate(BaseModel):
     course_id: uuid.UUID | None = None
     institution_id: uuid.UUID | None = None
     # 과정·기관 마스터 미연결 시 스냅샷 직접 입력 (최소 하나는 필수)
-    course_name: str | None = None
-    institution_name: str | None = None
-    total_hours: Hours | None = (
-        None  # 미지정 시 과정 마스터 값. completed_hours 는 서버가 total_hours 로 채운다
-    )
-    started_at: date | None = None
-    ended_at: date | None = None
+    course_name: NonBlankStr | None = Field(default=None, max_length=255)
+    institution_name: NonBlankStr | None = Field(default=None, max_length=255)
+    # 필수 (2026-11-20) — completed_hours 는 서버가 total_hours 로 채운다
+    total_hours: Hours
+    # 수강 기간 필수 — 기간 없는 이력은 확인서 발급이 잠기고 외부교육 한도 검사에서 빠진다
+    started_at: date
+    ended_at: date
     source: str = (
         "internal"  # 기관 구분을 따른다 — external 기관이면 서버가 external로 파생
     )
@@ -47,7 +47,9 @@ class TrainingRecordUpdate(BaseModel):
     @model_validator(mode="after")
     def _not_null(self):
         # NOT NULL 컬럼 — 명시적 null 은 500(IntegrityError) 대신 422
-        reject_explicit_null(self, ("total_hours", "completion_status"))
+        reject_explicit_null(
+            self, ("started_at", "ended_at", "total_hours", "completion_status")
+        )
         return self
 
 
@@ -171,7 +173,9 @@ class TrainingRecordBulkUpdateItem(BaseModel):
 
     @model_validator(mode="after")
     def _not_null(self):
-        reject_explicit_null(self, ("total_hours", "completion_status"))
+        reject_explicit_null(
+            self, ("started_at", "ended_at", "total_hours", "completion_status")
+        )
         return self
 
 

@@ -4,6 +4,7 @@ from datetime import datetime
 from pydantic import BaseModel
 
 from app.core.crypto import decrypt_field, mask_phone
+from app.core.validation import NonBlankStr
 
 
 class PassStartRequest(BaseModel):
@@ -103,4 +104,4 @@ class ReviewApproveRequest(BaseModel):
 
 
 class ReviewRejectRequest(BaseModel):
-    review_note: str
+    review_note: NonBlankStr  # 거절 사유 필수 — 공백만 보내면 빈 사유로 거절됐다

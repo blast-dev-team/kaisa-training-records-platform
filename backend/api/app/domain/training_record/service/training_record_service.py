@@ -733,6 +733,18 @@ def _import_hours(value) -> Decimal | None:
     return d if d.is_finite() else None
 
 
+def _import_record_hours(hours_recog, hours_total) -> Decimal:
+    """저장할 시수 — 인정시간 우선, 없으면 교육시간.
+
+    `or` 로 고르면 인정시간 0(인정 불가 교육)이 falsy 라 교육시간으로 저장됐다.
+    """
+    recog = _import_hours(hours_recog)
+    if recog is not None:
+        return recog
+    total = _import_hours(hours_total)
+    return total if total is not None else Decimal(0)
+
+
 def _import_hours_error(value, label: str) -> str | None:
     """시수 셀 검증 — 숫자를 하나로 읽을 수 없거나 범위를 벗어나면 행 오류로 알린다.
 
@@ -919,13 +931,21 @@ async def import_preview(db: AsyncSession, content: bytes) -> TrainingRecordImpo
             errors.append("교육기관명이 필요해요")
         if not r["subject"]:
             errors.append("과목명이 필요해요")
-        if r["start"] and _import_date(r["start"]) is None:
+        # 수강 기간은 필수 — 기간 없는 이력은 확인서 발급이 잠기고 외부교육 한도 검사에서 빠진다
+        if not r["start"]:
+            errors.append("시작일자를 입력해 주세요 (예: 2025.06.01)")
+        elif _import_date(r["start"]) is None:
             errors.append("시작일자를 읽을 수 없어요 (예: 2025.06.01)")
-        if r["end"] and _import_date(r["end"]) is None:
+        if not r["end"]:
+            errors.append("종료일자를 입력해 주세요 (예: 2025.06.30)")
+        elif _import_date(r["end"]) is None:
             errors.append("종료일자를 읽을 수 없어요 (예: 2025.06.30)")
         _s, _e = _import_date(r["start"]), _import_date(r["end"])
         if _s and _e and _e < _s:
             errors.append("종료일이 시작일보다 앞설 수 없어요")
+        # 시수 필수 — 교육시간·인정시간이 모두 비면 0시간으로 저장되던 것을 행 오류로 (2026-11-20)
+        if _import_cell(r["hours_total"]) is None and _import_cell(r["hours_recog"]) is None:
+            errors.append("교육시간을 입력해 주세요 (예: 8)")
         for _label, _key in (("교육시간", "hours_total"), ("인정시간", "hours_recog")):
             _err = _import_hours_error(r[_key], _label)
             if _err:
@@ -1044,7 +1064,7 @@ async def _mark_external_cap_rows(db: AsyncSession, rows: list[TrainingRecordImp
         db, list(dict.fromkeys(row.trainee_id for row in candidates))
     )
     for row in candidates:
-        hours = _import_hours(row.hours_recog) or _import_hours(row.hours_total) or Decimal(0)
+        hours = _import_record_hours(row.hours_recog, row.hours_total)
         before = running[row.trainee_id]
         if external_hours.would_exceed(before, before + hours):
             row.errors.append(external_hours.exceeded_message(before))
@@ -1083,18 +1103,32 @@ async def import_confirm(
         ended = _import_date(item.end_date)
         # 프리뷰에서 오류였던 행이 그대로 넘어와도 날짜 없이 저장하지 않는다 —
         # 시작일은 중복 판정 키라 비면 같은 이력이 계속 쌓인다
-        if item.start_date and started is None:
-            failed.append((item.row_number, "시작일자를 읽을 수 없어요"))
+        if started is None:
+            failed.append(
+                (
+                    item.row_number,
+                    "시작일자를 읽을 수 없어요" if item.start_date else "시작일자를 입력해 주세요",
+                )
+            )
             continue
-        if item.end_date and ended is None:
-            failed.append((item.row_number, "종료일자를 읽을 수 없어요"))
+        if ended is None:
+            failed.append(
+                (
+                    item.row_number,
+                    "종료일자를 읽을 수 없어요" if item.end_date else "종료일자를 입력해 주세요",
+                )
+            )
             continue
         if started and ended and ended < started:
             failed.append((item.row_number, "종료일이 시작일보다 앞설 수 없어요"))
             continue
-        hours_error = _import_hours_error(
-            item.hours_total, "교육시간"
-        ) or _import_hours_error(item.hours_recog, "인정시간")
+        hours_error = (
+            "교육시간을 입력해 주세요"
+            if _import_cell(item.hours_total) is None and _import_cell(item.hours_recog) is None
+            else None
+        ) or _import_hours_error(item.hours_total, "교육시간") or _import_hours_error(
+            item.hours_recog, "인정시간"
+        )
         if hours_error:
             failed.append((item.row_number, hours_error))
             continue
@@ -1147,7 +1181,7 @@ async def import_confirm(
             skipped += 1  # 같은 감리원·과정·시작일 기존 이력
             continue
 
-        hours = _import_hours(item.hours_recog) or _import_hours(item.hours_total) or Decimal(0)
+        hours = _import_record_hours(item.hours_recog, item.hours_total)
         counts_toward_cap = not is_internal and external_hours.counts_in_window(started)
         if counts_toward_cap:
             if trainee.id not in external_running:

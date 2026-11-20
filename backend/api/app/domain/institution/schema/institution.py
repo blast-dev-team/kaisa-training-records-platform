@@ -5,14 +5,14 @@ from typing import Literal
 
 from pydantic import BaseModel, EmailStr, Field, model_validator
 
-from app.core.validation import Hours, reject_explicit_null
+from app.core.validation import Hours, NonBlankStr, reject_explicit_null
 
 # 내부/외부 구분 — 미선택은 없다(기본 external). internal 인 기관의 수료내역만 수료증 발급 가능
 InstitutionType = Literal["internal", "external"]
 
 
 class InstitutionCreate(BaseModel):
-    name: str = Field(min_length=1, max_length=255)
+    name: NonBlankStr = Field(max_length=255)
     institution_code: str | None = Field(default=None, max_length=100)
     business_registration_no: str | None = Field(default=None, max_length=50)
     contact_name: str | None = Field(default=None, max_length=100)
@@ -24,7 +24,7 @@ class InstitutionCreate(BaseModel):
 
 
 class InstitutionUpdate(BaseModel):
-    name: str | None = Field(default=None, min_length=1, max_length=255)
+    name: NonBlankStr | None = Field(default=None, max_length=255)
     institution_code: str | None = Field(default=None, max_length=100)
     business_registration_no: str | None = Field(default=None, max_length=50)
     contact_name: str | None = Field(default=None, max_length=100)
@@ -58,19 +58,19 @@ class InstitutionResponse(BaseModel):
 
 class CourseCreate(BaseModel):
     institution_id: uuid.UUID
-    name: str = Field(min_length=1, max_length=255)
+    name: NonBlankStr = Field(max_length=255)
     session_name_id: uuid.UUID | None = None  # 회차명 마스터 참조
     is_external: bool = False  # 외부 교육과정
     course_code: str | None = Field(default=None, max_length=100)
     description: str | None = None
-    total_hours: Hours = Decimal(0)
+    total_hours: Hours  # 필수 — 빠지면 0시간 과정이 된다 (2026-11-20)
     category: str | None = Field(default=None, max_length=100)
 
 
 class CourseUpdate(BaseModel):
     """과정 수정 — 기관(institution_id)을 바꾸면 연결된 일정·교육이력도 새 기관으로 함께 맞춘다."""
 
-    name: str | None = Field(default=None, min_length=1, max_length=255)
+    name: NonBlankStr | None = Field(default=None, max_length=255)
     # 기관 정정 — 서비스가 일정 source·교육이력 기관/구분까지 함께 갱신한다
     institution_id: uuid.UUID | None = None
     session_name_id: uuid.UUID | None = None
