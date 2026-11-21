@@ -1,17 +1,22 @@
 import { toUserMessage } from "@/src/shared/lib/friendly-error";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
+import { ApiError } from "@/src/shared/api";
 import { Dialog } from "@/src/shared/ui/dialog";
 import { Input } from "@/src/shared/ui/input";
 import { DateField } from "@/src/shared/ui/date-picker/date-field";
 import { Label } from "@/src/shared/ui/label";
+import { postTraineeBulkUpdate, traineeQueries, type Trainee } from "@/src/entities/trainee";
 import {
-  postTraineeBulkUpdate,
-  traineeQueries,
-  type Trainee,
-  type TraineeBulkUpdateItem,
-} from "@/src/entities/trainee";
+  EMPTY_ROW,
+  buildBulkItems,
+  toRowDraft,
+  validateRows,
+  type RowDraft,
+  type RowIssue,
+  type RowIssueField,
+} from "./bulk-edit-rows";
 
 interface Props {
   isOpen: boolean;
@@ -23,77 +28,47 @@ interface Props {
 }
 
 /** 모달 안에서 교육생마다 두 줄로 값을 고치고 한 번에 저장한다 */
-interface RowDraft {
-  name: string;
-  birthDate: string;
-  phone: string;
-  email: string;
-  certNo: string;
-  seniorCertNo: string;
-  memo: string;
-}
-
-const EMPTY_ROW: RowDraft = { name: "", birthDate: "", phone: "", email: "", certNo: "", seniorCertNo: "", memo: "" };
-// 서버(EmailStr)가 거절하면 일괄 저장 전체가 실패하므로 저장 전에 거른다
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
 export function BulkEditDialog({ isOpen, onClose, trainees, onDone }: Props) {
   const queryClient = useQueryClient();
   const [rows, setRows] = useState<Record<string, RowDraft>>({});
+  // 저장을 한 번 눌러야 오류를 보여 준다 — 열자마자 빨간 표시가 뜨지 않게. 이후로는 고치는 대로 갱신
+  const [attempted, setAttempted] = useState(false);
+  // 서버가 알려 준 사람별 오류(다른 감리원과 증번호 중복 등) — 그 사람 칸을 고치면 지운다
+  const [serverIssues, setServerIssues] = useState<Record<string, string[]>>({});
 
   useEffect(() => {
     if (!isOpen) return;
     const seeded: Record<string, RowDraft> = {};
-    for (const t of trainees) {
-      seeded[t.id] = {
-        name: t.name,
-        birthDate: t.birthDate ?? "",
-        phone: "",
-        email: t.email ?? "",
-        certNo: t.certNo ?? "",
-        seniorCertNo: t.seniorCertNo ?? "",
-        memo: t.memo ?? "",
-      };
-    }
+    for (const t of trainees) seeded[t.id] = toRowDraft(t);
     setRows(seeded);
+    setAttempted(false);
+    setServerIssues({});
     // 열릴 때의 선택 목록을 그대로 시드 — 이후 trainees 참조 변화는 무시한다
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
   const setRow = (id: string, patch: Partial<RowDraft>) => {
-    setRows((prev) => {
-      const base = prev[id] ?? EMPTY_ROW;
-      return { ...prev, [id]: { ...base, ...patch } };
+    setRows((prev) => ({ ...prev, [id]: { ...(prev[id] ?? EMPTY_ROW), ...patch } }));
+    setServerIssues((prev) => {
+      if (!prev[id]) return prev;
+      const next = { ...prev };
+      delete next[id];
+      return next;
     });
   };
 
-  // 전화는 빈 값 = 기존 유지 — null 을 보내면 초기화되므로 키를 생략한다
-  // 사용자가 바꾼 칸만 보낸다 — 열 때 채운 값을 그대로 다 보내면, 그사이 다른 화면에서
-  // 개별 수정한 이름·생년·증번호를 이 창을 연 시점의 옛 값으로 되돌렸다
-  const items: TraineeBulkUpdateItem[] = trainees
-    .map((t) => {
-      const row = rows[t.id];
-      const item: TraineeBulkUpdateItem = { id: t.id };
-      if (!row) return item;
-      if (row.name.trim() && row.name.trim() !== t.name) item.name = row.name.trim();
-      if (row.birthDate && row.birthDate !== (t.birthDate ?? "")) item.birth_date = row.birthDate;
-      if (row.phone.trim()) item.phone = row.phone.trim();
-      if (row.email.trim() && row.email.trim() !== (t.email ?? "")) item.email = row.email.trim();
-      if (row.certNo.trim() && row.certNo.trim() !== (t.certNo ?? "")) item.cert_no = row.certNo.trim();
-      if (row.seniorCertNo.trim() && row.seniorCertNo.trim() !== (t.seniorCertNo ?? ""))
-        item.senior_cert_no = row.seniorCertNo.trim();
-      // 메모는 비우면 지운다 — 미리 채운 값을 지운 것이 곧 삭제 의도
-      if (row.memo.trim() !== (t.memo ?? "")) item.memo = row.memo.trim() || null;
-      return item;
-    })
-    .filter((item) => Object.keys(item).length > 1);
-
-  const nameEmpty = trainees.some((t) => !rows[t.id]?.name.trim());
-  const emailInvalid = (id: string) => {
-    const v = rows[id]?.email.trim() ?? "";
-    return v !== "" && !EMAIL_RE.test(v);
-  };
-  const anyEmailInvalid = trainees.some((t) => emailInvalid(t.id));
+  const items = buildBulkItems(trainees, rows);
+  const clientIssues = useMemo(() => validateRows(trainees, rows), [trainees, rows]);
+  const shownIssues: Record<string, RowIssue[]> = attempted ? clientIssues : {};
+  const issueOf = (id: string, field: RowIssueField) =>
+    shownIssues[id]?.find((i) => i.field === field)?.message;
+  // 요약 — 이름순이 아니라 화면 순서대로 "홍길동: 전화번호는 …"
+  const problemRows = trainees
+    .map((t) => ({
+      trainee: t,
+      messages: [...(shownIssues[t.id] ?? []).map((i) => i.message), ...(serverIssues[t.id] ?? [])],
+    }))
+    .filter((r) => r.messages.length > 0);
 
   const mutation = useMutation({
     mutationFn: () => postTraineeBulkUpdate({ items }),
@@ -103,8 +78,37 @@ export function BulkEditDialog({ isOpen, onClose, trainees, onDone }: Props) {
       onDone();
       onClose();
     },
-    onError: (e: Error) => toast.error(toUserMessage(e)),
+    onError: (e: Error) => {
+      // 서버 오류를 사람별로 — field 는 body.items.<순번>[.칸] 형태라 보낸 items 의 순번으로 사람을 찾는다
+      const byId: Record<string, string[]> = {};
+      if (e instanceof ApiError) {
+        for (const fe of e.fieldErrors ?? []) {
+          const m = /^body\.items\.(\d+)/.exec(fe.field);
+          const id = m ? items[Number(m[1])]?.id : undefined;
+          if (id) (byId[id] ??= []).push(fe.message);
+        }
+      }
+      if (Object.keys(byId).length > 0) {
+        setServerIssues(byId);
+        toast.error(`${Object.keys(byId).length}명의 정보에 오류가 있어요 — 빨간 칸을 확인해 주세요`);
+        return;
+      }
+      toast.error(toUserMessage(e));
+    },
   });
+
+  const handleSave = () => {
+    setAttempted(true);
+    if (Object.keys(clientIssues).length > 0) {
+      toast.error(`${Object.keys(clientIssues).length}명의 정보를 확인해 주세요`);
+      return;
+    }
+    if (items.length === 0) {
+      toast.info("변경된 내용이 없어요");
+      return;
+    }
+    mutation.mutate();
+  };
 
   return (
     <Dialog
@@ -119,31 +123,44 @@ export function BulkEditDialog({ isOpen, onClose, trainees, onDone }: Props) {
           label: `${trainees.length}명 저장`,
           variant: "primary",
           isLoading: mutation.isPending,
-          isDisabled: nameEmpty || anyEmailInvalid,
-          onClick: () => {
-            if (items.length === 0) {
-              toast.info("변경된 내용이 없어요");
-              return;
-            }
-            mutation.mutate();
-          },
+          onClick: handleSave,
         },
       ]}
     >
       <div className="space-y-2">
+        {problemRows.length > 0 && (
+          <div role="alert" className="rounded-md border border-danger/40 bg-danger-soft px-3 py-2 text-12 text-danger">
+            <p className="font-medium">{problemRows.length}명의 정보를 확인해 주세요 — 저장하지 않았어요</p>
+            <ul className="mt-1 list-disc space-y-0.5 pl-4">
+              {problemRows.map(({ trainee, messages }) => (
+                <li key={trainee.id}>
+                  {rows[trainee.id]?.name.trim() || trainee.name}: {messages.join(" · ")}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
         {/* 한 사람당 두 줄(4칸×2) — 칸이 모달 폭에 맞춰 줄어들어 가로 스크롤이 생기지 않는다 */}
         <div className="max-h-[60vh] space-y-1.5 overflow-y-auto">
           {trainees.map((t) => {
             const row = rows[t.id];
             if (!row) return null;
-            const badEmail = emailInvalid(t.id);
+            const hasIssue = !!shownIssues[t.id]?.length || !!serverIssues[t.id]?.length;
+            const certIssue = issueOf(t.id, "certNo");
             return (
               <div
                 key={t.id}
-                className="grid grid-cols-4 gap-x-2 gap-y-2 rounded-lg border border-line px-2.5 py-2"
+                aria-invalid={hasIssue || undefined}
+                className={`grid grid-cols-4 gap-x-2 gap-y-2 rounded-lg border px-2.5 py-2 ${
+                  hasIssue ? "border-2 border-danger bg-danger-soft/30" : "border-line"
+                }`}
               >
-                <Field label="성명" required>
-                  <Input value={row.name} onChange={(e) => setRow(t.id, { name: e.target.value })} />
+                <Field label="성명" required error={issueOf(t.id, "name")}>
+                  <Input
+                    value={row.name}
+                    aria-invalid={!!issueOf(t.id, "name") || undefined}
+                    onChange={(e) => setRow(t.id, { name: e.target.value })}
+                  />
                 </Field>
                 <Field label="생년월일">
                   <DateField
@@ -152,26 +169,28 @@ export function BulkEditDialog({ isOpen, onClose, trainees, onDone }: Props) {
                     onChange={(v) => setRow(t.id, { birthDate: v })}
                   />
                 </Field>
-                <Field label="전화번호">
+                <Field label="전화번호" error={issueOf(t.id, "phone")}>
                   <Input
                     value={row.phone}
                     placeholder={t.phoneMasked || "전화 없음"}
+                    aria-invalid={!!issueOf(t.id, "phone") || undefined}
                     onChange={(e) => setRow(t.id, { phone: e.target.value })}
                   />
                 </Field>
-                <Field label="이메일" error={badEmail ? "이메일 형식을 확인해 주세요" : undefined}>
+                <Field label="이메일" error={issueOf(t.id, "email")}>
                   <Input
                     type="email"
                     value={row.email}
                     placeholder="이메일 없음"
-                    aria-invalid={badEmail || undefined}
+                    aria-invalid={!!issueOf(t.id, "email") || undefined}
                     onChange={(e) => setRow(t.id, { email: e.target.value })}
                   />
                 </Field>
-                <Field label="감리원증번호">
+                <Field label="감리원증번호" error={certIssue}>
                   <Input
                     value={row.certNo}
                     placeholder={t.certNo || "번호 없음"}
+                    aria-invalid={!!certIssue || undefined}
                     onChange={(e) => setRow(t.id, { certNo: e.target.value })}
                   />
                 </Field>
@@ -179,6 +198,7 @@ export function BulkEditDialog({ isOpen, onClose, trainees, onDone }: Props) {
                   <Input
                     value={row.seniorCertNo}
                     placeholder={t.seniorCertNo || "번호 없음"}
+                    aria-invalid={!!certIssue || undefined}
                     onChange={(e) => setRow(t.id, { seniorCertNo: e.target.value })}
                   />
                 </Field>
@@ -189,6 +209,11 @@ export function BulkEditDialog({ isOpen, onClose, trainees, onDone }: Props) {
                     onChange={(e) => setRow(t.id, { memo: e.target.value })}
                   />
                 </Field>
+                {serverIssues[t.id] && (
+                  <p role="alert" className="col-span-4 text-11 text-danger">
+                    {serverIssues[t.id]!.join(" · ")}
+                  </p>
+                )}
               </div>
             );
           })}
