@@ -11,6 +11,7 @@ export const postRegister = async (input: RegisterInput): Promise<void> => {
   await apiClient.post('/auth/register', {
     email: input.email,
     password: input.password,
+    name: input.name,
     invite_code: input.inviteCode,
   })
 }
