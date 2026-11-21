@@ -258,7 +258,7 @@ function AllowedEmailTable() {
       >
         <div className="space-y-4 pt-1">
           <div className="space-y-1.5">
-            <Label>이메일</Label>
+            <Label>이메일 <span className="text-danger">*</span></Label>
             <Input
               type="email"
               placeholder="admin@example.com"

@@ -281,7 +281,7 @@ function EditDialog({
     >
       <div className="flex flex-col gap-4 pt-1">
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="admin-name">이름</Label>
+          <Label htmlFor="admin-name">이름 <span className="text-danger">*</span></Label>
           <Input
             id="admin-name"
             value={name}

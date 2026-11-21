@@ -134,7 +134,7 @@ export function LoginPage() {
 
           <form onSubmit={handleSubmit} noValidate className="mt-6 space-y-4">
             <div className="space-y-1.5">
-              <Label htmlFor="email">이메일</Label>
+              <Label htmlFor="email">이메일 <span className="text-danger">*</span></Label>
               <Input
                 id="email"
                 type="email"
@@ -145,7 +145,7 @@ export function LoginPage() {
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="password">비밀번호</Label>
+              <Label htmlFor="password">비밀번호 <span className="text-danger">*</span></Label>
               <div className="relative">
                 <Input
                   id="password"
@@ -168,7 +168,7 @@ export function LoginPage() {
             </div>
             {mode === "register" && (
               <div className="space-y-1.5">
-                <Label htmlFor="invite-code">초대 코드</Label>
+                <Label htmlFor="invite-code">초대 코드 <span className="text-danger">*</span></Label>
                 <Input
                   id="invite-code"
                   autoComplete="one-time-code"
@@ -180,7 +180,7 @@ export function LoginPage() {
             )}
             {mode === "register" && (
               <div className="space-y-1.5">
-                <Label htmlFor="confirm-password">비밀번호 확인</Label>
+                <Label htmlFor="confirm-password">비밀번호 확인 <span className="text-danger">*</span></Label>
                 <div className="relative">
                   <Input
                     id="confirm-password"

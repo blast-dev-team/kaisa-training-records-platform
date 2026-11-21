@@ -177,7 +177,7 @@ export function TraineeFormDialog({ isOpen, onClose, trainee }: Props) {
       <div className="space-y-4 pt-1">
         <div className="flex flex-col gap-1.5">
           <div className="flex flex-col gap-1.5">
-            <Label>성명</Label>
+            <Label>성명 <span className="text-danger">*</span></Label>
             <Input value={name} onChange={(e) => setName(e.target.value)} />
           </div>
           <div className="flex flex-col gap-1.5">
@@ -294,7 +294,7 @@ export function TraineeFormDialog({ isOpen, onClose, trainee }: Props) {
             </Select>
             {isAnnual && (
               <div className="flex flex-col gap-1.5">
-                <Label>만료일</Label>
+                <Label>만료일 <span className="text-danger">*</span></Label>
                 <DateField ariaLabel="만료일" value={expiresAt} onChange={setExpiresAt} />
                 <p className="text-11 text-ink-3">
                   만료일이 지나면 자동으로 일반 등급으로 바뀌어요

@@ -191,7 +191,7 @@ export function CourseFormDialog({ isOpen, onClose, course }: Props) {
     >
       <div className="space-y-4 pt-1">
         <div className="space-y-1.5">
-          <Label>소속 기관</Label>
+          <Label>소속 기관 <span className="text-danger">*</span></Label>
           <SearchableSelect
             value={institutionId || null}
             onChange={(v) => setInstitutionId(v ?? "")}
@@ -232,7 +232,7 @@ export function CourseFormDialog({ isOpen, onClose, course }: Props) {
         </div>
         <div className="flex flex-col gap-1.5">
           <div className="flex flex-col gap-1.5">
-            <Label>과정명</Label>
+            <Label>과정명 <span className="text-danger">*</span></Label>
             <Input
               placeholder="예: 감리원 보수교육"
               value={name}
@@ -257,7 +257,9 @@ export function CourseFormDialog({ isOpen, onClose, course }: Props) {
         </div>
         <div className="flex flex-col gap-1.5">
           <div className="flex flex-col gap-1.5">
-            <Label>총 시수 *</Label>
+            <Label>
+              총 시수 <span className="text-danger">*</span>
+            </Label>
             <Input
               type="number"
               min={0}

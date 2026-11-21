@@ -142,7 +142,7 @@ export function BulkEditDialog({ isOpen, onClose, trainees, onDone }: Props) {
                 key={t.id}
                 className="grid grid-cols-4 gap-x-2 gap-y-2 rounded-lg border border-line px-2.5 py-2"
               >
-                <Field label="성명">
+                <Field label="성명" required>
                   <Input value={row.name} onChange={(e) => setRow(t.id, { name: e.target.value })} />
                 </Field>
                 <Field label="생년월일">
@@ -206,16 +206,21 @@ function Field({
   label,
   error,
   className = "",
+  required = false,
   children,
 }: {
   label: string;
   error?: string;
   className?: string;
+  required?: boolean;
   children: ReactNode;
 }) {
   return (
     <div className={`min-w-0 space-y-1 ${className}`}>
-      <Label className="text-11 text-ink-3">{label}</Label>
+      <Label className="text-11 text-ink-3">
+        {label}
+        {required && <span className="text-danger"> *</span>}
+      </Label>
       {children}
       {error && (
         <p role="alert" className="text-11 text-danger">{error}</p>

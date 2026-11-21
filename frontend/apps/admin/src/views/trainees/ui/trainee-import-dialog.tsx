@@ -302,7 +302,9 @@ export function TraineeImportDialog({ isOpen, onClose }: Props) {
             <div className="min-w-[880px] space-y-1.5">
               <div className={`${gridCols} sticky top-0 z-10 items-center bg-panel py-1 px-2.5`}>
                 <span />
-                <Label className="text-11 text-ink-3">감리원명 *</Label>
+                <Label className="text-11 text-ink-3">
+                  감리원명 <span className="text-danger">*</span>
+                </Label>
                 <Label className="text-11 text-ink-3">전화번호</Label>
                 <Label className="text-11 text-ink-3">생년월일</Label>
                 <Label className="text-11 text-ink-3">감리원증번호</Label>

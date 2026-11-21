@@ -260,7 +260,7 @@ export function SessionNameListPage() {
         ]}
       >
         <div className="space-y-1.5">
-          <Label>회차명</Label>
+          <Label>회차명 <span className="text-danger">*</span></Label>
           <Input
             placeholder="예: 2019년 1차"
             value={edit?.name ?? ""}

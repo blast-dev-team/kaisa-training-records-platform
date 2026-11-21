@@ -269,7 +269,7 @@ export function ReviewDialog({ review, onClose }: Props) {
               <div className="space-y-3 rounded-md border border-line p-3">
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
-                    <Label>성명</Label>
+                    <Label>성명 <span className="text-danger">*</span></Label>
                     <Input
                       placeholder="감리원 성명(전체) (인증 성명으로 채워짐)"
                       value={newName}
@@ -302,7 +302,15 @@ export function ReviewDialog({ review, onClose }: Props) {
           </div>
 
           <div className="space-y-1.5">
-            <Label>{mode === "new" ? "확정 등급 (필수)" : "확정 등급 (선택)"}</Label>
+            <Label>
+              {mode === "new" ? (
+                <>
+                  확정 등급 <span className="text-danger">*</span>
+                </>
+              ) : (
+                "확정 등급 (선택)"
+              )}
+            </Label>
             <Select value={gradeId} onChange={(e) => setGradeId(e.target.value)}>
               {/* 빈 값 옵션이 없으면 첫 등급이 선택된 것처럼 보이지만 state 는 "" — 승인 버튼이 막힌다 */}
               <option value="">{mode === "new" ? "등급 선택" : "현재 등급 유지"}</option>

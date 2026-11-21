@@ -116,7 +116,9 @@ export function GradeFormDialog({ isOpen, onClose, grade }: Props) {
       <div className="space-y-4 pt-1">
         <div className="grid grid-cols-2 gap-2">
           <div className="space-y-1.5">
-            <Label>코드</Label>
+            <Label>
+              코드{!grade && <span className="text-danger"> *</span>}
+            </Label>
             <Input
               placeholder="예: regular"
               value={code}
@@ -130,7 +132,9 @@ export function GradeFormDialog({ isOpen, onClose, grade }: Props) {
           </div>
         </div>
         <div className="space-y-1.5">
-          <Label>발급 단가 (원) *</Label>
+          <Label>
+            발급 단가 (원) <span className="text-danger">*</span>
+          </Label>
           <Input
             type="number"
             min={0}
@@ -146,7 +150,7 @@ export function GradeFormDialog({ isOpen, onClose, grade }: Props) {
           </p>
         </div>
         <div className="space-y-1.5">
-          <Label>등급명</Label>
+          <Label>등급명 <span className="text-danger">*</span></Label>
           <Input
             placeholder="예: 일반 / 연간 / 평생"
             value={name}

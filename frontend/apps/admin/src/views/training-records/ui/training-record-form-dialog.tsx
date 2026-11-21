@@ -470,7 +470,7 @@ export function TrainingRecordFormDialog({ isOpen, onClose, record, presetTraine
       <div className="space-y-4 pt-1">
         {/* 감리원 — 수정 시 고정 */}
         <div className="space-y-1.5">
-          <Label>감리원</Label>
+          <Label>감리원 <span className="text-danger">*</span></Label>
           {record ? (
             <p className="rounded-md border border-line bg-panel-2 px-3 py-2 text-13 text-ink">
               {trainees[0]?.certNo} {trainees[0]?.name}
@@ -619,7 +619,7 @@ export function TrainingRecordFormDialog({ isOpen, onClose, record, presetTraine
 
         {/* 기관·과정 — 마스터 드롭다운, 없는 값은 그 자리에서 생성해 마스터와 연동 */}
         <div className="space-y-1.5">
-          <Label>기관</Label>
+          <Label>기관 <span className="text-danger">*</span></Label>
           <SearchableSelect
             value={institutionId || null}
             onChange={handleInstitutionChange}
@@ -633,7 +633,7 @@ export function TrainingRecordFormDialog({ isOpen, onClose, record, presetTraine
           />
         </div>
         <div className="space-y-1.5">
-          <Label>과정</Label>
+          <Label>과정 <span className="text-danger">*</span></Label>
           <SearchableSelect
             value={courseId || null}
             onChange={handleCourseChange}

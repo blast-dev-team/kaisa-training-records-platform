@@ -85,7 +85,7 @@ export function BulkGradeDialog({ isOpen, onClose, trainees, onDone }: Props) {
     >
       <div className="space-y-4 pt-1">
         <div className="space-y-1.5">
-          <Label>변경할 등급</Label>
+          <Label>변경할 등급 <span className="text-danger">*</span></Label>
           <Select value={gradeId} onChange={(e) => setGradeId(e.target.value)}>
             <option value="">등급 선택</option>
             {(grades ?? []).map((g) => (
@@ -97,7 +97,7 @@ export function BulkGradeDialog({ isOpen, onClose, trainees, onDone }: Props) {
         </div>
         {isAnnual && (
           <div className="space-y-1.5">
-            <Label>만료일</Label>
+            <Label>만료일 <span className="text-danger">*</span></Label>
             <DateField ariaLabel="만료일" value={expiresAt} onChange={setExpiresAt} />
             <p className="text-12 text-ink-3">
               전원에 같은 만료일이 적용돼요 — 만료일이 지나면 자동으로 일반 등급으로 바뀌어요
