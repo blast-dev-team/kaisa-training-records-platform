@@ -5,6 +5,7 @@ from decimal import Decimal
 from pydantic import BaseModel, EmailStr, Field
 
 from app.core.crypto import decrypt_field, mask_phone
+from app.core.validation import PhoneStr
 
 
 class TraineeResponse(BaseModel):
@@ -77,7 +78,7 @@ class TraineeCreate(BaseModel):
     cert_issued_date: date | None = None  # 감리원증 발급일자
     senior_cert_issued_date: date | None = None  # 수석감리원증 발급일자
     birth_date: date | None = None
-    phone: str | None = None  # 평문 수신 → 암호화 저장
+    phone: PhoneStr | None = None  # 숫자·하이픈만(한글 등 거절) → 숫자만 암호화 저장
     email: EmailStr | None = None
     memo: str | None = None
     membership_grade_id: uuid.UUID | None = None
@@ -104,7 +105,7 @@ class TraineeUpdate(BaseModel):
     cert_issued_date: date | None = None  # 감리원증 발급일자
     senior_cert_issued_date: date | None = None  # 수석감리원증 발급일자
     birth_date: date | None = None
-    phone: str | None = None  # 평문 수신 → 암호화 저장
+    phone: PhoneStr | None = None  # 숫자·하이픈만(한글 등 거절) → 숫자만 암호화 저장
     email: EmailStr | None = None
     memo: str | None = None
     membership_grade_id: uuid.UUID | None = None
@@ -123,7 +124,7 @@ class TraineeBulkUpdateItem(BaseModel):
     id: uuid.UUID
     name: str | None = Field(default=None, max_length=100)
     birth_date: date | None = None
-    phone: str | None = None  # 평문 수신 → 암호화 저장. 빈 문자열 = 변경 없음
+    phone: PhoneStr | None = None  # 숫자·하이픈만 → 숫자만 암호화 저장. 빈 문자열 = 변경 없음
     # 감리원증번호. 빈 문자열 = 변경 없음
     cert_no: str | None = Field(default=None, max_length=100)
     # 수석감리원증번호. 입력 시 수석감리원으로 파생
@@ -187,7 +188,7 @@ class TraineeImportConfirmItem(BaseModel):
 
     row_number: int
     name: str
-    phone: str | None = None
+    phone: PhoneStr | None = None
     birth_date: date | None = None
     cert_no: str | None = None
     supervisor_grade: str | None = None

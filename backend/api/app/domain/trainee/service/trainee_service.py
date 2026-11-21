@@ -14,6 +14,7 @@ from app.core.audit import record_audit
 from app.core.crypto import decrypt_field, encrypt_field, mask_name, name_hash
 from app.core.error_codes import api_error
 from app.core.kst import now_kst, today_kst
+from app.core.validation import PHONE_CHARS_MESSAGE, PHONE_LENGTH_MESSAGE, phone_format_error
 from app.domain.auth.model import AdminUser
 from app.domain.certificate.model import CertificateRequest
 from app.domain.payment.model import PaymentOrder
@@ -676,6 +677,21 @@ def _normalize_cell_phone(value) -> str | None:
     return digits
 
 
+def _cell_phone_error(value) -> str | None:
+    """엑셀 전화번호 셀 검증 — 한글·영문 등이 섞였거나 자릿수가 맞지 않으면 문구.
+
+    숫자 서식 셀(선행 0 잘림)은 _normalize_cell_phone 이 0 을 되살린 뒤 자릿수만 본다.
+    """
+    if value is None or (isinstance(value, str) and not value.strip()):
+        return None
+    if isinstance(value, str) and phone_format_error(value) == PHONE_CHARS_MESSAGE:
+        return PHONE_CHARS_MESSAGE
+    digits = _normalize_cell_phone(value)
+    if not digits or not 9 <= len(digits) <= 11:
+        return PHONE_LENGTH_MESSAGE
+    return None
+
+
 def _row_cell(row: tuple, idx: int):
     """행에서 idx 번째 값 — 없으면 None.
 
@@ -769,6 +785,9 @@ def parse_import_file(content: bytes) -> list[TraineeImportRow]:
             and issued is None
         ):
             errors.append("발급일자를 읽을 수 없어요 (예: 2020.05.01)")
+        phone_error = _cell_phone_error(cells["phone"])
+        if phone_error:
+            errors.append(phone_error)
         parsed.append(
             TraineeImportRow(
                 row_number=offset,

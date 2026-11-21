@@ -9,10 +9,12 @@
 - like_contains: ILIKE 패턴에서 %, _ 를 문자 그대로 검색하도록 이스케이프.
 """
 
+import re
+import unicodedata
 from decimal import Decimal
 from typing import Annotated
 
-from pydantic import BaseModel, Field, StringConstraints
+from pydantic import BaseModel, BeforeValidator, Field, StringConstraints
 
 HOURS_MAX = Decimal("999999.99")  # Numeric(8,2) 상한
 
@@ -21,6 +23,47 @@ Hours = Annotated[Decimal, Field(ge=0, le=HOURS_MAX)]
 # 필수 문자열 — 앞뒤 공백을 지운 뒤 비어 있으면 422. Field(min_length=1) 은 공백도 1글자로 세서
 # "   " 이름·사유가 그대로 저장됐다. 길이 제한은 각 필드의 Field(max_length=…) 로 함께 건다.
 NonBlankStr = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1)]
+
+# 전화번호 — 숫자와 구분 기호(공백·하이픈·괄호·점·+)만 허용. 한글·영문이 섞인 값("010-1234-5678(집)",
+# "없음")이 그대로 저장되던 문제. 저장은 숫자만(엑셀 등록·문의와 같은 형식)
+_PHONE_ALLOWED = re.compile(r"[0-9\s\-+().]*")
+PHONE_CHARS_MESSAGE = "전화번호는 숫자와 하이픈(-)만 입력해 주세요"
+PHONE_LENGTH_MESSAGE = "전화번호는 숫자 9~11자리로 입력해 주세요"
+
+
+def phone_digits(text: str) -> str:
+    """구분 기호를 뺀 숫자 — +82 국제표기는 0 으로 되돌린다(+82 10-… → 010-…)."""
+    digits = re.sub(r"\D", "", text)
+    if text.lstrip().startswith("+82"):
+        digits = "0" + digits[2:]
+    return digits
+
+
+def phone_format_error(value: str | None) -> str | None:
+    """전화번호 형식 오류 문구 — 빈 값·정상이면 None."""
+    text = unicodedata.normalize("NFKC", value or "").strip()
+    if not text:
+        return None
+    if not _PHONE_ALLOWED.fullmatch(text):
+        return PHONE_CHARS_MESSAGE
+    if not 9 <= len(phone_digits(text)) <= 11:
+        return PHONE_LENGTH_MESSAGE
+    return None
+
+
+def _phone_input(value):
+    if value is None or not isinstance(value, str):
+        return value
+    text = unicodedata.normalize("NFKC", value).strip()
+    if not text:
+        return ""  # 빈 값의 의미(변경 없음·지움)는 각 서비스 규칙을 따른다
+    error = phone_format_error(text)
+    if error:
+        raise ValueError(error)
+    return phone_digits(text)
+
+
+PhoneStr = Annotated[str, BeforeValidator(_phone_input)]
 
 LIKE_ESCAPE = "\\"
 

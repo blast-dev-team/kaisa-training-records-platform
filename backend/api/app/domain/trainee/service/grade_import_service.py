@@ -43,6 +43,7 @@ from app.domain.trainee.service.trainee_service import (
     PERIOD_GRADE_CODE,
     TraineeUpdate,
     _apply_update,
+    _cell_phone_error,
     _normalize_cell_phone,
     _parse_cell_date,
 )
@@ -126,6 +127,7 @@ class _ParsedRow:
         "name",
         "payments",
         "phone",
+        "phone_error",
         "row_number",
     )
 
@@ -136,6 +138,7 @@ class _ParsedRow:
         self.cert_no: str | None = None
         self.email: str | None = None
         self.phone: str | None = None
+        self.phone_error: str | None = None
         self.payments: list[date] = []
         self.member_type: str | None = None
         self.grade_kind: str | None = None
@@ -284,6 +287,7 @@ def _parse_workbook(content: bytes) -> tuple[list[_ParsedRow], str, list[str]]:
                     row.cert_no = _cell_str(value)
                 elif field == "phone":
                     row.phone = _normalize_cell_phone(value)
+                    row.phone_error = _cell_phone_error(value)
                 elif field == "email":
                     row.email = _cell_str(value)
                 elif field == "member_type":
@@ -461,7 +465,10 @@ def _evaluate_row(
                 ev.email = row.email
             else:
                 ev.contact_skip = "이메일 형식이 올바르지 않아요"
-        if row.phone:
+        if row.phone_error:
+            # 한글이 섞였거나 자릿수가 맞지 않는 번호 — 채우지 않고 이유를 보여 준다
+            ev.contact_skip = ev.contact_skip or f"전화번호 형식이 올바르지 않아요 ({row.phone_error})"
+        elif row.phone:
             if ev.match.phone_encrypted:
                 ev.contact_skip = ev.contact_skip or "시스템에 이미 등록된 전화번호가 있어요"
             else:

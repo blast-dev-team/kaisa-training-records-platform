@@ -3,6 +3,8 @@ from datetime import date
 
 from pydantic import BaseModel, Field
 
+from app.core.validation import PhoneStr
+
 # ── 엑셀 회원등급 일괄 적용 (협회 회원명부) ─────────────────────────────────────
 #
 # 기존 교육생(trainees)에 등급을 일괄 적용하는 2단계 흐름:
@@ -65,7 +67,7 @@ class GradeImportConfirmItem(BaseModel):
     grade_code: str  # 'lifetime' | 'annual'
     grade_expires_at: date | None = None
     email: str | None = None
-    phone: str | None = None
+    phone: PhoneStr | None = None
     include: bool = True
 
 
@@ -86,7 +88,7 @@ class GradeImportRematchRequest(BaseModel):
     grade_kind: str  # 'lifetime' | 'annual'
     grade_expires_at: date | None = None
     email: str | None = None
-    phone: str | None = None
+    phone: PhoneStr | None = None
 
 
 class GradeImportFailure(BaseModel):
