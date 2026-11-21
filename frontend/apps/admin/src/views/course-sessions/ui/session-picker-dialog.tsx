@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useEffect, useRef, useState } from "react";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { Button } from "@/src/shared/ui/button";
 import { Dialog } from "@/src/shared/ui/dialog";
 import { SearchInput } from "@/src/shared/ui/search-input";
@@ -16,7 +16,7 @@ interface Props {
 export function SessionPickerDialog({ isOpen, onClose, onSelect }: Props) {
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
-  const page = 1;
+  const listRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -24,10 +24,25 @@ export function SessionPickerDialog({ isOpen, onClose, onSelect }: Props) {
     setSearch("");
   }, [isOpen]);
 
-  const { data, isLoading } = useQuery(
-    courseSessionQueries.list({ q: search || undefined, page, limit: 30 }),
-  );
-  const sessions = data?.items ?? [];
+  const { data, isLoading, hasNextPage, isFetchingNextPage, fetchNextPage } = useInfiniteQuery({
+    ...courseSessionQueries.infiniteList({ q: search || undefined, limit: 30 }),
+    enabled: isOpen,
+  });
+  const sessions = data?.pages.flatMap((p) => p.items) ?? [];
+
+  // 목록 끝 근처까지 스크롤하면 다음 페이지 — 예전엔 첫 30건만 보여 오래된 일정은 검색해야만 찾을 수 있었다
+  const onScroll = () => {
+    const el = listRef.current;
+    if (!el || !hasNextPage || isFetchingNextPage) return;
+    if (el.scrollHeight - el.scrollTop - el.clientHeight < 40) fetchNextPage();
+  };
+
+  // 첫 페이지가 목록 높이를 다 못 채우면 스크롤이 생기지 않아 다음 페이지를 못 부른다 — 채워질 때까지 이어 부른다
+  useEffect(() => {
+    const el = listRef.current;
+    if (!el || !hasNextPage || isFetchingNextPage) return;
+    if (el.scrollHeight <= el.clientHeight) fetchNextPage();
+  }, [data, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   return (
     <Dialog
@@ -56,7 +71,11 @@ export function SessionPickerDialog({ isOpen, onClose, onSelect }: Props) {
             검색
           </Button>
         </form>
-        <div className="max-h-72 overflow-y-auto rounded-md border border-line">
+        <div
+          ref={listRef}
+          onScroll={onScroll}
+          className="max-h-72 overflow-y-auto rounded-md border border-line"
+        >
           {!isLoading && sessions.length === 0 && (
             <p className="p-3 text-13 text-ink-3">
               검색 결과가 없어요. 일정은 교육 일정 관리에서 먼저 등록해 주세요
@@ -84,6 +103,9 @@ export function SessionPickerDialog({ isOpen, onClose, onSelect }: Props) {
               </span>
             </button>
           ))}
+          {isFetchingNextPage && (
+            <p className="p-2 text-center text-12 text-ink-3">일정을 더 불러오고 있어요</p>
+          )}
         </div>
       </div>
     </Dialog>
