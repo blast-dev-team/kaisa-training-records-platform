@@ -1,4 +1,5 @@
 import { toUserMessage } from "@/src/shared/lib/friendly-error";
+import { phoneError } from "@/src/shared/utils/phone";
 import { useEffect, useRef, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
@@ -191,7 +192,9 @@ export function TraineeImportDialog({ isOpen, onClose }: Props) {
   });
 
   const included = drafts.filter((d) => d.include);
-  const hasBlockingError = included.some((d) => !d.name.trim() || d.errors.length > 0);
+  const hasBlockingError = included.some(
+    (d) => !d.name.trim() || d.errors.length > 0 || !!phoneError(d.phone),
+  );
   const duplicateCount = drafts.filter((d) => d.isDuplicate).length;
   const promotionCount = drafts.filter((d) => d.isPromotion).length;
 
@@ -328,9 +331,9 @@ export function TraineeImportDialog({ isOpen, onClose }: Props) {
                       </div>
                     )}
                     <div
-                      className={`${gridCols} items-center rounded-lg border border-line px-2.5 py-2 ${
-                        d.include ? "" : "opacity-50"
-                      }`}
+                      className={`${gridCols} items-center rounded-lg border px-2.5 py-2 ${
+                        d.include && phoneError(d.phone) ? "border-danger" : "border-line"
+                      } ${d.include ? "" : "opacity-50"}`}
                     >
                       <input
                         type="checkbox"
@@ -347,6 +350,7 @@ export function TraineeImportDialog({ isOpen, onClose }: Props) {
                       <Input
                         disabled={!d.include}
                         value={d.phone}
+                        aria-invalid={(d.include && !!phoneError(d.phone)) || undefined}
                         onChange={(e) => setDraft(d.key, { phone: e.target.value })}
                       />
                       <div className={d.include ? undefined : "pointer-events-none opacity-50"}>
@@ -387,6 +391,11 @@ export function TraineeImportDialog({ isOpen, onClose }: Props) {
                         <Pill tone="ok">신규</Pill>
                       )}
                     </div>
+                    {d.include && phoneError(d.phone) && (
+                      <p role="alert" className="pl-10 text-11 text-danger">
+                        {phoneError(d.phone)}
+                      </p>
+                    )}
                     {d.inFileDuplicate && (
                       <p className="pl-10 text-11 text-danger">
                         앞선 행과 감리원증번호가 같아요 — 같은 감리원이 두 번 등록되지 않도록 등록에서 빠져요

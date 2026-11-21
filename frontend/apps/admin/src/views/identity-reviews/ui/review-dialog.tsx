@@ -1,4 +1,6 @@
 import { toUserMessage } from "@/src/shared/lib/friendly-error";
+import { phoneError } from "@/src/shared/utils/phone";
+import { emailError } from "@/src/shared/utils/email";
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
@@ -67,8 +69,12 @@ export function ReviewDialog({ review, onClose }: Props) {
   };
 
   /** 신규 생성 모드 — 성명·등급 필수 (등급 없으면 발급이 막힌다) */
+  const newPhoneErr = phoneError(newPhone);
+  const newEmailErr = emailError(newEmail);
   const canApprove =
-    mode === "search" ? selected !== null : newName.trim() !== "" && gradeId !== "";
+    mode === "search"
+      ? selected !== null
+      : newName.trim() !== "" && gradeId !== "" && !newPhoneErr && !newEmailErr;
 
   const approveMutation = useMutation({
     mutationFn: () => {
@@ -281,8 +287,12 @@ export function ReviewDialog({ review, onClose }: Props) {
                     <Input
                       placeholder="01012345678"
                       value={newPhone}
+                      aria-invalid={!!newPhoneErr || undefined}
                       onChange={(e) => setNewPhone(e.target.value)}
                     />
+                    {newPhoneErr && (
+                      <p role="alert" className="text-11 text-danger">{newPhoneErr}</p>
+                    )}
                   </div>
                 </div>
                 <div className="space-y-1.5">
@@ -290,8 +300,12 @@ export function ReviewDialog({ review, onClose }: Props) {
                   <Input
                     placeholder="trainee@example.com"
                     value={newEmail}
+                    aria-invalid={!!newEmailErr || undefined}
                     onChange={(e) => setNewEmail(e.target.value)}
                   />
+                  {newEmailErr && (
+                    <p role="alert" className="text-11 text-danger">{newEmailErr}</p>
+                  )}
                 </div>
                 <p className="text-11 text-ink-3">
                   생성과 연결이 한 번에 처리돼요 — 감리원 목록에 바로 반영돼요. 성명·전화는 나중에

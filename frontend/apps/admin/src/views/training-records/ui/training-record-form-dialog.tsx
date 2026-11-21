@@ -1,4 +1,5 @@
 import { toUserMessage } from "@/src/shared/lib/friendly-error";
+import { phoneError } from "@/src/shared/utils/phone";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { hoursError, isValidHours } from "@/src/shared/utils/hours";
 import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -587,13 +588,19 @@ export function TrainingRecordFormDialog({ isOpen, onClose, record, presetTraine
                         <Input
                           placeholder="전화번호 (선택)"
                           value={newTraineePhone}
+                          aria-invalid={!!phoneError(newTraineePhone) || undefined}
                           onChange={(e) => setNewTraineePhone(e.target.value)}
                         />
                       </div>
+                      {phoneError(newTraineePhone) && (
+                        <p role="alert" className="text-11 text-danger">
+                          {phoneError(newTraineePhone)}
+                        </p>
+                      )}
                       <div className="flex gap-2">
                         <Button
                           size="sm"
-                          disabled={createTraineeMutation.isPending}
+                          disabled={createTraineeMutation.isPending || !!phoneError(newTraineePhone)}
                           onClick={() => createTraineeMutation.mutate()}
                         >
                           {createTraineeMutation.isPending ? "생성 중..." : "생성 후 선택"}

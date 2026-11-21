@@ -1,4 +1,6 @@
 import { toUserMessage } from "@/src/shared/lib/friendly-error";
+import { phoneError } from "@/src/shared/utils/phone";
+import { emailError } from "@/src/shared/utils/email";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
@@ -100,8 +102,14 @@ function ContactCell({
         <Input
           placeholder="전화번호 (숫자만)"
           value={phone}
+          aria-invalid={!!phoneError(phone) || undefined}
           onChange={(e) => setPhone(e.target.value)}
         />
+        {(emailError(email) || phoneError(phone)) && (
+          <p role="alert" className="text-11 text-danger">
+            {emailError(email) ?? phoneError(phone)}
+          </p>
+        )}
         <div className="flex justify-end gap-1">
           <Button
             variant="ghost"
@@ -118,7 +126,7 @@ function ContactCell({
               e.stopPropagation();
               onSubmit(idx, email.trim(), phone.trim());
             }}
-            disabled={isPending}
+            disabled={isPending || !!emailError(email) || !!phoneError(phone)}
           >
             {isPending ? "적용 중..." : "적용"}
           </Button>
@@ -520,8 +528,14 @@ export function GradeImportDialog({ isOpen, onClose }: Props) {
                           <Input
                             className="bg-white"
                             value={editing.phone}
+                            aria-invalid={!!phoneError(editing.phone) || undefined}
                             onChange={(e) => setEditing({ ...editing, phone: e.target.value })}
                           />
+                          {phoneError(editing.phone) && (
+                            <p role="alert" className="text-11 text-danger">
+                              {phoneError(editing.phone)}
+                            </p>
+                          )}
                         </div>
                       </div>
                       <div className="mt-2 flex justify-end gap-2">
@@ -549,7 +563,7 @@ export function GradeImportDialog({ isOpen, onClose }: Props) {
                               },
                             });
                           }}
-                          disabled={rematchMutation.isPending}
+                          disabled={rematchMutation.isPending || !!phoneError(editing.phone)}
                         >
                           {rematchMutation.isPending ? "재매칭 중..." : "재매칭"}
                         </Button>
