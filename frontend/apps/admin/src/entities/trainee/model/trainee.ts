@@ -13,6 +13,8 @@ export interface Trainee {
   seniorCertNo: string | null
   /** 수석감리원증 발급일 (YYYY-MM-DD) */
   seniorCertIssuedDate: string | null
+  /** 감리원증 발급일 (YYYY-MM-DD) */
+  certIssuedDate?: string | null
   name: string
   birthDate: string | null
   phoneMasked: string
@@ -38,6 +40,7 @@ export interface TraineeUpdateInput {
   senior_cert_no?: string | null
   /** 감리원 등급 선택값 — senior_cert_no 있으면 서버가 수석감리원 강제 */
   supervisor_grade?: string | null
+  cert_issued_date?: string | null
   senior_cert_issued_date?: string | null
   birth_date?: string | null
   phone?: string
@@ -56,6 +59,7 @@ export interface TraineeCreateInput {
   senior_cert_no?: string | null
   /** 감리원 등급 선택값 — senior_cert_no 있으면 서버가 수석감리원 강제 */
   supervisor_grade?: string | null
+  cert_issued_date?: string | null
   senior_cert_issued_date?: string | null
   birth_date?: string | null
   phone?: string
@@ -75,6 +79,8 @@ export interface TraineeBulkGradeInput {
   membership_grade_id: string
   /** 연간 선택 시 만료일(전원 동일 적용) */
   grade_expires_at?: string
+  /** 변경 사유(선택) — 건별 등급 이력에 남는다 */
+  grade_change_reason?: string
 }
 
 export interface TraineeBulkUpdateItem {
@@ -87,6 +93,10 @@ export interface TraineeBulkUpdateItem {
   cert_no?: string
   /** 빈 값/생략 = 기존 유지. 입력 시 수석감리원으로 파생 */
   senior_cert_no?: string
+  /** 생략 = 기존 유지 */
+  email?: string
+  /** 생략 = 기존 유지, null = 지움 */
+  memo?: string | null
 }
 
 export interface TraineeBulkUpdateInput {

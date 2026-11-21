@@ -16,6 +16,7 @@ export interface EditRow {
   startedAt: string;
   endedAt: string;
   totalHours: string;
+  memo: string;
 }
 
 export function toRow(record: TrainingRecord): EditRow {
@@ -30,6 +31,7 @@ export function toRow(record: TrainingRecord): EditRow {
     startedAt: record.startedAt ?? "",
     endedAt: record.endedAt ?? "",
     totalHours: record.totalHours === null ? "" : String(record.totalHours),
+    memo: record.memo ?? "",
   };
 }
 
@@ -73,6 +75,11 @@ export function buildUpdates(
     date("startedAt");
     date("endedAt");
     hours("totalHours");
+    // 메모 — 비우면 지운다(null)
+    if (row.memo.trim() !== (orig.memo ?? "")) {
+      patch.memo = row.memo.trim() || null;
+      changed = true;
+    }
     // 과정 변경 — 마스터에서만 선택(해제는 스냅샷 정합성 문제로 미지원)
     if (row.courseId !== orig.courseId && row.courseId !== null) {
       patch.courseId = row.courseId;

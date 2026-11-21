@@ -5,6 +5,7 @@ export interface TraineeDto {
   supervisor_grade: string | null
   senior_cert_no: string | null
   senior_cert_issued_date: string | null
+  cert_issued_date: string | null
   name: string
   birth_date: string | null
   phone_masked: string

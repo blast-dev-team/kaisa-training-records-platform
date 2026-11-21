@@ -120,7 +120,7 @@ export function TrainingRecordBulkEditDialog({ isOpen, onClose, records, onSaved
     {
       id: "institution",
       header: "기관",
-      meta: { width: 280 },
+      meta: { width: 220 },
       cell: ({ row: { original: row } }) => (
         <SearchableSelect
           className="w-full"
@@ -139,7 +139,7 @@ export function TrainingRecordBulkEditDialog({ isOpen, onClose, records, onSaved
     {
       id: "course",
       header: "과정",
-      meta: { width: 400 },
+      meta: { width: 340 },
       cell: ({ row: { original: row } }) => (
         <SearchableSelect
           className="w-full"
@@ -205,6 +205,19 @@ export function TrainingRecordBulkEditDialog({ isOpen, onClose, records, onSaved
         />
       ),
     },
+    {
+      id: "memo",
+      header: "메모",
+      meta: { width: 200 },
+      cell: ({ row: { original: row } }) => (
+        <Input
+          className="h-8 w-full px-2 text-13"
+          value={row.memo}
+          placeholder="메모 없음"
+          onChange={(e) => setField(row.id, { memo: e.target.value })}
+        />
+      ),
+    },
   ];
 
   return (
@@ -212,7 +225,7 @@ export function TrainingRecordBulkEditDialog({ isOpen, onClose, records, onSaved
       isOpen={isOpen}
       onClose={onClose}
       title={`이력 일괄 수정 (${records.length}건)`}
-      description="날짜를 비우면 그 값이 지워져요(총 시수는 비우면 변경하지 않아요). 기관을 바꾸면 그 기관의 과정을 다시 골라 주세요. 변경한 행만 반영됩니다."
+      description="날짜·총 시수는 비우면 변경하지 않고, 메모는 비우면 지워져요. 기관을 바꾸면 그 기관의 과정을 다시 골라 주세요. 변경한 행만 반영됩니다."
       size="3xl"
       actions={[
         { label: "취소", onClick: onClose },

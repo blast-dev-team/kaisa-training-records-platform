@@ -20,6 +20,7 @@ export const postTrainee = async (input: TraineeCreateInput): Promise<Trainee> =
         : (input.supervisor_grade ?? null),
       seniorCertNo: input.senior_cert_no ?? null,
       seniorCertIssuedDate: input.senior_cert_issued_date ?? null,
+      certIssuedDate: input.cert_issued_date ?? null,
       name: input.name,
       birthDate: input.birth_date ?? null,
       phoneMasked: input.phone ? `${input.phone.slice(0, 3)}-****-${input.phone.slice(-4)}` : '',

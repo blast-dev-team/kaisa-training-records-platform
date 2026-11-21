@@ -46,6 +46,7 @@ export function TraineeFormDialog({ isOpen, onClose, trainee }: Props) {
   const [showSenior, setShowSenior] = useState(false);
   const [seniorCertNo, setSeniorCertNo] = useState("");
   const [seniorCertIssuedDate, setSeniorCertIssuedDate] = useState("");
+  const [certIssuedDate, setCertIssuedDate] = useState("");
   const [supervisorGrade, setSupervisorGrade] = useState("감리원");
   const [birthDate, setBirthDate] = useState("");
   const [phone, setPhone] = useState("");
@@ -65,6 +66,7 @@ export function TraineeFormDialog({ isOpen, onClose, trainee }: Props) {
     setShowSenior(trainee?.seniorCertNo != null);
     setSeniorCertNo(trainee?.seniorCertNo ?? "");
     setSeniorCertIssuedDate(trainee?.seniorCertIssuedDate ?? "");
+    setCertIssuedDate(trainee?.certIssuedDate ?? "");
     // 수정: 저장된 값 그대로(NULL=미지정). 신규: 감리원 기본
     setSupervisorGrade(trainee ? (trainee.supervisorGrade ?? "미지정") : "감리원");
     setBirthDate(trainee?.birthDate ?? "");
@@ -97,6 +99,7 @@ export function TraineeFormDialog({ isOpen, onClose, trainee }: Props) {
           cert_no: certNo.trim() || null,
           senior_cert_no: effectiveSeniorNo || null,
           senior_cert_issued_date: showSenior ? seniorCertIssuedDate || null : null,
+          cert_issued_date: certIssuedDate || null,
           supervisor_grade: effectiveGrade === "미지정" ? null : effectiveGrade,
           birth_date: birthDate || null,
           email: email.trim() || null,
@@ -108,6 +111,7 @@ export function TraineeFormDialog({ isOpen, onClose, trainee }: Props) {
           cert_no: trainee.certNo ?? null,
           senior_cert_no: trainee.seniorCertNo ?? null,
           senior_cert_issued_date: trainee.seniorCertIssuedDate ?? null,
+          cert_issued_date: trainee.certIssuedDate ?? null,
           supervisor_grade: initialGrade ?? null,
           birth_date: trainee.birthDate ?? null,
           email: trainee.email ?? null,
@@ -126,6 +130,7 @@ export function TraineeFormDialog({ isOpen, onClose, trainee }: Props) {
         cert_no: certNo.trim() || null,
         senior_cert_no: effectiveSeniorNo || null,
         senior_cert_issued_date: showSenior ? seniorCertIssuedDate || null : null,
+        cert_issued_date: certIssuedDate || null,
         supervisor_grade: effectiveGrade === "미지정" ? null : effectiveGrade,
         birth_date: birthDate || null,
         phone: phone.trim() || undefined,
@@ -187,6 +192,10 @@ export function TraineeFormDialog({ isOpen, onClose, trainee }: Props) {
               value={certNo}
               onChange={(e) => setCertNo(e.target.value)}
             />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <Label>감리원증 발급일</Label>
+            <DateField ariaLabel="감리원증 발급일" value={certIssuedDate} onChange={setCertIssuedDate} />
           </div>
           <div className="flex flex-col gap-1.5">
             <Label>감리원 등급</Label>
