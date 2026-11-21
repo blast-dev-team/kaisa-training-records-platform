@@ -1,7 +1,9 @@
 import uuid
 from datetime import datetime
 
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
+
+from app.core.validation import NonBlankStr
 
 
 class AdminRegisterRequest(BaseModel):
@@ -9,7 +11,9 @@ class AdminRegisterRequest(BaseModel):
 
     email: EmailStr
     password: str
-    name: str | None = None
+    # 관리자 이름 — 헤더·감사로그 처리자로 표시된다. 화면은 필수로 받는다
+    # (서버는 이전 화면과 호환되게 생략은 허용하되 공백만은 거절)
+    name: NonBlankStr | None = Field(default=None, max_length=100)
     # super 가 초대할 때 발급한 1회용 코드 — 이메일 소유 검증을 대신한다
     invite_code: str
 
