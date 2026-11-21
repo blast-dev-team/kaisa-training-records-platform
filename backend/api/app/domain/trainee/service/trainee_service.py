@@ -436,7 +436,7 @@ async def update_trainee(
 async def update_trainees_grade_bulk(
     db: AsyncSession, data: TraineeBulkGradeCreate, actor: AdminUser
 ) -> tuple[int, int]:
-    """선택 교육생 회원등급 일괄 변경 — 등급이력은 사유 None 으로 건당 기록. commit 1회."""
+    """선택 교육생 회원등급 일괄 변경 — 등급이력은 건당 기록(사유는 요청값). commit 1회."""
     grade = await repo.find_grade_by_id(db, data.membership_grade_id)
     if grade is None:
         raise api_error("NOT_FOUND", message="회원등급을 찾을 수 없어요")
@@ -451,6 +451,7 @@ async def update_trainees_grade_bulk(
             TraineeUpdate(
                 membership_grade_id=data.membership_grade_id,
                 grade_expires_at=data.grade_expires_at,
+                grade_change_reason=(data.grade_change_reason or "").strip() or None,
             ),
             actor,
         )
@@ -530,6 +531,10 @@ async def update_trainees_bulk(
             # 수석감리원증번호 입력 → 파생 규칙으로 수석감리원 승격.
             # 빈 문자열 = 기존 유지라 벌크로는 강등이 불가하다(개별 수정에서만)
             patch["senior_cert_no"] = item.senior_cert_no.strip()
+        if item.email:
+            patch["email"] = item.email
+        if "memo" in item.model_fields_set:
+            patch["memo"] = (item.memo or "").strip() or None
         trainee = by_id.get(item.id)
         if trainee is None or not patch:
             skipped += 1

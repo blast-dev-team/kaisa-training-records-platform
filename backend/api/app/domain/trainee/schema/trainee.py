@@ -128,15 +128,21 @@ class TraineeBulkUpdateItem(BaseModel):
     cert_no: str | None = Field(default=None, max_length=100)
     # 수석감리원증번호. 입력 시 수석감리원으로 파생
     senior_cert_no: str | None = Field(default=None, max_length=100)
+    # 이메일. 생략 = 변경 없음 (지우기는 개별 수정에서)
+    email: EmailStr | None = None
+    # 메모. 생략 = 변경 없음, null·빈 문자열 = 지움
+    memo: str | None = None
 
 
 class TraineeBulkGradeCreate(BaseModel):
-    """선택 교육생 회원등급 일괄 변경 — 사유 없이 바로 변경 (history 사유 None)."""
+    """선택 교육생 회원등급 일괄 변경 — 사유(선택)는 건별 등급이력에 같이 남는다."""
 
     trainee_ids: list[uuid.UUID] = Field(min_length=1)
     membership_grade_id: uuid.UUID
     # 연간 선택 시 만료일(전원 동일 적용) — 없으면 400
     grade_expires_at: date | None = None
+    # 변경 사유(선택) — 개별 등급 변경과 같이 history·감사로그에 기록
+    grade_change_reason: str | None = None
 
 
 class TraineeBulkUpdate(BaseModel):
