@@ -1,4 +1,6 @@
 import { toUserMessage } from "@/src/shared/lib/friendly-error";
+import { phoneError } from "@/src/shared/utils/phone";
+import { emailError } from "@/src/shared/utils/email";
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
@@ -88,6 +90,10 @@ export function TraineeFormDialog({ isOpen, onClose, trainee }: Props) {
     setSupervisorGrade(v);
   };
 
+  // 저장 전 형식 검사 — 한글 섞인 전화번호·잘못된 이메일이 서버 422 로 튕기기 전에 막는다
+  const phoneErr = phoneError(phone);
+  const emailErr = emailError(email);
+
   const dupConfirm = useDuplicateConfirm();
   const mutation = useMutation({
     mutationFn: () => {
@@ -167,7 +173,8 @@ export function TraineeFormDialog({ isOpen, onClose, trainee }: Props) {
           label: trainee ? "저장" : "등록",
           variant: "primary",
           isLoading: mutation.isPending,
-          isDisabled: !name.trim() || (!trainee && isAnnual && !expiresAt),
+          isDisabled:
+            !name.trim() || (!trainee && isAnnual && !expiresAt) || !!phoneErr || !!emailErr,
           onClick: () => mutation.mutate(),
         },
       ]}
@@ -269,8 +276,12 @@ export function TraineeFormDialog({ isOpen, onClose, trainee }: Props) {
             <Input
               placeholder={trainee?.phoneMasked || "01012345678"}
               value={phone}
+              aria-invalid={!!phoneErr || undefined}
               onChange={(e) => setPhone(e.target.value)}
             />
+            {phoneErr && (
+              <p role="alert" className="text-11 text-danger">{phoneErr}</p>
+            )}
             {trainee && (
               <p className="text-11 text-ink-3">
                 보안상 원문은 저장 시 암호화돼요 — 비워 두면 변경 없음
@@ -279,7 +290,14 @@ export function TraineeFormDialog({ isOpen, onClose, trainee }: Props) {
           </div>
           <div className="space-y-1.5">
             <Label>이메일</Label>
-            <Input value={email} onChange={(e) => setEmail(e.target.value)} />
+            <Input
+              value={email}
+              aria-invalid={!!emailErr || undefined}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+            {emailErr && (
+              <p role="alert" className="text-11 text-danger">{emailErr}</p>
+            )}
           </div>
         </div>
         {!trainee && (

@@ -1,10 +1,10 @@
 import uuid
 from datetime import datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 
 from app.core.crypto import decrypt_field, mask_phone
-from app.core.validation import NonBlankStr
+from app.core.validation import NonBlankStr, PhoneStr
 
 
 class PassStartRequest(BaseModel):
@@ -90,8 +90,8 @@ class NewTraineeCreate(BaseModel):
     """수동 심사 — 검색·대조로 매칭할 교육생이 없을 때 모달에서 새로 생성해 연결한다."""
 
     name: str
-    phone: str | None = None  # 평문 수신 → 암호화 저장
-    email: str | None = None
+    phone: PhoneStr | None = None  # 숫자·하이픈만 → 숫자만 암호화 저장
+    email: EmailStr | None = None
 
 
 class ReviewApproveRequest(BaseModel):

@@ -1,4 +1,5 @@
 import { toUserMessage } from "@/src/shared/lib/friendly-error";
+import { phoneError } from "@/src/shared/utils/phone";
 import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
@@ -607,14 +608,25 @@ export function TrainingRecordImportDialog({ isOpen, onClose }: Props) {
                           <Label className="text-11 text-ink-3">전화번호</Label>
                           <Input
                             value={addForm.phone}
+                            aria-invalid={!!phoneError(addForm.phone) || undefined}
+                            title={phoneError(addForm.phone) ?? undefined}
                             onChange={(e) => setAddForm((p) => ({ ...p, phone: e.target.value }))}
                           />
+                          {phoneError(addForm.phone) && (
+                            <p role="alert" className="text-11 text-danger">
+                              {phoneError(addForm.phone)}
+                            </p>
+                          )}
                         </div>
                         <Button
                           variant="default"
                           size="sm"
                           className="mb-0.5"
-                          disabled={!addForm.name.trim() || createTraineeMutation.isPending}
+                          disabled={
+                            !addForm.name.trim() ||
+                            !!phoneError(addForm.phone) ||
+                            createTraineeMutation.isPending
+                          }
                           onClick={() =>
                             createTraineeMutation.mutate({ key: d.key, form: addForm })
                           }

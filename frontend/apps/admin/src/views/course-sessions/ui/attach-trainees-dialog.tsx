@@ -1,4 +1,5 @@
 import { toUserMessage } from "@/src/shared/lib/friendly-error";
+import { phoneError } from "@/src/shared/utils/phone";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -534,7 +535,8 @@ export function AttachTraineesDialog({ isOpen, onClose, session }: Props) {
                                   className="shrink-0 rounded-md border border-line px-2 py-0.5 text-11 text-ink-2 transition-colors hover:border-accent hover:text-accent disabled:opacity-45"
                                   disabled={
                                     createMutation.isPending ||
-                                    (draftNames[u.key] ?? u.name ?? "").trim() === ""
+                                    (draftNames[u.key] ?? u.name ?? "").trim() === "" ||
+                                    !!phoneError(draftDetails[u.key]?.phone)
                                   }
                                   onClick={() =>
                                     createMutation.mutate({
@@ -556,8 +558,15 @@ export function AttachTraineesDialog({ isOpen, onClose, session }: Props) {
                           {/* 상세 입력 — 전화번호·생년월일·증번호 */}
                           {detailOpen.has(u.key) && canDirectAdd && !added && (
                             <div className="mt-1 grid grid-cols-1 gap-1.5 pl-11">
+                              {phoneError(draftDetails[u.key]?.phone) && (
+                                <p role="alert" className="text-11 text-danger">
+                                  {phoneError(draftDetails[u.key]?.phone)}
+                                </p>
+                              )}
                               <input
-                                className="h-6 min-w-0 rounded border border-line bg-white px-1.5 text-12"
+                                className={`h-6 min-w-0 rounded border bg-white px-1.5 text-12 ${
+                                  phoneError(draftDetails[u.key]?.phone) ? "border-danger" : "border-line"
+                                }`}
                                 placeholder="전화번호"
                                 value={draftDetails[u.key]?.phone ?? ""}
                                 onChange={(e) =>

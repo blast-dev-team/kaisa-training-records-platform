@@ -6,6 +6,7 @@ import zipfile
 from datetime import date, datetime
 
 import openpyxl
+from fastapi import HTTPException
 from openpyxl.utils.exceptions import InvalidFileException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -14,6 +15,7 @@ from app.core.audit import record_audit
 from app.core.crypto import decrypt_field, encrypt_field, mask_name, name_hash
 from app.core.error_codes import api_error
 from app.core.kst import now_kst, today_kst
+from app.core.validation import PHONE_CHARS_MESSAGE, PHONE_LENGTH_MESSAGE, phone_format_error
 from app.domain.auth.model import AdminUser
 from app.domain.certificate.model import CertificateRequest
 from app.domain.payment.model import PaymentOrder
@@ -517,7 +519,10 @@ async def update_trainees_bulk(
         t.id: t for t in await repo.find_by_ids(db, [item.id for item in data.items])
     }
     updated = skipped = 0
-    for item in data.items:
+    # 사람별 오류(증번호 중복 등)를 모아 한 번에 알린다 — 화면이 해당 줄을 표시한다.
+    # 하나라도 있으면 전체를 저장하지 않는다(일부만 반영 없음)
+    row_errors: list[dict[str, str]] = []
+    for index, item in enumerate(data.items):
         patch: dict = {}
         if item.name is not None and item.name.strip():
             patch["name"] = item.name.strip()
@@ -539,8 +544,29 @@ async def update_trainees_bulk(
         if trainee is None or not patch:
             skipped += 1
             continue
-        await _apply_update(db, trainee, TraineeUpdate(**patch), actor)
+        try:
+            async with db.begin_nested():
+                await _apply_update(db, trainee, TraineeUpdate(**patch), actor)
+        except HTTPException as exc:
+            detail = exc.detail if isinstance(exc.detail, dict) else {}
+            row_errors.append(
+                {
+                    "field": f"body.items.{index}",
+                    "message": detail.get("message") or "저장하지 못했어요",
+                }
+            )
+            continue
         updated += 1
+    if row_errors:
+        await db.rollback()
+        raise HTTPException(
+            status_code=422,
+            detail={
+                "code": "VALIDATION_ERROR",
+                "message": f"{len(row_errors)}명의 정보에 오류가 있어 저장하지 않았어요",
+                "errors": row_errors,
+            },
+        )
     await db.commit()
     return updated, skipped
 
@@ -676,6 +702,21 @@ def _normalize_cell_phone(value) -> str | None:
     return digits
 
 
+def _cell_phone_error(value) -> str | None:
+    """엑셀 전화번호 셀 검증 — 한글·영문 등이 섞였거나 자릿수가 맞지 않으면 문구.
+
+    숫자 서식 셀(선행 0 잘림)은 _normalize_cell_phone 이 0 을 되살린 뒤 자릿수만 본다.
+    """
+    if value is None or (isinstance(value, str) and not value.strip()):
+        return None
+    if isinstance(value, str) and phone_format_error(value) == PHONE_CHARS_MESSAGE:
+        return PHONE_CHARS_MESSAGE
+    digits = _normalize_cell_phone(value)
+    if not digits or not 9 <= len(digits) <= 11:
+        return PHONE_LENGTH_MESSAGE
+    return None
+
+
 def _row_cell(row: tuple, idx: int):
     """행에서 idx 번째 값 — 없으면 None.
 
@@ -769,6 +810,9 @@ def parse_import_file(content: bytes) -> list[TraineeImportRow]:
             and issued is None
         ):
             errors.append("발급일자를 읽을 수 없어요 (예: 2020.05.01)")
+        phone_error = _cell_phone_error(cells["phone"])
+        if phone_error:
+            errors.append(phone_error)
         parsed.append(
             TraineeImportRow(
                 row_number=offset,
