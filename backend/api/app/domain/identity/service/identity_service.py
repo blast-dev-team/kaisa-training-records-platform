@@ -382,6 +382,15 @@ async def _ensure_kaisa_record(db: AsyncSession, trainee: Trainee) -> None:
     await db.flush()
 
 
+def _birth_from_user(user) -> date | None:
+    """users.birth(YYYYMMDD) → date. 없거나 형식이 깨졌으면 None."""
+    raw = (user.birth or "") if user is not None else ""
+    try:
+        return date(int(raw[:4]), int(raw[4:6]), int(raw[6:8])) if len(raw) == 8 else None
+    except ValueError:
+        return None
+
+
 async def kaisa_login(
     db: AsyncSession, body: PassKaisaLoginRequest
 ) -> tuple[PassCompleteResponse, str]:
@@ -629,6 +638,8 @@ async def approve_review(
         new_name_encrypted, new_name_hash_value = name_columns(name)
         trainee = Trainee(
             user_id=review.user_id,
+            # PASS 로 받아 둔 회원 생년월일 — 비우면 이름+생년월일 자동 매칭·중복 판정에서 빠진다
+            birth_date=_birth_from_user(review.user),
             trainee_no=trainee_service.new_trainee_no(),
             name_encrypted=new_name_encrypted,
             name_hash=new_name_hash_value,

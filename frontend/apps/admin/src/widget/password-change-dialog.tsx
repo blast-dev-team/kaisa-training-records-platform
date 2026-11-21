@@ -51,7 +51,7 @@ export function PasswordChangeDialog({ onClose }: { onClose: () => void }) {
     >
       <div className="flex flex-col gap-4 pt-1">
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="current-password">현재 비밀번호</Label>
+          <Label htmlFor="current-password">현재 비밀번호 <span className="text-danger">*</span></Label>
           <Input
             id="current-password"
             type="password"
@@ -61,7 +61,7 @@ export function PasswordChangeDialog({ onClose }: { onClose: () => void }) {
           />
         </div>
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="new-password">새 비밀번호</Label>
+          <Label htmlFor="new-password">새 비밀번호 <span className="text-danger">*</span></Label>
           <Input
             id="new-password"
             type="password"
@@ -75,7 +75,7 @@ export function PasswordChangeDialog({ onClose }: { onClose: () => void }) {
           )}
         </div>
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="confirm-password">새 비밀번호 확인</Label>
+          <Label htmlFor="confirm-password">새 비밀번호 확인 <span className="text-danger">*</span></Label>
           <Input
             id="confirm-password"
             type="password"

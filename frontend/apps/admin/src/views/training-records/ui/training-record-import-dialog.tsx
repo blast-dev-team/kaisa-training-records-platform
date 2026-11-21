@@ -580,7 +580,9 @@ export function TrainingRecordImportDialog({ isOpen, onClose }: Props) {
                     {!d.traineeId && addingKey === d.key && (
                       <div className="ml-10 flex items-end gap-2 rounded-lg border border-line bg-bg p-3">
                         <div className="flex flex-col gap-1">
-                          <Label className="text-11 text-ink-3">성명 *</Label>
+                          <Label className="text-11 text-ink-3">
+                            성명 <span className="text-danger">*</span>
+                          </Label>
                           <Input
                             value={addForm.name}
                             onChange={(e) => setAddForm((p) => ({ ...p, name: e.target.value }))}

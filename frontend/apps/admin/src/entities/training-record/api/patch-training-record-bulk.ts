@@ -13,6 +13,8 @@ export interface TrainingRecordBulkUpdateItem {
   endedAt?: string | null
   /** 이수 시수는 서버가 total_hours 로 함께 맞춘다 */
   totalHours?: number | null
+  /** null = 메모 지움 */
+  memo?: string | null
 }
 
 export const patchTrainingRecordBulk = async (
@@ -26,6 +28,7 @@ export const patchTrainingRecordBulk = async (
       started_at: u.startedAt,
       ended_at: u.endedAt,
       total_hours: u.totalHours,
+      memo: u.memo,
     })),
   })
   return data

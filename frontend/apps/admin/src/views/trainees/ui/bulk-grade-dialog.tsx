@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'react-toastify'
 import { Dialog } from '@/src/shared/ui/dialog'
 import { DateField } from "@/src/shared/ui/date-picker/date-field";
+import { Input } from '@/src/shared/ui/input'
 import { Label } from '@/src/shared/ui/label'
 import { Select } from '@/src/shared/ui/select'
 import {
@@ -26,11 +27,12 @@ interface Props {
   onDone: () => void
 }
 
-/** 선택한 교육생들의 회원등급을 한 등급으로 바꾼다 — 사유 없이 바로 변경(이력 사유 null). */
+/** 선택한 교육생들의 회원등급을 한 등급으로 바꾼다 — 사유(선택)는 건별 변경 이력에 남는다. */
 export function BulkGradeDialog({ isOpen, onClose, trainees, onDone }: Props) {
   const queryClient = useQueryClient()
   const [gradeId, setGradeId] = useState('')
   const [expiresAt, setExpiresAt] = useState('')
+  const [reason, setReason] = useState('')
 
   const { data: grades } = useQuery(membershipGradeQueries.list(true))
   const selectedGrade = (grades ?? []).find((g) => g.id === gradeId)
@@ -40,6 +42,7 @@ export function BulkGradeDialog({ isOpen, onClose, trainees, onDone }: Props) {
     if (isOpen) {
       setGradeId('')
       setExpiresAt(yearsAgoYMD(-1))
+      setReason('')
     }
   }, [isOpen])
 
@@ -49,6 +52,7 @@ export function BulkGradeDialog({ isOpen, onClose, trainees, onDone }: Props) {
         trainee_ids: trainees.map((t) => t.id),
         membership_grade_id: gradeId,
         grade_expires_at: isAnnual ? expiresAt || undefined : undefined,
+        grade_change_reason: reason.trim() || undefined,
       }),
     onSuccess: ({ updated, skipped }) => {
       toast.success(`등급을 변경했어요 — ${updated}명${skipped ? ` (제외 ${skipped}명)` : ''}`)
@@ -81,7 +85,7 @@ export function BulkGradeDialog({ isOpen, onClose, trainees, onDone }: Props) {
     >
       <div className="space-y-4 pt-1">
         <div className="space-y-1.5">
-          <Label>변경할 등급</Label>
+          <Label>변경할 등급 <span className="text-danger">*</span></Label>
           <Select value={gradeId} onChange={(e) => setGradeId(e.target.value)}>
             <option value="">등급 선택</option>
             {(grades ?? []).map((g) => (
@@ -93,13 +97,21 @@ export function BulkGradeDialog({ isOpen, onClose, trainees, onDone }: Props) {
         </div>
         {isAnnual && (
           <div className="space-y-1.5">
-            <Label>만료일</Label>
+            <Label>만료일 <span className="text-danger">*</span></Label>
             <DateField ariaLabel="만료일" value={expiresAt} onChange={setExpiresAt} />
             <p className="text-12 text-ink-3">
               전원에 같은 만료일이 적용돼요 — 만료일이 지나면 자동으로 일반 등급으로 바뀌어요
             </p>
           </div>
         )}
+        <div className="space-y-1.5">
+          <Label>변경 사유</Label>
+          <Input
+            placeholder="선택 — 변경 이력에 남아요 (예: 2026년 연회비 납부)"
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+          />
+        </div>
         {trainees[0] && (
           <p className="text-12 text-ink-3">
             적용 대상: {trainees[0].name}

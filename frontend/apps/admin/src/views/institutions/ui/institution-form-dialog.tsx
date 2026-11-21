@@ -87,7 +87,7 @@ export function InstitutionFormDialog({ isOpen, onClose, institution }: Props) {
     >
       <div className="space-y-4 pt-1">
         <div className="space-y-1.5">
-          <Label>기관명</Label>
+          <Label>기관명 <span className="text-danger">*</span></Label>
           <Input
             placeholder="예: 한국감리협회"
             value={name}

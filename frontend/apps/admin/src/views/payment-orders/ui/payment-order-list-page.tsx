@@ -287,7 +287,7 @@ export function PaymentOrderListPage() {
           <p className="rounded-md bg-bg-2 px-3 py-2 text-12 leading-[1.5] text-ink-3">
             이 결제로 발급된 확인서는 모두 폐기되고, WEB 회원의 결제 내역에는 환불로 표시돼요.
           </p>
-          <Label>환불 사유 (필수)</Label>
+          <Label>환불 사유 <span className="text-danger">*</span></Label>
           <Textarea
             rows={3}
             placeholder="예: 확인서 철회에 따른 환불"

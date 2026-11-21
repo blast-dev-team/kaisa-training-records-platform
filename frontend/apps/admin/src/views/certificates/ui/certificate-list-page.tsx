@@ -302,7 +302,7 @@ export function CertificateListPage() {
         ]}
       >
         <div className="space-y-1.5 pt-1">
-          <Label>환불 사유 (필수)</Label>
+          <Label>환불 사유 <span className="text-danger">*</span></Label>
           <Textarea
             rows={3}
             placeholder="예: 발급 정보 오류 — 정정 후 재발급 예정"

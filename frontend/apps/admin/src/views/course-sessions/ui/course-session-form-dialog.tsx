@@ -159,7 +159,7 @@ export function CourseSessionFormDialog({ isOpen, onClose, session, onCreated }:
     >
       <div className="space-y-3">
         <div className="space-y-1.5">
-          <Label>기관</Label>
+          <Label>기관 <span className="text-danger">*</span></Label>
           <SearchableSelect
             value={institutionId || null}
             onChange={(v, option) => {
@@ -180,7 +180,7 @@ export function CourseSessionFormDialog({ isOpen, onClose, session, onCreated }:
           />
         </div>
         <div className="space-y-1.5">
-          <Label>과정</Label>
+          <Label>과정 <span className="text-danger">*</span></Label>
           <SearchableSelect
             value={courseId || null}
             onChange={(v, option) => {
@@ -202,7 +202,9 @@ export function CourseSessionFormDialog({ isOpen, onClose, session, onCreated }:
         </div>
         <div className="grid grid-cols-2 gap-2">
           <div className="space-y-1.5">
-            <Label>시작일 *</Label>
+            <Label>
+              시작일 <span className="text-danger">*</span>
+            </Label>
             <DateField
               ariaLabel="시작일"
               value={startedAt ?? ""}
@@ -215,7 +217,9 @@ export function CourseSessionFormDialog({ isOpen, onClose, session, onCreated }:
             />
           </div>
           <div className="space-y-1.5">
-            <Label>종료일 *</Label>
+            <Label>
+              종료일 <span className="text-danger">*</span>
+            </Label>
             <DateField
               ariaLabel="종료일"
               value={endedAt ?? ""}
@@ -239,7 +243,9 @@ export function CourseSessionFormDialog({ isOpen, onClose, session, onCreated }:
         )}
         <div className="grid grid-cols-2 gap-2">
           <div className="space-y-1.5">
-            <Label>총 시수 *</Label>
+            <Label>
+              총 시수 <span className="text-danger">*</span>
+            </Label>
             <Input
               type="number"
               min={0}
@@ -285,7 +291,8 @@ export function CourseSessionFormDialog({ isOpen, onClose, session, onCreated }:
             외부 교육
           </div>
           <span className="text-11 text-ink-3">
-            (과정의 기관 구분에 따라 자동으로 정해져요 — 바꾸려면 기관 · 과정에서 기관 구분을 수정하세요)
+            (과정의 기관 구분에 따라 자동으로 정해져요 — 바꾸려면 기관 · 과정에서 기관 구분을
+            수정하세요)
           </span>
         </label>
         <label className="flex items-center gap-2 text-13 text-ink-2">

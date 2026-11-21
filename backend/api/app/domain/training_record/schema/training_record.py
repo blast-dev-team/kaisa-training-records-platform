@@ -170,6 +170,8 @@ class TrainingRecordBulkUpdateItem(BaseModel):
     started_at: date | None = None
     ended_at: date | None = None
     total_hours: Hours | None = None
+    # 메모 — null 이면 지운다
+    memo: str | None = None
 
     @model_validator(mode="after")
     def _not_null(self):

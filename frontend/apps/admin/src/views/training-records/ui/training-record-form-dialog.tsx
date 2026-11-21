@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { hoursError, isValidHours } from "@/src/shared/utils/hours";
 import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
+import { ApiError } from "@/src/shared/api";
 import { Button } from "@/src/shared/ui/button";
 import {
   DuplicateCancelledError,
@@ -64,18 +65,25 @@ const institutionFetcher = fetchOptions("/institutions", { is_active: true }, (i
   meta: { institutionType: (i.institution_type as string | null) ?? null },
 }));
 
+/** 여러 명 등록에서 실패한 감리원 — 저장 후 이름과 사유를 한 번에 알린다 */
+interface RegisterFailure {
+  name: string;
+  reason: string;
+}
+
 /** 저장 시 만들 새 과정의 자리표시 id — 서버로 보내지 않는다 */
 const NEW_COURSE_ID = "__new_course__";
 
-export function TrainingRecordFormDialog({
-  isOpen,
-  onClose,
-  record,
-  presetTrainee,
-}: Props) {
+export function TrainingRecordFormDialog({ isOpen, onClose, record, presetTrainee }: Props) {
   const queryClient = useQueryClient();
 
-  const [trainee, setTrainee] = useState<TraineeEntity | null>(null);
+  // 등록은 여러 감리원을 골라 같은 내역을 한 번에 만들 수 있다 — 수정은 해당 이력의 감리원 1명
+  const [trainees, setTrainees] = useState<TraineeEntity[]>([]);
+  /** 한 명만 골랐을 때의 감리원 — 외부교육 한도 미리보기·중복 확인 창은 1명일 때만 쓴다 */
+  const singleTrainee = trainees.length === 1 ? trainees[0]! : null;
+  const isSelected = (id: string) => trainees.some((t) => t.id === id);
+  const toggleTrainee = (t: TraineeEntity) =>
+    setTrainees((prev) => (prev.some((p) => p.id === t.id) ? prev.filter((p) => p.id !== t.id) : [...prev, t]));
   const [traineeSearch, setTraineeSearch] = useState("");
   const [traineeQuery, setTraineeQuery] = useState<string | null>(null);
   // 검색 결과가 없을 때 그 자리에서 교육생을 새로 만든다
@@ -113,7 +121,7 @@ export function TrainingRecordFormDialog({
       getTraineeList({ q: debouncedTraineeSearch || undefined, page: pageParam, limit: 20 }),
     initialPageParam: 1,
     getNextPageParam: (last) => (last.page < last.totalPages ? last.page + 1 : undefined),
-    enabled: traineeDropdownOpen && !record && !trainee,
+    enabled: traineeDropdownOpen && !record,
   });
   const traineeOptions = traineeListQuery.data?.pages.flatMap((p) => p.items) ?? [];
 
@@ -140,7 +148,8 @@ export function TrainingRecordFormDialog({
       ),
     onSuccess: (created) => {
       toast.success(`교육생을 등록했어요 — ${created.name}`);
-      setTrainee(created);
+      setTrainees((prev) => [...prev, created]);
+      setTraineeSearch("");
       setCreatingTrainee(false);
       setTraineeQuery(null);
       queryClient.invalidateQueries({ queryKey: traineeQueries.all() });
@@ -188,15 +197,15 @@ export function TrainingRecordFormDialog({
     setCreatedCourseId(null);
     setPendingCourseName(null);
     if (record) {
-      setTrainee(
+      setTrainees(
         record.traineeId
-          ? {
+          ? [{
               id: record.traineeId,
               traineeNo: record.traineeNo ?? "",
               certNo: null,
               supervisorGrade: null,
-    seniorCertNo: null,
-    seniorCertIssuedDate: null,
+              seniorCertNo: null,
+              seniorCertIssuedDate: null,
               name: record.traineeName ?? "",
               birthDate: null,
               phoneMasked: "",
@@ -209,8 +218,8 @@ export function TrainingRecordFormDialog({
               memo: null,
               createdAt: "",
               updatedAt: "",
-            }
-          : null,
+            }]
+          : [],
       );
       setInstitutionId(record.institutionId ?? "");
       setInstitutionLabel(record.institutionName ?? "");
@@ -233,7 +242,7 @@ export function TrainingRecordFormDialog({
         });
       }
     } else {
-      setTrainee(presetTrainee ?? null);
+      setTrainees(presetTrainee ? [presetTrainee] : []);
       setInstitutionId("");
       setInstitutionLabel(null);
       setInstitutionType(undefined);
@@ -291,9 +300,10 @@ export function TrainingRecordFormDialog({
         "/courses",
         institutionId ? { institution_id: institutionId, is_active: true } : { is_active: true },
         (c) => ({
-        value: c.id as string,
-        label: c.name as string,
-      })),
+          value: c.id as string,
+          label: c.name as string,
+        }),
+      ),
     [institutionId],
   );
 
@@ -321,7 +331,6 @@ export function TrainingRecordFormDialog({
         queryClient.invalidateQueries({ queryKey: ["courses"] });
       }
       const input = {
-        trainee_id: trainee!.id,
         course_id: finalCourseId || null,
         institution_id: institutionId || null,
         total_hours: Number(totalHours),
@@ -331,15 +340,59 @@ export function TrainingRecordFormDialog({
         completion_status: completionStatus,
         memo: memo.trim() || null,
       };
-      if (record) return patchTrainingRecord(record.id, input);
-      return dupConfirm.withConfirm((allowDuplicate) =>
-        postTrainingRecord({ ...input, allow_duplicate: allowDuplicate }),
-      );
+      if (record) {
+        await patchTrainingRecord(record.id, { trainee_id: trainees[0]!.id, ...input });
+        return { created: 0, failed: [] as RegisterFailure[] };
+      }
+      if (singleTrainee) {
+        // 1명 — 중복이면 확인 창을 띄우고 확인하면 강제 등록(기존 흐름)
+        await dupConfirm.withConfirm((allowDuplicate) =>
+          postTrainingRecord({ trainee_id: singleTrainee.id, ...input, allow_duplicate: allowDuplicate }),
+        );
+        return { created: 1, failed: [] as RegisterFailure[] };
+      }
+      // 여러 명 — 감리원마다 등록하고, 실패(중복·외부교육 한도 등)는 이름과 사유를 모아 알린다.
+      // 확인 창을 감리원마다 띄우면 누구 건인지 알 수 없어 중복은 건너뛴다
+      const failed: RegisterFailure[] = [];
+      let created = 0;
+      for (const t of trainees) {
+        try {
+          await postTrainingRecord({ trainee_id: t.id, ...input });
+          created += 1;
+        } catch (e) {
+          failed.push({
+            name: t.name,
+            reason:
+              e instanceof ApiError && e.code === "DUPLICATE_TRAINING_RECORD"
+                ? "이미 같은 교육내역이 있어요"
+                : toUserMessage(e),
+          });
+        }
+      }
+      return { created, failed };
     },
-    onSuccess: () => {
-      toast.success(record ? "내역을 수정했어요" : "내역을 등록했어요");
-      queryClient.invalidateQueries({ queryKey: trainingRecordQueries.all() });
-      onClose();
+    onSuccess: ({ created, failed }) => {
+      if (created > 0 || record) {
+        queryClient.invalidateQueries({ queryKey: trainingRecordQueries.all() });
+      }
+      if (record) {
+        toast.success("내역을 수정했어요");
+        onClose();
+        return;
+      }
+      const failedText = failed.map((f) => `${f.name}(${f.reason})`).join(", ");
+      if (failed.length === 0) {
+        toast.success(created > 1 ? `내역을 ${created}명 등록했어요` : "내역을 등록했어요");
+        onClose();
+      } else if (created > 0) {
+        // 일부 성공 — 다시 저장하면 성공한 감리원이 중복되므로 창을 닫고 실패 건을 알린다
+        toast.warning(`${created}명 등록, ${failed.length}명은 등록하지 못했어요 — ${failedText}`, {
+          autoClose: false,
+        });
+        onClose();
+      } else {
+        toast.error(`등록하지 못했어요 — ${failedText}`);
+      }
     },
     onError: (e: Error) => {
       if (e instanceof DuplicateCancelledError) return;
@@ -349,7 +402,7 @@ export function TrainingRecordFormDialog({
 
   // 외부교육 최근 3년 한도(16시간) — 서버가 최종 판정하고, 여기선 저장 전에 미리 막는다
   const externalCap = useExternalCap({
-    traineeId: trainee?.id ?? null,
+    traineeId: singleTrainee?.id ?? null,
     institutionType,
     startedAt,
     totalHours,
@@ -369,7 +422,7 @@ export function TrainingRecordFormDialog({
   });
   const canSubmit = useMemo(
     () =>
-      !!trainee &&
+      trainees.length > 0 &&
       !!institutionId &&
       !!courseId &&
       // 수강 기간 필수 — 기간 없는 이력은 확인서 발급이 잠기고 외부교육 한도 검사에서 빠진다
@@ -378,7 +431,16 @@ export function TrainingRecordFormDialog({
       hoursValid &&
       !mutation.isPending &&
       !externalBlocked,
-    [trainee, institutionId, courseId, startedAt, endedAt, hoursValid, mutation.isPending, externalBlocked],
+    [
+      trainees.length,
+      institutionId,
+      courseId,
+      startedAt,
+      endedAt,
+      hoursValid,
+      mutation.isPending,
+      externalBlocked,
+    ],
   );
 
   return (
@@ -395,7 +457,7 @@ export function TrainingRecordFormDialog({
       actions={[
         { label: "취소", onClick: onClose },
         {
-          label: record ? "수정" : "등록",
+          label: record ? "수정" : trainees.length > 1 ? `${trainees.length}명 등록` : "등록",
           variant: "primary",
           isLoading: mutation.isPending,
           isDisabled: !canSubmit,
@@ -408,24 +470,39 @@ export function TrainingRecordFormDialog({
       <div className="space-y-4 pt-1">
         {/* 감리원 — 수정 시 고정 */}
         <div className="space-y-1.5">
-          <Label>감리원</Label>
+          <Label>감리원 <span className="text-danger">*</span></Label>
           {record ? (
             <p className="rounded-md border border-line bg-panel-2 px-3 py-2 text-13 text-ink">
-              {trainee?.certNo} {trainee?.name}
+              {trainees[0]?.certNo} {trainees[0]?.name}
             </p>
-          ) : trainee ? (
-            <div className="flex items-center justify-between rounded-md border border-accent-soft bg-accent-soft px-3 py-2">
-              <span className="text-13 text-accent-ink">
-                {trainee.certNo} · {trainee.name} · {trainee.phoneMasked}
-              </span>
-              <Button variant="ghost" size="sm" onClick={() => setTrainee(null)}>
-                변경
-              </Button>
-            </div>
           ) : (
+            <>
+            {trainees.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {trainees.map((t) => (
+                  <span
+                    key={t.id}
+                    className="inline-flex items-center gap-1 rounded-md border border-accent-soft bg-accent-soft px-2 py-1 text-12 text-accent-ink"
+                  >
+                    {t.name}
+                    {(t.seniorCertNo ?? t.certNo) && (
+                      <span className="text-ink-3">{t.seniorCertNo ?? t.certNo}</span>
+                    )}
+                    <button
+                      type="button"
+                      aria-label={`${t.name} 선택 해제`}
+                      className="ml-0.5 text-ink-3 hover:text-ink"
+                      onClick={() => toggleTrainee(t)}
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
             <div ref={traineeDropdownRef} className="relative">
               <SearchInput
-                placeholder="클릭해서 성명(전체)으로 검색 · 선택"
+                placeholder="클릭해서 성명으로 검색 · 여러 명 선택 가능"
                 value={traineeSearch}
                 onChange={(e) => {
                   setTraineeSearch(e.target.value);
@@ -469,13 +546,23 @@ export function TrainingRecordFormDialog({
                         <button
                           key={t.id}
                           type="button"
-                          className="block w-full px-3 py-2 text-left text-13 hover:bg-panel-2"
+                          aria-pressed={isSelected(t.id)}
+                          className={`flex w-full items-center gap-2 px-3 py-2 text-left text-13 hover:bg-panel-2 ${
+                            isSelected(t.id) ? "bg-accent-soft/60" : ""
+                          }`}
+                          // 여러 명을 이어서 고를 수 있게 목록을 닫지 않는다 — 다시 누르면 선택 해제
                           onClick={() => {
-                            setTrainee(t);
+                            toggleTrainee(t);
                             setTraineeQuery(null);
-                            setTraineeDropdownOpen(false);
                           }}
                         >
+                          <input
+                            type="checkbox"
+                            readOnly
+                            tabIndex={-1}
+                            checked={isSelected(t.id)}
+                            className="size-4 accent-[--color-accent] pointer-events-none"
+                          />
                           <span className="font-medium text-ink">{t.name}</span>
                           <span className="ml-2 text-ink-3">
                             {t.seniorCertNo ?? t.certNo ?? t.traineeNo} · {t.phoneMasked}
@@ -520,12 +607,19 @@ export function TrainingRecordFormDialog({
                 </div>
               )}
             </div>
+            {trainees.length > 1 && (
+              <p className="text-11 text-ink-3">
+                {trainees.length}명에게 같은 내역을 등록해요. 이미 같은 내역이 있거나 외부교육 한도를
+                넘는 감리원은 저장할 때 제외하고 알려 드려요
+              </p>
+            )}
+            </>
           )}
         </div>
 
         {/* 기관·과정 — 마스터 드롭다운, 없는 값은 그 자리에서 생성해 마스터와 연동 */}
         <div className="space-y-1.5">
-          <Label>기관</Label>
+          <Label>기관 <span className="text-danger">*</span></Label>
           <SearchableSelect
             value={institutionId || null}
             onChange={handleInstitutionChange}
@@ -539,7 +633,7 @@ export function TrainingRecordFormDialog({
           />
         </div>
         <div className="space-y-1.5">
-          <Label>과정</Label>
+          <Label>과정 <span className="text-danger">*</span></Label>
           <SearchableSelect
             value={courseId || null}
             onChange={handleCourseChange}
@@ -565,7 +659,9 @@ export function TrainingRecordFormDialog({
 
         <div className="grid grid-cols-2 gap-2">
           <div className="space-y-1.5">
-            <Label>시작일 *</Label>
+            <Label>
+              시작일 <span className="text-danger">*</span>
+            </Label>
             <DateField
               ariaLabel="시작일"
               value={startedAt}
@@ -577,7 +673,9 @@ export function TrainingRecordFormDialog({
             />
           </div>
           <div className="space-y-1.5">
-            <Label>종료일 *</Label>
+            <Label>
+              종료일 <span className="text-danger">*</span>
+            </Label>
             <DateField
               ariaLabel="종료일"
               value={endedAt}
@@ -600,7 +698,9 @@ export function TrainingRecordFormDialog({
         )}
 
         <div className="space-y-1.5">
-          <Label>총 시수</Label>
+          <Label>
+            총 시수 <span className="text-danger">*</span>
+          </Label>
           <Input
             type="number"
             min={0}
@@ -612,7 +712,9 @@ export function TrainingRecordFormDialog({
             }}
           />
           {totalHoursError ? (
-            <p role="alert" className="text-11 text-danger">{totalHoursError}</p>
+            <p role="alert" className="text-11 text-danger">
+              {totalHoursError}
+            </p>
           ) : (
             <p className="text-11 text-ink-3">입력한 총 시수가 이수 시수로 인정돼요</p>
           )}

@@ -121,7 +121,7 @@ function InquiryDetailBody({ detail, onClose }: { detail: InquiryDetail; onClose
 
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="inquiry-answer">
-            답변{" "}
+            답변 <span className="text-danger">*</span>{" "}
             {isAnswered && detail.answeredAt && (
               <span className="font-normal text-ink-3">
                 · 마지막 답변 {detail.answeredByName ?? "-"} {formatDateTime(detail.answeredAt)}

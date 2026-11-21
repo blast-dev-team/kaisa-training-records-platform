@@ -360,6 +360,10 @@ async def create_allowed_email(
     """초대 — 화이트리스트 등록 + 1회용 가입 코드 발급. 평문 코드는 반환값으로만 나간다."""
     if await repo.find_allowed_email_by_email(db, data.email):
         raise api_error("DUPLICATE_EMAIL")
+    # 이미 관리자 계정이 있는 이메일 — 초대해도 가입이 DUPLICATE_EMAIL 로 막혀 쓸 수 없는 코드만 남는다
+    # (초대 내역을 지운 뒤 같은 사람을 다시 초대하거나, 최초 총관리자 이메일을 초대하는 경우)
+    if await repo.find_admin_by_email(db, data.email):
+        raise api_error("DUPLICATE_EMAIL", message="이미 관리자 계정이 있는 이메일이에요")
     row = AdminAllowedEmail(
         email=data.email.lower(),
         note=data.note,

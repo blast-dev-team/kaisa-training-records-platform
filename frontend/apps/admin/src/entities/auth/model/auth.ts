@@ -16,6 +16,8 @@ export interface LoginInput {
 export interface RegisterInput {
   email: string
   password: string
+  /** 관리자 이름 — 헤더·감사로그에 표시 */
+  name: string
   /** super 가 초대할 때 발급한 1회용 코드 (XXXX-XXXX-XXXX) */
   inviteCode: string
 }

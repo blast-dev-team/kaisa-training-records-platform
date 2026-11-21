@@ -3,7 +3,7 @@ import { USE_MOCK, mockDelay } from '@/src/shared/api/mock'
 import type { TraineeBulkGradeInput, TraineeBulkResult } from '../model/trainee'
 import { findTrainee, MOCK_GRADES } from './trainee-mock'
 
-/** 선택 교육생 회원등급 일괄 변경 — 사유 없이 변경(이력 사유 null). 이미 같은 등급은 skipped. */
+/** 선택 교육생 회원등급 일괄 변경 — 사유(선택)는 건별 등급 이력에 남는다. 이미 같은 등급은 skipped. */
 export const postTraineeBulkGrade = async (
   input: TraineeBulkGradeInput,
 ): Promise<TraineeBulkResult> => {

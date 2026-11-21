@@ -20,6 +20,7 @@ export function LoginPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [inviteCode, setInviteCode] = useState("");
+  const [name, setName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   // 차단된 계정으로 요청하다 튕겨 온 경우(?reason=disabled) — 이유를 알려 준다
   const [error, setError] = useState<string | null>(() =>
@@ -82,7 +83,16 @@ export function LoginPage() {
         setError("관리자에게 받은 초대 코드를 입력해 주세요");
         return;
       }
-      registerMutation.mutate({ email: email.trim(), password, inviteCode: inviteCode.trim() });
+      if (!name.trim()) {
+        setError("이름을 입력해 주세요");
+        return;
+      }
+      registerMutation.mutate({
+        email: email.trim(),
+        password,
+        name: name.trim(),
+        inviteCode: inviteCode.trim(),
+      });
     } else {
       loginMutation.mutate({ email: email.trim(), password });
     }
@@ -92,6 +102,7 @@ export function LoginPage() {
     setMode(next);
     setConfirmPassword("");
     setInviteCode("");
+    setName("");
     setShowPassword(false);
     setError(null);
     setNotice(null);
@@ -134,7 +145,7 @@ export function LoginPage() {
 
           <form onSubmit={handleSubmit} noValidate className="mt-6 space-y-4">
             <div className="space-y-1.5">
-              <Label htmlFor="email">이메일</Label>
+              <Label htmlFor="email">이메일 <span className="text-danger">*</span></Label>
               <Input
                 id="email"
                 type="email"
@@ -145,7 +156,7 @@ export function LoginPage() {
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="password">비밀번호</Label>
+              <Label htmlFor="password">비밀번호 <span className="text-danger">*</span></Label>
               <div className="relative">
                 <Input
                   id="password"
@@ -168,7 +179,20 @@ export function LoginPage() {
             </div>
             {mode === "register" && (
               <div className="space-y-1.5">
-                <Label htmlFor="invite-code">초대 코드</Label>
+                <Label htmlFor="admin-name">이름 <span className="text-danger">*</span></Label>
+                <Input
+                  id="admin-name"
+                  autoComplete="name"
+                  placeholder="홍길동"
+                  maxLength={100}
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+              </div>
+            )}
+            {mode === "register" && (
+              <div className="space-y-1.5">
+                <Label htmlFor="invite-code">초대 코드 <span className="text-danger">*</span></Label>
                 <Input
                   id="invite-code"
                   autoComplete="one-time-code"
@@ -180,7 +204,7 @@ export function LoginPage() {
             )}
             {mode === "register" && (
               <div className="space-y-1.5">
-                <Label htmlFor="confirm-password">비밀번호 확인</Label>
+                <Label htmlFor="confirm-password">비밀번호 확인 <span className="text-danger">*</span></Label>
                 <div className="relative">
                   <Input
                     id="confirm-password"
